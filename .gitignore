@@ -1,0 +1,17 @@
+# Imágenes scrapeadas: cientos de MB que se regeneran con
+#   python scraper_projects.py
+# No tiene sentido versionarlas. Si se quieren en el repo, borrar esta línea.
+imagenes_proyectos/
+
+# `proyectos_model.json`, `historial_simulado.json` y `clientes_simulados.json`
+# SÍ se versionan: son lo que hace que `recomendar()` funcione recién clonado,
+# sin tener que scrapear y entrenar primero. Pesan ~4,5 MB entre los tres.
+
+# Salidas de una consulta concreta: cambian en cada llamada.
+proyectos_listos_llamativos.json
+respuesta.json
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
