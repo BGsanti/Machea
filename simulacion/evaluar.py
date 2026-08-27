@@ -14,9 +14,10 @@ Cómo se mide, sin hacer trampa:
    que produjo el historial. Esa utilidad incluye el **atractivo latente**, una
    señal que el recomendador no puede deducir de `proyectos_model.json`: solo
    puede aprenderla de las interacciones de otros clientes parecidos.
-3. Se le pide al recomendador su Top 6 y se mira si la compra está ahí.
+3. Se le piden al recomendador sus primeras `TOP_N_EVALUACION` posiciones y
+   se mira si la compra está ahí.
 
-    recall@6 = compras que el Top 6 acertó / compras totales
+    recall@N = compras que el top acertó / compras totales
 
 Como el atractivo latente es lo único que separa a los dos modos, la
 diferencia de recall es exactamente lo que aporta el historial.
@@ -48,13 +49,18 @@ from generar_historial import (  # noqa: E402
 from modelo import (  # noqa: E402
     RUTA_HISTORIAL,
     RUTA_MODELO,
-    TOP_N,
     _cargar_proyectos,
     modelo,
     primer_filtro,
 )
 
 import generar_clientes  # noqa: E402
+
+# La ventana del recall NO sigue a `modelo.TOP_N`. Esto es un instrumento de
+# calibración: los números que fijaron K_VECINOS y ALPHA_HISTORIAL se midieron
+# sobre 6 posiciones, y si la ventana se moviera con el producto dejarían de
+# ser comparables. Para medir la lista que se entrega hoy: `--top 18`.
+TOP_N_EVALUACION = 6
 
 CLIENTES_PRUEBA = 300
 SEMILLA_PRUEBA = 20261231
@@ -75,7 +81,7 @@ def _clientes_de_prueba(cantidad, semilla, ruta_modelo):
 
 
 def evaluar(cantidad=CLIENTES_PRUEBA, semilla=SEMILLA_PRUEBA, ruta_modelo=RUTA_MODELO,
-            ruta_historial=RUTA_HISTORIAL, top_n=TOP_N, verbose=True):
+            ruta_historial=RUTA_HISTORIAL, top_n=TOP_N_EVALUACION, verbose=True):
     """Compara recall@N con y sin historial. Devuelve el resumen como dict."""
     proyectos = _cargar_proyectos(ruta_modelo)
     atractivo = atractivo_latente(proyectos)
@@ -147,7 +153,8 @@ def main():
     parser.add_argument("--semilla", type=int, default=SEMILLA_PRUEBA)
     parser.add_argument("--modelo", default=RUTA_MODELO)
     parser.add_argument("--historial", default=RUTA_HISTORIAL)
-    parser.add_argument("--top", type=int, default=TOP_N)
+    parser.add_argument("--top", type=int, default=TOP_N_EVALUACION,
+                        help="Posiciones sobre las que se mide el recall.")
     args = parser.parse_args()
     evaluar(cantidad=args.clientes_prueba, semilla=args.semilla, ruta_modelo=args.modelo,
             ruta_historial=args.historial, top_n=args.top)

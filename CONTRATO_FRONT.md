@@ -7,7 +7,7 @@ devuelve.
 
 ## 1. El formulario mínimo
 
-**Seis preguntas.** Con eso el modelo ya calcula el score y devuelve el Top 6.
+**Seis preguntas.** Con eso el modelo ya calcula el score y devuelve el Top 18.
 Todo lo demás es opcional.
 
 | # | Pregunta al usuario | Campo | Valor que se envía |
@@ -202,7 +202,7 @@ También se acepta un solo string con los nombres separados por comas
 
 | Campo | Para la vista |
 |---|---|
-| `compatibilidad_texto` | **Esto es lo que se muestra** ("86%"). Va de 62 % a 98 %. |
+| `compatibilidad_texto` | **Esto es lo que se muestra** ("86%"). El primero nunca baja de 85 %; el resto cae libre según su score. **Nunca se repite dos veces en la misma respuesta**: si dos coinciden, el más barato se queda con el porcentaje alto. |
 | `score` | El valor crudo del modelo (0–1). Para depurar, **no para mostrar**. |
 | `zonas_en_comun` | Las amenidades que el usuario pidió Y el proyecto tiene. Ideal para resaltarlas. |
 | `cumple_habitaciones` | Si es `false`, el proyecto entró relajando el requisito: conviene avisarlo. |

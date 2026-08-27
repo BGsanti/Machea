@@ -1,8 +1,8 @@
 # Machea — guía técnica
 
 Recomendador de proyectos de vivienda en Bogotá D.C. Recibe el formulario de
-un usuario y devuelve los 6 proyectos más compatibles, con un porcentaje de
-compatibilidad listo para mostrar.
+un usuario y devuelve los 18 proyectos más compatibles (`TOP_N`), cada uno
+con un porcentaje de compatibilidad listo para mostrar.
 
 Hoy el repo tiene tres capas: el **motor** (Python), una **capa HTTP**
 (`api.py`, FastAPI) y la **landing** de GO FEST (`web/`, React + Vite) que
@@ -45,7 +45,7 @@ mínimo que espera el modelo, [CONTRATO_FRONT.md](CONTRATO_FRONT.md).
                                      modelo()
                           NearestNeighbors contenido + colaborativo
                                          |
-                              proyectos_seleccionados (Top 6)
+                            proyectos_seleccionados (Top TOP_N)
                                          |
                                   post_arreglos()
                           score -> porcentaje de compatibilidad
@@ -79,7 +79,7 @@ Y la capa que lo expone al mundo:
 | `generar_historial.py` | Convierte los clientes simulados en el historial de interacciones. |
 | `simulacion/arquetipos.py` | Los 10 arquetipos de comprador. |
 | `simulacion/generar_clientes.py` | 100 variaciones por arquetipo → 1.000 clientes. |
-| `simulacion/evaluar.py` | Mide recall@6 con y sin historial contra clientes no vistos. |
+| `simulacion/evaluar.py` | Mide el recall del top con y sin historial contra clientes no vistos. |
 
 El entrenamiento entra por la izquierda del diagrama:
 
@@ -356,7 +356,7 @@ Cuando el proyecto no publica amenidades, `_cobertura_zonas` no vale 0 —eso
 afirmaría que no tiene ninguna— sino `COBERTURA_ZONAS_SIN_DATO` (0,35):
 deliberadamente por debajo de una coincidencia parcial real.
 
-Si salen menos de `MINIMO_PRESELECCIONADOS = 10`, se relaja en dos ejes, en
+Si salen menos de `MINIMO_PRESELECCIONADOS = 30`, se relaja en dos ejes, en
 este orden:
 
 1. **Geográfico primero**: BFS sobre el grafo (§3.3), completando cada nivel.
@@ -445,38 +445,71 @@ formulario y no se usaba para nada.
 
 **El score ordena dentro de cada tramo de prioridad, nunca entre tramos.** Lo
 que cumple todos los requisitos va primero; lo admitido relajando zonas o
-habitaciones va después, por mucho score que saque. Devuelve el Top 6.
+habitaciones va después, por mucho score que saque. Devuelve el Top `TOP_N`.
+
+**`TOP_N = 18`, y `MINIMO_PRESELECCIONADOS` tiene que seguir por encima.** Si
+el filtro entregara exactamente 18 candidatos, el Nearest Neighbors no
+elegiría nada —devolvería el filtro entero— y el score dejaría de ordenar; por
+eso el mínimo es 30, ~1,7× el tamaño del top, la misma proporción que había
+con Top 6. `recomendar()` además pide `max(MINIMO_PRESELECCIONADOS, top_n)`,
+para que un `--top` grande no devuelva una lista corta. El techo real es el
+tipo de vivienda, que nunca se relaja: 58 proyectos VIS y 38 No VIS.
 
 ### 4.4 `post_arreglos` — el porcentaje comercial
 
 El score crudo (0,68) no se le muestra a nadie. Se convierte en porcentaje de
-compatibilidad:
+compatibilidad en **dos capas**, y el orden entre ellas importa.
 
-- El primero recibe un valor aleatorio entre **85 % y 98 %**.
-- Los siguientes bajan proporcionalmente a su diferencia real de score:
-  `ESCALA_CAIDA = 110` puntos por cada 100 % de caída relativa, calibrado
-  sobre el criterio "el segundo, ligeramente menos compatible, queda ~5 puntos
-  abajo".
-- `SPAN_MAXIMO = 22` recorta la escala si la dispersión de esa consulta se
-  saldría del rango, **conservando las proporciones**. Sin esto la constante
-  solo serviría para un régimen: con historial los scores se separan mucho más
-  que con solo contenido y el último caería al piso siempre.
-- `PORCENTAJE_PISO = 62` y `PASO_MINIMO = 1` evitan el sótano y los empates
-  visuales.
+**Capa 1 — normalización encadenada.** El primero muestra su propio score como
+porcentaje, elevado a `PORCENTAJE_TOP_MINIMO = 85` si se queda corto: quien
+abre la lista es lo mejor que hay para esa persona y no puede presentarse con
+un 60 %. De ahí hacia abajo, cada proyecto resta **los puntos de score que lo
+separan del inmediatamente anterior**, no del líder:
 
-**Ningún porcentaje se repite, y el empate lo rompe el precio.** Dos proyectos
-con scores parecidos redondean al mismo número —dos 86 %— y mostrar el mismo
-porcentaje dos veces deja al usuario sin criterio para elegir. Antes de
-separarlos hay que decidir cuál merece el número alto, y ese desempate lo gana
-**la vivienda más barata**: entre dos que el modelo ve igual de compatibles,
-la más barata es la mejor oferta. La otra baja un punto (86 % y 85 %), y si
-son tres, 86 · 85 · 84.
+```
+pct[1] = max(score[1] × 100, 85)
+pct[i] = pct[i-1] − (score[i-1] − score[i]) × 100
+```
+
+Como la cadena arranca en el score del líder, el resultado es que **el
+porcentaje de cada uno es su propio score**, desplazado por lo que se haya
+elevado el líder. La resta se acota en 0: un proyecto admitido relajando
+requisitos puede traer score bruto mayor y aun así ir detrás (invariante 4),
+y ahí el porcentaje se queda quieto en vez de subir.
+
+**En caída libre, sin piso.** Sobre el catálogo actual el último de los 18
+aterriza entre 2 % y 64 %, con mediana 45 %. Comprimir la escala para que no
+baje tanto obligaría a mentir sobre el encaje del final de la lista; un 27 %
+dice la verdad y sigue siendo información útil.
+
+**Capa 2 — el empate lo rompe el precio.** La capa 1 produce empates *a
+propósito*: dos scores parecidos redondean al mismo número. Y ningún proyecto
+puede mostrar el mismo porcentaje que otro —dos 84 % dejan al usuario sin
+criterio para elegir—. Entre los empatados se queda con el número alto **el
+más barato**: entre dos que el modelo ve igual de compatibles, la vivienda más
+barata es la mejor oferta. El resto baja de a un punto (`PASO_MINIMO = 1`).
+
+```
+85 · 84 · 84   ->   85 · 84 · 83
+                         ^    ^
+                         |    el otro
+                         el más barato de los dos empatados
+```
 
 `_desempatar_por_precio` reordena solo **dentro del mismo tramo de
 `_prioridad_filtro`**: un proyecto admitido relajando requisitos no adelanta a
 uno que cumple todo por ser más barato (invariante 4). Un proyecto que no
 publica precio se va al final de su grupo de empate, no al principio: sin
 precio no puede reclamar ser la mejor oferta.
+
+El último puesto tiene reservado un punto por cada uno de los que van detrás
+suyo, de modo que el de más abajo pueda aterrizar en 0 sin que dos choquen
+contra el suelo y terminen mostrando el mismo número. Es una garantía
+mecánica de que no haya repetidos, no un piso comercial.
+
+**`post_arreglos` ya no tiene nada aleatorio.** El parámetro `semilla` se
+sigue aceptando por compatibilidad con la CLI y con `recomendar()`, pero no
+hace nada: el mismo formulario da siempre el mismo porcentaje.
 
 ---
 
@@ -531,6 +564,29 @@ posición media del acierto   :   2.68
 Es la misma evaluación que destapó el K mal calibrado (§4.3). Conviene
 correrla después de cada cambio del catálogo o de la simulación: si la mejora
 se vuelve negativa, el historial está desactualizado.
+
+**La ventana del recall está fijada en 6 y no sigue a `TOP_N`.**
+`TOP_N_EVALUACION = 6` vive en `evaluar.py` a propósito: los números que
+calibraron `K_VECINOS` y `ALPHA_HISTORIAL` se midieron sobre 6 posiciones, y
+si la ventana se moviera con el producto dejarían de ser comparables. Para
+medir la lista que se entrega hoy, `--top 18`.
+
+**Cuidado al comparar entre configuraciones distintas:** la evaluación sortea
+la compra *dentro del pool de candidatos*, así que un pool más grande hace la
+tarea más difícil por construcción y los recalls de dos pools distintos no se
+pueden poner lado a lado. Lo comparable es la proporción entregada. Medido
+sobre 300 clientes de prueba:
+
+| Configuración | Entregado | recall contenido | con historial |
+|---|---|---:|---:|
+| Top 6 sobre pool ≥10 (antes) | 60 % del pool | 67,3 % | 73,0 % |
+| **Top 18 sobre pool ≥30 (hoy)** | **60 % del pool** | **70,7 %** | **72,7 %** |
+| Top 18 sobre pool ≥24 | 75 % del pool | 81,7 % | 84,7 % |
+| Top 18 sobre pool ≥18 | 100 % del pool | 87,7 % | 90,0 % |
+
+Las dos últimas filas suben porque se entrega casi todo lo que pasó el filtro:
+el modelo deja de elegir y solo ordena. Por eso el mínimo se dejó en 30, que
+mantiene la misma proporción de siempre y conserva la selección.
 
 ---
 
@@ -655,7 +711,7 @@ export DAPTA_FLOW_WEBHOOK_URL="https://..."   # antes de levantar uvicorn
 
 La función nueva del catálogo, en `scraper_projects.py`. Es la pieza que
 conecta el scraping con el grafo: **si la localidad sale mal, el BFS expande
-hacia vecinas equivocadas y el Top 6 completo queda sesgado.**
+hacia vecinas equivocadas y el top completo queda sesgado.**
 
 ### 6.1 API
 
@@ -797,7 +853,7 @@ que además llega ya estructurada:
   Colsubsidio los comercializa, cada uno con su ficha y su precio —el de
   Colsubsidio suele ser el de afiliado, hasta un 19 % más bajo—: Álamo
   Veramonte, Austro de Cuatro Vientos, Baviera Park, Novum Ricaurte, Senderos
-  de Fontibón y Urbana 30. Sin fusionarlos, el Top 6 gasta dos casillas en el
+  de Fontibón y Urbana 30. Sin fusionarlos, el top gasta dos casillas en el
   mismo edificio. `fusionar_duplicados` los une conservando **las dos fichas**
   (`links_alternos`, `constructoras`), el precio más bajo, y la unión de zonas
   comunes e imágenes.
@@ -938,8 +994,8 @@ Es el componente que conecta las dos mitades del repo, y el más delicado:
 
 - Arma el payload del **contrato mínimo** (§2.1) y solo agrega `afiliado` y
   `zonas_comunes` si el usuario los tocó — mismo criterio que el
-  `exclude_none` de `api.py`. Muestra el **Top 3**, no el Top 6: el Top 6
-  completo no cabe en la pantalla del stand.
+  `exclude_none` de `api.py`. Muestra el **Top 3**, no los 18 que devuelve
+  `recomendar()`: la lista completa no cabe en la pantalla del stand.
 - **Comprueba que la API esté viva al primer foco o clic** (`checkApi` →
   `GET /api/catalogos`), para que el primer error que vea alguien no sea uno
   de red a mitad del formulario.

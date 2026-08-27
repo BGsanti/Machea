@@ -4,7 +4,7 @@ Recomendador de proyectos de vivienda en Bogotá D.C.
 
 Una persona llena un formulario —cuánto gana, con cuántos vive, en qué
 localidad quiere estar, qué zonas comunes le importan— y Machea le devuelve
-los **6 proyectos más compatibles**, cada uno con un porcentaje de
+los **18 proyectos más compatibles**, cada uno con un porcentaje de
 compatibilidad listo para mostrar en pantalla.
 
 El catálogo se construye scrapeando cuatro constructoras que publican en
@@ -141,7 +141,7 @@ scraper_projects.py  ->  prep.py  ->  modelo.py  ->  main.py
 ```
 
 1. **Filtro duro.** Se descarta lo que no sirve: tipo de vivienda, número de
-   habitaciones, localidad y zonas comunes. Si quedan menos de 10 candidatos,
+   habitaciones, localidad y zonas comunes. Si quedan menos de 30 candidatos,
    la búsqueda se abre hacia las **localidades vecinas** recorriendo un grafo
    de colindancia (BFS), y solo si eso no alcanza se sueltan requisitos, del
    menos al más costoso para el usuario. El tipo de vivienda nunca se suelta:
@@ -160,9 +160,11 @@ scraper_projects.py  ->  prep.py  ->  modelo.py  ->  main.py
    proyecto no publica. Todos los componentes se devuelven por separado para
    que el ranking sea auditable.
 
-4. **Porcentaje comercial.** El score crudo se convierte en un porcentaje de
-   compatibilidad entre 62 % y 98 %, con las diferencias entre proyectos
-   proporcionales a las diferencias reales de score.
+4. **Porcentaje comercial.** El score crudo se convierte en porcentaje de
+   compatibilidad: el primero muestra su score, elevado a 85 % si se queda
+   corto, y cada uno de los siguientes resta los puntos de score que lo
+   separan del anterior. Sin piso. Ningún porcentaje se repite: cuando dos
+   caen en el mismo número, el más barato se queda con el alto.
 
 ---
 

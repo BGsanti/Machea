@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 
 import prep
 from modelo import (
+    MINIMO_PRESELECCIONADOS,
     RUTA_HISTORIAL,
     RUTA_LLAMATIVOS,
     RUTA_MODELO,
@@ -60,9 +61,15 @@ def recomendar(path_user_info, ruta_modelo=RUTA_MODELO, ruta_historial=RUTA_HIST
     usuario_modelo, usuario_segmentado, usuario_info_contacto_v1 = leer_info_user(path_user_info)
 
     # Etapa B: filtro duro + expansión por el grafo de localidades.
-    proyectos_preseleccionados = primer_filtro(usuario_segmentado, ruta_modelo=ruta_modelo)
+    # El mínimo nunca puede quedar por debajo del top pedido: si se llama con
+    # `--top` grande, el filtro tiene que traer al menos esa cantidad o el
+    # Top N saldría corto.
+    proyectos_preseleccionados = primer_filtro(
+        usuario_segmentado, ruta_modelo=ruta_modelo,
+        minimo=max(MINIMO_PRESELECCIONADOS, top_n),
+    )
 
-    # Etapa C: Nearest Neighbors -> top 6 con score.
+    # Etapa C: Nearest Neighbors -> top N con score.
     # Un afiliado a la caja que busca VIS accede al subsidio, y eso baja el
     # ingreso que el proyecto le exige: se compara contra
     # `salario_objetivo_con_subsidio`. Hasta ahora `afiliado` se capturaba en
