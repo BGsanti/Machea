@@ -10,7 +10,7 @@ Pipeline:
     primer_filtro(usuario_segmentado)  ->  proyectos_preseleccionados
               |                            (filtro duro + expansión por grafo)
     modelo(preseleccionados, usuario_modelo)  ->  proyectos_seleccionados
-              |                                   (Nearest Neighbors, top 6)
+              |                                   (Nearest Neighbors, top N)
     post_arreglos(seleccionados)  ->  proyectos_listos_llamativos
                                       (normalización comercial del score)
 
@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import json
 import os
-import random
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -45,7 +44,11 @@ RUTA_LLAMATIVOS = os.path.join(DIRECTORIO, "proyectos_listos_llamativos.json")
 # ---------------------------------------------------------------------------
 # Parámetros del filtro duro
 # ---------------------------------------------------------------------------
-MINIMO_PRESELECCIONADOS = 10   # top 10 mínimo antes de pasar al modelo
+# Candidatos mínimos que el filtro duro le entrega al modelo. Tiene que ser
+# holgadamente mayor que `TOP_N`: si fueran iguales, el Nearest Neighbors no
+# elegiría nada —devolvería el filtro entero— y el score dejaría de ordenar.
+# Se mantiene la proporción de siempre (~1,7x el tamaño del top).
+MINIMO_PRESELECCIONADOS = 30
 
 # Escalera de relajación: cada paso suelta una restricción, de la menos a la
 # más costosa para el usuario. El tipo de vivienda nunca entra aquí (VIS y
@@ -61,7 +64,9 @@ PASOS_RELAJACION = (
 # ---------------------------------------------------------------------------
 # Parámetros del modelo
 # ---------------------------------------------------------------------------
-TOP_N = 6
+# Cuántas recomendaciones se devuelven. Sube junto con
+# `MINIMO_PRESELECCIONADOS`, que tiene que seguir siendo mayor.
+TOP_N = 18
 
 # Vecinos consultados en el histórico. `None` = automático.
 #
@@ -130,19 +135,12 @@ ALPHA_HISTORIAL = 0.50
 # ---------------------------------------------------------------------------
 # Parámetros del gancho comercial (post_arreglos)
 # ---------------------------------------------------------------------------
-PORCENTAJE_TOP_MIN = 85.0
-PORCENTAJE_TOP_MAX = 98.0
-# Puntos porcentuales que se descuentan por cada 100% de caída relativa del
-# score. Calibrado sobre el criterio comercial "el segundo, ligeramente menos
-# compatible, queda ~5 puntos abajo": 5 / 110 ≈ 4.5% de diferencia real.
-ESCALA_CAIDA = 110.0
-# Caída total máxima entre el primero y el último del Top 6. La escala se
-# reduce si hiciera falta para respetarla, conservando intactas las
-# proporciones entre las diferencias reales de score. Sin esto la constante
-# de arriba solo sirve para un régimen: con historial los scores se separan
-# mucho más que con solo contenido, y el último caería al piso siempre.
-SPAN_MAXIMO = 22.0
-PORCENTAJE_PISO = 62.0
+# El líder muestra su propio score como porcentaje. Si ese score sale por
+# debajo de este mínimo se eleva hasta él: quien abre la lista es lo mejor que
+# hay para esa persona y no puede presentarse con un 60%.
+PORCENTAJE_TOP_MINIMO = 85.0
+# Del segundo hacia abajo no hay mínimo: cada uno resta su diferencia real con
+# el de arriba, en caída libre. Un encaje malo tiene que poder verse malo.
 PASO_MINIMO = 1         # garantiza que no haya dos porcentajes iguales
 
 # Traducción del campo `piso` del formulario.
@@ -476,7 +474,7 @@ def _cargar_proyectos(ruta_modelo=RUTA_MODELO):
 # ===========================================================================
 def modelo(proyectos_preseleccionados, usuario_modelo, ruta_historial=RUTA_HISTORIAL,
            top_n=TOP_N, k_vecinos=K_VECINOS, usar_subsidio=False):
-    """Puntúa los preseleccionados contra el usuario y devuelve el Top 6.
+    """Puntúa los preseleccionados contra el usuario y devuelve el Top `top_n`.
 
     Trabaja en dos modos, según haya o no histórico disponible:
 
@@ -751,16 +749,24 @@ def _desempatar_por_precio(ordenados, brutos):
 def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMATIVOS):
     """Convierte los scores del modelo en porcentajes de compatibilidad.
 
-    - El primero recibe un porcentaje aleatorio entre 85% y 98%.
-    - Los siguientes bajan de forma proporcional a su diferencia real de score
-      respecto al primero (`ESCALA_CAIDA` puntos por cada 100% de caída
-      relativa), con un piso y un escalón mínimo que evita empates visuales.
-    - **Ningún porcentaje se repite.** Cuando dos proyectos redondean al mismo
-      número, el empate lo rompe el precio: el más barato se queda con el
-      porcentaje alto y el otro baja un punto (`_desempatar_por_precio`).
+    Dos capas, en este orden:
+
+    1. **Normalización encadenada.** El primero muestra su propio score como
+       porcentaje, elevado a `PORCENTAJE_TOP_MINIMO` si se queda corto. Cada
+       uno de los siguientes resta los puntos de score que lo separan del
+       proyecto inmediatamente anterior, no del líder: si el 3º tiene 0,06 de
+       score menos que el 2º, muestra 6 puntos menos que el 2º. En caída
+       libre, sin piso: si el encaje es malo, el porcentaje lo dice.
+
+    2. **Desempate por precio.** La capa de arriba produce empates a propósito
+       —dos scores casi iguales redondean al mismo número—, y ningún proyecto
+       puede mostrar el mismo porcentaje que otro. Entre los empatados se
+       queda con el número alto **el más barato**, y el resto baja de a un
+       punto (`_desempatar_por_precio`).
 
     Args:
-        semilla: fija el aleatorio del primer porcentaje (útil en pruebas).
+        semilla: se acepta por compatibilidad; ya no hay nada aleatorio que
+            fijar. El porcentaje del líder sale de su score.
         ruta_salida: si no es None, guarda el resultado en ese JSON.
 
     Returns:
@@ -769,43 +775,44 @@ def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMAT
     if not proyectos_seleccionados:
         return []
 
-    aleatorio = random.Random(semilla)
     # Mismo criterio que `modelo()`: la prioridad del filtro manda sobre el score.
     ordenados = sorted(proyectos_seleccionados,
                        key=lambda p: (p.get("_prioridad_filtro", 0), -p.get("score", 0.0)))
+    scores = [float(p.get("score", 0.0)) for p in ordenados]
 
-    score_top = float(ordenados[0].get("score", 0.0)) or 1e-9
-    porcentaje_top = aleatorio.uniform(PORCENTAJE_TOP_MIN, PORCENTAJE_TOP_MAX)
+    # Capa 1. El líder: su score en porcentaje, con el mínimo de arriba.
+    porcentaje = max(scores[0] * 100.0, PORCENTAJE_TOP_MINIMO)
+    brutos = [int(round(porcentaje))]
 
-    # Caída relativa de cada uno frente al líder. Se acota en 0 porque un
-    # proyecto relajado puede traer score bruto mayor y aun así ir detrás.
-    caidas = [max(0.0, (score_top - float(p.get("score", 0.0))) / score_top) for p in ordenados]
-    # La escala se recorta solo si la dispersión de esta consulta se saldría
-    # del span permitido; las proporciones entre caídas no se tocan.
-    caida_maxima = max(caidas)
-    escala = min(ESCALA_CAIDA, SPAN_MAXIMO / caida_maxima) if caida_maxima > 0 else ESCALA_CAIDA
+    for anterior, actual in zip(scores, scores[1:]):
+        # Cuánto peor es este que el de arriba, en puntos de score. Como la
+        # cadena arranca en el score del líder, el porcentaje de cada uno
+        # termina siendo su propio score más lo que se elevó al líder.
+        # Se acota en 0 porque un proyecto admitido relajando requisitos puede
+        # traer score bruto mayor y aun así ir detrás: nunca sube el
+        # porcentaje, y el empate que eso produce lo resuelve la capa 2.
+        porcentaje -= max(0.0, (anterior - actual) * 100.0)
+        brutos.append(int(round(porcentaje)))
 
-    # Porcentaje que le tocaría a cada uno por su score, antes de garantizar
-    # que sean todos distintos.
-    brutos = []
-    for posicion, caida in enumerate(caidas, start=1):
-        crudo = porcentaje_top if posicion == 1 else max(porcentaje_top - caida * escala,
-                                                         PORCENTAJE_PISO)
-        brutos.append(int(round(crudo)))
-
-    # Dos proyectos con scores parecidos redondean al mismo número. Antes de
-    # separarlos hay que decidir cuál de los dos merece el porcentaje alto, y
-    # ese desempate lo gana el precio, no el orden en que venían.
+    # Capa 2. Entre los que quedaron con el mismo número manda el precio.
     ordenados = _desempatar_por_precio(ordenados, brutos)
     brutos = [bruto for _, bruto in ordenados]
     ordenados = [proyecto for proyecto, _ in ordenados]
+    total = len(ordenados)
 
     proyectos_listos_llamativos = []
     porcentaje_anterior = None
     for posicion, (proyecto, porcentaje) in enumerate(zip(ordenados, brutos), start=1):
         if porcentaje_anterior is not None:
-            # El orden debe leerse claro: siempre al menos un punto por debajo.
+            # El orden debe leerse claro: siempre al menos un punto por debajo
+            # del anterior. Es lo que separa a los empatados una vez que el
+            # precio ya decidió cuál de ellos se queda con el número alto.
             porcentaje = min(porcentaje, porcentaje_anterior - PASO_MINIMO)
+        # Que nadie se salga por abajo: se le reserva un punto a cada uno de
+        # los que vienen detrás. No es un piso comercial —el último puede
+        # aterrizar en 0— sino lo que impide que dos choquen contra el 0 y
+        # terminen mostrando el mismo número.
+        porcentaje = max(porcentaje, (total - posicion) * PASO_MINIMO)
         porcentaje_anterior = porcentaje
 
         listo = dict(proyecto)
