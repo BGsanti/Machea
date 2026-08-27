@@ -218,6 +218,12 @@
   function applyAction(state, action, ds) {
     switch (action) {
       case 'goSplash':
+        // El splash NO EXISTE en la version embebida: el modal entra directo a
+        // la escarapela. Se bloquea aqui ademas de esconder el boton que lleva
+        // a el (ver escarapela en templates.js), porque esta accion la puede
+        // despachar cualquier otro camino y el fallo no se veria roto — se
+        // veria como una pantalla de bienvenida que aparece a destiempo.
+        if (window.GDF_EMBED) return false;
         state.screen = 'splash';
         break;
 
@@ -496,8 +502,11 @@
         Object.keys(fresh).forEach(function (k) {
           state[k] = fresh[k];
         });
-        // "Empezar de nuevo" vuelve al splash, que ahora es la entrada.
-        state.screen = 'splash';
+        // "Empezar de nuevo" vuelve a la entrada. Cual es la entrada ya lo
+        // decide `createInitial()` —splash suelta, escarapela embebida— asi
+        // que aqui NO se fija a mano: escribir 'splash' devolvia al modal la
+        // pantalla de bienvenida que precisamente se salta al abrirlo.
+        state.screen = fresh.screen;
         break;
       }
 

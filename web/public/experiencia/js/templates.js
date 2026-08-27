@@ -258,7 +258,16 @@
 
     return (
       '<div class="gdf-screen gdf-escarapela">' +
-      '<button class="gdf-back-btn" data-action="goSplash">← Atrás</button>' +
+      // EMBEBIDA NO HAY ATRAS, porque no hay nada detras. La escarapela es la
+      // primera pantalla dentro del modal (ver `screen` en state.js), asi que
+      // este boton llevaba al splash —"Encuentra tu proximo hogar"—, una
+      // pantalla de bienvenida que dentro de un modal sobra: quien pulso
+      // "¡Empezar mi match!" ya dijo que queria empezar. Se colaba solo por
+      // aqui, y quien lo pulsaba se quedaba en una puerta anterior a la que
+      // ya habia cruzado.
+      (window.GDF_EMBED
+        ? ''
+        : '<button class="gdf-back-btn" data-action="goSplash">← Atrás</button>') +
       '<div class="kicker"><div class="eyebrow">TU CARNÉ DE CONSTRUCTOR</div><h2>Primero, preséntate</h2></div>' +
       '<div class="gdf-carnet">' +
       '<div class="clip"></div>' +
