@@ -3987,6 +3987,64 @@ a.pt-flink:hover {
    (sticky) para tenerla siempre a mano, pero tapaba la última tarjeta y se
    cruzaba con los desplegables de planos: ahora va en el flujo normal, al
    final de la lista. */
+/* ============ PAGINACION DE LA SELECCION ============
+   El modelo devuelve 18 proyectos y la pantalla los reparte en tres paginas de
+   seis. Va DEBAJO de la parrilla y encima del boton de continuar, que es el
+   orden en que se usan: miras las seis, cambias de pagina si no te convence
+   ninguna, y solo al final continuas. */
+.gdf-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+.gdf-pag-btn {
+  background: var(--papel-2);
+  border: 1.5px solid var(--borde);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font: 700 13px/1 'Manrope', sans-serif;
+  color: var(--tinta);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.gdf-pag-btn:hover:not(:disabled) {
+  border-color: var(--marca);
+  background: var(--marca-tinte);
+}
+/* Deshabilitado y NO oculto: si el boton desaparece en los extremos, los otros
+   dos se recolocan y el usuario persigue un blanco movil entre paginas. */
+.gdf-pag-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.gdf-pag-puntos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gdf-pag-punto {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--papel-2);
+  box-shadow: inset 0 0 0 1.5px var(--borde);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+/* El activo se ALARGA, como los guiones del carrusel de la portada: se
+   distingue por forma y no solo por color, que es lo que lo hace legible sin
+   depender de la vista para el matiz. */
+.gdf-pag-punto.activo {
+  width: 26px;
+  background: var(--marca);
+  box-shadow: none;
+}
+
 .gdf-seleccion-cta {
   margin-top: 22px;
   padding-top: 16px;

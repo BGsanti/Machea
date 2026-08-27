@@ -23,7 +23,19 @@
 (function () {
   'use strict';
 
-  var TOTAL_RECOMENDADOS = 6;
+  // CUANTOS PROYECTOS SE RECOMIENDAN, en total. Eran 6 y ahora son 18, que la
+  // pantalla reparte en TRES PAGINAS de seis (ver `recoLista` en templates.js).
+  //
+  // Seis era poco para un catalogo de 96: quien no encontraba el suyo entre los
+  // seis primeros se quedaba sin nada que mirar. Dieciocho sigue siendo una
+  // seleccion —no es "el catalogo entero paginado"— y la reparte de seis en
+  // seis para que cada pagina se lea igual de bien que antes.
+  //
+  // El numero manda sobre el motor local; por el camino del backend se usa lo
+  // que responda el modelo, que ya devuelve 18.
+  var TOTAL_RECOMENDADOS = 18;
+  // Cuantas caben en cada pagina de la pantalla de seleccion.
+  var POR_PAGINA = 6;
 
   // Marcas diacriticas de Unicode. Se construye con new RegExp para que el
   // archivo no lleve caracteres combinantes sueltos, que son invisibles en
@@ -462,5 +474,6 @@
     recomendarLocal: recomendarLocal,
     desdeLocal: desdeLocal,
     TOTAL_RECOMENDADOS: TOTAL_RECOMENDADOS,
+    POR_PAGINA: POR_PAGINA,
   };
 })();

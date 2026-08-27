@@ -35,6 +35,11 @@
       // vino del backend). El contrato manda un solo `proyecto_elegido`, así
       // que marcar uno desmarca el anterior.
       chosen: null,
+      // Pagina visible de la seleccion, 0..2. El modelo devuelve 18 proyectos
+      // y la pantalla los reparte de seis en seis (ver `recoLista` en
+      // templates.js). Vive aqui y no en el DOM para que marcar un proyecto
+      // —que repinta la pantalla— no devuelva al usuario a la primera pagina.
+      recoPagina: 0,
 
       // Paso 1 del contrato: POST /recomendaciones. Ver js/leads.js.
       // 'vacio' NO es un error: el backend respondió bien y no tiene proyectos
@@ -470,6 +475,21 @@
       case 'goSeleccion':
         state.screen = 'result';
         break;
+
+      case 'irAPagina': {
+        // El destino llega como texto desde `data-pagina`. Se acota contra el
+        // numero real de proyectos —no contra un 3 fijo— porque una tanda con
+        // menos de 18 tiene menos paginas, y las flechas de los extremos van
+        // deshabilitadas pero un teclado puede llegar igual.
+        var porPag = window.GDF.recommender.POR_PAGINA || 6;
+        var cuantas = Math.max(1, Math.ceil(((state.reco.items || []).length) / porPag));
+        var destino = Number(ds && ds.pagina);
+        if (isNaN(destino)) return false;
+        destino = Math.min(Math.max(destino, 0), cuantas - 1);
+        if (destino === state.recoPagina) return false;
+        state.recoPagina = destino;
+        break;
+      }
 
       case 'restart': {
         var fresh = createInitial();

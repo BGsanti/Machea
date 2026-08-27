@@ -676,11 +676,48 @@
   }
 
   function recoLista(state, reco) {
+    // TRES PAGINAS DE SEIS. El modelo devuelve 18 y enseñarlas de golpe hacia
+    // una parrilla de tres pantallas de alto en la que las de abajo no las
+    // miraba nadie; de seis en seis cada pagina se lee como se leia la unica
+    // que habia antes.
+    var porPagina = window.GDF.recommender.POR_PAGINA || 6;
+    var totalPaginas = Math.max(1, Math.ceil(reco.items.length / porPagina));
+    // La pagina se acota aqui y no al guardarla: si el usuario estaba en la 3
+    // y una nueva recomendacion devuelve menos proyectos, quedaria mirando una
+    // pagina vacia sin nada que se lo dijera.
+    var pagina = Math.min(Math.max(state.recoPagina || 0, 0), totalPaginas - 1);
+    var desde = pagina * porPagina;
+
     var projectsHtml = reco.items
+      .slice(desde, desde + porPagina)
       .map(function (vm, i) {
-        return projectCard(vm, state, i);
+        // El indice que viaja es el ABSOLUTO, no el de la pagina: es lo que
+        // pinta el "#N" de la tarjeta y lo que decide si el texto dice "es tu
+        // mejor match". En la pagina 2, un indice relativo volveria a poner un
+        // #1 y habria tres "mejores match" en el mismo resultado.
+        return projectCard(vm, state, desde + i);
       })
       .join('');
+
+    var paginacionHtml = '';
+    if (totalPaginas > 1) {
+      var puntos = '';
+      for (var n = 0; n < totalPaginas; n++) {
+        puntos +=
+          '<button class="gdf-pag-punto' + (n === pagina ? ' activo' : '') + '"' +
+          ' data-action="irAPagina" data-pagina="' + n + '"' +
+          ' aria-label="Página ' + (n + 1) + ' de ' + totalPaginas + '"' +
+          (n === pagina ? ' aria-current="true"' : '') + '></button>';
+      }
+      paginacionHtml =
+        '<div class="gdf-paginacion">' +
+        '<button class="gdf-pag-btn" data-action="irAPagina" data-pagina="' + (pagina - 1) + '"' +
+        (pagina === 0 ? ' disabled' : '') + '>← Anteriores</button>' +
+        '<div class="gdf-pag-puntos">' + puntos + '</div>' +
+        '<button class="gdf-pag-btn" data-action="irAPagina" data-pagina="' + (pagina + 1) + '"' +
+        (pagina === totalPaginas - 1 ? ' disabled' : '') + '>Siguientes →</button>' +
+        '</div>';
+    }
 
     var elegido = state.chosen;
     var ctaLabel = elegido ? 'Continuar →' : 'Elige un proyecto para continuar';
@@ -694,9 +731,15 @@
 
     return (
       avisoAprox +
-      '<p class="gdf-match-count">Ordenados por afinidad con tu perfil. Elige el que más te interese.</p>' +
+      '<p class="gdf-match-count">Ordenados por afinidad con tu perfil. Elige el que más te interese.' +
+      (totalPaginas > 1
+        ? ' <b>' + reco.items.length + ' proyectos</b>, de ' + (desde + 1) + ' a ' +
+          Math.min(desde + porPagina, reco.items.length) + '.'
+        : '') +
+      '</p>' +
       debugPanel(state) +
       '<div class="gdf-projects">' + projectsHtml + '</div>' +
+      paginacionHtml +
       '<div class="gdf-seleccion-cta">' +
       '<button class="gdf-btn-primary' + (elegido ? ' enabled' : '') + '" data-action="goConfirmacion">' + ctaLabel + '</button>' +
       '</div>'
@@ -1129,7 +1172,13 @@
       cfg: {
         inicial: cfg.inicial || sim.SUPUESTOS.cuotaInicialDefault,
         plazo: cfg.plazo || sim.SUPUESTOS.plazoDefault,
-        modalidad: cfg.modalidad === 'pesos' ? 'pesos' : 'uvr',
+        // FUERA DE UNA CAJA DE COMPENSACION SOLO HAY PESOS. La tasa en UVR de
+        // este simulador es la PREFERENCIAL POR AFILIACION (ver TASAS.hipotecario
+        // .uvr en simulador.js, abierta por categoria A/B/C): sin afiliacion no
+        // hay a que acogerse, asi que ofrecerla seria prometer una tasa que ese
+        // hogar no puede pedir. Se fuerza a pesos y el control se esconde —
+        // misma regla que ya usa la pregunta de afiliacion del quiz.
+        modalidad: !pideAfiliacion() ? 'pesos' : (cfg.modalidad === 'pesos' ? 'pesos' : 'uvr'),
         categoria: sim.normalizarCategoria(cfg.categoria),
         complementario: !!cfg.complementario,
         ingreso: cfg.ingreso || Math.round(sim.ingresoMedioDe(state.answers.ingresos)),
@@ -1265,15 +1314,23 @@
       '</div>' +
       '</div>' +
 
-      '<div class="gdf-simc-campo"><label>Modalidad</label>' +
-      '<div class="gdf-simc-seg">' +
-      simSegmento(id, 'modalidad', [{ v: 'uvr', label: 'UVR' }, { v: 'pesos', label: 'Pesos' }], ctx.cfg.modalidad) +
-      '</div></div>' +
-
-      '<div class="gdf-simc-campo"><label>Categoría de afiliación</label>' +
-      '<div class="gdf-simc-seg">' +
-      simSegmento(id, 'categoria', S.categorias, ctx.cfg.categoria) +
-      '</div>' + avisoCategoria + '</div>' +
+      // LOS DOS CONTROLES DE LA CAJA. Modalidad y categoria de afiliacion solo
+      // tienen sentido si la marca ES una caja de compensacion: la tasa en UVR
+      // se cotiza por categoria de afiliado (A/B/C) y quien no esta afiliado no
+      // accede a ninguna de las tres. En una constructora privada —y en la demo
+      // neutra de Machea, que no es de ninguna— el simulador va en pesos y no
+      // se pregunta nada de afiliacion. Es la misma regla de `pideAfiliacion()`
+      // que ya esconde esa pregunta en el quiz.
+      (pideAfiliacion()
+        ? '<div class="gdf-simc-campo"><label>Modalidad</label>' +
+          '<div class="gdf-simc-seg">' +
+          simSegmento(id, 'modalidad', [{ v: 'uvr', label: 'UVR' }, { v: 'pesos', label: 'Pesos' }], ctx.cfg.modalidad) +
+          '</div></div>' +
+          '<div class="gdf-simc-campo"><label>Categoría de afiliación</label>' +
+          '<div class="gdf-simc-seg">' +
+          simSegmento(id, 'categoria', S.categorias, ctx.cfg.categoria) +
+          '</div>' + avisoCategoria + '</div>'
+        : '') +
 
       '<div class="gdf-simc-campo"><label>Cuota inicial</label>' +
       '<div class="gdf-simc-seg">' +
@@ -1401,11 +1458,20 @@
       simuladorControles(ctx, state) +
       '<div class="gdf-sim-out" id="simResultado">' + simuladorResultado(ctx, state.answers.ingresos) + '</div>' +
       '</div>' +
+      // LA LETRA CHICA TAMBIEN CAMBIA, y no es cosmetica. La version de la caja
+      // dice que las tasas "son las publicadas por <marca>", y eso solo es
+      // cierto de una caja de compensacion: en la demo neutra habria escrito
+      // "publicadas por Machea", que no publica ninguna tasa hipotecaria.
+      // Atribuir un dato a quien no lo publica es peor que no citarlo.
+      // Tampoco se nombran las categorias A/B/C, que ahi no existen.
       '<p class="gdf-sim-nota">Estimación con SMMLV ' + sim.SUPUESTOS.anioSmmlv +
-      '. Las tasas del crédito hipotecario en UVR categorías A y B y en pesos son las ' +
-      'publicadas por ' + esc(nombreMarca()) + '; la de la categoría C, la del complementario y el monto ' +
-      'del subsidio están sujetos a verificación. No es una cotización ni una aprobación ' +
-      'de crédito.</p>'
+      (pideAfiliacion()
+        ? '. Las tasas del crédito hipotecario en UVR categorías A y B y en pesos son las ' +
+          'publicadas por ' + esc(nombreMarca()) + '; la de la categoría C, la del complementario y el monto ' +
+          'del subsidio están sujetos a verificación.'
+        : '. Las tasas son una referencia de mercado, no una oferta de ninguna entidad, ' +
+          'y tanto ellas como el monto del subsidio están sujetas a verificación.') +
+      ' No es una cotización ni una aprobación de crédito.</p>'
     );
   }
 

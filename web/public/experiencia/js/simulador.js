@@ -56,7 +56,11 @@
   var PRODUCTOS = [
     {
       v: 'hipotecario',
-      label: 'Crédito hipotecario Colsubsidio',
+      // SIN LA MARCA. El producto es el mismo se llame como se llame, y el
+      // nombre de una caja de compensacion dentro de una demo que enseña
+      // proyectos de cuatro constructoras es la mezcla que este repo evita.
+      // De donde salen las tasas sigue dicho arriba, en TASAS.
+      label: 'Crédito hipotecario',
       corto: 'Hipotecario',
       blurb: 'Financia la compra del inmueble',
       // El tope legal de financiación es lo que obliga a que exista el
