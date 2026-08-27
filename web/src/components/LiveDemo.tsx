@@ -1,414 +1,50 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, MapPin, Phone, PhoneCall, Sparkles, TriangleAlert, X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getCatalogos, llamar, MacheaApiError, recomendar, type Apartamento, type Localidad } from "../lib/api";
-import { LOCALIDADES, SALARIO_OPCIONES, ZONAS_COMUNES_POPULARES } from "../lib/catalogos";
 import { Reveal } from "./Reveal";
 
-function formatCop(value: number) {
-  return `$${value.toLocaleString("es-CO")}`;
-}
+/**
+ * AQUI HABIA UN FORMULARIO Y AHORA HAY UN IFRAME.
+ *
+ * El modal montaba `MacheaForm`: diez campos apilados (nombre, telefono, tipo,
+ * salario, personas, edad, localidad, habitaciones, afiliado, zonas) que
+ * llamaban a `/api/recomendar` y pintaban el Top 3. Se cambio por la
+ * experiencia completa —las 7 preguntas que van ARMANDO el plano de un
+ * apartamento pieza a pieza mientras se responde—, que es la parte que
+ * distingue a Machea de cualquier otro formulario.
+ *
+ * POR QUE UN IFRAME Y NO UN PORTE A REACT. La experiencia son ~7.400 lineas de
+ * JS vanilla y ~4.700 de CSS, todo bajo `.gdf-*`. Dos cosas lo hacen inviable
+ * de traer aqui dentro:
+ *   1. Su arranque usa `document.write` para inyectar los archivos del tenant
+ *      EN EL PUNTO DEL PARSER. Bajo `defer` o dentro de un `DOMContentLoaded`
+ *      —que es lo unico que React puede ofrecerle— borra el documento entero.
+ *   2. El preflight de Tailwind y esas 4.700 lineas de CSS global se pisarian.
+ *      Su propio repo ya documenta esa colision al reves, con los bundles de
+ *      Next de otra pagina.
+ * El iframe da aislamiento total de CSS y de parser, y no cuesta ni una linea
+ * de reescritura.
+ *
+ * SE FUE TAMBIEN LA LLAMADA DE MANUELA, que colgaba del final de aquel
+ * formulario: el recorrido ahora cierra dentro de la experiencia (resultado y
+ * confirmacion son suyos). `src/lib/api.ts` NO se toca — lo sigue usando
+ * `Benefits.tsx`.
+ */
 
-function OptionRow<T extends string | number>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { value: T; label: string }[];
-  value: T | null;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div>
-      <p className="mb-2 text-sm font-bold text-navy">{label}</p>
-      <div className="flex flex-wrap gap-2">
-        {options.map((opt) => (
-          <button
-            key={String(opt.value)}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            className={`rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
-              value === opt.value
-                ? "border-coral bg-coral text-white"
-                : "border-navy/15 bg-white text-navy/70 hover:border-coral/40"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MacheaForm() {
-  const [nombre, setNombre] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [tipoVivienda, setTipoVivienda] = useState<0 | 1 | null>(1);
-  const [salario, setSalario] = useState<1 | 2 | 3 | 4 | null>(null);
-  const [personas, setPersonas] = useState<1 | 2 | 3 | 4 | null>(null);
-  const [edad, setEdad] = useState("");
-  const [localidad, setLocalidad] = useState<number | null>(null);
-  const [habitaciones, setHabitaciones] = useState<1 | 2 | 3 | null>(null);
-  const [afiliado, setAfiliado] = useState<0 | 1 | null>(null);
-  const [zonas, setZonas] = useState<string[]>([]);
-
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [resultados, setResultados] = useState<Apartamento[]>([]);
-  const [busqueda, setBusqueda] = useState<{ tipo_vivienda: string; localidad: string } | null>(null);
-
-  const [callStatus, setCallStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [callMsg, setCallMsg] = useState("");
-
-  // Confirma que la API local está viva apenas alguien abre el form — evita que
-  // el primer error que vea el usuario sea uno de red a mitad del formulario.
-  const [apiUp, setApiUp] = useState<boolean | null>(null);
-  const checkApi = () => {
-    if (apiUp !== null) return;
-    getCatalogos()
-      .then(() => setApiUp(true))
-      .catch(() => setApiUp(false));
-  };
-
-  const toggleZona = (z: string) => {
-    setZonas((prev) => (prev.includes(z) ? prev.filter((x) => x !== z) : [...prev, z]));
-  };
-
-  const listo = tipoVivienda !== null && salario && personas && edad && localidad && habitaciones;
-
-  const handleSubmit = async () => {
-    if (!listo) return;
-    setStatus("loading");
-    setErrorMsg("");
-    try {
-      const respuesta = await recomendar({
-        tipo_vivienda: tipoVivienda!,
-        salario: salario!,
-        personas_a_cargo: personas!,
-        edad: Number(edad),
-        Localidad: localidad!,
-        numero_habitaciones: habitaciones!,
-        ...(afiliado !== null ? { afiliado } : {}),
-        ...(zonas.length > 0 ? { zonas_comunes: zonas } : {}),
-      });
-      setResultados(respuesta.apartamentos.slice(0, 3));
-      setBusqueda(respuesta.usuario.busqueda);
-      setStatus("done");
-    } catch (err) {
-      setErrorMsg(err instanceof MacheaApiError ? err.message : "Algo salió mal. Intenta de nuevo.");
-      setStatus("error");
-    }
-  };
-
-  const rangoIngresoLabel = SALARIO_OPCIONES.find((o) => o.value === salario)?.label ?? "";
-
-  const handleLlamar = async () => {
-    const top = resultados[0];
-    if (!top || !nombre || !telefono) return;
-    setCallStatus("loading");
-    setCallMsg("");
-    try {
-      const respuesta = await llamar({
-        nombre,
-        telefono,
-        afiliado: afiliado === 1,
-        rango_ingreso: rangoIngresoLabel,
-        edad: Number(edad),
-        personas_a_cargo: personas ?? 1,
-        entorno_deseado: zonas.join(", "),
-        apartamento: {
-          nombre_proyecto: top.nombre_proyecto,
-          localidad: top.localidad,
-          tipo_vivienda: top.tipo_vivienda,
-          precio_desde_cop: top.precio_desde_cop,
-          cuota_mensual_estimada_cop: top.cuota_mensual_estimada_cop,
-          zonas_comunes: top.zonas_comunes,
-          zonas_en_comun: top.zonas_en_comun,
-          url_ficha: top.url_ficha,
-          posicion: top.posicion,
-          compatibilidad: top.compatibilidad,
-          compatibilidad_texto: top.compatibilidad_texto,
-          direccion: top.direccion,
-          area_construida_m2: top.area_construida_m2,
-          habitaciones: top.habitaciones,
-          cumple_habitaciones: top.cumple_habitaciones,
-          aplica_subsidio_caja: top.aplica_subsidio_caja,
-        },
-      });
-      setCallMsg(
-        respuesta.status === "enviado"
-          ? "¡Manuela te está llamando! Contesta en los próximos segundos."
-          : respuesta.detalle ?? "Simulado — falta conectar el webhook de Dapta."
-      );
-      setCallStatus("done");
-    } catch (err) {
-      setCallMsg(err instanceof MacheaApiError ? err.message : "No pudimos iniciar la llamada.");
-      setCallStatus("error");
-    }
-  };
-
-  const localidadesUi: Localidad[] = LOCALIDADES;
-
-  return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      <div className="space-y-6" onFocus={checkApi} onClick={checkApi}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="mb-2 text-sm font-bold text-navy">Tu nombre</p>
-            <input
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej. Camila"
-              className="w-full rounded-xl border border-navy/15 px-3.5 py-2 text-sm font-semibold text-navy focus:border-coral focus:outline-none"
-            />
-          </div>
-          <div>
-            <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-navy">
-              <Phone size={14} /> Tu celular
-            </p>
-            <input
-              type="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Ej. 3125923915"
-              className="w-full rounded-xl border border-navy/15 px-3.5 py-2 text-sm font-semibold text-navy focus:border-coral focus:outline-none"
-            />
-          </div>
-        </div>
-        <p className="-mt-3 text-xs text-navy/40">
-          Con esto, si quieres, Manuela te puede llamar de verdad al terminar para que sientas cómo suena.
-        </p>
-
-        <OptionRow
-          label="¿Qué tipo de vivienda buscas?"
-          value={tipoVivienda}
-          onChange={setTipoVivienda}
-          options={[
-            { value: 1, label: "VIS" },
-            { value: 0, label: "No VIS" },
-          ]}
-        />
-        <OptionRow
-          label="¿Cuánto ganas al mes?"
-          value={salario}
-          onChange={setSalario}
-          options={SALARIO_OPCIONES.map((o) => ({ value: o.value as 1 | 2 | 3 | 4, label: o.label }))}
-        />
-        <OptionRow
-          label="¿Cuántas personas viven contigo?"
-          value={personas}
-          onChange={setPersonas}
-          options={[
-            { value: 1, label: "1" },
-            { value: 2, label: "2" },
-            { value: 3, label: "3" },
-            { value: 4, label: "4 o más" },
-          ]}
-        />
-        <div>
-          <p className="mb-2 text-sm font-bold text-navy">¿Cuántos años tienes?</p>
-          <input
-            type="number"
-            min={18}
-            max={99}
-            value={edad}
-            onChange={(e) => setEdad(e.target.value)}
-            placeholder="Ej. 34"
-            className="w-32 rounded-xl border border-navy/15 px-3.5 py-2 text-sm font-semibold text-navy focus:border-coral focus:outline-none"
-          />
-        </div>
-        <div>
-          <p className="mb-2 text-sm font-bold text-navy">¿En qué localidad quieres vivir?</p>
-          <select
-            value={localidad ?? ""}
-            onChange={(e) => setLocalidad(Number(e.target.value))}
-            className="w-full rounded-xl border border-navy/15 bg-white px-3.5 py-2.5 text-sm font-semibold text-navy focus:border-coral focus:outline-none"
-          >
-            <option value="" disabled>
-              Selecciona una localidad
-            </option>
-            {localidadesUi.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
-        <OptionRow
-          label="¿Cuántas habitaciones necesitas?"
-          value={habitaciones}
-          onChange={setHabitaciones}
-          options={[
-            { value: 1, label: "1" },
-            { value: 2, label: "2" },
-            { value: 3, label: "3 o más" },
-          ]}
-        />
-        <OptionRow
-          label="¿Estás afiliado a una caja de compensación?"
-          value={afiliado}
-          onChange={setAfiliado}
-          options={[
-            { value: 1, label: "Sí" },
-            { value: 0, label: "No" },
-          ]}
-        />
-        <div>
-          <p className="mb-2 text-sm font-bold text-navy">¿Qué zonas comunes te importan?</p>
-          <div className="flex flex-wrap gap-2">
-            {ZONAS_COMUNES_POPULARES.map((z) => (
-              <button
-                key={z}
-                type="button"
-                onClick={() => toggleZona(z)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  zonas.includes(z)
-                    ? "border-emerald bg-emerald/15 text-emerald-700"
-                    : "border-navy/15 bg-white text-navy/60 hover:border-emerald/40"
-                }`}
-              >
-                {z}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <motion.button
-          type="button"
-          disabled={!listo || status === "loading"}
-          onClick={handleSubmit}
-          whileHover={listo ? { y: -2 } : {}}
-          whileTap={listo ? { scale: 0.97 } : {}}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-coral px-6 py-3.5 text-base font-bold text-white shadow-coral disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {status === "loading" ? (
-            <>
-              <Loader2 size={18} className="animate-spin" /> Consultando el motor…
-            </>
-          ) : (
-            <>
-              <Sparkles size={18} /> Ver mi Top 3 real
-            </>
-          )}
-        </motion.button>
-
-        {apiUp === false && (
-          <p className="flex items-center gap-1.5 text-xs text-red-500">
-            <TriangleAlert size={13} /> No detectamos la API local (uvicorn api:app --port 8000). Enciéndela
-            para ver resultados en vivo.
-          </p>
-        )}
-      </div>
-
-      <div className="rounded-2xl bg-navy p-6 text-white md:p-7">
-        <AnimatePresence mode="wait">
-          {status === "idle" && (
-            <motion.div key="idle" className="flex h-full flex-col items-center justify-center text-center text-white/50">
-              <Sparkles size={28} className="mb-3" />
-              <p className="text-sm">Llena el formulario y presiona el botón para ver el Top 3 real.</p>
-            </motion.div>
-          )}
-          {status === "loading" && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex h-full flex-col items-center justify-center gap-3 text-center text-white/70"
-            >
-              <Loader2 size={28} className="animate-spin text-coral" />
-              <p className="text-sm">Corriendo el filtro duro + Nearest Neighbors sobre el catálogo…</p>
-            </motion.div>
-          )}
-          {status === "error" && (
-            <motion.div
-              key="error"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex h-full flex-col items-center justify-center gap-3 text-center"
-            >
-              <TriangleAlert size={28} className="text-coral" />
-              <p className="max-w-xs text-sm text-white/70">{errorMsg}</p>
-            </motion.div>
-          )}
-          {status === "done" && (
-            <motion.div key="done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-              {busqueda && (
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-white/40">
-                  {busqueda.tipo_vivienda} en {busqueda.localidad}
-                </p>
-              )}
-              {resultados.map((apto, i) => (
-                <motion.a
-                  key={apto.nombre_proyecto + i}
-                  href={apto.url_ficha}
-                  target="_blank"
-                  rel="noreferrer"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  whileHover={{ y: -2 }}
-                  className="block rounded-xl border border-white/10 bg-white/5 p-3.5"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-bold text-white">{apto.nombre_proyecto}</span>
-                    <span className="shrink-0 rounded-full bg-emerald px-2 py-0.5 text-xs font-extrabold text-navy">
-                      {apto.compatibilidad_texto}
-                    </span>
-                  </div>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-white/60">
-                    <MapPin size={12} /> {apto.localidad} · desde {formatCop(apto.precio_desde_cop)}
-                  </p>
-                  {apto.zonas_en_comun.length > 0 && (
-                    <p className="mt-1 text-xs text-white/40">En común: {apto.zonas_en_comun.join(", ")}</p>
-                  )}
-                </motion.a>
-              ))}
-
-              <div className="pt-2">
-                {callStatus === "idle" || callStatus === "error" ? (
-                  <>
-                    <motion.button
-                      type="button"
-                      disabled={!nombre || !telefono}
-                      onClick={handleLlamar}
-                      whileHover={nombre && telefono ? { y: -2 } : {}}
-                      whileTap={nombre && telefono ? { scale: 0.97 } : {}}
-                      className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald px-6 py-3 text-sm font-extrabold text-navy disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <PhoneCall size={16} /> Llamar a mi celular ahora
-                    </motion.button>
-                    {(!nombre || !telefono) && (
-                      <p className="mt-2 text-center text-xs text-white/40">
-                        Escribe tu nombre y celular arriba para activarlo.
-                      </p>
-                    )}
-                    {callStatus === "error" && (
-                      <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-xs text-red-300">
-                        <TriangleAlert size={12} /> {callMsg}
-                      </p>
-                    )}
-                  </>
-                ) : callStatus === "loading" ? (
-                  <p className="flex items-center justify-center gap-2 text-sm font-semibold text-white/70">
-                    <Loader2 size={16} className="animate-spin" /> Marcando…
-                  </p>
-                ) : (
-                  <p className="flex items-center justify-center gap-2 text-center text-sm font-semibold text-emerald">
-                    <PhoneCall size={16} /> {callMsg}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
+// La experiencia la sirve el repo del front (`python plataforma/servidor.py`,
+// puerto 7000). Se deja configurable para no clavar `localhost` cuando esto
+// salga de una demo local.
+//
+// Los dos parametros importan:
+//   `marca=machea` -> el tenant NEUTRO. Los otros cuatro son de una
+//      constructora y filtrarian el catalogo a la suya; este va con la clave
+//      vacia, que es lo que hace que el motor puntue sobre los 96 y salgan
+//      las cuatro marcas juntas, como corresponde a la demo de Machea.
+//   `embed=1` -> entra directo a la escarapela (sin el splash, que dentro de
+//      un modal es una puerta detras de otra) y deja la casa a la DERECHA.
+const EXPERIENCIA_URL =
+  import.meta.env.VITE_EXPERIENCIA_URL ??
+  "http://localhost:7000/experiencia/?marca=machea&embed=1";
 
 export function LiveDemo() {
   const [open, setOpen] = useState(false);
@@ -449,9 +85,12 @@ export function LiveDemo() {
               Machea · Demo en vivo
             </p>
             <h2 className="text-3xl font-extrabold text-navy md:text-5xl">Arma tu match ideal.</h2>
+            {/* Ya no se promete la llamada de Manuela: se fue con el formulario
+                que la ofrecia. Lo que se promete ahora es lo que de verdad
+                pasa al pulsar — el plano montandose mientras respondes. */}
             <p className="mx-auto mt-4 max-w-lg text-lg text-navy/70">
-              Responde unas preguntas y mira en vivo qué te recomienda nuestro motor sobre el catálogo real — y,
-              si quieres, deja que Manuela te llame para que sientas cómo suena.
+              Responde siete preguntas y mira cómo se levanta el plano de tu apartamento, pieza a pieza, mientras
+              lo haces. Al final, lo que nuestro motor te recomienda sobre el catálogo real.
             </p>
 
             <motion.button
@@ -487,31 +126,46 @@ export function LiveDemo() {
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
             />
+            {/*
+              LA CAJA CRECIO, y no es cosmetico. La experiencia parte el
+              escritorio en dos columnas a partir de 900px; con el `max-w-5xl`
+              de antes (1024px) la columna de la casa se quedaba en ~440px y el
+              plano salia diminuto. Con `max-w-7xl` respira.
+
+              Y se le quita el padding y el `overflow-y-auto`: el iframe ocupa
+              la caja entera y scrollea por dentro. Dejar los dos daba dos
+              barras de scroll, una dentro de la otra.
+            */}
             <motion.div
               initial={{ opacity: 0, scale: 0.92, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-[32px] border border-navy/10 bg-white p-6 shadow-2xl md:p-10"
+              className="relative flex h-[88vh] w-full max-w-7xl flex-col overflow-hidden rounded-[32px] border border-navy/10 bg-white shadow-2xl"
             >
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Cerrar"
-                className="absolute right-5 top-5 z-10 grid h-9 w-9 place-items-center rounded-full border border-navy/10 bg-white text-navy/60 hover:text-coral"
+                className="absolute right-5 top-4 z-10 grid h-9 w-9 place-items-center rounded-full border border-navy/10 bg-white text-navy/60 hover:text-coral"
               >
                 <X size={18} />
               </button>
 
-              <div className="mb-6 text-center">
-                <p className="mb-2 text-sm font-bold uppercase tracking-[0.15em] text-coral">Pruébalo tú mismo</p>
-                <h3 className="text-2xl font-extrabold text-navy md:text-3xl">El motor real, en vivo.</h3>
-                <p className="mt-2 text-sm text-navy/60">
-                  El mismo formulario que vería un lead — con el Top 3 real de nuestro motor sobre 96 proyectos.
-                </p>
+              {/* Cabecera al minimo: cada pixel que se lleve aqui se lo quita
+                  al plano, que es lo que hay que ver. */}
+              <div className="shrink-0 border-b border-navy/10 px-6 py-3 text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-coral">Pruébalo tú mismo</p>
+                <h3 className="text-lg font-extrabold text-navy md:text-xl">El motor real, en vivo.</h3>
               </div>
 
-              <MacheaForm />
+              {/* `min-h-0` es obligatorio: sin el, un hijo flex no baja de su
+                  alto de contenido y el iframe desbordaria la caja. */}
+              <iframe
+                src={EXPERIENCIA_URL}
+                title="Machea · arma tu match"
+                className="min-h-0 w-full flex-1 border-0"
+              />
             </motion.div>
           </motion.div>
         )}
