@@ -197,11 +197,14 @@
 
   function aplicar() {
     var M = window.GDF_MARCA || {};
-    var paleta = ESTANDAR ? {} : (M.paleta || {});
+    // Machea es la propia marca del stand, no una constructora revendida:
+    // aqui el estandar naranja no aplica y manda la paleta de tenants/machea.
+    var usaEstandar = ESTANDAR && M.slug !== 'machea';
+    var paleta = usaEstandar ? {} : (M.paleta || {});
     var base = {
-      primario: paleta.primario || (ESTANDAR ? ESTANDAR.primario : BASE.primario),
-      acento: paleta.acento || (ESTANDAR ? ESTANDAR.acento : BASE.acento),
-      tinta: paleta.tinta || (ESTANDAR ? ESTANDAR.tinta : BASE.tinta),
+      primario: paleta.primario || (usaEstandar ? ESTANDAR.primario : BASE.primario),
+      acento: paleta.acento || (usaEstandar ? ESTANDAR.acento : BASE.acento),
+      tinta: paleta.tinta || (usaEstandar ? ESTANDAR.tinta : BASE.tinta),
     };
 
     var tokens = derivar(base);

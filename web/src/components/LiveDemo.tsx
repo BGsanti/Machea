@@ -130,7 +130,7 @@ export function LiveDemo() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="absolute inset-0 bg-navy/70 backdrop-blur-md"
+              className="absolute inset-0 bg-gradient-to-br from-white/90 via-beige/85 to-coral/20 backdrop-blur-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
