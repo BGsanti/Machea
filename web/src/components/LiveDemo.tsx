@@ -304,11 +304,19 @@ function MacheaForm() {
         )}
       </div>
 
-      <div className="rounded-2xl bg-navy p-6 text-white md:p-7">
+      <div className="relative overflow-hidden rounded-2xl border border-coral/15 bg-gradient-to-br from-beige to-white p-6 shadow-soft md:p-7">
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-coral/15 blur-3xl"
+          animate={{ scale: [1, 1.15, 1] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
         <AnimatePresence mode="wait">
           {status === "idle" && (
-            <motion.div key="idle" className="flex h-full flex-col items-center justify-center text-center text-white/50">
-              <Sparkles size={28} className="mb-3" />
+            <motion.div key="idle" className="relative flex h-full flex-col items-center justify-center text-center text-navy/50">
+              <span className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-coral/10 text-coral">
+                <Sparkles size={24} />
+              </span>
               <p className="text-sm">Llena el formulario y presiona el botón para ver el Top 3 real.</p>
             </motion.div>
           )}
@@ -317,7 +325,7 @@ function MacheaForm() {
               key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex h-full flex-col items-center justify-center gap-3 text-center text-white/70"
+              className="relative flex h-full flex-col items-center justify-center gap-3 text-center text-navy/70"
             >
               <Loader2 size={28} className="animate-spin text-coral" />
               <p className="text-sm">Corriendo el filtro duro + Nearest Neighbors sobre el catálogo…</p>
@@ -328,16 +336,16 @@ function MacheaForm() {
               key="error"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex h-full flex-col items-center justify-center gap-3 text-center"
+              className="relative flex h-full flex-col items-center justify-center gap-3 text-center"
             >
               <TriangleAlert size={28} className="text-coral" />
-              <p className="max-w-xs text-sm text-white/70">{errorMsg}</p>
+              <p className="max-w-xs text-sm text-navy/70">{errorMsg}</p>
             </motion.div>
           )}
           {status === "done" && (
-            <motion.div key="done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+            <motion.div key="done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="relative space-y-3">
               {busqueda && (
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-white/40">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-coral">
                   {busqueda.tipo_vivienda} en {busqueda.localidad}
                 </p>
               )}
@@ -351,19 +359,19 @@ function MacheaForm() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.08 }}
                   whileHover={{ y: -2 }}
-                  className="block rounded-xl border border-white/10 bg-white/5 p-3.5"
+                  className="block rounded-xl border border-navy/10 bg-white p-3.5 shadow-soft transition-colors hover:border-coral/30"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-bold text-white">{apto.nombre_proyecto}</span>
+                    <span className="font-bold text-navy">{apto.nombre_proyecto}</span>
                     <span className="shrink-0 rounded-full bg-emerald px-2 py-0.5 text-xs font-extrabold text-navy">
                       {apto.compatibilidad_texto}
                     </span>
                   </div>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-white/60">
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-navy/60">
                     <MapPin size={12} /> {apto.localidad} · desde {formatCop(apto.precio_desde_cop)}
                   </p>
                   {apto.zonas_en_comun.length > 0 && (
-                    <p className="mt-1 text-xs text-white/40">En común: {apto.zonas_en_comun.join(", ")}</p>
+                    <p className="mt-1 text-xs text-navy/40">En común: {apto.zonas_en_comun.join(", ")}</p>
                   )}
                 </motion.a>
               ))}
@@ -377,27 +385,27 @@ function MacheaForm() {
                       onClick={handleLlamar}
                       whileHover={nombre && telefono ? { y: -2 } : {}}
                       whileTap={nombre && telefono ? { scale: 0.97 } : {}}
-                      className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald px-6 py-3 text-sm font-extrabold text-navy disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex w-full items-center justify-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-extrabold text-white shadow-coral disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <PhoneCall size={16} /> Llamar a mi celular ahora
                     </motion.button>
                     {(!nombre || !telefono) && (
-                      <p className="mt-2 text-center text-xs text-white/40">
+                      <p className="mt-2 text-center text-xs text-navy/40">
                         Escribe tu nombre y celular arriba para activarlo.
                       </p>
                     )}
                     {callStatus === "error" && (
-                      <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-xs text-red-300">
+                      <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-xs text-red-600">
                         <TriangleAlert size={12} /> {callMsg}
                       </p>
                     )}
                   </>
                 ) : callStatus === "loading" ? (
-                  <p className="flex items-center justify-center gap-2 text-sm font-semibold text-white/70">
-                    <Loader2 size={16} className="animate-spin" /> Marcando…
+                  <p className="flex items-center justify-center gap-2 text-sm font-semibold text-navy/70">
+                    <Loader2 size={16} className="animate-spin text-coral" /> Marcando…
                   </p>
                 ) : (
-                  <p className="flex items-center justify-center gap-2 text-center text-sm font-semibold text-emerald">
+                  <p className="flex items-center justify-center gap-2 text-center text-sm font-semibold text-emerald-700">
                     <PhoneCall size={16} /> {callMsg}
                   </p>
                 )}
@@ -481,7 +489,7 @@ export function LiveDemo() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="absolute inset-0 bg-navy/70 backdrop-blur-md"
+              className="absolute inset-0 bg-gradient-to-br from-white/90 via-beige/85 to-coral/20 backdrop-blur-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -492,8 +500,20 @@ export function LiveDemo() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-[32px] border border-navy/10 bg-white p-6 shadow-2xl md:p-10"
+              className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-[32px] border border-coral/15 bg-white p-6 shadow-2xl md:p-10"
             >
+              <motion.div
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-20 -top-20 -z-0 h-72 w-72 rounded-full bg-coral/10 blur-3xl"
+                animate={{ x: [0, 16, 0], y: [0, -12, 0] }}
+                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                aria-hidden="true"
+                className="pointer-events-none absolute -bottom-24 -right-16 -z-0 h-80 w-80 rounded-full bg-emerald/10 blur-3xl"
+                animate={{ x: [0, -14, 0], y: [0, 10, 0] }}
+                transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+              />
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -503,7 +523,7 @@ export function LiveDemo() {
                 <X size={18} />
               </button>
 
-              <div className="mb-6 text-center">
+              <div className="relative mb-6 text-center">
                 <p className="mb-2 text-sm font-bold uppercase tracking-[0.15em] text-coral">Pruébalo tú mismo</p>
                 <h3 className="text-2xl font-extrabold text-navy md:text-3xl">El motor real, en vivo.</h3>
                 <p className="mt-2 text-sm text-navy/60">
