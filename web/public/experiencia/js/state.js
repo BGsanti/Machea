@@ -49,6 +49,13 @@
         aproximado: false, // true = las tarjetas salen del motor local
       },
 
+      // Paso 2 del contrato: la llamada de Manuela (ver js/llamada.js). Se
+      // dispara al entrar a 'confirmacion', mismo patrón que 'reco' arriba.
+      llamada: {
+        estado: 'idle', // idle | cargando | lista | error
+        mensaje: '',
+      },
+
       // --- Desplegable de planos de cada tarjeta (ver detalleProyecto en
       // templates.js). Vive en el estado, y no solo en el DOM, porque marcar
       // un proyecto sí re-renderiza toda la lista: sin esto el desplegable se
@@ -301,6 +308,22 @@
       case 'recoCargando':
         state.reco.estado = 'cargando';
         state.reco.error = null;
+        break;
+
+      // Paso 2: resultado de POST /api/llamar (ver js/llamada.js). `ds` es
+      // el objeto que arma llamada.js: { estado, mensaje }.
+      case 'llamadaCargando':
+        state.llamada = { estado: 'cargando', mensaje: '' };
+        break;
+
+      case 'llamadaResuelta':
+        state.llamada = { estado: ds.estado, mensaje: ds.mensaje || '' };
+        break;
+
+      // Botón "Reintentar" de la pantalla de cierre tras un error. main.js
+      // detecta esta acción y vuelve a llamar a llamada.disparar().
+      case 'reintentarLlamada':
+        state.llamada = { estado: 'cargando', mensaje: '' };
         break;
 
       case 'goBack': {

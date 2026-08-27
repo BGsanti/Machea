@@ -4191,6 +4191,57 @@ a.pt-flink:hover {
   letter-spacing: 0.02em;
 }
 
+/* Estado del POST /api/llamar (ver js/llamada.js): mismos tres estados que
+   la carga de recomendaciones, aplicados a que a Manuela le llegó el lead. */
+.gdf-confirm-llamada {
+  margin-top: 14px;
+  border-radius: 14px;
+  padding: 13px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.5;
+}
+.gdf-confirm-llamada small {
+  display: block;
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--tinta-suave);
+  margin-top: 3px;
+}
+.gdf-confirm-llamada--cargando {
+  background: var(--papel);
+  border: 1.5px solid var(--borde);
+  color: var(--tinta-media);
+  animation: glowPulse 1.6s ease-in-out infinite;
+}
+.gdf-confirm-llamada--ok {
+  background: var(--marca-tinte);
+  border: 1.5px solid var(--marca-borde);
+  color: var(--marca-fuerte);
+  animation: popIn 0.4s ease-out;
+}
+.gdf-confirm-llamada--error {
+  background: var(--acento-velo);
+  border: 1.5px solid var(--acento);
+  color: var(--sobre-acento);
+}
+.gdf-llamada-reintentar {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.gdf-llamada-reintentar:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* Línea de tiempo "Qué sigue": lo que convierte el mensaje de gracias en un
    proceso real y verificable, no solo una promesa suelta. */
 .gdf-confirm-pasos {

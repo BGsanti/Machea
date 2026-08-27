@@ -28,4 +28,11 @@ window.GDF_CONFIG = {
   // SOLO ARCHIVO (tools/empaquetar_demo.py), pensada para compartir por link:
   // ahí la política de seguridad del visor bloquea cualquier petición externa.
   SIN_BACKEND: true,
+
+  // El backend de Machea (api.py, ver el repo de la landing), NO el mismo
+  // servicio que MACHEA_BASE. Este SÍ corre siempre, incluso con
+  // SIN_BACKEND:true — ese flag solo apaga el cálculo de recomendaciones, no
+  // la llamada de Manuela, que no puede hacerse desde el navegador porque
+  // necesita la API key de Dapta, y esa nunca puede viajar al cliente.
+  DAPTA_LLAMADA_BASE: 'https://machea.onrender.com',
 };

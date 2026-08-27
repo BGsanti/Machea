@@ -1733,20 +1733,31 @@
       '</div>' +
       '</div>';
 
-    // EL RECORRIDO SE CIERRA AQUI, y no hay envio que relatar: el contrato del
-    // modelo termina en la recomendacion, no registra leads. Antes esta
-    // pantalla tenia tres estados (spinner / check / error con reintento)
-    // porque habia un POST /leads detras. Fingir ese spinner ahora seria
-    // teatro, asi que se dice lo que de verdad pasa: la eleccion se queda en
-    // esta pantalla y quien contacta es un asesor.
+    // ESTA VEZ SÍ HAY UN ENVÍO QUE RELATAR: al entrar a esta pantalla,
+    // main.js dispara POST /api/llamar (ver js/llamada.js) — la llamada real
+    // de Manuela, no el POST /leads del backend viejo que este comentario
+    // describía antes. Los tres estados vuelven, pero para esto:
+    //   cargando -> "Conectando con Manuela" mientras el POST está en vuelo.
+    //   lista    -> el mensaje que mandó el backend (enviado o mock).
+    //   error    -> qué falló, con botón para reintentar sin perder nada.
+    var llamada = state.llamada;
     var heroClase = 'gdf-confirm-hero--ok';
     var heroIcono = '<span class="gdf-confirm-check">✓</span>';
     var heroTitulo = '¡Gracias por tu interés, ' + esc(firstName) + '!';
     var heroTexto =
       'Elegiste <strong>' + esc(nombreProyecto) + '</strong>. Un asesor de vivienda de ' +
-      esc(bonita(duenaProyecto) || nombreMarca()) + ' te acompaña desde acá.' +
-      '<br /><small>Esta es una demostración: tus datos no se enviaron a ningún sistema.</small>';
+      esc(bonita(duenaProyecto) || nombreMarca()) + ' te acompaña desde acá.';
     var extra = '';
+
+    if (llamada.estado === 'cargando') {
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">📡 Conectando con Manuela…' +
+        '<br /><small>Puede tardar unos segundos si el servidor estaba dormido.</small></div>';
+    } else if (llamada.estado === 'lista') {
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">📞 ' + esc(llamada.mensaje) + '</div>';
+    } else if (llamada.estado === 'error') {
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">⚠️ ' + esc(llamada.mensaje) +
+        ' <button class="gdf-llamada-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';
+    }
 
     // heroTitulo/heroTexto ya llevan cualquier dato dinámico pasado por esc()
     // en el punto en que se armaron arriba; el resto es texto fijo del propio

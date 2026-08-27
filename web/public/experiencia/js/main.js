@@ -325,9 +325,32 @@
 
     // PASO 2 del contrato. Ya no hace falta un botón de "Confirmar": elegir el
     // proyecto y tocar "Continuar" (goConfirmacion) ES la confirmación, así
-    // que el POST /leads se dispara solo al entrar a esta pantalla — misma
-    // idea que el paso 1 con 'result'. La pantalla solo relata en qué estado
-    // va (ver confirmacion() en templates.js).
+    // que la llamada de Manuela se dispara sola al entrar a esta pantalla —
+    // misma idea que el paso 1 con 'result'. La pantalla relata en qué estado
+    // va (ver confirmacion() en templates.js, y js/llamada.js para el POST).
+    if (prevScreen !== 'confirmacion' && state.screen === 'confirmacion') {
+      dispararLlamada();
+    }
+    // Botón "Reintentar" tras un error: 'reintentarLlamada' ya dejó
+    // state.llamada en 'cargando' (ver state.js) y render() de arriba lo
+    // pinta; solo falta relanzar el POST.
+    if (action === 'reintentarLlamada') {
+      window.GDF.llamada.disparar(state, function (resultado) {
+        window.GDF.state.applyAction(state, 'llamadaResuelta', resultado);
+        render();
+      });
+    }
+  }
+
+  // Paso 2 del contrato: POST /api/llamar (ver js/llamada.js). Mismo patrón
+  // que cargarRecomendaciones() arriba: marca 'cargando', llama, repinta.
+  function dispararLlamada() {
+    window.GDF.state.applyAction(state, 'llamadaCargando', {});
+    render();
+    window.GDF.llamada.disparar(state, function (resultado) {
+      window.GDF.state.applyAction(state, 'llamadaResuelta', resultado);
+      render();
+    });
   }
 
   // POST /recomendaciones. Se usa igual en la primera carga y al reintentar.
@@ -350,14 +373,13 @@
     });
   }
 
-  // AQUI SE ENVIABA EL LEAD. El backend anterior tenia un contrato de dos
-  // pasos: /recomendaciones daba un lead_id y /leads registraba el proyecto
-  // elegido. El modelo de recomendacion NO registra leads — su contrato
-  // termina en la respuesta— asi que no hay a donde enviar nada, y montar un
-  // spinner para una peticion que no existe seria puro teatro.
-  //
-  // La pantalla de cierre lo dice con todas las letras en vez de fingir que
-  // "quedo registrada". Ver confirmacion() en templates.js.
+  // AQUI SE ENVIABA EL LEAD, en el sentido del backend anterior (contrato de
+  // dos pasos: /recomendaciones daba un lead_id y /leads lo registraba). Ese
+  // contrato no vuelve — el modelo de recomendación no registra leads — pero
+  // dispararLlamada() de arriba SÍ es un envío real, solo que a otro backend
+  // (api.py, ver js/llamada.js), y con otro propósito: no registrar, sino
+  // marcar el teléfono. La pantalla de cierre relata su estado de verdad,
+  // no un texto fijo. Ver confirmacion() en templates.js.
 
   // Busca la tarjeta del proyecto por nombre. Se usa el nombre y no el índice
   // porque el orden de la lista puede cambiar (clustering).
