@@ -1,9 +1,11 @@
 /**
- * Cliente para la API local del motor de recomendación (api.py, FastAPI).
- * Requiere correr `uvicorn api:app --port 8000` desde el repo del modelo
- * en paralelo al dev server de la landing. Solo para demo local (GO FEST).
+ * Cliente para la API del motor de recomendación (api.py, FastAPI).
+ * En local corre `uvicorn api:app --port 8000` en paralelo al dev server.
+ * En producción, apunta a donde esté desplegado api.py vía
+ * VITE_API_BASE_URL (build-time env var de Vercel) — sin ella cae a
+ * localhost, que solo funciona en dev.
  */
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export type FormularioMachea = {
   tipo_vivienda: 0 | 1;
