@@ -120,7 +120,7 @@ export function Hero() {
                   transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
                   className="flex items-center gap-2"
                 >
-                  <Play size={16} fill="currentColor" className="text-coral" /> Ver 5 demos en vivo
+                  <Play size={16} fill="currentColor" className="text-coral" /> Ver por qué funciona
                 </motion.span>
               </motion.a>
               <a href="#oferta" className="text-sm font-medium text-white/70 underline decoration-white/40 underline-offset-4 hover:text-white">

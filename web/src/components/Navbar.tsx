@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 
 const links = [
   { href: "#como-funciona", label: "Cómo funciona" },
-  { href: "#demos", label: "Las 5 demos" },
+  { href: "#demos", label: "Beneficios" },
   { href: "#origen", label: "Por qué Machea" },
 ];
 

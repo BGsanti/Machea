@@ -1,14 +1,15 @@
 import {
   Bot,
-  CircleSlash,
-  House,
+  Building2,
   MessageCircleMore,
-  Target,
-  UsersRound,
+  Puzzle,
+  ShieldCheck,
+  Sparkles,
+  House,
   type LucideIcon,
 } from "lucide-react";
 
-export type DemoMatch = {
+export type BeneficioMatch = {
   compatibilidad: string;
   proyecto: string;
   localidad: string;
@@ -17,27 +18,26 @@ export type DemoMatch = {
   urlFicha: string;
 };
 
-export type Demo = {
+export type Beneficio = {
   id: string;
-  route: string;
   title: string;
-  signal: string;
   description: string;
   icon: LucideIcon;
-  /** Salida real del motor de recomendación (main.py · recomendar()) sobre el catálogo
-   * de 96 proyectos scrapeados — no es texto de ejemplo, es un resultado real del modelo. */
-  match?: DemoMatch;
+  /** Solo el primer beneficio trae un ejemplo — salida real del motor de recomendación
+   * (main.py · recomendar()) sobre el catálogo de 96 proyectos scrapeados. No es texto de ejemplo. */
+  match?: BeneficioMatch;
 };
 
-export const demos: Demo[] = [
+// El formulario es UNO SOLO — el mismo que prueba cualquier visitante en "Pruébalo tú mismo".
+// No son 5 demos distintas: son 5 beneficios del producto, válidos para cualquier inmobiliaria
+// que hoy hace pauta digital, sin importar su catálogo o tamaño.
+export const beneficios: Beneficio[] = [
   {
-    id: "vis",
-    route: "Ruta 01",
-    title: "Primera Vivienda (VIS)",
-    signal: "Ingresos + subsidio + zona",
+    id: "match-real",
+    title: "Match real, no un formulario genérico",
     description:
-      "Manuela perfila ingresos, valida subsidios potenciales y matchea con proyectos VIS en la zona de interés del lead.",
-    icon: House,
+      "El motor compara cada lead contra proyectos reales de tu catálogo y devuelve un % de compatibilidad — no una lista fija de preguntas sin salida.",
+    icon: Sparkles,
     match: {
       compatibilidad: "97%",
       proyecto: "Florecer",
@@ -48,56 +48,30 @@ export const demos: Demo[] = [
     },
   },
   {
-    id: "inversionista",
-    route: "Ruta 02",
-    title: "Inversionista",
-    signal: "Objetivo + horizonte + ticket",
-    description:
-      "La llamada se enfoca en rentabilidad, plusvalía y forma de pago para proyectos sobre planos.",
-    icon: Target,
-    match: {
-      compatibilidad: "88%",
-      proyecto: "Celeste - Tramonte",
-      localidad: "Suba",
-      precioDesdeCop: 499060000,
-      zonasEnComun: ["Lobby", "Coworking", "Gimnasio"],
-      urlFicha: "https://www.constructorabolivar.com/proyectos-vivienda/bogota/celeste-tramonte",
-    },
+    id: "segundos",
+    title: "Calificación en segundos, no en 24 horas",
+    description: "Manuela llama y califica mientras el interés del lead sigue caliente, no al día siguiente.",
+    icon: Bot,
   },
   {
-    id: "familia",
-    route: "Ruta 03",
-    title: "Upgrade Familiar",
-    signal: "Momento vital + prioridades",
+    id: "solo-listos",
+    title: "Solo los leads listos llegan a tu asesor",
     description:
-      "Perfila familias que buscan más espacio, y ordena prioridades como colegios, zonas verdes y amenidades.",
-    icon: UsersRound,
-    match: {
-      compatibilidad: "92%",
-      proyecto: "La Unión I de la Marlene",
-      localidad: "Bosa",
-      precioDesdeCop: 231700000,
-      zonasEnComun: ["Salón social"],
-      urlFicha: "https://cusezar.com/proyectos/con-subsidio/la-union-i/?ciudad=bogota",
-    },
+      "Si no hay capacidad de compra hoy, el lead va a nutrición automática — no a la bandeja de tu equipo comercial.",
+    icon: ShieldCheck,
   },
   {
-    id: "descarte",
-    route: "Ruta 04",
-    title: "Descarte Inteligente",
-    signal: "Sin encaje → nutrición",
-    description:
-      "Si la cuota estimada supera el 30% del ingreso declarado, el motor lo marca sin capacidad de compra hoy y lo envía a nutrición en vez de a un asesor.",
-    icon: CircleSlash,
+    id: "sin-migrar",
+    title: "Se acopla a lo que ya tienes",
+    description: "Sin migrar tu CRM ni reconstruir tu sitio web — Machea conecta con tu flujo actual.",
+    icon: Puzzle,
   },
   {
-    id: "handoff",
-    route: "Ruta 05",
-    title: "Handoff a Asesor",
-    signal: "Ficha completa + siguiente paso",
+    id: "cualquier-inmobiliaria",
+    title: "Funciona para cualquier inmobiliaria con pauta",
     description:
-      "El momento clave: el asesor recibe el proyecto exacto, el % de compatibilidad y las zonas comunes en común — no un contacto crudo.",
-    icon: MessageCircleMore,
+      "VIS, No VIS, un proyecto o cien: el motor se adapta a tu catálogo y a tu presupuesto de medios.",
+    icon: Building2,
   },
 ];
 
