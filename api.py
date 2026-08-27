@@ -31,6 +31,11 @@ app = FastAPI(title="Machea Recomendador API", version="0.1")
 # uvicorn, nunca hardcodeado aquí.
 DAPTA_FLOW_WEBHOOK_URL = os.environ.get("DAPTA_FLOW_WEBHOOK_URL")
 
+# API key de la cuenta de Dapta dueña del flow. El endpoint del webhook
+# responde 401 sin ella (header x-api-key). Se llena con
+# `export DAPTA_API_KEY=...` antes de levantar uvicorn, nunca hardcodeada aquí.
+DAPTA_API_KEY = os.environ.get("DAPTA_API_KEY")
+
 TZ_BOGOTA = timezone(timedelta(hours=-5))
 SMMLV_COP = 2_000_000  # actualizar cada año — mismo supuesto que prep.py
 
@@ -162,7 +167,8 @@ def api_llamar(payload: SolicitudLlamada):
 
     import httpx
 
+    headers = {"x-api-key": DAPTA_API_KEY} if DAPTA_API_KEY else {}
     with httpx.Client(timeout=20.0) as client:
-        r = client.post(DAPTA_FLOW_WEBHOOK_URL, json=payload_dapta)
+        r = client.post(DAPTA_FLOW_WEBHOOK_URL, json=payload_dapta, headers=headers)
         r.raise_for_status()
     return {"status": "enviado", "detalle": f"Manuela está llamando a {telefono_e164}."}

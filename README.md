@@ -30,6 +30,9 @@ Bogotá: **Amarilo, Cusezar, Constructora Bolívar y Colsubsidio**.
 > `api.py` también expone `POST /api/llamar`, que arma el payload de 19
 > campos que espera el flow de Dapta y lo dispara — necesita
 > `DAPTA_FLOW_WEBHOOK_URL` en el entorno; sin ella responde en modo mock.
+> El webhook del flow exige el header `x-api-key`: pon también
+> `DAPTA_API_KEY` (la API key de la cuenta de Dapta dueña del flow) o el
+> POST falla con 401.
 
 ---
 
