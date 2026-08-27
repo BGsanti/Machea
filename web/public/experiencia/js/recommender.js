@@ -265,9 +265,9 @@
     // 1. Localidad. Sale de `vm.localidad`, que el modelo manda aparte.
     var localidad = String(vm.localidad || vm.ubicacion || '').split(/[,·]/)[0].trim();
     if (localidad && a.zona) {
-      if (localidad === a.zona) buenas.push('está en ' + localidad + ' (la localidad que elegiste)');
-      else if ((VECINAS[a.zona] || []).indexOf(localidad) > -1) buenas.push('queda en ' + localidad + ' (vecina de ' + a.zona + ')');
-      else malas.push('queda en ' + localidad + ' (lejos de ' + a.zona + ')');
+      if (localidad === a.zona) buenas.push('queda en ' + localidad + ', exactamente la localidad que pediste');
+      else if ((VECINAS[a.zona] || []).indexOf(localidad) > -1) buenas.push('queda en ' + localidad + ', vecina de ' + a.zona + ', así que sigues en la misma zona de la ciudad');
+      else malas.push('queda en ' + localidad + ', al otro lado de ' + a.zona);
     }
 
     // 2. Habitaciones.
@@ -278,17 +278,41 @@
     function hab(n) {
       return n + (n === 1 ? ' habitación' : ' habitaciones');
     }
+    // LOS METROS Y LAS PERSONAS A CARGO NO SE USABAN, y son justo lo que hace
+    // que la frase deje de sonar a checklist: el area convierte "2
+    // habitaciones" en un espacio imaginable, y las personas a cargo explican
+    // POR QUE hacen falta esas dos. Los dos vienen del catalogo y del quiz —
+    // no se inventa nada.
+    var m2 = vm.area ? Math.round(vm.area) : 0;
+    var aCargo = 0;
+    if (a.personas) aCargo = a.personas === '4+' ? 4 : (parseInt(a.personas, 10) || 0);
+    var paraQuien = aCargo
+      ? ', que es lo que necesitas para ' + (aCargo === 1 ? 'la persona' : 'las ' + aCargo + ' personas') + ' que tienes a cargo'
+      : '';
+
     if (ofrece) {
-      if ((vm.habitaciones || []).map(Number).indexOf(pedidas) > -1) buenas.push('tiene ' + (pedidas === 1 ? 'la habitación' : 'las ' + pedidas + ' habitaciones') + ' que buscas');
-      else if (ofrece > pedidas) buenas.push('ofrece ' + hab(ofrece) + ' (pediste ' + pedidas + ')');
-      else malas.push('llega a ' + hab(ofrece) + ' para las ' + pedidas + ' que pediste');
+      if ((vm.habitaciones || []).map(Number).indexOf(pedidas) > -1) {
+        buenas.push(
+          (m2 ? 'reparte sus ' + m2 + ' m² en ' : 'tiene ') +
+          (pedidas === 1 ? 'la habitación' : 'las ' + pedidas + ' habitaciones') +
+          ' que buscabas' + paraQuien);
+      } else if (ofrece > pedidas) {
+        buenas.push('te da ' + hab(ofrece) + (m2 ? ' en ' + m2 + ' m²' : '') +
+          ', ' + (ofrece - pedidas === 1 ? 'una más' : (ofrece - pedidas) + ' más') +
+          ' de ' + (pedidas === 1 ? 'la que pediste' : 'las ' + pedidas + ' que pediste') +
+          (aCargo ? ', por si el hogar crece' : ''));
+      } else {
+        malas.push('se queda en ' + hab(ofrece) + ' y tú pediste ' + pedidas);
+      }
+    } else if (m2) {
+      buenas.push('son ' + m2 + ' m² construidos');
     }
 
     // 3. Precio contra el techo del rango de ingresos.
     var millones = Math.round((vm.precioCop || 0) / 1e6);
     if (millones) {
-      if (millones <= mat.bandaDe(a)) buenas.push('desde $' + millones + ' millones entra en tu presupuesto');
-      else malas.push('desde $' + millones + ' millones se pasa de tu presupuesto');
+      if (millones <= mat.bandaDe(a)) buenas.push('arranca en $' + millones + ' millones, dentro de lo que da tu rango de ingresos');
+      else malas.push('arranca en $' + millones + ' millones y eso se pasa de lo que da tu rango de ingresos');
     }
 
     // 4. Zonas comunes que el usuario marcó en la pregunta de entorno. Se
@@ -301,33 +325,91 @@
     });
     var idxEntorno = -1;
     if (coinciden.length) {
-      idxEntorno = buenas.push('trae ' + listaNatural(coinciden.slice(0, 2)) + ' (lo que marcaste del entorno)') - 1;
+      idxEntorno = buenas.push('tiene ' + listaNatural(coinciden.slice(0, 2)) +
+        (coinciden.length > 2 ? ' y ' + (coinciden.length - 2) + ' cosa' + (coinciden.length - 2 > 1 ? 's' : '') + ' más' : '') +
+        ' de lo que marcaste del entorno') - 1;
     }
 
     // 5. VIS / subsidio. Va de última a propósito: es la única frase sin "y"
     // interna, y `listaNatural` une el último elemento justamente con " y ".
     var quiereVis = a.tipo === 'VIS';
     if (vm.vis === quiereVis) {
-      if (vm.vis && a.afiliado === 'Sí') buenas.push('es VIS con subsidio por tu afiliación a Colsubsidio');
-      else buenas.push('es ' + (vm.vis ? 'VIS' : 'No VIS') + ' como pediste');
+      if (vm.vis && a.afiliado === 'Sí') buenas.push('es VIS y tu afiliación te abre el subsidio a la cuota inicial');
+      else if (vm.vis) buenas.push('es VIS, así que puedes aplicar a subsidio');
+      else buenas.push('es No VIS, con financiación más flexible');
     } else {
-      malas.push('es ' + (vm.vis ? 'VIS' : 'No VIS') + ' cuando buscabas ' + (quiereVis ? 'VIS' : 'No VIS'));
+      malas.push('es ' + (vm.vis ? 'VIS' : 'No VIS') + ' y tú buscabas ' + (quiereVis ? 'VIS' : 'No VIS'));
     }
 
     // Si la frase del entorno quedó de última (porque la de VIS se fue a las
     // "malas"), se deja una sola zona: dos encadenarían "… y piscina y sauna".
     if (idxEntorno > -1 && idxEntorno === buenas.length - 1 && coinciden.length > 1) {
-      buenas[idxEntorno] = 'trae ' + coinciden[0] + ' (lo que marcaste del entorno)';
+      buenas[idxEntorno] = 'tiene ' + coinciden[0] + ', de lo que marcaste del entorno';
     }
 
     return { buenas: buenas, malas: malas };
   }
 
+  /**
+   * La justificación de la tarjeta: por qué ESTE apartamento y no otro.
+   *
+   * VA EN FRASES, NO EN UNA LISTA. Antes era un solo renglón con todo separado
+   * por comas —"está en Suba (la localidad que elegiste), tiene la habitación
+   * que buscas y es VIS como pediste"— y se leía como un formulario
+   * rellenado: cierto, comprobable y completamente plano. Nadie se emociona
+   * leyendo una checklist de su propia vida.
+   *
+   * Ahora abre nombrando el puesto, da las DOS razones más fuertes en la
+   * primera frase y descarga el resto en una segunda. Dos razones es el corte:
+   * con tres la frase se hace inabarcable y con una parece que no hay más
+   * motivos.
+   *
+   * LO QUE NO CAMBIA ES LA VERDAD. Cada frase sigue saliendo de un dato del
+   * catálogo cruzado con una respuesta del quiz, y el "pero" sigue yendo
+   * SIEMPRE y al final. Un texto que entusiasma escondiendo que el proyecto se
+   * sale del presupuesto no es mejor copy: es una recomendación peor.
+   */
+  // Primera letra en mayúscula. Las frases se escriben en minúscula porque
+  // nacen para ir detrás de dos puntos; al promover una a frase propia hay que
+  // levantarla.
+  function mayuscula(s) {
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  }
+
   function razonDeMatch(vm, a, pos) {
     var f = frasesDeMatch(vm, a);
-    var encabezado = ['Es tu mejor match', 'Segunda mejor opción', 'Tercera mejor opción'][pos] || 'También encaja contigo';
-    var texto = f.buenas.length ? encabezado + ': ' + listaNatural(f.buenas) + '.' : encabezado + '.';
-    if (f.malas.length) texto += ' Eso sí, ' + listaNatural(f.malas) + '.';
+    // La apertura cambia con el puesto. Con 18 tarjetas repartidas en tres
+    // páginas, un único "También encaja contigo" salía QUINCE veces y hacía
+    // que la segunda y la tercera página se leyeran como relleno.
+    var abre = [
+      'Es el que mejor encaja contigo',
+      'El segundo que más se acerca a lo que pediste',
+      'Tercero en afinidad, y por buenas razones',
+    ][pos] || (pos < 6 ? 'También entra en tu lista corta' : 'Otro que encaja con lo que buscas');
+
+    // UNA RAZON POR FRASE, Y NO UNIDAS CON "Y". Cada razón lleva ya sus
+    // propias comas ("queda en Suba, exactamente la localidad que pediste"), y
+    // encadenar dos con " y " daba un renglón sin respiro donde no se sabía
+    // dónde terminaba una y empezaba la otra. Con punto entre medias se leen
+    // las dos.
+    var texto = abre;
+    if (f.buenas.length) {
+      texto += ': ' + f.buenas[0] + '.';
+      // CADA RAZON SU FRASE, sin `listaNatural`. Unirlas dejaba un renglón de
+      // tres motivos que ya traían comas dentro —"…que tienes a cargo,
+      // arranca en $215 millones, dentro de lo que da tu rango y es VIS…"— y
+      // ahí ya no se distingue dónde acaba uno y empieza el otro. La última
+      // entra con "Y" para que el bloque cierre y no se corte en seco.
+      f.buenas.slice(1).forEach(function (frase, i, todas) {
+        var ultima = i === todas.length - 1 && todas.length > 1;
+        texto += ' ' + (ultima ? 'Y ' + frase : mayuscula(frase)) + '.';
+      });
+    } else {
+      texto += '.';
+    }
+    // El "pero" con su propia frase y su propia entrada: metido en la lista de
+    // arriba se leía como una virtud más.
+    if (f.malas.length) texto += ' Lo único: ' + listaNatural(f.malas) + '.';
     return texto;
   }
 
