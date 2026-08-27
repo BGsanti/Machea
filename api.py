@@ -6,19 +6,26 @@ el formulario en vivo del stand de GO FEST.
 
     uvicorn api:app --reload --port 8000
 
-Solo para demo local: CORS abierto, sin auth. No exponer así a internet.
+Desplegado en Render (ver render.yaml). CORS abierto a propósito: la
+landing y la experiencia embebida son públicas, sin login, y no hay dato
+sensible propio que proteger aquí — el que sí importa (la API key de Dapta)
+nunca sale de las variables de entorno del servidor.
 """
 
 from __future__ import annotations
 
+import json
+import logging
 import os
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+logger = logging.getLogger("uvicorn.error")
 
 from catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES
 from main import recomendar, respuesta_json
@@ -167,8 +174,102 @@ def api_llamar(payload: SolicitudLlamada):
 
     import httpx
 
+    # Se limpia cualquier resultado viejo para este número: si vuelve a llamar
+    # (reintento o segunda vuelta), que el polling no devuelva el resumen de la
+    # llamada anterior mientras la nueva sigue en curso.
+    RESULTADOS_LLAMADAS.pop(telefono_e164, None)
+
     headers = {"x-api-key": DAPTA_API_KEY} if DAPTA_API_KEY else {}
     with httpx.Client(timeout=20.0) as client:
         r = client.post(DAPTA_FLOW_WEBHOOK_URL, json=payload_dapta, headers=headers)
         r.raise_for_status()
-    return {"status": "enviado", "detalle": f"Manuela está llamando a {telefono_e164}."}
+    return {
+        "status": "enviado",
+        "detalle": f"Manuela está llamando a {telefono_e164}.",
+        "telefono": telefono_e164,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Paso 3: resumen de la llamada apenas Manuela cuelga.
+#
+# Dapta empuja el análisis post-llamada por su propio webhook (configurado en
+# el agente, campo `webhook_url` — no está en este repo, se pone desde el
+# dashboard de Dapta o por MCP). Este backend solo lo recibe, lo guarda en
+# memoria por teléfono, y el frontend hace polling corto hasta que aparece.
+#
+# EN MEMORIA A PROPÓSITO. Un solo proceso, para un stand, sin necesidad de
+# sobrevivir un redeploy: una base de datos sería reescribir todo esto para
+# un problema que no existe todavía. Se pierde al reiniciar el servicio, y
+# está bien que sea así.
+#
+# CORRELACIÓN POR TELÉFONO, con la misma limitación ya conocida del proyecto
+# hermano (Colsubsidio): si dos leads comparten número en la misma ventana de
+# tiempo, el resultado puede cruzarse. Para un stand de GO FEST, con tráfico
+# bajo y cada quien probando con su propio celular, el riesgo es aceptable.
+RESULTADOS_LLAMADAS: dict[str, dict[str, Any]] = {}
+
+
+def _texto(valor: Any) -> Optional[str]:
+    return str(valor) if valor not in (None, "") else None
+
+
+@app.post("/webhooks/dapta/resultado")
+async def webhook_resultado_llamada(request: Request):
+    """Receptor del webhook post-call de Dapta (agente Manuela — Machea).
+
+    Escrito a la defensiva: el payload exacto no está documentado en público
+    y no se puede probar sin disparar una llamada real, así que se guarda el
+    cuerpo crudo completo (para depurar si algún campo no cruza donde se
+    esperaba) y se intentan varias rutas conocidas para cada dato, sacadas de
+    lo que sí se ve en list_calls: `custom_analysis_data` puede llegar como
+    dict ya parseado o como string JSON dentro de `call_analysis`.
+    """
+    body = await request.json()
+    logger.info("webhook post-call de Dapta: %s", json.dumps(body, ensure_ascii=False)[:4000])
+
+    telefono = _texto(body.get("to_number") or body.get("telefono") or body.get("phone"))
+    telefono_e164 = normalizar_telefono_e164(telefono) or telefono
+    if not telefono_e164:
+        logger.warning("webhook post-call sin to_number reconocible: %s", list(body.keys()))
+        return {"status": "ignorado", "detalle": "sin to_number"}
+
+    analisis = body.get("call_analysis")
+    if isinstance(analisis, str):
+        try:
+            analisis = json.loads(analisis)
+        except ValueError:
+            analisis = {}
+    analisis = analisis or {}
+
+    datos = analisis.get("custom_analysis_data") or body.get("custom_analysis_data") or {}
+    if isinstance(datos, str):
+        try:
+            datos = json.loads(datos)
+        except ValueError:
+            datos = {}
+
+    RESULTADOS_LLAMADAS[telefono_e164] = {
+        "listo": True,
+        "recibido_en": datetime.now(TZ_BOGOTA).isoformat(),
+        "call_status": body.get("call_status"),
+        "disconnection_reason": body.get("disconnection_reason"),
+        "temperatura_lead": datos.get("temperatura_lead"),
+        "resumen_llamada": datos.get("resumen_llamada") or analisis.get("call_summary"),
+        "recomendacion_asesor": datos.get("recomendacion_asesor"),
+        "estado_del_lead": datos.get("estado_del_lead"),
+        "nivel_de_urgencia": datos.get("nivel_de_urgencia"),
+        "tomador_de_decision": datos.get("tomador_de_decision"),
+        "presupuesto_confirmado": datos.get("presupuesto_confirmado"),
+        "fecha_de_seguimiento": datos.get("fecha_de_seguimiento"),
+        "objecion_principal": datos.get("objecion_principal"),
+    }
+    return {"status": "ok"}
+
+
+@app.get("/api/llamar/resultado")
+def api_resultado_llamada(telefono: str):
+    telefono_e164 = normalizar_telefono_e164(telefono)
+    if not telefono_e164:
+        raise HTTPException(status_code=400, detail="Teléfono inválido.")
+    return RESULTADOS_LLAMADAS.get(telefono_e164, {"listo": False})

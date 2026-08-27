@@ -288,6 +288,14 @@
   }
 
   function dispatch(action, dataset) {
+    // "Empezar de nuevo" corta cualquier polling del resumen en curso — si
+    // no, un intento tardío de la partida anterior podía repintar el
+    // resumen sobre una partida nueva que ya no tiene nada que ver.
+    if (action === 'restart' && pollingHandle) {
+      clearInterval(pollingHandle);
+      pollingHandle = null;
+      telefonoEnCurso = null;
+    }
     var prevScreen = state.screen;
     var changed = window.GDF.state.applyAction(state, action, dataset);
     if (!changed) return;
@@ -331,14 +339,16 @@
     if (prevScreen !== 'confirmacion' && state.screen === 'confirmacion') {
       dispararLlamada();
     }
-    // Botón "Reintentar" tras un error: 'reintentarLlamada' ya dejó
+    // Botón "Reintentar" tras un error de envío: 'reintentarLlamada' ya dejó
     // state.llamada en 'cargando' (ver state.js) y render() de arriba lo
     // pinta; solo falta relanzar el POST.
     if (action === 'reintentarLlamada') {
-      window.GDF.llamada.disparar(state, function (resultado) {
-        window.GDF.state.applyAction(state, 'llamadaResuelta', resultado);
-        render();
-      });
+      window.GDF.llamada.disparar(state, onLlamadaResuelta);
+    }
+    // Botón "Buscar resumen" tras agotar los intentos automáticos: relanza
+    // SOLO el polling, la llamada ya se hizo.
+    if (action === 'reintentarResumen') {
+      iniciarPolling(telefonoEnCurso);
     }
   }
 
@@ -347,10 +357,62 @@
   function dispararLlamada() {
     window.GDF.state.applyAction(state, 'llamadaCargando', {});
     render();
-    window.GDF.llamada.disparar(state, function (resultado) {
-      window.GDF.state.applyAction(state, 'llamadaResuelta', resultado);
+    window.GDF.llamada.disparar(state, onLlamadaResuelta);
+  }
+
+  // Compartido entre el disparo automático y el botón "Reintentar": aplica
+  // el resultado del POST y, si fue un envío real (no el mock del backend),
+  // arranca el paso 3 — el polling del resumen. `telefono` se guarda aparte
+  // porque state.resumen se resetea a null en cada intento nuevo y
+  // 'reintentarResumen' lo necesita después de que la respuesta ya pasó.
+  var telefonoEnCurso = null;
+  function onLlamadaResuelta(resultado) {
+    window.GDF.state.applyAction(state, 'llamadaResuelta', resultado);
+    if (resultado.estado === 'lista' && resultado.real && resultado.telefono) {
+      telefonoEnCurso = resultado.telefono;
+      iniciarPolling(resultado.telefono);
+    } else {
       render();
-    });
+    }
+  }
+
+  // Paso 3: polling corto de /api/llamar/resultado hasta que Dapta empuje el
+  // análisis post-llamada, o hasta agotar los intentos. Cada intento nuevo
+  // (disparo, reintento de llamada, o "Buscar resumen") cancela cualquier
+  // ciclo anterior — no tiene sentido seguir preguntando por una llamada
+  // vieja mientras hay una nueva en curso.
+  var pollingHandle = null;
+  var POLL_INTERVALO_MS = 4000;
+  var POLL_MAX_INTENTOS = 45; // ~3 minutos — de sobra para una llamada de <2 min más el margen del webhook
+
+  function iniciarPolling(telefono) {
+    if (pollingHandle) { clearInterval(pollingHandle); pollingHandle = null; }
+    if (!telefono) return;
+    telefonoEnCurso = telefono;
+    window.GDF.state.applyAction(state, 'resumenEsperando', {});
+    render();
+
+    var intentos = 0;
+    function intentar() {
+      intentos++;
+      window.GDF.llamada.verificarResultado(telefono, function (r) {
+        if (r && r.listo) {
+          clearInterval(pollingHandle);
+          pollingHandle = null;
+          window.GDF.state.applyAction(state, 'resumenListo', r);
+          render();
+          return;
+        }
+        if (intentos >= POLL_MAX_INTENTOS) {
+          clearInterval(pollingHandle);
+          pollingHandle = null;
+          window.GDF.state.applyAction(state, 'resumenAgotado', {});
+          render();
+        }
+      });
+    }
+    intentar();
+    pollingHandle = setInterval(intentar, POLL_INTERVALO_MS);
   }
 
   // POST /recomendaciones. Se usa igual en la primera carga y al reintentar.

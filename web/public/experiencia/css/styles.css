@@ -4239,7 +4239,103 @@ a.pt-flink:hover {
   cursor: pointer;
 }
 .gdf-llamada-reintentar:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(127, 127, 127, 0.15);
+}
+
+/* Paso 3: resumen post-llamada. Ver resumenLlamadaHtml() en templates.js —
+   el veredicto de DESPUÉS de la llamada real, distinto del gdf-lead-badge
+   (calculado en vivo por qualification.js sobre el quiz, antes de llamar). */
+.gdf-confirm-resumen {
+  margin-top: 14px;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.gdf-confirm-resumen--esperando {
+  background: var(--papel);
+  border: 1.5px dashed var(--borde);
+  color: var(--tinta-media);
+  text-align: center;
+  font-weight: 600;
+  animation: glowPulse 1.8s ease-in-out infinite;
+}
+.gdf-confirm-resumen--agotado {
+  background: var(--papel);
+  border: 1.5px solid var(--borde);
+  color: var(--tinta-media);
+  text-align: center;
+  font-weight: 600;
+}
+.gdf-confirm-resumen--listo {
+  background: var(--papel);
+  border: 1.5px solid var(--marca-borde-suave);
+  animation: popIn 0.4s ease-out;
+}
+.gdf-confirm-resumen-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.gdf-confirm-resumen-cabecera h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--tinta);
+}
+.gdf-confirm-resumen-texto {
+  color: var(--tinta-media);
+}
+.gdf-confirm-resumen-reco {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--marca-tinte);
+  color: var(--tinta);
+}
+.gdf-confirm-resumen-reco strong {
+  color: var(--marca-fuerte);
+}
+.gdf-confirm-resumen-chips {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.gdf-confirm-resumen-chips .gdf-chip {
+  font-size: 11px;
+}
+
+/* Temperatura del lead: colores fijos y universales (semáforo), no de
+   marca — igual que el naranja de error y el verde de éxito de arriba,
+   "caliente" tiene que leerse caliente para cualquier constructora. */
+.gdf-temp-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.gdf-temp--caliente {
+  background: #ffe4dc;
+  color: #b3391f;
+  border: 1.5px solid #ffb8a3;
+}
+.gdf-temp--tibio {
+  background: #fff2d9;
+  color: #8a5a00;
+  border: 1.5px solid #ffd889;
+}
+.gdf-temp--frio {
+  background: #e3edf9;
+  color: #2f5a7a;
+  border: 1.5px solid #b9d3ea;
 }
 
 /* Línea de tiempo "Qué sigue": lo que convierte el mensaje de gracias en un

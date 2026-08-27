@@ -71,11 +71,12 @@
 
   /**
    * Dispara la llamada. `cb` recibe siempre { estado: 'lista' | 'error',
-   * mensaje }, igual de forma que recommender.recomendar. 'lista' cubre
-   * tanto un envío real (status "enviado") como el modo mock del backend
-   * (status "mock_enqueued", cuando DAPTA_FLOW_WEBHOOK_URL no está puesta en
-   * Render) — en los dos casos el POST llegó bien; lo que cambia es si
-   * alguien contesta el teléfono.
+   * mensaje, real, telefono }, igual de forma que recommender.recomendar.
+   * 'lista' cubre tanto un envío real (status "enviado") como el modo mock
+   * del backend (status "mock_enqueued", cuando DAPTA_FLOW_WEBHOOK_URL no
+   * está puesta en Render) — en los dos casos el POST llegó bien; lo que
+   * cambia es `real`: solo con un envío real tiene sentido esperar un
+   * resumen de verdad (ver verificarResultado más abajo).
    */
   function disparar(state, cb) {
     var base = (window.GDF_CONFIG || {}).DAPTA_LLAMADA_BASE;
@@ -107,6 +108,8 @@
           }
           cb({
             estado: 'lista',
+            real: d.status === 'enviado',
+            telefono: d.telefono || null,
             mensaje: d.status === 'enviado'
               ? '¡Manuela te está llamando! Contesta en los próximos segundos.'
               : 'Simulado — el backend no tiene el webhook de Dapta configurado.',
@@ -119,6 +122,29 @@
       });
   }
 
+  /**
+   * Un solo chequeo de si ya llegó el resumen post-llamada (ver el receptor
+   * del webhook en api.py, /webhooks/dapta/resultado). `cb` recibe el cuerpo
+   * tal cual lo devuelve el backend: { listo: false } mientras no llega, o
+   * { listo: true, temperatura_lead, resumen_llamada, recomendacion_asesor,
+   * ... } una vez Dapta empuja el análisis. main.js decide el intervalo y
+   * cuándo dejar de intentar — esta función solo hace UN chequeo.
+   */
+  function verificarResultado(telefono, cb) {
+    var base = (window.GDF_CONFIG || {}).DAPTA_LLAMADA_BASE;
+    if (!base || !telefono) {
+      cb({ listo: false });
+      return;
+    }
+    fetch(base.replace(/\/$/, '') + '/api/llamar/resultado?telefono=' + encodeURIComponent(telefono))
+      .then(function (res) { return res.ok ? res.json() : { listo: false }; })
+      .then(cb)
+      .catch(function (err) {
+        console.error('[GDF/llamada] fallo consultando el resultado', err);
+        cb({ listo: false });
+      });
+  }
+
   window.GDF = window.GDF || {};
-  window.GDF.llamada = { disparar: disparar };
+  window.GDF.llamada = { disparar: disparar, verificarResultado: verificarResultado };
 })();

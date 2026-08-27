@@ -56,6 +56,15 @@
         mensaje: '',
       },
 
+      // Paso 3: el resumen post-llamada (temperatura, resumen, recomendación
+      // para el asesor). Solo arranca cuando 'llamada' resuelve con un envío
+      // REAL — main.js hace polling corto contra /api/llamar/resultado hasta
+      // que Dapta empuja el análisis, o hasta agotar los intentos.
+      resumen: {
+        estado: 'idle', // idle | esperando | listo | agotado
+        datos: null,
+      },
+
       // --- Desplegable de planos de cada tarjeta (ver detalleProyecto en
       // templates.js). Vive en el estado, y no solo en el DOM, porque marcar
       // un proyecto sí re-renderiza toda la lista: sin esto el desplegable se
@@ -324,6 +333,28 @@
       // detecta esta acción y vuelve a llamar a llamada.disparar().
       case 'reintentarLlamada':
         state.llamada = { estado: 'cargando', mensaje: '' };
+        state.resumen = { estado: 'idle', datos: null };
+        break;
+
+      // Paso 3: ciclo de polling de /api/llamar/resultado (ver js/llamada.js
+      // y main.js). `ds` en 'resumenListo' es el cuerpo que devolvió el
+      // backend cuando `listo: true`.
+      case 'resumenEsperando':
+        state.resumen = { estado: 'esperando', datos: null };
+        break;
+
+      case 'resumenListo':
+        state.resumen = { estado: 'listo', datos: ds };
+        break;
+
+      case 'resumenAgotado':
+        state.resumen = { estado: 'agotado', datos: null };
+        break;
+
+      // Botón "Buscar resumen" tras agotar los intentos automáticos. Vuelve
+      // a 'esperando' para que main.js relance el ciclo de polling.
+      case 'reintentarResumen':
+        state.resumen = { estado: 'esperando', datos: null };
         break;
 
       case 'goBack': {

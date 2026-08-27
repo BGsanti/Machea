@@ -1647,6 +1647,83 @@
     return '<div class="gdf-confirm-pasos"><h3>Qué sigue</h3>' + itemsHtml + '</div>';
   }
 
+  // Paso 3: resumen de la llamada apenas Manuela cuelga — temperatura del
+  // lead, resumen de 2-3 frases y una recomendación concreta para el asesor.
+  // Viene del análisis post-llamada de Dapta (ver /webhooks/dapta/resultado
+  // en api.py); main.js hace el polling y solo llama a esto una vez con
+  // 'esperando' y otra vez con 'listo' (o 'agotado' si nunca llegó).
+  //
+  // NO ES LO MISMO QUE gdf-lead-badge. Ese bloque (más abajo en esta pantalla)
+  // es la calificación con la que YA se contaba al elegir el proyecto —
+  // 'ready'/'nurture' calculados en vivo por qualification.js sobre las
+  // respuestas del quiz, antes de que Manuela llame a nadie. Este es el
+  // veredicto de DESPUÉS de la llamada real, con lo que la persona dijo de
+  // verdad. Los dos pueden decir cosas distintas — es información, no un bug.
+  var TEMPERATURA = {
+    caliente: { emoji: '🔥', label: 'Caliente', clase: 'gdf-temp--caliente' },
+    tibio: { emoji: '🌤️', label: 'Tibio', clase: 'gdf-temp--tibio' },
+    frio: { emoji: '❄️', label: 'Frío', clase: 'gdf-temp--frio' },
+  };
+
+  function resumenLlamadaHtml(resumen) {
+    if (resumen.estado === 'esperando') {
+      return (
+        '<div class="gdf-confirm-resumen gdf-confirm-resumen--esperando">' +
+        '🎙️ Manuela está en la llamada — el resumen aparece aquí apenas cuelgue.' +
+        '</div>'
+      );
+    }
+    if (resumen.estado === 'agotado') {
+      return (
+        '<div class="gdf-confirm-resumen gdf-confirm-resumen--agotado">' +
+        'La llamada se alargó más de lo esperado y todavía no llega el resumen. ' +
+        '<button class="gdf-llamada-reintentar" data-action="reintentarResumen">Buscar resumen</button>' +
+        '</div>'
+      );
+    }
+    if (resumen.estado !== 'listo' || !resumen.datos) return '';
+
+    var d = resumen.datos;
+    var temp = TEMPERATURA[d.temperatura_lead] || null;
+    var tempHtml = temp
+      ? '<span class="gdf-temp-badge ' + temp.clase + '">' + temp.emoji + ' ' + esc(temp.label) + '</span>'
+      : '';
+
+    var filas = '';
+    if (d.resumen_llamada) {
+      filas += '<p class="gdf-confirm-resumen-texto">' + esc(d.resumen_llamada) + '</p>';
+    }
+    if (d.recomendacion_asesor) {
+      filas +=
+        '<p class="gdf-confirm-resumen-reco"><strong>Para el asesor:</strong> ' +
+        esc(d.recomendacion_asesor) + '</p>';
+    }
+
+    // Chips secundarios: solo los que Manuela sí pudo determinar. Un booleano
+    // ausente (null, porque no salió en la conversación) no se pinta como
+    // "No" — se omite, que es honesto con lo que de verdad se sabe.
+    var chips = [];
+    if (d.presupuesto_confirmado === true) chips.push('💰 Presupuesto confirmado');
+    if (d.tomador_de_decision === true) chips.push('🙋 Toma la decisión');
+    if (d.nivel_de_urgencia) {
+      chips.push('⏱ Urgencia ' + (d.nivel_de_urgencia === 'high' ? 'alta' : d.nivel_de_urgencia === 'medium' ? 'media' : 'baja'));
+    }
+    if (d.fecha_de_seguimiento) chips.push('📅 Seguimiento: ' + esc(d.fecha_de_seguimiento));
+    var chipsHtmlResumen = chips.length
+      ? '<div class="gdf-confirm-resumen-chips">' +
+        chips.map(function (c) { return '<span class="gdf-chip">' + c + '</span>'; }).join('') +
+        '</div>'
+      : '';
+
+    return (
+      '<div class="gdf-confirm-resumen gdf-confirm-resumen--listo">' +
+      '<div class="gdf-confirm-resumen-cabecera"><h3>Resumen de la llamada</h3>' + tempHtml + '</div>' +
+      filas +
+      chipsHtmlResumen +
+      '</div>'
+    );
+  }
+
   // Cierre del flujo. Elegir el proyecto y tocar "Continuar" YA es la
   // confirmación: acá no se pide otra acción para lograr lo que el usuario ya
   // pidió. Solo se cierra y se dice qué sigue.
@@ -1759,6 +1836,11 @@
         ' <button class="gdf-llamada-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';
     }
 
+    // Paso 3: resumen post-llamada (ver js/llamada.js + main.js, que hacen el
+    // polling de /api/llamar/resultado). Solo tiene sentido mostrarlo cuando
+    // la llamada fue real — 'resumen' se queda en 'idle' en modo mock.
+    var resumenHtml = resumenLlamadaHtml(state.resumen);
+
     // heroTitulo/heroTexto ya llevan cualquier dato dinámico pasado por esc()
     // en el punto en que se armaron arriba; el resto es texto fijo del propio
     // código. Se insertan tal cual, sin volver a escapar.
@@ -1770,7 +1852,7 @@
       '<p>' + heroTexto + '</p>' +
       extra +
       '</div>' +
-      (heroClase === 'gdf-confirm-hero--ok' ? contactoHtml + pasosSiguientesHtml(lead) : '') +
+      (heroClase === 'gdf-confirm-hero--ok' ? contactoHtml + resumenHtml + pasosSiguientesHtml(lead) : '') +
       proyectoHtml +
       (heroClase === 'gdf-confirm-hero--ok' ? leadBloqueHtml : '') +
       '<div class="gdf-confirm-bloque">' +
