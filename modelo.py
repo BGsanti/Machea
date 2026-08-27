@@ -705,6 +705,49 @@ def _cargar_historial(ruta_historial):
 # ===========================================================================
 # D. Normalización comercial del score
 # ===========================================================================
+def _precio_desempate(proyecto):
+    """Precio del proyecto para desempatar, o infinito si no lo publica.
+
+    Un proyecto sin precio no puede reclamar ser la mejor oferta del empate,
+    así que se va al final del grupo en vez de ganarlo por defecto.
+    """
+    try:
+        precio = float(proyecto.get("precio_desde_cop"))
+    except (TypeError, ValueError):
+        return float("inf")
+    return precio if precio > 0 else float("inf")
+
+
+def _desempatar_por_precio(ordenados, brutos):
+    """Reordena los grupos que quedaron con el mismo porcentaje redondeado.
+
+    Dentro de un empate manda el precio: entre dos proyectos que el modelo ve
+    igual de compatibles, el más barato es la mejor oferta y se queda con el
+    porcentaje alto; el otro baja un punto en `post_arreglos`.
+
+    El empate se rompe **solo dentro del mismo tramo de `_prioridad_filtro`**:
+    un proyecto admitido relajando requisitos no puede adelantar a uno que
+    cumple todo por ser más barato. Como `brutos` no crece dentro de un tramo,
+    los empates son siempre posiciones consecutivas.
+
+    Returns:
+        [(proyecto, porcentaje_bruto), ...] con los grupos reordenados.
+    """
+    pares = list(zip(ordenados, brutos))
+    claves = [(proyecto.get("_prioridad_filtro", 0), bruto) for proyecto, bruto in pares]
+
+    desempatados = []
+    inicio = 0
+    while inicio < len(pares):
+        fin = inicio + 1
+        while fin < len(pares) and claves[fin] == claves[inicio]:
+            fin += 1
+        desempatados.extend(sorted(pares[inicio:fin],
+                                   key=lambda par: _precio_desempate(par[0])))
+        inicio = fin
+    return desempatados
+
+
 def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMATIVOS):
     """Convierte los scores del modelo en porcentajes de compatibilidad.
 
@@ -712,6 +755,9 @@ def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMAT
     - Los siguientes bajan de forma proporcional a su diferencia real de score
       respecto al primero (`ESCALA_CAIDA` puntos por cada 100% de caída
       relativa), con un piso y un escalón mínimo que evita empates visuales.
+    - **Ningún porcentaje se repite.** Cuando dos proyectos redondean al mismo
+      número, el empate lo rompe el precio: el más barato se queda con el
+      porcentaje alto y el otro baja un punto (`_desempatar_por_precio`).
 
     Args:
         semilla: fija el aleatorio del primer porcentaje (útil en pruebas).
@@ -739,15 +785,24 @@ def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMAT
     caida_maxima = max(caidas)
     escala = min(ESCALA_CAIDA, SPAN_MAXIMO / caida_maxima) if caida_maxima > 0 else ESCALA_CAIDA
 
+    # Porcentaje que le tocaría a cada uno por su score, antes de garantizar
+    # que sean todos distintos.
+    brutos = []
+    for posicion, caida in enumerate(caidas, start=1):
+        crudo = porcentaje_top if posicion == 1 else max(porcentaje_top - caida * escala,
+                                                         PORCENTAJE_PISO)
+        brutos.append(int(round(crudo)))
+
+    # Dos proyectos con scores parecidos redondean al mismo número. Antes de
+    # separarlos hay que decidir cuál de los dos merece el porcentaje alto, y
+    # ese desempate lo gana el precio, no el orden en que venían.
+    ordenados = _desempatar_por_precio(ordenados, brutos)
+    brutos = [bruto for _, bruto in ordenados]
+    ordenados = [proyecto for proyecto, _ in ordenados]
+
     proyectos_listos_llamativos = []
     porcentaje_anterior = None
-    for posicion, (proyecto, caida) in enumerate(zip(ordenados, caidas), start=1):
-        if posicion == 1:
-            porcentaje = porcentaje_top
-        else:
-            porcentaje = max(porcentaje_top - caida * escala, PORCENTAJE_PISO)
-
-        porcentaje = int(round(porcentaje))
+    for posicion, (proyecto, porcentaje) in enumerate(zip(ordenados, brutos), start=1):
         if porcentaje_anterior is not None:
             # El orden debe leerse claro: siempre al menos un punto por debajo.
             porcentaje = min(porcentaje, porcentaje_anterior - PASO_MINIMO)

@@ -4,9 +4,14 @@ Recomendador de proyectos de vivienda en Bogotá D.C. Recibe el formulario de
 un usuario y devuelve los 6 proyectos más compatibles, con un porcentaje de
 compatibilidad listo para mostrar.
 
+Hoy el repo tiene tres capas: el **motor** (Python), una **capa HTTP**
+(`api.py`, FastAPI) y la **landing** de GO FEST (`web/`, React + Vite) que
+consume el motor en vivo y puede disparar la llamada de Manuela.
+
 Este documento describe el contrato de datos, el grafo de proximidad entre
-localidades y la resolución de localidad por dirección. Para correr el
-proyecto, ver [README.md](README.md).
+localidades, la resolución de localidad por dirección, la API y la landing.
+Para correr el proyecto, ver [README.md](README.md); para el formulario
+mínimo que espera el modelo, [CONTRATO_FRONT.md](CONTRATO_FRONT.md).
 
 ---
 
@@ -48,6 +53,20 @@ proyecto, ver [README.md](README.md).
                             proyectos_listos_llamativos.json
 ```
 
+Y la capa que lo expone al mundo:
+
+```
+   web/ (React + Vite)                       api.py (FastAPI, :8000)
+   ------------------                        -----------------------
+   LiveDemo.tsx  --- POST /api/recomendar -->  recomendar() + respuesta_json()
+   Navbar/Hero   --- GET  /api/catalogos  -->  catalogos.py (ids canónicos)
+   LiveDemo.tsx  --- POST /api/llamar     -->  payload de 19 campos
+                                                        |
+                                                        v
+                                          DAPTA_FLOW_WEBHOOK_URL
+                                          (flow de voz de Manuela)
+```
+
 | Archivo | Responsabilidad |
 |---|---|
 | `catalogos.py` | Vocabularios canónicos y el grafo urbano. **Única fuente de verdad** de los ids. |
@@ -55,6 +74,8 @@ proyecto, ver [README.md](README.md).
 | `prep.py` | Convierte el catálogo crudo en `proyectos_model.json` con el perfil objetivo de cada proyecto. |
 | `modelo.py` | Las cuatro etapas del recomendador. |
 | `main.py` | Encadena las etapas y expone `recomendar()`, el punto de entrada del front. |
+| `api.py` | Wrapper HTTP (FastAPI) sobre `recomendar()`. Tres endpoints + el disparo a Dapta (§5.2). |
+| `web/` | La landing de GO FEST: React 19 + Vite + Tailwind v4 (§8). |
 | `generar_historial.py` | Convierte los clientes simulados en el historial de interacciones. |
 | `simulacion/arquetipos.py` | Los 10 arquetipos de comprador. |
 | `simulacion/generar_clientes.py` | 100 variaciones por arquetipo → 1.000 clientes. |
@@ -443,6 +464,20 @@ compatibilidad:
 - `PORCENTAJE_PISO = 62` y `PASO_MINIMO = 1` evitan el sótano y los empates
   visuales.
 
+**Ningún porcentaje se repite, y el empate lo rompe el precio.** Dos proyectos
+con scores parecidos redondean al mismo número —dos 86 %— y mostrar el mismo
+porcentaje dos veces deja al usuario sin criterio para elegir. Antes de
+separarlos hay que decidir cuál merece el número alto, y ese desempate lo gana
+**la vivienda más barata**: entre dos que el modelo ve igual de compatibles,
+la más barata es la mejor oferta. La otra baja un punto (86 % y 85 %), y si
+son tres, 86 · 85 · 84.
+
+`_desempatar_por_precio` reordena solo **dentro del mismo tramo de
+`_prioridad_filtro`**: un proyecto admitido relajando requisitos no adelanta a
+uno que cumple todo por ser más barato (invariante 4). Un proyecto que no
+publica precio se va al final de su grupo de empate, no al principio: sin
+precio no puede reclamar ser la mejor oferta.
+
 ---
 
 ### 4.5 Entrenamiento: la base de clientes simulados
@@ -501,6 +536,8 @@ se vuelve negativa, el historial está desactualizado.
 
 ## 5. Integración con el front
 
+### 5.1 En proceso: `main.recomendar()`
+
 `main.recomendar()` es el punto de entrada. Acepta el payload **como dict**,
 sin pasar por disco:
 
@@ -554,6 +591,63 @@ marcarlos todos de una vez.
 
 Las zonas comunes que el front mande y no estén en el vocabulario de 25 no
 rompen nada: viajan en `usuario_info_contacto_v1["zonas_comunes_no_reconocidas"]`.
+
+### 5.2 Por HTTP: `api.py`
+
+`api.py` es un wrapper **delgado** de FastAPI sobre `recomendar()`. Es lo que
+consume la landing (§8). No tiene lógica de recomendación propia: valida con
+Pydantic, llama al pipeline y devuelve `respuesta_json()`.
+
+```bash
+uvicorn api:app --reload --port 8000     # desde la raíz del repo
+```
+
+| Endpoint | Qué hace |
+|---|---|
+| `GET /api/health` | Latido. Lo usa el front para saber si el motor está encendido antes de que el usuario llene nada. |
+| `GET /api/catalogos` | Las 20 localidades con su id y las 25 zonas comunes, leídas de `catalogos.py`. **Es la vía para que el front no invente ids.** |
+| `POST /api/recomendar` | Recibe el formulario, devuelve `respuesta_json()`. |
+| `POST /api/llamar` | Dispara la llamada de Manuela (§5.3). |
+
+`FormularioUsuario` (Pydantic) marca obligatorios **solo los seis campos del
+contrato mínimo** —`tipo_vivienda`, `salario`, `personas_a_cargo`, `edad`,
+`Localidad`, `numero_habitaciones`—; el resto es opcional y el payload se pasa
+con `exclude_none=True`, para que un campo ausente no viaje como `null` y
+`leer_info_user` lo trate como "no declarado" en vez de como valor inválido.
+
+El `ValueError` de `leer_info_user` sale como **HTTP 400** con **todos** los
+errores del formulario juntos en `detail`, que es justamente para lo que
+`leer_info_user` los acumula (§5.1).
+
+**CORS abierto y sin auth**: es una demo local para el stand de GO FEST. Está
+anotado en el docstring del módulo y no debe exponerse así a internet.
+
+### 5.3 `POST /api/llamar` — el flow de Dapta
+
+Cierra el ciclo: con el Top 1 en la mano, dispara la llamada de **Manuela**,
+la agente de voz que corre en un flow de Dapta (Flow Studio).
+
+- **El teléfono se normaliza a E.164 de móvil colombiano** (`+573XXXXXXXXX`)
+  en `normalizar_telefono_e164`: quita el `00`, quita el indicativo `57` si
+  viene duplicado y exige 10 dígitos que empiecen por `3`. Lo que no encaja
+  —fijo, extranjero, incompleto— se rechaza con **400 antes** de gastar una
+  llamada, no después.
+- **`subsidio_estimado` se calcula aquí**: `30 × SMMLV` solo si el proyecto
+  aplica subsidio de caja **y** la persona es afiliada. `SMMLV_COP` está
+  duplicado en `api.py` y en `prep.py`; se actualizan los dos (§9).
+- **El payload del flow tiene 19 campos y no es el contrato de §2.** Es el
+  vocabulario de Dapta: `zona_interes`, `urgencia`, `entorno_deseado`,
+  `piso_preferido`, `external_lead_id`, `current_time` en hora de Bogotá
+  (`TZ_BOGOTA`, UTC−5)… La traducción completa vive en `api_llamar` y es el
+  único sitio donde hay que tocarla si el flow cambia de campos.
+- **La URL del webhook sale de `DAPTA_FLOW_WEBHOOK_URL`, nunca hardcodeada.**
+  Sin esa variable el endpoint responde `status: "mock_enqueued"` con el
+  payload que *habría* enviado: se puede probar la landing entera, incluido el
+  botón de llamar, sin llamarle a nadie.
+
+```bash
+export DAPTA_FLOW_WEBHOOK_URL="https://..."   # antes de levantar uvicorn
+```
 
 ---
 
@@ -760,7 +854,116 @@ en 0,50 son lo que evita que sean muchos más.
 
 ---
 
-## 8. Invariantes que no se pueden romper
+## 8. La landing (`web/`)
+
+La landing de **GO FEST**: vende Machea a inmobiliarias y, en la misma página,
+deja probar el motor de verdad contra el catálogo de 96 proyectos.
+
+**Stack:** React 19 · Vite 8 · TypeScript · **Tailwind v4** · Framer Motion ·
+lucide-react · oxlint. Sin router: es una sola página con anclas.
+
+### 8.1 Correr las dos mitades
+
+```bash
+uvicorn api:app --port 8000            # terminal 1, raíz del repo
+cd web && npm install && npm run dev   # terminal 2, landing en :5173
+```
+
+`vite.config.ts` usa `strictPort: true` en 5173 (respeta `PORT` si está): si
+el puerto está ocupado **falla en vez de moverse solo**, para que la URL del
+stand sea siempre la misma. `npm run build` corre `tsc -b` antes de compilar,
+así que un error de tipos rompe el build; `npm run lint` es oxlint, no ESLint.
+
+### 8.2 Estructura
+
+```
+web/src/
+├── App.tsx            el orden de las secciones de la página, y nada más
+├── index.css          @theme de Tailwind v4: la paleta y las animaciones
+├── components/
+│   ├── Navbar · Hero · Marquee · Demos · LiveDemo · Credibility
+│   ├── FAQ · Offer · Footer                    las secciones
+│   ├── Reveal.tsx     Reveal / StaggerGroup / StaggerItem — las animaciones
+│   ├── AnimatedWords · CountUp · GrainOverlay · ScrollProgress · Logo
+│   └── LeadMockup.tsx la ficha que "recibe el asesor"
+└── lib/
+    ├── api.ts         el cliente HTTP de api.py (§5.2) y sus tipos
+    ├── catalogos.ts   espejo de catalogos.py para el formulario
+    ├── content.ts     las 5 demos y los 3 pasos — texto, no maquetación
+    └── offerConfig.ts la oferta comercial, en un solo objeto editable
+```
+
+**Las animaciones de scroll no se escriben a mano.** Se envuelve con
+`<Reveal>` (fade + subida, una sola vez) o con `<StaggerGroup>` +
+`<StaggerItem>` cuando una lista debe entrar en cascada en vez de como un
+bloque. Añadir `whileInView` suelto a un componente nuevo rompe la
+consistencia del ritmo de la página.
+
+### 8.3 El diseño vive en `index.css`
+
+Tailwind v4: **no hay `tailwind.config.js`**. La paleta se declara en el
+bloque `@theme` de `index.css` y Tailwind genera las utilidades a partir de
+ahí, así que `--color-coral` es lo que habilita `bg-coral`, `text-coral`,
+`border-coral/40`…
+
+| Token | Valor | Papel |
+|---|---|---|
+| `--color-coral` | `#ff6259` | Acento y CTA. |
+| `--color-navy` | `#2d3b4e` | Texto y fondos oscuros. |
+| `--color-beige` | `#fdf6f0` | Fondo de la página. |
+| `--color-emerald` | `#2dd4a7` | Señal de éxito: match, compatibilidad, llamada. |
+| `--font-heading` | Sora | Titulares. El resto es Manrope. |
+
+Ahí mismo viven las texturas de marca (`dawn-sky`, `star-field`,
+`dot-field-a/b/c`, `signal-streak`) y sus keyframes. Un color nuevo se agrega
+al `@theme`, **no** como hex suelto en una clase.
+
+### 8.4 El texto está fuera de la maquetación
+
+Tres archivos de `lib/` existen para poder cambiar el contenido sin tocar JSX:
+
+- **`content.ts`** — las 5 demos y los 3 pasos. Cada demo lleva un `match`
+  opcional que es **salida real de `recomendar()`** sobre el catálogo, no
+  texto de relleno: si el catálogo cambia de precios o de proyectos, esos
+  bloques quedan desactualizados y hay que volver a correrlos.
+- **`offerConfig.ts`** — el stack de valor, la garantía y el CTA. Tiene
+  marcadores `[CONFIRMAR CON EQUIPO]` y un `contactEmail` con `TODO`: son
+  cifras y datos que el equipo todavía no cerró, y están así **a propósito**
+  para no publicar números inventados.
+- **`catalogos.ts`** — ver §8.5.
+
+### 8.5 `LiveDemo` — el formulario contra el motor real
+
+Es el componente que conecta las dos mitades del repo, y el más delicado:
+
+- Arma el payload del **contrato mínimo** (§2.1) y solo agrega `afiliado` y
+  `zonas_comunes` si el usuario los tocó — mismo criterio que el
+  `exclude_none` de `api.py`. Muestra el **Top 3**, no el Top 6: el Top 6
+  completo no cabe en la pantalla del stand.
+- **Comprueba que la API esté viva al primer foco o clic** (`checkApi` →
+  `GET /api/catalogos`), para que el primer error que vea alguien no sea uno
+  de red a mitad del formulario.
+- **`lib/catalogos.ts` es un espejo deliberado de `catalogos.py`.** Está
+  duplicado para que el formulario tenga las etiquetas sin depender de la red.
+  Las 20 localidades están completas; las zonas comunes son un **subconjunto
+  curado de 10** de las 25, para que el form quepa en una pantalla. Los
+  nombres tienen que coincidir **carácter por carácter** con
+  `catalogos.ZONAS_COMUNES` (tildes incluidas: "Salón social", "Zona de
+  lavandería") o el modelo los recibe como no reconocidos y los ignora en
+  silencio (invariante 6, §9).
+- El botón de llamar reenvía el `Apartamento` **completo** que devolvió la
+  API, no una versión recortada, porque `POST /api/llamar` arma el payload de
+  Dapta a partir de él.
+- **`API_BASE` está fijo en `http://localhost:8000`** (`lib/api.ts`). Es una
+  demo local; sacarla del portátil implica moverlo a una variable de entorno
+  de Vite y cerrar el CORS de `api.py`.
+
+Nota: `web/README.md` sigue siendo el del template de Vite. La documentación
+real de la landing es esta sección.
+
+---
+
+## 9. Invariantes que no se pueden romper
 
 1. **`catalogos.py` es la única fuente de los ids.** Los índices de
    `ZONAS_COMUNES` (0–24) y los de `LOCALIDADES_BOGOTA` (1–20) viajan dentro
@@ -772,5 +975,19 @@ en 0,50 son lo que evita que sean muchos más.
 3. **`tipo_vivienda` nunca se relaja** en el filtro.
 4. **Nada relajado queda por encima de algo que cumple todo**, sin importar el
    score.
-5. **`SMMLV` se actualiza cada año** en `prep.py`. Todo el eje de `salario`
-   depende de esa constante.
+5. **`SMMLV` se actualiza cada año**, y está en **dos** archivos: `prep.py`
+   (todo el eje de `salario` depende de él) y `api.py` (`SMMLV_COP`, para el
+   subsidio que se le informa a Dapta). Si se desfasan, el motor y la llamada
+   dicen cosas distintas sobre el mismo proyecto.
+6. **`web/src/lib/catalogos.ts` es un espejo, no una fuente.** Duplica los ids
+   de `catalogos.py` a propósito, y por eso hereda el invariante 1: si se
+   desincroniza, el front manda ids que apuntan a otra localidad o zonas que
+   el modelo descarta **sin error visible**. `GET /api/catalogos` sirve la
+   versión buena y es la vía para verificarlo.
+7. **`DAPTA_FLOW_WEBHOOK_URL` nunca se hardcodea.** Sin la variable el
+   endpoint responde en modo mock, que es el comportamiento correcto en
+   desarrollo — no un fallo que haya que "arreglar" poniendo la URL en el
+   código.
+8. **`api.py` no toma decisiones de recomendación.** Valida, traduce y
+   delega. Cualquier regla de negocio nueva va en `modelo.py` o `main.py`, o
+   quedará invisible para la CLI, la evaluación y los clientes simulados.
