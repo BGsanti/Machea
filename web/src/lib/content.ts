@@ -63,14 +63,15 @@ export const beneficios: Beneficio[] = [
   {
     id: "sin-migrar",
     title: "Se acopla a lo que ya tienes",
-    description: "Sin migrar tu CRM ni reconstruir tu sitio web — Machea conecta con tu flujo actual.",
+    description:
+      "Sin migrar tu CRM ni reconstruir tu sitio web — nos integramos a cualquier CRM para que los datos de tus leads lleguen directo a tu equipo comercial.",
     icon: Puzzle,
   },
   {
     id: "cualquier-inmobiliaria",
     title: "Funciona para cualquier inmobiliaria con pauta",
     description:
-      "VIS, No VIS, un proyecto o cien: el motor se adapta a tu catálogo y a tu presupuesto de medios.",
+      "VIS, No VIS, un proyecto o cien: el motor se adapta a tu catálogo y a tu presupuesto de medios, con confidencialidad de datos garantizada por anonimización.",
     icon: Building2,
   },
 ];
