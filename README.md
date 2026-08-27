@@ -17,6 +17,20 @@ Bogotá: **Amarilo, Cusezar, Constructora Bolívar y Colsubsidio**.
 > Detalle técnico del contrato de datos, del grafo de localidades y del
 > modelo: **[CLAUDE.md](CLAUDE.md)**.
 
+> **El front ya está conectado.** La landing de GO FEST vive en
+> **[web/](web/)** (React + Vite + Framer Motion) y consume el modelo a
+> través de **[api.py](api.py)**, un wrapper de FastAPI sobre `recomendar()`.
+> Correr los dos a la vez:
+>
+> ```bash
+> uvicorn api:app --port 8000        # backend, desde la raíz del repo
+> cd web && npm install && npm run dev  # landing, en otra terminal
+> ```
+>
+> `api.py` también expone `POST /api/llamar`, que arma el payload de 19
+> campos que espera el flow de Dapta y lo dispara — necesita
+> `DAPTA_FLOW_WEBHOOK_URL` en el entorno; sin ella responde en modo mock.
+
 ---
 
 ## Instalación
