@@ -7,7 +7,7 @@ export function Footer() {
         <div className="mb-8 flex flex-col items-center justify-between gap-6 md:flex-row">
           <Logo size={28} variant="mono" />
           <p className="text-sm font-medium text-white/50">
-            Hecho por el equipo de Machea — ex Hackathon Colsubsidio × 30X
+            Hecho por el equipo de Machea
           </p>
         </div>
         <div className="text-center text-xs text-white/30">

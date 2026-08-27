@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
-import { Trophy } from "lucide-react";
 import { steps } from "../lib/content";
-import { CountUp } from "./CountUp";
 import { Reveal, StaggerGroup, StaggerItem } from "./Reveal";
 
 export function Credibility() {
@@ -17,25 +15,6 @@ export function Credibility() {
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="relative z-10 mx-auto -mt-[104px] mb-20 flex max-w-4xl flex-col items-center gap-6 rounded-2xl border border-navy/10 bg-white p-6 text-center shadow-soft md:flex-row md:items-center md:text-left md:p-8">
-          <motion.div
-            className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-2xl text-white shadow-lg"
-            animate={{ rotate: [0, -6, 6, 0] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Trophy size={26} />
-          </motion.div>
-          <div>
-            <h4 className="text-xl font-extrabold text-navy md:text-2xl">
-              2.º lugar · Hackathon Colsubsidio × 30X
-            </h4>
-            <p className="mt-1 font-medium text-navy/70">
-              <CountUp to={6000000} prefix="$" className="font-bold text-navy" /> COP + mentoría de AI 30X, por un
-              sistema de perfilamiento de vivienda que ya funciona de punta a punta — no una idea en papel.
-            </p>
-          </div>
-        </Reveal>
-
         <Reveal className="mx-auto mb-16 max-w-3xl text-center">
           <h2 className="mb-6 text-4xl font-extrabold text-navy md:text-5xl">
             Un sistema end-to-end, nacido de un caso real en Colombia.
