@@ -47,6 +47,36 @@
    */
   var ESTANDAR = { primario: '#ff7a18', acento: '#ff9d3f', tinta: '#33322f' };
 
+  /**
+   * SUPERFICIE CLARA DE MACHEA, y solo de Machea.
+   *
+   * Todo lo demas en este archivo asume la consola en negro (`--fondo:
+   * #0a0b0d` de styles.css) — es la identidad de las cuatro constructoras
+   * revendidas y no se toca. Pero Machea no es una constructora revendida:
+   * es la marca del propio stand, y el resto de su sitio (la landing en
+   * React) es clara — blanco y beige, nunca negro. Un fondo casi negro aqui
+   * dentro, en medio de esa landing, se ve como una app distinta pegada con
+   * cinta, no como parte del mismo producto.
+   *
+   * `fondo`/`papel`/`papel2`/`borde` se fijan ANTES de derivar() para que
+   * haciaFondo() (mezcla contra --fondo) mezcle contra ESTE fondo y no
+   * contra el negro de styles.css — así los tintes y velos de marca salen
+   * pasteles claros, no manchas oscuras. `tinta*` no se puede derivar de la
+   * misma manera: viene fija en derivar() como gris claro para consola
+   * negra, así que se reemplaza aparte, a mano, con la escala de texto
+   * oscuro que ya usa el resto del sitio de Machea (--color-navy).
+   */
+  var SUPERFICIE_MACHEA = {
+    fondo: '#fdf6f0',
+    papel: '#ffffff',
+    papel2: '#f5efe9',
+    borde: '#dedad8',
+    tinta: '#2d3b4e',
+    tintaMedia: '#676f7b',
+    tintaSuave: '#95999f',
+    tintaTenue: '#b6b6b9',
+  };
+
   function aRgb(hex) {
     var h = String(hex || '').trim().replace('#', '');
     if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
@@ -197,9 +227,10 @@
 
   function aplicar() {
     var M = window.GDF_MARCA || {};
+    var esMachea = M.slug === 'machea';
     // Machea es la propia marca del stand, no una constructora revendida:
     // aqui el estandar naranja no aplica y manda la paleta de tenants/machea.
-    var usaEstandar = ESTANDAR && M.slug !== 'machea';
+    var usaEstandar = ESTANDAR && !esMachea;
     var paleta = usaEstandar ? {} : (M.paleta || {});
     var base = {
       primario: paleta.primario || (usaEstandar ? ESTANDAR.primario : BASE.primario),
@@ -207,7 +238,36 @@
       tinta: paleta.tinta || (usaEstandar ? ESTANDAR.tinta : BASE.tinta),
     };
 
+    var raiz = document.documentElement;
+
+    // La superficie clara de Machea se fija AQUI, antes de derivar(): esa
+    // función lee --fondo del DOM (vía haciaFondo/fondo()) para mezclar los
+    // tintes y velos, así que tiene que ver el fondo nuevo, no el negro que
+    // trae styles.css por defecto. Las cuatro constructoras no pasan por
+    // aquí y se quedan con la consola negra de siempre.
+    if (esMachea) {
+      raiz.style.setProperty('--fondo', SUPERFICIE_MACHEA.fondo);
+      raiz.style.setProperty('--papel', SUPERFICIE_MACHEA.papel);
+      raiz.style.setProperty('--papel-2', SUPERFICIE_MACHEA.papel2);
+      raiz.style.setProperty('--borde', SUPERFICIE_MACHEA.borde);
+      raiz.style.colorScheme = 'light';
+    } else {
+      raiz.style.colorScheme = 'dark';
+    }
+
     var tokens = derivar(base);
+
+    // La tinta (texto) no se puede derivar del fondo con la misma cuenta que
+    // los tintes de marca — en derivar() viene fija como gris claro para
+    // consola negra. Para Machea se reemplaza por la escala de texto oscuro
+    // de --color-navy, ANTES de que --texto-cta (más abajo) la use para
+    // calcular contraste, o calcularía contra el gris claro equivocado.
+    if (esMachea) {
+      tokens['--tinta'] = SUPERFICIE_MACHEA.tinta;
+      tokens['--tinta-media'] = SUPERFICIE_MACHEA.tintaMedia;
+      tokens['--tinta-suave'] = SUPERFICIE_MACHEA.tintaSuave;
+      tokens['--tinta-tenue'] = SUPERFICIE_MACHEA.tintaTenue;
+    }
 
     // Los tokens FIJADOS a mano por la marca ganan sobre los derivados. Es lo
     // que hace que Colsubsidio quede identico: sus diez tonos curados se
@@ -244,7 +304,6 @@
           : tokens['--tinta'];
     }
 
-    var raiz = document.documentElement;
     Object.keys(tokens).forEach(function (k) {
       raiz.style.setProperty(k, tokens[k]);
     });
