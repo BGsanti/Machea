@@ -1,7 +1,13 @@
 # Imágenes scrapeadas: cientos de MB que se regeneran con
 #   python scraper_projects.py
 # No tiene sentido versionarlas. Si se quieren en el repo, borrar esta línea.
-imagenes_proyectos/
+#
+# ANCLADA A LA RAIZ (la barra de delante), que es donde las escribe el
+# scraper (`DIR_IMAGENES` en scraper_projects.py). Sin anclar, el patron
+# casaba en CUALQUIER nivel y se tragaba tambien las fotos que la landing
+# sirve desde web/public/experiencia/, que si tienen que viajar: son las
+# que pinta el quiz publicado.
+/imagenes_proyectos/
 
 # `proyectos_model.json`, `historial_simulado.json` y `clientes_simulados.json`
 # SÍ se versionan: son lo que hace que `recomendar()` funcione recién clonado,

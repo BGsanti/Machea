@@ -31,9 +31,15 @@ import { Reveal } from "./Reveal";
  * `Benefits.tsx`.
  */
 
-// La experiencia la sirve el repo del front (`python plataforma/servidor.py`,
-// puerto 7000). Se deja configurable para no clavar `localhost` cuando esto
-// salga de una demo local.
+// LA EXPERIENCIA VIAJA DENTRO DE ESTA MISMA WEB, en `public/experiencia/`, y
+// por eso la ruta es RELATIVA. Vite sirve `public/` tal cual, asi que en el
+// despliegue queda en el mismo origen que la landing: un solo proyecto de
+// Vercel, sin variable de entorno que configurar y sin un segundo dominio que
+// pueda caducar por su cuenta.
+//
+// Antes apuntaba a `http://localhost:7000`, que es donde la sirve el repo del
+// front en desarrollo. Publicado, eso resolvia contra la maquina DEL VISITANTE
+// y el modal salia en blanco sin ningun error que lo delatara.
 //
 // Los dos parametros importan:
 //   `marca=machea` -> el tenant NEUTRO. Los otros cuatro son de una
@@ -42,9 +48,13 @@ import { Reveal } from "./Reveal";
 //      las cuatro marcas juntas, como corresponde a la demo de Machea.
 //   `embed=1` -> entra directo a la escarapela (sin el splash, que dentro de
 //      un modal es una puerta detras de otra) y deja la casa a la DERECHA.
+//
+// La copia publicada va con `SIN_BACKEND: true`: calcula el Top 6 con el motor
+// de reglas de matching.js en vez de llamar al modelo, porque ahi fuera no hay
+// ningun :8100 al que llamar. La propia tarjeta lo dice.
 const EXPERIENCIA_URL =
   import.meta.env.VITE_EXPERIENCIA_URL ??
-  "http://localhost:7000/experiencia/?marca=machea&embed=1";
+  "/experiencia/?marca=machea&embed=1";
 
 export function LiveDemo() {
   const [open, setOpen] = useState(false);

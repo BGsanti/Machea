@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏗️</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Encuentra tu próximo hogar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css?v=84" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- EL TENANT. Unico punto donde se decide de que constructora se viste la
+         app: `?marca=<slug>` en la URL. Son las cuatro constructoras
+         precargadas (amarilo, constructora-bolivar, colsubsidio, cusezar) y
+         la plataforma abre la experiencia pasando el slug que acaba de
+         generar.
+
+         POR DEFECTO VA BOLIVAR, y no es indiferente: de las cuatro, solo
+         Bolivar y Colsubsidio publican plantas de apartamento usables para la
+         escena del quiz. Con Amarilo o Cusezar el recorrido funciona igual
+         pero sin plano que armar.
+
+         `document.write` A PROPOSITO, y no es descuido: es lo unico que inserta
+         un script EN EL PUNTO DEL PARSER, asi que se ejecuta en orden y ANTES
+         de los que ya estan escritos abajo. Con `appendChild` el orden se
+         mantendria entre los inyectados pero no contra estos, y main.js
+         arrancaria sin marca. OJO: si esto se mueve dentro de un
+         DOMContentLoaded o se le pone `defer`, `document.write` BORRA el
+         documento entero. -->
+    <script>
+      (function () {
+        var m = /[?&]marca=([a-z0-9-]+)/.exec(location.search);
+        var slug = (m && m[1]) || 'constructora-bolivar';
+        window.GDF_TENANT = slug;
+        // MODO EMBEBIDO (`?embed=1`). Hoy lo usa el modal de "¡Empezar mi
+        // match!" de la landing de Machea, que monta esta app en un iframe.
+        // Se lee aqui y no en config.js porque viene de la URL, igual que la
+        // marca, y las dos tienen que estar antes de que arranque main.js.
+        //
+        // Cambia DOS cosas y solo dos:
+        //   1. Se entra directo a la escarapela: el clic en el boton ya fue la
+        //      intencion, y el splash dentro de un modal es una puerta detras
+        //      de otra. La escarapela SI se conserva — es donde se piden
+        //      nombre y telefono, o sea el lead, que es a lo que va la landing.
+        //   2. El CSS invierte las columnas para dejar la casa a la derecha.
+        window.GDF_EMBED = /[?&]embed=1(?:&|$)/.test(location.search);
+        // Los TRES archivos del tenant: identidad, catalogo y planos. Se
+        // cargan siempre los tres (aunque alguno venga vacio) para que no haya
+        // un 404 en consola ni un `undefined` a mitad del arranque.
+        //
+        // Antes eran cuatro: habia un `portada.js` con el clon de la portada de
+        // Colsubsidio. La app ya no tiene portada — entra directa al splash.
+        ['marca', 'proyectos', 'planos'].forEach(function (f) {
+          document.write('<scr' + 'ipt src="tenants/' + slug + '/' + f + '.js?v=84"></scr' + 'ipt>');
+        });
+      })();
+    </script>
+    <!-- traduce la paleta de la marca a las custom properties del :root -->
+    <script src="js/tema.js?v=84"></script>
+    <script src="js/config.js?v=84"></script>
+    <script src="js/data.js?v=84"></script>
+    <script src="js/matching.js?v=84"></script>
+    <!-- el plano que arma el quiz: cortes generados por tools/analizar_planos.py,
+         normalización de espacios, sorteo del apartamento y cuánto se ve ya -->
+    <script src="js/espacios.js?v=84"></script>
+    <script src="js/planta.js?v=84"></script>
+    <script src="js/scene.js?v=84"></script>
+    <script src="js/recommender.js?v=84"></script>
+    <script src="js/qualification.js?v=84"></script>
+    <script src="js/simulador.js?v=84"></script>
+    <!-- el contrato del modelo de recomendacion (Machea) -->
+    <script src="js/iconos.js?v=84"></script>
+    <script src="js/machea.js?v=84"></script>
+    <script src="js/templates.js?v=84"></script>
+    <script src="js/state.js?v=84"></script>
+    <script src="js/main.js?v=84"></script>
+  </body>
+</html>
