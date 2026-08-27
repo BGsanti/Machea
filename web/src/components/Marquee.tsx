@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 const items = [
   "21x más cierres respondiendo rápido",
   "Manuela califica en menos de 30s",
-  "5 demos en vivo en GO FEST",
+  "Funciona con cualquier inmobiliaria que hace pauta",
   "Sin migrar tu CRM ni tu sitio",
   "Match verificado, no solo un contacto",
 ];

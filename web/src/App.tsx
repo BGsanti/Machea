@@ -1,6 +1,7 @@
+import { Benefits } from "./components/Benefits";
 import { Credibility } from "./components/Credibility";
-import { Demos } from "./components/Demos";
 import { FAQ } from "./components/FAQ";
+import { FlowDiagram } from "./components/FlowDiagram";
 import { Footer } from "./components/Footer";
 import { GrainOverlay } from "./components/GrainOverlay";
 import { Hero } from "./components/Hero";
@@ -19,9 +20,10 @@ function App() {
       <main>
         <Hero />
         <Marquee />
-        <Demos />
+        <Benefits />
         <LiveDemo />
         <Credibility />
+        <FlowDiagram />
         <FAQ />
         <Offer />
       </main>

@@ -1,16 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, Bolt, Clock, MapPin } from "lucide-react";
+import { ArrowUpRight, MapPin } from "lucide-react";
 import { useState } from "react";
-import { demos } from "../lib/content";
+import { beneficios } from "../lib/content";
+import { ProcessComparison } from "./ProcessComparison";
 import { Reveal, StaggerGroup, StaggerItem } from "./Reveal";
 
 function formatCop(value: number) {
   return `$${value.toLocaleString("es-CO")}`;
 }
 
-export function Demos() {
-  const [activeId, setActiveId] = useState(demos[0].id);
-  const active = demos.find((d) => d.id === activeId) ?? demos[0];
+export function Benefits() {
+  const [activeId, setActiveId] = useState(beneficios[0].id);
+  const active = beneficios.find((b) => b.id === activeId) ?? beneficios[0];
 
   return (
     <section id="como-funciona" className="relative overflow-hidden bg-white py-24">
@@ -41,61 +42,38 @@ export function Demos() {
         </Reveal>
 
         <Reveal delay={0.1} className="mx-auto mb-20 max-w-4xl">
-          <motion.div
-            whileHover={{ y: -4 }}
-            transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="flex flex-col items-center gap-8 rounded-3xl border border-navy/10 bg-beige p-4 text-left shadow-soft md:flex-row md:p-8"
-          >
-            <div className="flex-1 space-y-3">
-              <span className="inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-600">
-                Proceso tradicional
-              </span>
-              <p className="flex items-start gap-2 text-navy/60">
-                <Clock size={18} className="mt-0.5 shrink-0" />
-                Formulario genérico + 24 horas de espera + llamada fría al lead equivocado.
-              </p>
-            </div>
-            <div className="hidden h-24 w-px bg-navy/10 md:block" />
-            <div className="flex-1 space-y-3">
-              <span className="inline-block rounded-full bg-emerald/20 px-3 py-1 text-xs font-bold text-emerald-700">
-                Con Machea
-              </span>
-              <p className="flex items-start gap-2 font-semibold text-navy">
-                <Bolt size={18} className="mt-0.5 shrink-0 text-coral" />
-                Perfilamiento interactivo + llamada de IA en 30s + asesor recibe lead calificado.
-              </p>
-            </div>
-          </motion.div>
+          <ProcessComparison />
         </Reveal>
 
         <div id="demos" className="mt-16 scroll-mt-24">
           <Reveal className="mb-2 flex items-center justify-between">
-            <h3 className="text-2xl font-bold text-navy">Explora las 5 demos de GO FEST</h3>
+            <h3 className="text-2xl font-bold text-navy">Por qué funciona para cualquier inmobiliaria</h3>
             <motion.span
               animate={{ scale: [1, 1.06, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               className="hidden rounded-full bg-coral/10 px-3 py-1 text-sm font-semibold text-coral sm:inline-block"
             >
-              Interactivo
+              5 beneficios
             </motion.span>
           </Reveal>
           <Reveal delay={0.05} className="mb-8">
             <p className="text-sm text-navy/50">
-              Tres de las rutas muestran un match real de nuestro motor de recomendación sobre 96 proyectos
-              de Amarilo, Cusezar, Constructora Bolívar y Colsubsidio en Bogotá — no es texto de ejemplo.
+              El formulario que pruebas abajo es uno solo — el mismo que usaría cualquier inmobiliaria que hace
+              pauta. Detrás corre nuestro motor de recomendación sobre 96 proyectos reales de Amarilo, Cusezar,
+              Constructora Bolívar y Colsubsidio en Bogotá — no es texto de ejemplo.
             </p>
           </Reveal>
 
           <div className="grid gap-6 lg:grid-cols-[1fr_1.15fr]">
             <StaggerGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {demos.map((demo) => {
-                const Icon = demo.icon;
-                const isActive = demo.id === activeId;
+              {beneficios.map((beneficio) => {
+                const Icon = beneficio.icon;
+                const isActive = beneficio.id === activeId;
                 return (
-                  <StaggerItem key={demo.id}>
+                  <StaggerItem key={beneficio.id}>
                     <motion.button
                       type="button"
-                      onClick={() => setActiveId(demo.id)}
+                      onClick={() => setActiveId(beneficio.id)}
                       whileHover={{ y: -3, scale: 1.015 }}
                       whileTap={{ scale: 0.98 }}
                       transition={{ type: "spring", stiffness: 350, damping: 22 }}
@@ -122,10 +100,7 @@ export function Demos() {
                           }`}
                         />
                       </div>
-                      <p className="mt-4 text-[11px] font-bold uppercase tracking-wider text-navy/40">
-                        {demo.route}
-                      </p>
-                      <h4 className="mt-1 text-base font-extrabold text-navy">{demo.title}</h4>
+                      <h4 className="mt-4 text-base font-extrabold text-navy">{beneficio.title}</h4>
                     </motion.button>
                   </StaggerItem>
                 );
@@ -152,10 +127,7 @@ export function Demos() {
                     <span className="grid h-14 w-14 place-items-center rounded-2xl bg-coral text-white shadow-coral">
                       <active.icon size={26} />
                     </span>
-                    <p className="mt-6 text-xs font-bold uppercase tracking-[0.15em] text-white/50">
-                      {active.route} · {active.signal}
-                    </p>
-                    <h4 className="mt-2 text-2xl font-extrabold md:text-3xl">{active.title}</h4>
+                    <h4 className="mt-6 text-2xl font-extrabold md:text-3xl">{active.title}</h4>
                     <p className="mt-4 max-w-md text-white/70">{active.description}</p>
 
                     {active.match && (
@@ -186,7 +158,7 @@ export function Demos() {
 
                     <div className="mt-auto flex items-center gap-3 pt-8 text-sm font-semibold text-emerald">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald" />
-                      Manuela adapta la conversación a esta ruta en tiempo real.
+                      Válido para VIS, No VIS, un proyecto o cien — se adapta a tu catálogo.
                     </div>
                   </motion.div>
                 </AnimatePresence>
