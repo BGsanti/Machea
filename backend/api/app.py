@@ -1,10 +1,10 @@
 """
-api.py
-======
+api/app.py
+==========
 Capa HTTP sobre recomendar(). Expone el modelo a la landing de Machea para
 el formulario en vivo del stand de GO FEST.
 
-    uvicorn api:app --reload --port 8000
+    uvicorn api.app:app --reload --port 8000     # desde backend/
 
 Desplegado en Render (ver render.yaml). CORS abierto a propósito: la
 landing y la experiencia embebida son públicas, sin login, y no hay dato
@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import re
+import sys
 from datetime import datetime, timedelta, timezone
 from typing import Any, List, Optional
 
@@ -27,8 +28,13 @@ from pydantic import BaseModel
 
 logger = logging.getLogger("uvicorn.error")
 
-from catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES
-from main import recomendar, respuesta_json
+# `backend/` en el path: uvicorn puede arrancarse desde la raíz del repo, y ahí
+# `Model` no sería importable sin esto.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from Model.catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES, indice_localidad
+from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
+from Model.pipeline import recomendar, respuesta_json
 
 app = FastAPI(title="Machea Recomendador API", version="0.1")
 
@@ -44,7 +50,10 @@ DAPTA_FLOW_WEBHOOK_URL = os.environ.get("DAPTA_FLOW_WEBHOOK_URL")
 DAPTA_API_KEY = os.environ.get("DAPTA_API_KEY")
 
 TZ_BOGOTA = timezone(timedelta(hours=-5))
-SMMLV_COP = 2_000_000  # actualizar cada año — mismo supuesto que prep.py
+# El SMMLV se lee de `Model.prep`, que es donde vive el supuesto económico.
+# Antes estaba duplicado aquí y el invariante 5 pedía actualizar los dos
+# archivos a mano; ahora desfasarlos es imposible.
+from Model.prep import SMMLV as SMMLV_COP
 
 app.add_middleware(
     CORSMiddleware,
@@ -68,6 +77,9 @@ class FormularioUsuario(BaseModel):
     numero_habitaciones: int
     piso: Optional[int] = None
     zonas_comunes: Optional[List[str]] = None
+    # Opcional: nombre o código de sector catastral (ver GET /api/barrios).
+    # No filtra; afina la distancia con la que el score mide la cercanía.
+    barrio: Optional[str] = None
 
 
 @app.get("/api/health")
@@ -80,6 +92,22 @@ def catalogos():
     return {
         "localidades": [{"id": i + 1, "nombre": n} for i, n in enumerate(LOCALIDADES_BOGOTA)],
         "zonas_comunes": ZONAS_COMUNES,
+    }
+
+
+@app.get("/api/barrios")
+def barrios(localidad: int):
+    """Los barrios (sectores catastrales) de una localidad, para un desplegable
+    dependiente. Es la vía para que el front mande un `barrio` que el modelo
+    reconozca sin copiarse los 1.164 nombres (invariante 6 del CLAUDE.md).
+    """
+    if indice_localidad(localidad) is None:
+        raise HTTPException(status_code=400, detail="Localidad debe estar entre 1 y 20")
+    return {
+        "localidad": localidad,
+        "disponible": hay_grafo_barrios(),
+        "barrios": [{"id": codigo, "nombre": nombre}
+                    for codigo, nombre in barrios_de_localidad(localidad)],
     }
 
 

@@ -12,7 +12,8 @@ Por eso la base se construye en dos pasos:
 
 ```
 10 arquetipos  ──100 variaciones cada uno──▶  1.000 clientes  ──8 eventos──▶  8.000 interacciones
-  arquetipos.py        generar_clientes.py      clientes_simulados.json      historial_simulado.json
+  arquetipos.py        generar_clientes.py      data_projects/           data_projects/
+                                                clientes_simulados.json  historial_simulado.json
 ```
 
 ---
@@ -75,7 +76,7 @@ manda el front** (las 15 llaves del formulario). Eso les da doble uso:
 from main import recomendar
 import json
 
-clientes = json.load(open("simulacion/clientes_simulados.json", encoding="utf-8"))["clientes"]
+clientes = json.load(open("Model/data_projects/clientes_simulados.json", encoding="utf-8"))["clientes"]
 resultado = recomendar(clientes[0])          # se le pasa tal cual, sin adaptar nada
 ```
 
@@ -89,24 +90,46 @@ personas reales.
 
 ```bash
 # 1. Los 1.000 clientes
-python simulacion/generar_clientes.py --semilla 42
+python Model/simulacion/generar_clientes.py --semilla 42
 
 # 2. Las 8.000 interacciones (desde la raíz)
-python generar_historial.py --semilla 42
+python Model/simulacion/generar_historial.py --semilla 42
 
 # 3. ¿Está sirviendo el historial?
-python simulacion/evaluar.py --clientes-prueba 600
+python Model/simulacion/evaluar.py --clientes-prueba 300 --top 18
 ```
 
 Opciones:
 
 ```bash
-python simulacion/generar_clientes.py --variaciones 200      # 2.000 clientes
-python generar_historial.py --interacciones 12               # 12.000 registros
-python generar_historial.py --demografico --n 4000           # el muestreo antiguo, para contrastar
+python Model/simulacion/generar_clientes.py --variaciones 200   # 2.000 clientes
+python Model/simulacion/generar_historial.py --interacciones 12  # 12.000 registros
+python Model/simulacion/generar_historial.py --demografico --n 4000  # el muestreo antiguo
 ```
 
 ## La evaluación
+
+> **Desde la v0.3 `evaluar.py` no basta solo.** Su "verdad" —la utilidad con
+> la que estos clientes eligen— trata el precio de forma truncada: solo
+> penaliza cuando el proyecto no alcanza al ingreso, así que entre uno de 182
+> millones y uno de 262 que el comprador puede pagar le da igual cuál se le
+> muestre. El modelo ya no da eso igual, así que hay un segundo instrumento,
+> `calibrar_cota.py`, que mide recall **y** precio, años de pago y
+> alcanzabilidad del top. Ver [CLAUDE.md §4.5](../../../CLAUDE.md).
+>
+> Si algún día esta utilidad se actualiza para preferir lo barato entre lo
+> pagable, todas las cifras de recall de la documentación hay que rehacerlas.
+>
+> **Desde la v0.4 hay un tercer instrumento, `calibrar_barrios.py`.** Los
+> clientes simulados no traen barrio, así que a cada uno se le sortea un
+> sector urbano de su localidad y se mide a cuántos kilómetros —por el grafo
+> de barrios— queda lo que se le recomienda, con y sin ese dato, junto al
+> recall y al precio. Es lo que fijó `RADIO_CERCANIA_KM` y
+> `PESO_LOCALIDAD_CON_BARRIO` en `modelo.py`. Ver [CLAUDE.md §3.5](../../../CLAUDE.md).
+>
+> ```bash
+> python Model/simulacion/calibrar_barrios.py --clientes 300
+> ```
 
 `evaluar.py` responde una sola pregunta: **¿el componente colaborativo acierta
 más que el de contenido solo?**

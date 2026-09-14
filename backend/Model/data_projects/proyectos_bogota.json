@@ -75,7 +75,8 @@
       "piso",
       "zonas_comunes",
       "link_proyecto"
-    ]
+    ],
+    "barrios_asignados_en": "2026-09-14T18:52:20+00:00"
   },
   "proyectos": [
     {
@@ -141,7 +142,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81148, -74.04878)"
     },
     {
       "id_proyecto": 2,
@@ -192,7 +197,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 201 x carrera 49"
+      "_localidad_evidencia": "malla vial: calle 201 x carrera 49",
+      "barrio_id": "009138",
+      "barrio_nombre": "Casablanca Suba Urbano I",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.40 km (4.77964, -74.04985)"
     },
     {
       "id_proyecto": 3,
@@ -254,7 +263,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81148, -74.04878)"
     },
     {
       "id_proyecto": 4,
@@ -310,7 +323,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 201 x carrera 49"
+      "_localidad_evidencia": "malla vial: calle 201 x carrera 49",
+      "barrio_id": "009138",
+      "barrio_nombre": "Casablanca Suba Urbano I",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.40 km (4.77964, -74.04985)"
     },
     {
       "id_proyecto": 5,
@@ -375,7 +392,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle -65 x carrera 11"
+      "_localidad_evidencia": "malla vial: calle -65 x carrera 11",
+      "barrio_id": "002589",
+      "barrio_nombre": "Porvenir",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.53384, -74.11962)"
     },
     {
       "id_proyecto": 6,
@@ -438,7 +459,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Kennedy",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 6 x carrera 68"
+      "_localidad_evidencia": "malla vial: calle 6 x carrera 68",
+      "barrio_id": "004551",
+      "barrio_nombre": "Hipotecho Sur",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.62849, -74.12410)"
     },
     {
       "id_proyecto": 7,
@@ -494,7 +519,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle -65 x carrera 11"
+      "_localidad_evidencia": "malla vial: calle -65 x carrera 11",
+      "barrio_id": "002589",
+      "barrio_nombre": "Porvenir",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.53346, -74.11878)"
     },
     {
       "id_proyecto": 8,
@@ -560,7 +589,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81148, -74.04878)"
     },
     {
       "id_proyecto": 9,
@@ -621,7 +654,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 26 x carrera 72"
+      "_localidad_evidencia": "malla vial: calle 26 x carrera 72",
+      "barrio_id": "005603",
+      "barrio_nombre": "Boyaca",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "barrio en la direccion: Boyaca"
     },
     {
       "id_proyecto": 10,
@@ -688,7 +725,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81136, -74.04500)"
     },
     {
       "id_proyecto": 11,
@@ -752,7 +793,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 201 x carrera 49"
+      "_localidad_evidencia": "malla vial: calle 201 x carrera 49",
+      "barrio_id": "009138",
+      "barrio_nombre": "Casablanca Suba Urbano I",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.39 km (4.77963, -74.04999)"
     },
     {
       "id_proyecto": 12,
@@ -810,7 +855,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81091, -74.04875)"
     },
     {
       "id_proyecto": 13,
@@ -876,7 +925,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 21 x carrera 72"
+      "_localidad_evidencia": "malla vial: calle 21 x carrera 72",
+      "barrio_id": "006320",
+      "barrio_nombre": "Ciudad Hayuelos",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65478, -74.12886)"
     },
     {
       "id_proyecto": 14,
@@ -939,7 +992,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 21 x carrera 72"
+      "_localidad_evidencia": "malla vial: calle 21 x carrera 72",
+      "barrio_id": "006320",
+      "barrio_nombre": "Ciudad Hayuelos",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65453, -74.12356)"
     },
     {
       "id_proyecto": 15,
@@ -1001,7 +1058,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 21 x carrera 72"
+      "_localidad_evidencia": "malla vial: calle 21 x carrera 72",
+      "barrio_id": "006320",
+      "barrio_nombre": "Ciudad Hayuelos",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65439, -74.12614)"
     },
     {
       "id_proyecto": 16,
@@ -1064,7 +1125,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81148, -74.04878)"
     },
     {
       "id_proyecto": 17,
@@ -1125,7 +1190,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle -65 x carrera 11"
+      "_localidad_evidencia": "malla vial: calle -65 x carrera 11",
+      "barrio_id": "002589",
+      "barrio_nombre": "Porvenir",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.53406, -74.11912)"
     },
     {
       "id_proyecto": 18,
@@ -1193,7 +1262,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 21 x carrera 72"
+      "_localidad_evidencia": "malla vial: calle 21 x carrera 72",
+      "barrio_id": "006320",
+      "barrio_nombre": "Ciudad Hayuelos",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65524, -74.12577)"
     },
     {
       "id_proyecto": 19,
@@ -1259,7 +1332,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 21 x carrera 72"
+      "_localidad_evidencia": "malla vial: calle 21 x carrera 72",
+      "barrio_id": "006320",
+      "barrio_nombre": "Ciudad Hayuelos",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65385, -74.12332)"
     },
     {
       "id_proyecto": 20,
@@ -1316,7 +1393,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81102, -74.04734)"
     },
     {
       "id_proyecto": 21,
@@ -1384,7 +1465,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 51 x carrera 70"
+      "_localidad_evidencia": "malla vial: calle 51 x carrera 70",
+      "barrio_id": "005507",
+      "barrio_nombre": "Normandia",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.27 km (4.66628, -74.10573)"
     },
     {
       "id_proyecto": 22,
@@ -1445,7 +1530,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81136, -74.04500)"
     },
     {
       "id_proyecto": 23,
@@ -1504,7 +1593,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 201 x carrera 49"
+      "_localidad_evidencia": "malla vial: calle 201 x carrera 49",
+      "barrio_id": "009138",
+      "barrio_nombre": "Casablanca Suba Urbano I",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.39 km (4.77963, -74.04999)"
     },
     {
       "id_proyecto": 24,
@@ -1560,7 +1653,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle -65 x carrera 11"
+      "_localidad_evidencia": "malla vial: calle -65 x carrera 11",
+      "barrio_id": "002589",
+      "barrio_nombre": "Porvenir",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.53388, -74.11929)"
     },
     {
       "id_proyecto": 25,
@@ -1629,7 +1726,11 @@
       "tipo_vivienda_publicado": "VIS DE RENOVACION URBANA",
       "localidad_nombre": "Los Mártires",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 13 x carrera 28"
+      "_localidad_evidencia": "malla vial: calle 13 x carrera 28",
+      "barrio_id": "004102",
+      "barrio_nombre": "La Sabana",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.73 km (4.61342, -74.09068)"
     },
     {
       "id_proyecto": 26,
@@ -1690,7 +1791,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81137, -74.04501)"
     },
     {
       "id_proyecto": 27,
@@ -1744,7 +1849,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81136, -74.04500)"
     },
     {
       "id_proyecto": 28,
@@ -1798,7 +1907,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 80 x carrera 116"
+      "_localidad_evidencia": "malla vial: calle 80 x carrera 116",
+      "barrio_id": "005663",
+      "barrio_nombre": "El Dorado Industrial",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.72553, -74.12523)"
     },
     {
       "id_proyecto": 29,
@@ -1852,7 +1965,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 77 x carrera 120"
+      "_localidad_evidencia": "malla vial: calle 77 x carrera 120",
+      "barrio_id": "005663",
+      "barrio_nombre": "El Dorado Industrial",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.72150, -74.13213)"
     },
     {
       "id_proyecto": 30,
@@ -1915,7 +2032,11 @@
       "tipo_vivienda_publicado": "VIS DE RENOVACION URBANA",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 51 x carrera 70"
+      "_localidad_evidencia": "malla vial: calle 51 x carrera 70",
+      "barrio_id": "005507",
+      "barrio_nombre": "Normandia",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.27 km (4.66628, -74.10573)"
     },
     {
       "id_proyecto": 31,
@@ -1976,7 +2097,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81148, -74.04878)"
     },
     {
       "id_proyecto": 32,
@@ -2041,7 +2166,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 51 x carrera 70"
+      "_localidad_evidencia": "malla vial: calle 51 x carrera 70",
+      "barrio_id": "005507",
+      "barrio_nombre": "Normandia",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.29 km (4.66614, -74.10577)"
     },
     {
       "id_proyecto": 33,
@@ -2095,7 +2224,11 @@
       "tipo_vivienda_publicado": "TOPE VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle -65 x carrera 11"
+      "_localidad_evidencia": "malla vial: calle -65 x carrera 11",
+      "barrio_id": "002589",
+      "barrio_nombre": "Porvenir",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.53384, -74.11962)"
     },
     {
       "id_proyecto": 34,
@@ -2150,7 +2283,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Chapinero",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 79 x carrera 4"
+      "_localidad_evidencia": "malla vial: calle 79 x carrera 4",
+      "barrio_id": "008304",
+      "barrio_nombre": "Los Rosales",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.66004, -74.04902)"
     },
     {
       "id_proyecto": 35,
@@ -2213,7 +2350,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 235 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 235 x carrera 52",
+      "barrio_id": "009136",
+      "barrio_nombre": "Casablanca Suba Urbano",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.81157, -74.04498)"
     },
     {
       "id_proyecto": 36,
@@ -2274,7 +2415,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: puente largo"
+      "_localidad_evidencia": "sector conocido: puente largo",
+      "barrio_id": "009124",
+      "barrio_nombre": "Puente Largo",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "barrio en la direccion: Puente Largo"
     },
     {
       "id_proyecto": 37,
@@ -2335,7 +2480,11 @@
       "tipo_vivienda_publicado": "NO VIS",
       "localidad_nombre": "Usaquén",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 127 x carrera 7"
+      "_localidad_evidencia": "malla vial: calle 127 x carrera 7",
+      "barrio_id": "008404",
+      "barrio_nombre": "Bella Suiza",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.70494, -74.02879)"
     },
     {
       "id_proyecto": 38,
@@ -2429,7 +2578,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 79 x carrera 114"
+      "_localidad_evidencia": "malla vial: calle 79 x carrera 114",
+      "barrio_id": "005663",
+      "barrio_nombre": "El Dorado Industrial",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.72141, -74.12210)"
     },
     {
       "id_proyecto": 39,
@@ -2559,7 +2712,11 @@
       "links_alternos": [
         "https://www.colsubsidio.com/vivienda/proyectos/bogota/alamo-veramonte"
       ],
-      "_fusionado_de": 2
+      "_fusionado_de": 2,
+      "barrio_id": "009128",
+      "barrio_nombre": "El Plan",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.74285, -74.06719)"
     },
     {
       "id_proyecto": 40,
@@ -2651,7 +2808,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tramonte"
+      "_localidad_evidencia": "sector conocido: tramonte",
+      "barrio_id": "009133",
+      "barrio_nombre": "Mirandela",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.76824, -74.05632)"
     },
     {
       "id_proyecto": 41,
@@ -2758,7 +2919,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tramonte"
+      "_localidad_evidencia": "sector conocido: tramonte",
+      "barrio_id": "009133",
+      "barrio_nombre": "Mirandela",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.76912, -74.05767)"
     },
     {
       "id_proyecto": 42,
@@ -2861,7 +3026,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tramonte"
+      "_localidad_evidencia": "sector conocido: tramonte",
+      "barrio_id": "009133",
+      "barrio_nombre": "Mirandela",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.77039, -74.05873)"
     },
     {
       "id_proyecto": 43,
@@ -3017,7 +3186,11 @@
       "links_alternos": [
         "https://www.colsubsidio.com/vivienda/proyectos/bogota/austro-cuatro-vientos"
       ],
-      "_fusionado_de": 2
+      "_fusionado_de": 2,
+      "barrio_id": "006319",
+      "barrio_nombre": "Terminal de Transportes",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65254, -74.11573)"
     },
     {
       "id_proyecto": 44,
@@ -3121,7 +3294,11 @@
       "links_alternos": [
         "https://www.colsubsidio.com/vivienda/proyectos/bogota/baviera-park"
       ],
-      "_fusionado_de": 2
+      "_fusionado_de": 2,
+      "barrio_id": "009129",
+      "barrio_nombre": "Villa del Prado",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "barrio en la direccion: Villa del Prado"
     },
     {
       "id_proyecto": 45,
@@ -3206,7 +3383,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tramonte"
+      "_localidad_evidencia": "sector conocido: tramonte",
+      "barrio_id": "009133",
+      "barrio_nombre": "Mirandela",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.77101, -74.05773)"
     },
     {
       "id_proyecto": 46,
@@ -3288,7 +3469,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tres quebradas"
+      "_localidad_evidencia": "sector conocido: tres quebradas",
+      "barrio_id": "002619",
+      "barrio_nombre": "Villa Anita",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.31 km (4.48690, -74.11704)"
     },
     {
       "id_proyecto": 47,
@@ -3422,7 +3607,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: floresta"
+      "_localidad_evidencia": "sector conocido: floresta",
+      "barrio_id": "005402",
+      "barrio_nombre": "Santa Rosa",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.89 km (4.68721, -74.07595)"
     },
     {
       "id_proyecto": 48,
@@ -3513,7 +3702,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tres quebradas"
+      "_localidad_evidencia": "sector conocido: tres quebradas",
+      "barrio_id": "002632",
+      "barrio_nombre": "La Requilina",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.48 km (4.48273, -74.11722)"
     },
     {
       "id_proyecto": 49,
@@ -3586,7 +3779,11 @@
       "tipo_vivienda_publicado": "VIP",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tres quebradas"
+      "_localidad_evidencia": "sector conocido: tres quebradas",
+      "barrio_id": "002634",
+      "barrio_nombre": "El Tuno",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.58 km (4.48153, -74.11327)"
     },
     {
       "id_proyecto": 50,
@@ -3666,7 +3863,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tres quebradas"
+      "_localidad_evidencia": "sector conocido: tres quebradas",
+      "barrio_id": "002632",
+      "barrio_nombre": "La Requilina",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.48 km (4.48273, -74.11722)"
     },
     {
       "id_proyecto": 51,
@@ -3811,7 +4012,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: montevideo"
+      "_localidad_evidencia": "sector conocido: montevideo",
+      "barrio_id": "006308",
+      "barrio_nombre": "Franco",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.57 km (4.64676, -74.11754)"
     },
     {
       "id_proyecto": 52,
@@ -3944,7 +4149,11 @@
       "links_alternos": [
         "https://www.colsubsidio.com/vivienda/proyectos/bogota/novum-ricaurte"
       ],
-      "_fusionado_de": 2
+      "_fusionado_de": 2,
+      "barrio_id": "004101",
+      "barrio_nombre": "Ricaurte",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.60784, -74.09140)"
     },
     {
       "id_proyecto": 53,
@@ -4055,7 +4264,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": "205319",
+      "barrio_nombre": "San Bernardino XIX",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.62 km (4.63362, -74.21144)"
     },
     {
       "id_proyecto": 54,
@@ -4128,7 +4341,11 @@
       "tipo_vivienda_publicado": "VIP",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": "105325",
+      "barrio_nombre": "San Bernardino XXV",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.72 km (4.63227, -74.21504)"
     },
     {
       "id_proyecto": 55,
@@ -4196,7 +4413,11 @@
       "tipo_vivienda_publicado": "VIP",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": "105325",
+      "barrio_nombre": "San Bernardino XXV",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.61 km (4.63332, -74.21442)"
     },
     {
       "id_proyecto": 56,
@@ -4292,7 +4513,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": "205319",
+      "barrio_nombre": "San Bernardino XIX",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.43 km (4.63422, -74.20982)"
     },
     {
       "id_proyecto": 57,
@@ -4393,7 +4618,11 @@
       "links_alternos": [
         "https://www.colsubsidio.com/vivienda/proyectos/bogota/senderos-fontibon"
       ],
-      "_fusionado_de": 2
+      "_fusionado_de": 2,
+      "barrio_id": "006418",
+      "barrio_nombre": "Puente Grande",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.69276, -74.16179)"
     },
     {
       "id_proyecto": 58,
@@ -4528,7 +4757,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: tramonte"
+      "_localidad_evidencia": "sector conocido: tramonte",
+      "barrio_id": "009133",
+      "barrio_nombre": "Mirandela",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.76918, -74.05768)"
     },
     {
       "id_proyecto": 59,
@@ -4673,7 +4906,11 @@
       "links_alternos": [
         "https://www.colsubsidio.com/vivienda/proyectos/bogota/urbana-30"
       ],
-      "_fusionado_de": 2
+      "_fusionado_de": 2,
+      "barrio_id": "006204",
+      "barrio_nombre": "Estacion Central",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.61579, -74.09166)"
     },
     {
       "id_proyecto": 60,
@@ -4749,7 +4986,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 86 x carrera 111"
+      "_localidad_evidencia": "malla vial: calle 86 x carrera 111",
+      "barrio_id": "005634",
+      "barrio_nombre": "El Cortijo",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.54 km (4.72337, -74.11700)"
     },
     {
       "id_proyecto": 61,
@@ -4827,7 +5068,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": "205322",
+      "barrio_nombre": "Campo Verde",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.55 km (4.62932, -74.20760)"
     },
     {
       "id_proyecto": 62,
@@ -4900,7 +5145,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 86 x carrera 111"
+      "_localidad_evidencia": "malla vial: calle 86 x carrera 111",
+      "barrio_id": "005622",
+      "barrio_nombre": "Bolivia",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.63 km (4.72337, -74.11443)"
     },
     {
       "id_proyecto": 63,
@@ -4994,7 +5243,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 169 x carrera 62"
+      "_localidad_evidencia": "malla vial: calle 169 x carrera 62",
+      "barrio_id": "009135",
+      "barrio_nombre": "Portales del Norte",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.75275, -74.06078)"
     },
     {
       "id_proyecto": 64,
@@ -5075,7 +5328,11 @@
       "tipo_vivienda_publicado": "No aplica",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Fontibón"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Fontibón",
+      "barrio_id": "006320",
+      "barrio_nombre": "Ciudad Hayuelos",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65841, -74.13313)"
     },
     {
       "id_proyecto": 65,
@@ -5139,7 +5396,11 @@
       "tipo_vivienda_publicado": "No aplica",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 63 x carrera 86 | la coordenada cae en Fontibón"
+      "_localidad_evidencia": "malla vial: calle 63 x carrera 86 | la coordenada cae en Fontibón",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 66,
@@ -5222,7 +5483,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Puente Aranda",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 5 x carrera 50 | la coordenada cae en Bosa"
+      "_localidad_evidencia": "malla vial: calle 5 x carrera 50 | la coordenada cae en Bosa",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 67,
@@ -5295,7 +5560,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": "205322",
+      "barrio_nombre": "Campo Verde",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.55 km (4.62932, -74.20760)"
     },
     {
       "id_proyecto": 68,
@@ -5388,7 +5657,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Barrios Unidos",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 63 x carrera 15"
+      "_localidad_evidencia": "malla vial: calle 63 x carrera 15",
+      "barrio_id": "007305",
+      "barrio_nombre": "La Esperanza",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.65122, -74.06533)"
     },
     {
       "id_proyecto": 69,
@@ -5452,7 +5725,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "San Cristóbal",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: San Cristóbal"
+      "_localidad_evidencia": "nombre de localidad en la direccion: San Cristóbal",
+      "barrio_id": "001108",
+      "barrio_nombre": "San Cristobal Sur",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "barrio en la direccion: San Cristobal Sur"
     },
     {
       "id_proyecto": 70,
@@ -5511,7 +5788,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Usme",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle -65 x carrera 1"
+      "_localidad_evidencia": "malla vial: calle -65 x carrera 1",
+      "barrio_id": "002589",
+      "barrio_nombre": "Porvenir",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.53307, -74.11769)"
     },
     {
       "id_proyecto": 71,
@@ -5582,7 +5863,11 @@
       "tipo_vivienda_publicado": "No aplica",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 86 x carrera 111"
+      "_localidad_evidencia": "malla vial: calle 86 x carrera 111",
+      "barrio_id": "005622",
+      "barrio_nombre": "Bolivia",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.63 km (4.72337, -74.11443)"
     },
     {
       "id_proyecto": 72,
@@ -5659,7 +5944,11 @@
       "tipo_vivienda_publicado": "No aplica",
       "localidad_nombre": "Chapinero",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "coordenada dentro del limite oficial (4.66627, -74.06058)"
+      "_localidad_evidencia": "coordenada dentro del limite oficial (4.66627, -74.06058)",
+      "barrio_id": "008312",
+      "barrio_nombre": "Espartillal",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.58 km (4.66627, -74.06058)"
     },
     {
       "id_proyecto": 73,
@@ -5753,7 +6042,11 @@
       "tipo_vivienda_publicado": "No aplica",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 131 x carrera 52"
+      "_localidad_evidencia": "malla vial: calle 131 x carrera 52",
+      "barrio_id": "009116",
+      "barrio_nombre": "Prado Veraniego Norte",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.71841, -74.05826)"
     },
     {
       "id_proyecto": 74,
@@ -5805,7 +6098,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa | la coordenada cae en San Cristóbal"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa | la coordenada cae en San Cristóbal",
+      "barrio_id": "004526",
+      "barrio_nombre": "Bosa Nova",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "barrio en la direccion: Bosa Nova"
     },
     {
       "id_proyecto": 75,
@@ -5886,7 +6183,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "coordenada dentro del limite oficial (4.63362, -74.21401)"
+      "_localidad_evidencia": "coordenada dentro del limite oficial (4.63362, -74.21401)",
+      "barrio_id": "105325",
+      "barrio_nombre": "San Bernardino XXV",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.58 km (4.63362, -74.21401)"
     },
     {
       "id_proyecto": 76,
@@ -5949,7 +6250,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle -57 x carrera 75"
+      "_localidad_evidencia": "malla vial: calle -57 x carrera 75",
+      "barrio_id": "004572",
+      "barrio_nombre": "Corredor Ferreo del Sur",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.59706, -74.17793)"
     },
     {
       "id_proyecto": 77,
@@ -6019,7 +6324,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Los Mártires",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 4 x carrera 15"
+      "_localidad_evidencia": "malla vial: calle 4 x carrera 15",
+      "barrio_id": "004111",
+      "barrio_nombre": "El Progreso",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.59 km (4.59728, -74.08917)"
     },
     {
       "id_proyecto": 78,
@@ -6090,7 +6399,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Engativá",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 72 x carrera 86"
+      "_localidad_evidencia": "malla vial: calle 72 x carrera 86",
+      "barrio_id": "005620",
+      "barrio_nombre": "Florencia",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.69709, -74.10627)"
     },
     {
       "id_proyecto": 79,
@@ -6169,7 +6482,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 22 x carrera 130"
+      "_localidad_evidencia": "malla vial: calle 22 x carrera 130",
+      "barrio_id": "006414",
+      "barrio_nombre": "Brisas Aldea Fontibon",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.69736, -74.16363)"
     },
     {
       "id_proyecto": 80,
@@ -6249,7 +6566,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 22 x carrera 130"
+      "_localidad_evidencia": "malla vial: calle 22 x carrera 130",
+      "barrio_id": "006414",
+      "barrio_nombre": "Brisas Aldea Fontibon",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.69732, -74.16260)"
     },
     {
       "id_proyecto": 81,
@@ -6330,7 +6651,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 22 x carrera 130"
+      "_localidad_evidencia": "malla vial: calle 22 x carrera 130",
+      "barrio_id": "006414",
+      "barrio_nombre": "Brisas Aldea Fontibon",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "coordenada dentro del sector catastral (4.69732, -74.16260)"
     },
     {
       "id_proyecto": 82,
@@ -6405,7 +6730,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Los Mártires",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 3 x carrera 14"
+      "_localidad_evidencia": "malla vial: calle 3 x carrera 14",
+      "barrio_id": "004111",
+      "barrio_nombre": "El Progreso",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "centroide de sector mas cercano a 0.97 km (4.59494, -74.08670)"
     },
     {
       "id_proyecto": 83,
@@ -6457,7 +6786,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: la colina"
+      "_localidad_evidencia": "sector conocido: la colina",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 84,
@@ -6527,7 +6860,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Teusaquillo",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: el salitre"
+      "_localidad_evidencia": "sector conocido: el salitre",
+      "barrio_id": "005110",
+      "barrio_nombre": "El Salitre",
+      "_barrio_confianza": "alta",
+      "_barrio_evidencia": "barrio en la direccion: El Salitre"
     },
     {
       "id_proyecto": 85,
@@ -6595,7 +6932,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Fontibón",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: montevideo"
+      "_localidad_evidencia": "sector conocido: montevideo",
+      "barrio_id": "006307",
+      "barrio_nombre": "Montevideo",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "barrio en la direccion, en localidad vecina: Montevideo (Kennedy)"
     },
     {
       "id_proyecto": 86,
@@ -6651,7 +6992,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 87,
@@ -6703,7 +7048,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 88,
@@ -6759,7 +7108,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 89,
@@ -6817,7 +7170,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 90,
@@ -6868,7 +7225,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Bosa",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Bosa",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 91,
@@ -6938,7 +7299,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: la colina"
+      "_localidad_evidencia": "sector conocido: la colina",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 92,
@@ -6981,7 +7346,11 @@
       "tipo_vivienda_publicado": "VIS",
       "localidad_nombre": "Santa Fe",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 1 x carrera 7"
+      "_localidad_evidencia": "malla vial: calle 1 x carrera 7",
+      "barrio_id": "001101",
+      "barrio_nombre": "Las Brisas",
+      "_barrio_confianza": "media",
+      "_barrio_evidencia": "barrio en la direccion, en localidad vecina: Las Brisas (San Cristóbal)"
     },
     {
       "id_proyecto": 93,
@@ -7019,7 +7388,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Santa Fe",
       "_localidad_confianza": "baja",
-      "_localidad_evidencia": "malla vial: calle 28 x carrera 13"
+      "_localidad_evidencia": "malla vial: calle 28 x carrera 13",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 94,
@@ -7090,7 +7463,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: la colina"
+      "_localidad_evidencia": "sector conocido: la colina",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 95,
@@ -7151,7 +7528,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Chapinero",
       "_localidad_confianza": "alta",
-      "_localidad_evidencia": "nombre de localidad en la direccion: Chapinero"
+      "_localidad_evidencia": "nombre de localidad en la direccion: Chapinero",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     },
     {
       "id_proyecto": 96,
@@ -7224,7 +7605,11 @@
       "tipo_vivienda_publicado": "No VIS",
       "localidad_nombre": "Suba",
       "_localidad_confianza": "media",
-      "_localidad_evidencia": "sector conocido: lagos de torca"
+      "_localidad_evidencia": "sector conocido: lagos de torca",
+      "barrio_id": null,
+      "barrio_nombre": null,
+      "_barrio_confianza": null,
+      "_barrio_evidencia": "ni la direccion ni la coordenada ubican un sector"
     }
   ],
   "descartados": [

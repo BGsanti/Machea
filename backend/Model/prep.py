@@ -25,7 +25,14 @@ import os
 from collections import Counter
 from datetime import datetime, timezone
 
-from catalogos import (
+# Ejecutable por ruta (`python Model/prep.py`) o como módulo
+# (`python -m Model.prep`): en el primer caso Python pone en el path esta
+# carpeta y no `backend/`, así que el paquete `Model` no se encontraría.
+if __package__ in (None, ""):
+    import sys
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from Model.catalogos import (
     LOCALIDADES_BOGOTA,
     ZONAS_COMUNES,
     codigo_tipo_vivienda,
@@ -37,24 +44,80 @@ from catalogos import (
     vector_zonas,
 )
 
-DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
-# El catálogo por defecto es el que produce `scraper_projects.py`. Se mantiene
-# el seed manual como respaldo para poder correr prep sin haber scrapeado.
-RUTA_CATALOGO = os.path.join(DIRECTORIO, "proyectos_bogota.json")
-RUTA_SEED_MANUAL = os.path.join(DIRECTORIO, "proyectos_seed.json")
+# El catálogo por defecto es el que produce `scraping/scraper_projects.py`. Se
+# mantiene el seed manual como respaldo para poder correr prep sin haber
+# scrapeado. Las dos rutas viven en `Model/rutas.py`.
+from Model.rutas import RUTA_CATALOGO, RUTA_MODELO, RUTA_SEED_MANUAL
+
 RUTA_SEED = RUTA_CATALOGO if os.path.exists(RUTA_CATALOGO) else RUTA_SEED_MANUAL
-RUTA_MODELO = os.path.join(DIRECTORIO, "proyectos_model.json")
 
 # ---------------------------------------------------------------------------
 # Supuestos económicos usados para etiquetar el salario objetivo.
 # Están centralizados aquí porque son los parámetros que más se revisan.
+#
+# Hasta la v0.2 estos supuestos eran UNO SOLO para todo el catálogo: 30% de
+# cuota inicial, 240 meses y una cuota tope del 30% del ingreso, tanto para
+# una VIS de 200 millones como para una No VIS de 800. Eso no es como se
+# financia vivienda en Colombia, y el sesgo no era neutro: le exigía a la VIS
+# un ingreso que la banca no le exige, y con eso empujaba a los compradores de
+# menor ingreso fuera de los proyectos que sí están hechos para ellos.
+#
+# Ahora el crédito se simula por SEGMENTO, con los parámetros de mercado 2026:
+#
+#   | Parámetro       |   VIS |  No VIS | de dónde sale
+#   |-----------------|------:|--------:|------------------------------------
+#   | Cuota inicial   |   10% |     30% | la banca financia hasta 90% VIS,
+#   |                 |       |         | hasta 70-80% No VIS
+#   | Plazo máximo    | 360 m |   240 m | tarifario BBVA vigente marzo 2026
+#   | Tasa E.A.       | 12,5% |   13,5% | VIS 10,9-15,9% / No VIS 11,5-17%,
+#   |                 |       |         | mercado ~13% promedio
+#   | Cuota / ingreso |   40% |     30% | Decreto 257 de 2021: el límite
+#   |                 |       |         | regulatorio de la primera cuota
+#   |                 |       |         | subió a 40% para VIS
+#
+# El 40% de la VIS es el cambio con más efecto: es una norma pensada
+# exactamente para que hogares de bajos ingresos que quedaban excluidos de la
+# financiación puedan acceder, y el modelo no la estaba reflejando.
 # ---------------------------------------------------------------------------
 SMMLV = 2_000_000          # Salario mínimo vigente 2026 (COP). Actualizar cada año.
-CUOTA_INICIAL = 0.30       # % del precio que aporta el comprador
-PLAZO_MESES = 240          # Crédito hipotecario a 20 años
-TASA_MENSUAL = 0.01        # ~12.7% E.A.
-CAPACIDAD_ENDEUDAMIENTO = 0.30   # La cuota no debe superar el 30% del ingreso
 SUBSIDIO_SMMLV = 30        # Subsidio de vivienda aplicable a VIS con caja
+
+# Índice: el mismo código de `tipo_vivienda` del contrato (0 = No VIS, 1 = VIS).
+PARAMETROS_CREDITO = {
+    1: {  # VIS
+        "nombre": "VIS",
+        "cuota_inicial": 0.10,
+        "plazo_meses": 360,
+        "tasa_ea": 0.125,
+        "cuota_ingreso_max": 0.40,
+    },
+    0: {  # No VIS
+        "nombre": "No VIS",
+        "cuota_inicial": 0.30,
+        "plazo_meses": 240,
+        "tasa_ea": 0.135,
+        "cuota_ingreso_max": 0.30,
+    },
+}
+
+
+def parametros_credito(tipo_cod):
+    """Los supuestos de crédito del segmento. Por defecto, los de No VIS.
+
+    No VIS es el default deliberado: es el escenario más exigente de los dos,
+    así que un proyecto sin tipo declarado no se abarata por accidente.
+    """
+    return PARAMETROS_CREDITO.get(1 if tipo_cod == 1 else 0)
+
+
+def tasa_mensual(tasa_ea):
+    """Tasa efectiva anual -> tasa efectiva mensual equivalente.
+
+    Es la conversión correcta ((1+i)^(1/12) - 1), no la división entre 12: a
+    13,5% E.A. la diferencia entre las dos son ~7 puntos básicos mensuales,
+    que sobre 240 cuotas se convierten en millones.
+    """
+    return (1.0 + tasa_ea) ** (1.0 / 12.0) - 1.0
 
 # Rangos de salario declarados en el formulario del usuario.
 #   1: hasta 2 SMMLV | 2: de 2 a 4 | 3: de 4 a 8 | 4: más de 8
@@ -96,25 +159,47 @@ def _acotar(valor, minimo, maximo):
 # ---------------------------------------------------------------------------
 # Etiquetado económico
 # ---------------------------------------------------------------------------
-def cuota_mensual(monto_financiado):
-    """Cuota fija de un crédito de anualidad vencida."""
+def cuota_mensual(monto_financiado, tipo_cod=0, plazo_meses=None):
+    """Cuota fija de un crédito de anualidad vencida, según el segmento.
+
+    `tipo_cod` elige los supuestos (VIS o No VIS); `plazo_meses` permite pedir
+    un plazo distinto al máximo del segmento, que es lo que necesita el
+    simulador de esfuerzo de `cota_minima.py`.
+    """
+    monto_financiado = float(monto_financiado or 0)
     if monto_financiado <= 0:
         return 0.0
-    factor = (1 + TASA_MENSUAL) ** -PLAZO_MESES
-    return monto_financiado * TASA_MENSUAL / (1 - factor)
+    parametros = parametros_credito(tipo_cod)
+    plazo = int(plazo_meses or parametros["plazo_meses"])
+    i = tasa_mensual(parametros["tasa_ea"])
+    factor = (1 + i) ** -plazo
+    return monto_financiado * i / (1 - factor)
 
 
-def ingreso_requerido_smmlv(precio, aplica_subsidio=False):
-    """Ingreso familiar necesario, en SMMLV, para comprar el proyecto.
+def monto_financiado(precio, tipo_cod=0, aplica_subsidio=False):
+    """Lo que efectivamente presta el banco: precio - cuota inicial - subsidio.
 
-    Se descuenta la cuota inicial, se calcula la cuota del crédito y se exige
-    que esa cuota no supere `CAPACIDAD_ENDEUDAMIENTO` del ingreso.
+    El subsidio se descuenta ANTES de la cuota inicial porque es un aporte al
+    precio, no al crédito: es plata que el hogar no tiene que financiar ni
+    poner de su bolsillo.
     """
     precio_efectivo = float(precio or 0)
     if aplica_subsidio:
         precio_efectivo = max(0.0, precio_efectivo - SUBSIDIO_SMMLV * SMMLV)
-    financiado = precio_efectivo * (1 - CUOTA_INICIAL)
-    ingreso = cuota_mensual(financiado) / CAPACIDAD_ENDEUDAMIENTO
+    parametros = parametros_credito(tipo_cod)
+    return precio_efectivo * (1 - parametros["cuota_inicial"])
+
+
+def ingreso_requerido_smmlv(precio, aplica_subsidio=False, tipo_cod=0):
+    """Ingreso familiar necesario, en SMMLV, para comprar el proyecto.
+
+    Se descuenta el subsidio y la cuota inicial del segmento, se calcula la
+    cuota del crédito a su plazo y tasa, y se exige que esa cuota no supere el
+    tope regulatorio de cuota/ingreso de ese segmento (40% VIS, 30% No VIS).
+    """
+    parametros = parametros_credito(tipo_cod)
+    financiado = monto_financiado(precio, tipo_cod, aplica_subsidio)
+    ingreso = cuota_mensual(financiado, tipo_cod) / parametros["cuota_ingreso_max"]
     return ingreso / SMMLV
 
 
@@ -240,9 +325,13 @@ def preparar_proyecto(crudo, avisos):
     precio = float(crudo.get("precio_desde_cop") or 0)
     aplica_subsidio = bool(crudo.get("aplica_subsidio_caja"))
 
-    ingreso_smmlv = ingreso_requerido_smmlv(precio, aplica_subsidio=False)
+    # El crédito se simula con los supuestos del SEGMENTO del proyecto: una
+    # VIS y una No VIS no se financian igual, y tratarlas igual era lo que le
+    # exigía a la VIS un ingreso que la banca no le exige.
+    ingreso_smmlv = ingreso_requerido_smmlv(precio, aplica_subsidio=False,
+                                            tipo_cod=tipo_cod)
     ingreso_smmlv_sub = ingreso_requerido_smmlv(
-        precio, aplica_subsidio=aplica_subsidio and tipo_cod == 1
+        precio, aplica_subsidio=aplica_subsidio and tipo_cod == 1, tipo_cod=tipo_cod
     )
     salario_obj = rango_salario(ingreso_smmlv)
     salario_obj_sub = rango_salario(ingreso_smmlv_sub)
@@ -273,6 +362,13 @@ def preparar_proyecto(crudo, avisos):
         "tipo_vivienda_cod": tipo_cod,
         "localidad": nombre_localidad(localidad_id) or crudo.get("localidad"),
         "localidad_id": localidad_id,
+        # El barrio (sector catastral) lo resuelve el scraper y aquí solo se
+        # conserva: es el nodo del proyecto en el grafo fino (grafo_barrios).
+        # Null cuando ni la dirección ni la coordenada lo ubican; el modelo
+        # entonces usa solo la localidad, como hasta la v0.3.
+        "barrio_id": crudo.get("barrio_id"),
+        "barrio_nombre": crudo.get("barrio_nombre"),
+        "barrio_confianza": crudo.get("_barrio_confianza"),
         "zonas_comunes": nombres_zonas(zonas_idx),
         "zonas_comunes_idx": zonas_idx,
         "zonas_comunes_vector": vector_zonas(zonas_idx),
@@ -285,7 +381,19 @@ def preparar_proyecto(crudo, avisos):
         "precio_por_m2": round(precio / area, 2) if area else None,
         "ingreso_requerido_smmlv": round(ingreso_smmlv, 2),
         "ingreso_requerido_cop": round(ingreso_smmlv * SMMLV),
-        "cuota_mensual_estimada_cop": round(cuota_mensual(precio * (1 - CUOTA_INICIAL))),
+        "cuota_mensual_estimada_cop": round(
+            cuota_mensual(monto_financiado(precio, tipo_cod), tipo_cod)
+        ),
+        # Los supuestos con los que se calculó, para que el número sea
+        # auditable sin tener que reconstruirlo: es lo que Manuela le dice al
+        # comprador por teléfono.
+        "credito": {
+            "cuota_inicial_pct": parametros_credito(tipo_cod)["cuota_inicial"],
+            "plazo_meses": parametros_credito(tipo_cod)["plazo_meses"],
+            "tasa_ea": parametros_credito(tipo_cod)["tasa_ea"],
+            "cuota_ingreso_max": parametros_credito(tipo_cod)["cuota_ingreso_max"],
+            "monto_financiado_cop": round(monto_financiado(precio, tipo_cod)),
+        },
         "ingreso_requerido_smmlv_con_subsidio": round(ingreso_smmlv_sub, 2),
         "salario_objetivo_con_subsidio": salario_obj_sub,
         "perfil_amenidades": perfiles,
@@ -341,13 +449,14 @@ def preparar(ruta_seed=RUTA_SEED, ruta_salida=RUTA_MODELO, verbose=True):
             "fuente": os.path.basename(ruta_seed),
             "n_proyectos": len(proyectos),
             "smmlv": SMMLV,
+            # Los supuestos quedan en el JSON por segmento: son la explicación
+            # de por qué un proyecto pide el ingreso que pide, y cambian cada
+            # vez que se mueve el mercado.
             "supuestos_credito": {
-                "cuota_inicial": CUOTA_INICIAL,
-                "plazo_meses": PLAZO_MESES,
-                "tasa_mensual": TASA_MENSUAL,
-                "capacidad_endeudamiento": CAPACIDAD_ENDEUDAMIENTO,
-                "subsidio_smmlv": SUBSIDIO_SMMLV,
+                parametros["nombre"]: {k: v for k, v in parametros.items() if k != "nombre"}
+                for parametros in PARAMETROS_CREDITO.values()
             },
+            "subsidio_smmlv": SUBSIDIO_SMMLV,
             "cortes_precio_m2": cortes_precio,
             "features_modelo": ["salario_objetivo", "personas_objetivo", "edad_objetivo"],
             "localidades_bogota": LOCALIDADES_BOGOTA,
@@ -370,6 +479,9 @@ def _reporte(salida, ruta_salida):
     print(f"[prep] {len(proyectos)} proyectos -> {os.path.basename(ruta_salida)}")
     print(f"[prep] tipo_vivienda   : {dict(Counter(p['tipo_vivienda'] for p in proyectos))}")
     print(f"[prep] localidades     : {len({p['localidad_id'] for p in proyectos})} de 20 con oferta")
+    con_barrio = sum(1 for p in proyectos if p["barrio_id"])
+    print(f"[prep] barrio resuelto : {con_barrio} de {len(proyectos)} "
+          f"({len({p['barrio_id'] for p in proyectos if p['barrio_id']})} barrios distintos)")
     print(f"[prep] salario_objetivo: {dict(sorted(Counter(p['salario_objetivo'] for p in proyectos).items()))}")
     print(f"[prep] personas_objetivo: {dict(sorted(Counter(p['personas_objetivo'] for p in proyectos).items()))}")
     edades = [p["edad_objetivo"] for p in proyectos]

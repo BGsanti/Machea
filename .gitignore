@@ -1,21 +1,22 @@
 # Imágenes scrapeadas: cientos de MB que se regeneran con
-#   python scraper_projects.py
-# No tiene sentido versionarlas. Si se quieren en el repo, borrar esta línea.
+#   python backend/scraping/scraper_projects.py
+# No tiene sentido versionarlas.
 #
-# ANCLADA A LA RAIZ (la barra de delante), que es donde las escribe el
-# scraper (`DIR_IMAGENES` en scraper_projects.py). Sin anclar, el patron
-# casaba en CUALQUIER nivel y se tragaba tambien las fotos que la landing
-# sirve desde web/public/experiencia/, que si tienen que viajar: son las
-# que pinta el quiz publicado.
-/imagenes_proyectos/
+# Viven en los recursos del FRONT, que es quien las sirve, con el
+# `id_proyecto` como nombre de carpeta (ver `Model/rutas.py`).
+/frontend/public/recursos/imagenes_proyectos/
+
+# Lo que sirve la experiencia embebida SÍ viaja: son las fotos que pinta el
+# quiz publicado, y no se regeneran con el scraper.
+!/frontend/public/experiencia/imagenes_proyectos/
 
 # `proyectos_model.json`, `historial_simulado.json` y `clientes_simulados.json`
 # SÍ se versionan: son lo que hace que `recomendar()` funcione recién clonado,
-# sin tener que scrapear y entrenar primero. Pesan ~4,5 MB entre los tres.
+# sin tener que scrapear y entrenar primero. Pesan ~4,5 MB entre los tres, y
+# viven en backend/Model/data_projects/.
 
 # Salidas de una consulta concreta: cambian en cada llamada.
-proyectos_listos_llamativos.json
-respuesta.json
+/backend/salidas/
 
 __pycache__/
 *.py[cod]

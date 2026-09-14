@@ -27,20 +27,19 @@ import random
 import sys
 from collections import Counter
 
-# Funciona igual como script (`python simulacion/generar_clientes.py`) que como
-# módulo importado (`import simulacion.generar_clientes`): en el segundo caso
-# Python no agrega esta carpeta al path y `arquetipos` no se encontraría.
-DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
-RAIZ = os.path.dirname(DIRECTORIO)
-for _ruta in (RAIZ, DIRECTORIO):
-    if _ruta not in sys.path:
-        sys.path.insert(0, _ruta)
+# Funciona igual ejecutado por ruta (`python Model/simulacion/generar_clientes.py`)
+# que como módulo (`python -m Model.simulacion.generar_clientes`): en el primer
+# caso Python pone en el path esta carpeta y no `backend/`, así que el paquete
+# `Model` no se encontraría.
+if __package__ in (None, ""):
+    sys.path.insert(0, os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from catalogos import ZONAS_COMUNES, nombre_localidad, nombre_tipo_vivienda  # noqa: E402
+from Model.catalogos import ZONAS_COMUNES, nombre_localidad, nombre_tipo_vivienda  # noqa: E402
 
-from arquetipos import ARQUETIPOS, validar  # noqa: E402
+from Model.simulacion.arquetipos import ARQUETIPOS, validar  # noqa: E402
 
-RUTA_SALIDA = os.path.join(DIRECTORIO, "clientes_simulados.json")
+from Model.rutas import RUTA_CLIENTES as RUTA_SALIDA
 VARIACIONES = 100
 
 # Cuánto se deja derivar cada variación de su arquetipo. Sin esta deriva las

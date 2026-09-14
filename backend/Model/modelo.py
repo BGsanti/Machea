@@ -25,21 +25,35 @@ import os
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
-from catalogos import (
+from Model.catalogos import (
     LOCALIDADES_BOGOTA,
     ZONAS_COMUNES,
     codigo_tipo_vivienda,
     indice_localidad,
     localidades_por_distancia,
     mapear_zonas,
+    nombre_localidad,
     nombre_tipo_vivienda,
     nombres_zonas,
 )
 
-DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
-RUTA_MODELO = os.path.join(DIRECTORIO, "proyectos_model.json")
-RUTA_HISTORIAL = os.path.join(DIRECTORIO, "historial_simulado.json")
-RUTA_LLAMATIVOS = os.path.join(DIRECTORIO, "proyectos_listos_llamativos.json")
+# El grafo de barrios afina la cercanía DENTRO de la localidad. La admisión
+# (el BFS de `primer_filtro`) sigue siendo por localidades: el barrio solo
+# cambia cuánto pesa la distancia en el score y el orden de los candidatos.
+from Model.grafo_barrios import (
+    distancia_barrios,
+    indice_barrio,
+    localidad_de_barrio,
+    nombre_barrio,
+)
+
+# `cota_minima` aporta el cálculo del esfuerzo de pago. La dependencia va en
+# un solo sentido: ese módulo no importa este.
+from Model.cota_minima import evaluar_esfuerzo
+
+# Las rutas salen de `Model/rutas.py`, que es el único sitio que sabe dónde
+# vive cada archivo del backend.
+from Model.rutas import RUTA_HISTORIAL, RUTA_LLAMATIVOS, RUTA_MODELO, asegurar_salidas
 
 # ---------------------------------------------------------------------------
 # Parámetros del filtro duro
@@ -110,10 +124,96 @@ PESOS_FEATURES = {
 # Distancia euclidiana máxima posible en el espacio escalado y ponderado.
 DISTANCIA_MAXIMA = float(np.sqrt(sum(p ** 2 for p in PESOS_FEATURES.values())))
 
-# Mezcla del score final. El componente del modelo domina; las afinidades de
-# zonas y localidad desempatan y evitan que un proyecto lejano o que apenas
-# coincide en amenidades quede primero solo por parecido demográfico.
-PESOS_SCORE = {"modelo": 0.70, "zonas": 0.20, "localidad": 0.10}
+# Mezcla del score final.
+#
+# Hasta la v0.2 era {modelo: 0.70, zonas: 0.20, localidad: 0.10}: el parecido
+# demográfico decidía y lo demás desempataba. El problema es que el parecido
+# demográfico es un PROXY del dinero —el salario objetivo del proyecto contra
+# el tramo del usuario—, y un proxy grueso: dos proyectos etiquetados en el
+# mismo tramo de salario pueden diferir en 80 millones, y el modelo los veía
+# iguales.
+#
+# `esfuerzo` mide lo que el proxy no: cuántos años tardaría ESTA persona en
+# pagar ESE proyecto (`cota_minima.anos_de_pago`). Entra con el peso más alto
+# después del modelo, y como el salario ya pesa 0.50 dentro de las features
+# del modelo, la plata termina explicando cerca de la mitad del score. Ese es
+# el reenfoque: el dinero pasa de desempatar a decidir.
+#
+# `localidad` baja de 0.10 a 0.08 porque es la concesión que la cota de precio
+# está autorizada a comprar (ver `Cota_minimaBG`); `zonas` baja de 0.20 a 0.17
+# porque las amenidades son preferencia, no viabilidad.
+#
+# El peso de `esfuerzo` está calibrado, no elegido. Medido sobre 400 clientes
+# de prueba no vistos, con la cota de precio ya activa:
+#
+#   esfuerzo | modelo | recall@18 | precio Top 3 | ahorro | ahorro por punto
+#            |        |           |              |        | de recall cedido
+#   ---------|--------|-----------|--------------|--------|------------------
+#     0.00   |  0.75  |   75,0%   | 292.369.897  |   0 %  |        —
+#     0.15   |  0.60  |   73,2%   | 283.807.688  | 2,9 %  |     1,6 %
+#     0.20   |  0.55  |   72,5%   | 281.766.874  | 3,6 %  |     1,0 %
+#     0.25   |  0.50  |   72,0%   | 280.688.197  | 4,0 %  |     0,9 %  <- elegido
+#     0.35   |  0.40  |   70,5%   | 278.605.293  | 4,7 %  |     0,5 %
+#
+# 0.25 se queda con el 85% del ahorro que este componente puede aportar; de ahí
+# en adelante cada punto de recall cedido compra la mitad de ahorro que al
+# principio. El grueso del efecto económico no lo hace este peso sino la cota
+# (-15,6% de precio), y por eso subirlo más solo cuesta.
+#
+# Con esto la plata explica cerca de la mitad del score sin la cota:
+# `esfuerzo` 0.25 + `salario`, que pesa 0.50 dentro de las features del modelo
+# (0.50 x 0.50 = 0.25 efectivo). Con la cota encima, decide el orden entero.
+PESOS_SCORE = {"modelo": 0.50, "esfuerzo": 0.25, "zonas": 0.17, "localidad": 0.08}
+
+# --- Cercanía: del salto de localidad al kilómetro ---------------------------
+# Hasta la v0.3 `score_localidad = max(0, 1 - 0.25 * saltos_de_localidad)`:
+# misma localidad 1.0, vecina 0.75, a dos saltos 0.5, a cuatro 0. Con eso un
+# usuario que pide Suba ve a distancia 0 tanto La Colina como Lisboa, que
+# están a 8 km, y el score no puede distinguir el que le queda al lado del
+# que le queda cruzando la localidad entera.
+#
+# Con el grafo de barrios (Model/grafo_barrios.py) la distancia se mide en
+# kilómetros por el grafo de vecindad y el score decae linealmente hasta 0 en
+# `RADIO_CERCANIA_KM`. Para situar el número: sobre 20.000 pares de sectores
+# urbanos al azar, la mediana de distancia por salto de localidad es 3,1 km
+# (misma), 6,8 (vecina), 10,3 (dos saltos), 14,3 (tres) y 19,3 (cuatro). Con
+# 12 km la localidad vecina puntúa ~0,43 y a dos saltos ya casi nada; DENTRO
+# de Suba los 27 proyectos con barrio se reparten entre 1,3 y 13,5 km, es
+# decir entre 0,89 y 0, que es la separación que antes no existía.
+#
+# Radio y peso están calibrados juntos (simulacion/calibrar_barrios.py):
+# 300 clientes de prueba no vistos, cada uno con un barrio sorteado de su
+# localidad, midiendo a cuántos km del barrio queda lo recomendado.
+#
+#      config          recall@18  pos.media  km top3  km top18  precio top3
+#      sin barrio (v0.3)  71,2%      7,95      9,51    10,51    299.273.417
+#      r=20 w=0,08        73,6%      7,30      9,34    10,23    -0,4%
+#      r=12 w=0,08        74,2%      7,41      9,28    10,28    -0,3%
+#      r=12 w=0,12        73,2%      7,29      8,96     9,97    -0,5%   <- elegido
+#      r=12 w=0,16        72,2%      7,22      8,53     9,70    -0,6%
+#      r=8  w=0,16        70,9%      7,08      8,91    10,05    -0,4%
+#
+# El barrio no le cuesta nada al reenfoque económico: el precio del Top 3 no
+# sube en ninguna fila y el recall sube en todas menos la última. Lo único que
+# se intercambia es peso del modelo demográfico por cercanía, y 12 km / 0,12
+# es el punto donde el Top 3 se acerca un 6% sin perder recall frente a la
+# base. Subir a 0,16 acerca un 10% pero empieza a costar recall.
+RADIO_CERCANIA_KM = 12.0
+
+# Peso de `localidad` cuando el usuario SÍ dio barrio. Sin barrio la cercanía
+# es un dato grueso (¿misma localidad o vecina?) y pesa lo de siempre, 0,08,
+# para que un formulario sin barrio dé exactamente lo de la v0.3 y las tablas
+# de calibración de §4.3-4.5 sigan valiendo. Con barrio es una medida en km, y
+# un dato más fino merece más peso. Lo que sube aquí se le quita a `modelo`.
+PESO_LOCALIDAD_CON_BARRIO = 0.12
+
+# Cuando el usuario sí dio barrio pero el proyecto no tiene (13 de 96 no se
+# pudieron ubicar), no se le regala el 1.0 de "misma localidad": se le asume
+# la distancia TÍPICA para su salto de localidad, que es lo que se mide de
+# arriba (3,1 km + 3,7 km por salto). Es el mismo criterio que
+# `COBERTURA_ZONAS_SIN_DATO`: lo que no se sabe vale lo esperado, no lo mejor.
+KM_BASE_SIN_BARRIO = 3.1
+KM_POR_SALTO_LOCALIDAD = 3.7
 
 # --- Datos que la fuente no publica ---------------------------------------
 # No todas las constructoras publican habitaciones ni zonas comunes. Un dato
@@ -205,6 +305,32 @@ def leer_info_user(path_user_info):
     # El formulario admite la llave con o sin mayúscula inicial.
     localidad_cruda = crudo.get("Localidad", crudo.get("localidad"))
     localidad_id = indice_localidad(localidad_cruda)
+
+    # `barrio` es opcional (nombre o código de sector catastral). Si viene y
+    # se reconoce, afina la distancia en el score; si viene sin Localidad, la
+    # localidad se deduce de él; si contradice a la Localidad declarada, es un
+    # error del formulario y se reporta junto con los demás.
+    barrio_crudo = crudo.get("barrio", crudo.get("Barrio"))
+    barrio_id = None
+    if barrio_crudo not in (None, ""):
+        barrio_id = indice_barrio(barrio_crudo, localidad_id)
+        if barrio_id is not None and localidad_id is None:
+            localidad_id = localidad_de_barrio(barrio_id)   # el barrio dice dónde
+        elif barrio_id is None:
+            # No está en la localidad declarada: ¿existe, sin ambigüedad, en
+            # otra? Si la Localidad no vino, se toma de ahí; si sí vino, el
+            # formulario se contradice y hay que decirlo.
+            en_otra = indice_barrio(barrio_crudo)
+            if en_otra is not None and localidad_id is None:
+                barrio_id = en_otra
+                localidad_id = localidad_de_barrio(barrio_id)
+            elif en_otra is not None:
+                errores.append(
+                    f"barrio {barrio_crudo!r} ({nombre_barrio(en_otra)}) queda en "
+                    f"{nombre_localidad(localidad_de_barrio(en_otra))}, no en "
+                    f"{nombre_localidad(localidad_id)} (Localidad={localidad_cruda!r})"
+                )
+
     if localidad_id is None:
         errores.append(
             f"Localidad debe estar entre 1 y {len(localidades_bogota)} (recibido: {localidad_cruda!r})"
@@ -236,10 +362,15 @@ def leer_info_user(path_user_info):
         "localidad": localidad_id,
         "zonas_comunes": zonas_idx,
         "numero_habitaciones": habitaciones,
+        # El barrio NO es llave del filtro duro: no admite ni excluye a nadie.
+        # Solo afina la distancia (`_distancia_km`) con la que el score mide
+        # la cercanía. None = el usuario no lo dio o no se reconoció.
+        "barrio": barrio_id,
         # Extras legibles, útiles para logging y para la vista; el filtro solo
         # usa las cuatro llaves de arriba.
         "tipo_vivienda_nombre": nombre_tipo_vivienda(tipo_cod),
         "localidad_nombre": localidades_bogota[localidad_id - 1],
+        "barrio_nombre": nombre_barrio(barrio_id),
         "zonas_comunes_nombres": [zonas_comunes[i] for i in zonas_idx],
     }
 
@@ -260,6 +391,10 @@ def leer_info_user(path_user_info):
         "piso": piso,
         "piso_nombre": PISOS.get(piso),
         "zonas_comunes_no_reconocidas": zonas_desconocidas,
+        # Un barrio que no está en el grafo no rompe nada: se anota y el
+        # score usa la localidad, igual que si no lo hubieran dado.
+        "barrio_no_reconocido": (str(barrio_crudo) if barrio_crudo not in (None, "")
+                                 and barrio_id is None else None),
     }
 
     return usuario_modelo, usuario_segmentado, usuario_info_contacto_v1
@@ -322,15 +457,21 @@ def primer_filtro(usuario_segmentado, ruta_modelo=RUTA_MODELO,
     recurso, las habitaciones. El tipo de vivienda nunca se relaja: VIS y
     No VIS son categorías legales y financieras distintas, no una preferencia.
 
+    El barrio del usuario (`usuario_segmentado["barrio"]`, opcional) NO
+    filtra: anota en cada candidato `_distancia_km` por el grafo de barrios
+    para que el score y el orden midan la cercanía real dentro de la
+    localidad, que el salto de localidad no distingue.
+
     Returns:
         proyectos_preseleccionados: lista de proyectos enriquecidos con la
-        metadata del filtro (`_distancia_localidad`, `_cobertura_zonas`,
-        `_cumple_habitaciones`, `_nivel_relajacion`, ...).
+        metadata del filtro (`_distancia_localidad`, `_distancia_km`,
+        `_cobertura_zonas`, `_cumple_habitaciones`, `_nivel_relajacion`, ...).
     """
     proyectos = _cargar_proyectos(ruta_modelo)
 
     tipo_usuario = usuario_segmentado["tipo_vivienda"]
     localidad_usuario = usuario_segmentado["localidad"]
+    barrio_usuario = usuario_segmentado.get("barrio")
     zonas_usuario = set(usuario_segmentado.get("zonas_comunes") or [])
     habitaciones_usuario = usuario_segmentado.get("numero_habitaciones") or 1
 
@@ -362,7 +503,7 @@ def primer_filtro(usuario_segmentado, ruta_modelo=RUTA_MODELO,
                     continue
                 proyectos_preseleccionados.append(
                     _anotar_filtro(proyecto, distancia, coincidentes, zonas_usuario,
-                                   habitaciones_usuario, nivel)
+                                   habitaciones_usuario, nivel, barrio_usuario)
                 )
                 ya_incluidos.add(proyecto["id_proyecto"])
             # Se completa el nivel de distancia antes de cortar, para no partir
@@ -371,11 +512,61 @@ def primer_filtro(usuario_segmentado, ruta_modelo=RUTA_MODELO,
                 break
 
     # Orden de preferencia: primero lo que cumple todo, después lo relajado.
+    # Dentro del mismo salto de localidad, los kilómetros del grafo de barrios
+    # (si el usuario dio barrio) ponen primero al que queda más cerca.
     proyectos_preseleccionados.sort(
         key=lambda p: (p["_nivel_relajacion"], p["_distancia_localidad"],
+                       p["_distancia_km"] if p["_distancia_km"] is not None else float("inf"),
                        -p["_n_zonas_coincidentes"])
     )
     return proyectos_preseleccionados
+
+
+def _distancia_km(barrio_usuario, proyecto, saltos_localidad):
+    """Kilómetros entre el barrio del usuario y el proyecto, y si son estimados.
+
+    Returns:
+        (km, estimada): km es None si el usuario no dio barrio, y entonces
+        el score cae a la fórmula por saltos de localidad de la v0.3. Si el
+        usuario sí dio barrio pero el proyecto no tiene, se estima por el
+        salto de localidad (`KM_BASE_SIN_BARRIO` + `KM_POR_SALTO_LOCALIDAD`
+        por salto) y se marca como estimada.
+    """
+    if barrio_usuario is None:
+        return None, False
+    km = distancia_barrios(barrio_usuario, proyecto.get("barrio_id"))
+    if km is not None:
+        return km, False
+    return round(KM_BASE_SIN_BARRIO + KM_POR_SALTO_LOCALIDAD * saltos_localidad, 3), True
+
+
+def pesos_score(proyectos_preseleccionados):
+    """Los pesos del score para esta consulta.
+
+    Si el usuario dio barrio (los candidatos traen `_distancia_km`), la
+    cercanía pesa `PESO_LOCALIDAD_CON_BARRIO` y la diferencia sale de
+    `modelo`; si no, `PESOS_SCORE` tal cual.
+    """
+    pesos = dict(PESOS_SCORE)
+    if any(p.get("_distancia_km") is not None for p in proyectos_preseleccionados):
+        extra = PESO_LOCALIDAD_CON_BARRIO - PESOS_SCORE["localidad"]
+        pesos["localidad"] = PESO_LOCALIDAD_CON_BARRIO
+        pesos["modelo"] = PESOS_SCORE["modelo"] - extra
+    return pesos
+
+
+def score_cercania(proyecto):
+    """Afinidad [0,1] por cercanía geográfica.
+
+    Con kilómetros (el usuario dio barrio): decae linealmente hasta 0 en
+    `RADIO_CERCANIA_KM`. Sin ellos: la fórmula por saltos de localidad de la
+    v0.3, `1 - 0.25 * saltos`, para que un formulario sin barrio dé el mismo
+    resultado de siempre.
+    """
+    km = proyecto.get("_distancia_km")
+    if km is not None:
+        return max(0.0, 1.0 - float(km) / RADIO_CERCANIA_KM)
+    return max(0.0, 1.0 - 0.25 * proyecto.get("_distancia_localidad", 0))
 
 
 def _cumple_habitaciones(proyecto, solicitadas):
@@ -410,13 +601,14 @@ def _datos_incompletos(proyecto):
 
 
 def _anotar_filtro(proyecto, distancia, coincidentes, zonas_usuario,
-                   habitaciones_usuario, relajacion):
+                   habitaciones_usuario, relajacion, barrio_usuario=None):
     """Copia el proyecto y le añade la trazabilidad del filtro."""
     anotado = dict(proyecto)
     coincidentes = sorted(coincidentes)
     # Un match completo pero en localidad vecina se marca como nivel 1.
     nivel = 1 if (relajacion == 0 and distancia > 0) else relajacion
     faltantes = _datos_incompletos(proyecto)
+    km, km_estimada = _distancia_km(barrio_usuario, proyecto, distancia)
 
     if not zonas_usuario:
         cobertura = 1.0                      # no pidió zonas: el criterio no aplica
@@ -427,6 +619,10 @@ def _anotar_filtro(proyecto, distancia, coincidentes, zonas_usuario,
 
     anotado.update({
         "_distancia_localidad": distancia,
+        # Kilómetros por el grafo de barrios desde el barrio del usuario.
+        # None si no dio barrio; estimados si el proyecto no tiene el suyo.
+        "_distancia_km": km,
+        "_distancia_km_estimada": km_estimada,
         "_zonas_coincidentes": coincidentes,
         "_zonas_coincidentes_nombres": nombres_zonas(coincidentes),
         "_n_zonas_coincidentes": len(coincidentes),
@@ -541,6 +737,7 @@ def modelo(proyectos_preseleccionados, usuario_modelo, ruta_historial=RUTA_HISTO
     )
 
     # --- 3. Score final ----------------------------------------------------
+    pesos = pesos_score(proyectos_preseleccionados)
     resultados = []
     for posicion, proyecto in enumerate(proyectos_preseleccionados):
         distancia = distancia_por_indice.get(posicion, DISTANCIA_MAXIMA)
@@ -556,12 +753,21 @@ def modelo(proyectos_preseleccionados, usuario_modelo, ruta_historial=RUTA_HISTO
             score_modelo = afinidad_perfil
 
         score_zonas = float(proyecto.get("_cobertura_zonas", 0.0))
-        score_localidad = max(0.0, 1.0 - 0.25 * proyecto.get("_distancia_localidad", 0))
+        # En km si el usuario dio barrio; por saltos de localidad si no.
+        score_localidad = score_cercania(proyecto)
+
+        # El esfuerzo de pago entra AQUÍ, y no solo en `Cota_minimaBG`, para
+        # que afecte QUÉ proyectos entran al Top N y no únicamente el orden en
+        # que salen: un proyecto que esta persona no puede pagar no debería
+        # ocupar una de las 18 casillas por parecerse a ella demográficamente.
+        esfuerzo = evaluar_esfuerzo(proyecto, usuario_modelo.get("salario"), usar_subsidio)
+        score_esfuerzo_proyecto = esfuerzo["score_esfuerzo"]
 
         score = (
-            PESOS_SCORE["modelo"] * score_modelo
-            + PESOS_SCORE["zonas"] * score_zonas
-            + PESOS_SCORE["localidad"] * score_localidad
+            pesos["modelo"] * score_modelo
+            + pesos["esfuerzo"] * score_esfuerzo_proyecto
+            + pesos["zonas"] * score_zonas
+            + pesos["localidad"] * score_localidad
         )
 
         # Lo que no se pudo verificar se descuenta una sola vez, aquí, en vez
@@ -578,9 +784,16 @@ def modelo(proyectos_preseleccionados, usuario_modelo, ruta_historial=RUTA_HISTO
             "score_modelo": round(float(score_modelo), 4),
             "score_afinidad_perfil": round(float(afinidad_perfil), 4),
             "score_historial": round(float(score_historial), 4),
+            "score_esfuerzo": round(float(score_esfuerzo_proyecto), 4),
             "score_zonas": round(float(score_zonas), 4),
             "score_localidad": round(float(score_localidad), 4),
             "distancia_perfil": round(float(distancia), 4),
+            # Trazabilidad del esfuerzo: sin estos números el score de arriba
+            # no se puede explicar ni a un asesor ni a un comprador.
+            "_anos_de_pago": esfuerzo["anos_de_pago"],
+            "_alcanzable": esfuerzo["alcanzable"],
+            "_cuota_que_puede_pagar_cop": esfuerzo["cuota_que_puede_pagar_cop"],
+            "_cuota_del_proyecto_cop": esfuerzo["cuota_del_proyecto_cop"],
             "motor": motor,
         })
         resultados.append(seleccionado)
@@ -589,7 +802,9 @@ def modelo(proyectos_preseleccionados, usuario_modelo, ruta_historial=RUTA_HISTO
     # lo que cumple todos los requisitos del filtro va primero, y solo después
     # entra lo que se admitió relajando zonas o habitaciones.
     resultados.sort(key=lambda p: (p.get("_prioridad_filtro", 0), -p["score"],
-                                   p["_distancia_localidad"], p["id_proyecto"]))
+                                   p["_distancia_localidad"],
+                                   p.get("_distancia_km") if p.get("_distancia_km") is not None else 0.0,
+                                   p["id_proyecto"]))
     proyectos_seleccionados = resultados[:top_n]
     return proyectos_seleccionados
 
@@ -746,6 +961,31 @@ def _desempatar_por_precio(ordenados, brutos):
     return desempatados
 
 
+def _scores_por_posicion(ordenados):
+    """Reparte los scores de mayor a menor sobre el orden ya decidido.
+
+    Se hace **dentro de cada tramo de `_prioridad_filtro`**, nunca entre
+    tramos: mezclarlos permitiría que un score alto de un proyecto relajado se
+    le prestara a uno que cumple todo, o al revés (invariante 4).
+
+    El conjunto de porcentajes que ve el usuario es exactamente el mismo que
+    saldría sin la cota; lo único que cambia es quién ocupa cada puesto. Así la
+    caída de la lista sigue midiendo lo que mide el modelo —qué tan rápido
+    empeora el encaje— y no se inventa una escala nueva.
+    """
+    scores = [float(p.get("score", 0.0)) for p in ordenados]
+    resultado = [0.0] * len(ordenados)
+    inicio = 0
+    while inicio < len(ordenados):
+        fin = inicio + 1
+        prioridad = ordenados[inicio].get("_prioridad_filtro", 0)
+        while fin < len(ordenados) and ordenados[fin].get("_prioridad_filtro", 0) == prioridad:
+            fin += 1
+        resultado[inicio:fin] = sorted(scores[inicio:fin], reverse=True)
+        inicio = fin
+    return resultado
+
+
 def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMATIVOS):
     """Convierte los scores del modelo en porcentajes de compatibilidad.
 
@@ -775,10 +1015,26 @@ def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMAT
     if not proyectos_seleccionados:
         return []
 
-    # Mismo criterio que `modelo()`: la prioridad del filtro manda sobre el score.
-    ordenados = sorted(proyectos_seleccionados,
-                       key=lambda p: (p.get("_prioridad_filtro", 0), -p.get("score", 0.0)))
-    scores = [float(p.get("score", 0.0)) for p in ordenados]
+    # Mismo criterio que `modelo()`: la prioridad del filtro manda sobre el
+    # score. La excepción es `_orden_cota`: si `Cota_minimaBG` ya corrió, el
+    # orden que dejó es el bueno y volver a ordenar por score lo desharía —
+    # justamente el reordenamiento por precio que esa capa acaba de hacer.
+    hubo_cota = any("_orden_cota" in p for p in proyectos_seleccionados)
+    if hubo_cota:
+        ordenados = sorted(proyectos_seleccionados,
+                           key=lambda p: (p.get("_prioridad_filtro", 0),
+                                          p.get("_orden_cota", 0)))
+        # La cota decide el ORDEN; el modelo decide la ESCALA. Se reparten los
+        # mismos scores que el modelo produjo, pero de mayor a menor según la
+        # posición final. Sin esto el porcentaje describe un ranking que ya no
+        # existe: un proyecto que la cota hundió al 14º por caro seguiría
+        # mostrando el 3er score más alto del top, y la lista se leería al
+        # revés de como está ordenada.
+        scores = _scores_por_posicion(ordenados)
+    else:
+        ordenados = sorted(proyectos_seleccionados,
+                           key=lambda p: (p.get("_prioridad_filtro", 0), -p.get("score", 0.0)))
+        scores = [float(p.get("score", 0.0)) for p in ordenados]
 
     # Capa 1. El líder: su score en porcentaje, con el mínimo de arriba.
     porcentaje = max(scores[0] * 100.0, PORCENTAJE_TOP_MINIMO)
@@ -826,6 +1082,7 @@ def post_arreglos(proyectos_seleccionados, semilla=None, ruta_salida=RUTA_LLAMAT
     proyectos_listos_llamativos.sort(key=lambda p: -p["porcentaje_compatibilidad"])
 
     if ruta_salida:
+        asegurar_salidas()
         with open(ruta_salida, "w", encoding="utf-8") as archivo:
             json.dump(proyectos_listos_llamativos, archivo, ensure_ascii=False, indent=2)
 

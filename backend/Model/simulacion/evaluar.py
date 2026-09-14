@@ -34,27 +34,30 @@ import os
 import random
 import sys
 
-DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
-RAIZ = os.path.dirname(DIRECTORIO)
-for _ruta in (RAIZ, DIRECTORIO):
-    if _ruta not in sys.path:
-        sys.path.insert(0, _ruta)
+# Ejecutable por ruta (`python Model/simulacion/evaluar.py`) o como módulo
+# (`python -m Model.simulacion.evaluar`). Ver generar_clientes.py.
+if __package__ in (None, ""):
+    sys.path.insert(0, os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from generar_historial import (  # noqa: E402
+DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
+
+from Model.simulacion.generar_historial import (  # noqa: E402
     RUTA_CLIENTES,
     atractivo_latente,
     cargar_clientes,
     elegir_proyecto,
 )
-from modelo import (  # noqa: E402
+from Model.modelo import (  # noqa: E402
     RUTA_HISTORIAL,
     RUTA_MODELO,
     _cargar_proyectos,
     modelo,
     primer_filtro,
 )
+from Model.cota_minima import COTA_MINIMA_COP, Cota_minimaBG  # noqa: E402
 
-import generar_clientes  # noqa: E402
+from Model.simulacion import generar_clientes  # noqa: E402
 
 # La ventana del recall NO sigue a `modelo.TOP_N`. Esto es un instrumento de
 # calibración: los números que fijaron K_VECINOS y ALPHA_HISTORIAL se midieron
@@ -81,8 +84,16 @@ def _clientes_de_prueba(cantidad, semilla, ruta_modelo):
 
 
 def evaluar(cantidad=CLIENTES_PRUEBA, semilla=SEMILLA_PRUEBA, ruta_modelo=RUTA_MODELO,
-            ruta_historial=RUTA_HISTORIAL, top_n=TOP_N_EVALUACION, verbose=True):
-    """Compara recall@N con y sin historial. Devuelve el resumen como dict."""
+            ruta_historial=RUTA_HISTORIAL, top_n=TOP_N_EVALUACION, verbose=True,
+            cota_cop=None):
+    """Compara recall@N con y sin historial. Devuelve el resumen como dict.
+
+    `cota_cop` mide el efecto de `Cota_minimaBG` sobre la lista entregada.
+    Ojo con leer ese número: la cota REORDENA, no selecciona, así que sobre el
+    recall@N (¿está el comprado entre los N?) no puede mejorar nada — el
+    conjunto de N es el mismo. Lo que sí mueve es la **posición media del
+    acierto**, y esa es la métrica a mirar aquí. `None` la desactiva.
+    """
     proyectos = _cargar_proyectos(ruta_modelo)
     atractivo = atractivo_latente(proyectos)
     rng = random.Random(semilla)
@@ -102,6 +113,10 @@ def evaluar(cantidad=CLIENTES_PRUEBA, semilla=SEMILLA_PRUEBA, ruta_modelo=RUTA_M
         solo_contenido = modelo(candidatos, usuario, ruta_historial=None, top_n=top_n)
         con_historial = modelo(candidatos, usuario, ruta_historial=ruta_historial, top_n=top_n)
 
+        if cota_cop is not None:
+            solo_contenido = Cota_minimaBG(solo_contenido, usuario, cota_cop=cota_cop)
+            con_historial = Cota_minimaBG(con_historial, usuario, cota_cop=cota_cop)
+
         ids_contenido = [p["id_proyecto"] for p in solo_contenido]
         ids_historial = [p["id_proyecto"] for p in con_historial]
         aciertos_contenido += comprado in ids_contenido
@@ -120,6 +135,7 @@ def evaluar(cantidad=CLIENTES_PRUEBA, semilla=SEMILLA_PRUEBA, ruta_modelo=RUTA_M
         "posicion_media_del_acierto": (
             sum(posiciones) / len(posiciones) if posiciones else None
         ),
+        "cota_cop": cota_cop,
     }
     resumen["mejora_puntos"] = (
         resumen["recall_colaborativo"] - resumen["recall_contenido"]
@@ -139,6 +155,8 @@ def _reporte(r):
     print(f" mejora que aporta el historial : {r['mejora_puntos']:+6.1f} puntos")
     if r["posicion_media_del_acierto"]:
         print(f" posición media del acierto     : {r['posicion_media_del_acierto']:6.2f}")
+    if r.get("cota_cop") is not None:
+        print(f" Cota_minimaBG aplicada         : {r['cota_cop']:,} COP".replace(",", "."))
     print("=" * 66)
     if r["mejora_puntos"] <= 0:
         print(" AVISO: el historial no está aportando. Revisa que "
@@ -153,11 +171,15 @@ def main():
     parser.add_argument("--semilla", type=int, default=SEMILLA_PRUEBA)
     parser.add_argument("--modelo", default=RUTA_MODELO)
     parser.add_argument("--historial", default=RUTA_HISTORIAL)
+    parser.add_argument("--cota", type=int, default=None,
+                        help="Aplica Cota_minimaBG con esta cota en COP "
+                             f"(la de produccion es {COTA_MINIMA_COP}). "
+                             "Sin el flag, no se aplica.")
     parser.add_argument("--top", type=int, default=TOP_N_EVALUACION,
                         help="Posiciones sobre las que se mide el recall.")
     args = parser.parse_args()
     evaluar(cantidad=args.clientes_prueba, semilla=args.semilla, ruta_modelo=args.modelo,
-            ruta_historial=args.historial, top_n=args.top)
+            ruta_historial=args.historial, top_n=args.top, cota_cop=args.cota)
 
 
 if __name__ == "__main__":

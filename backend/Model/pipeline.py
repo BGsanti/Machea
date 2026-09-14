@@ -18,8 +18,16 @@ import os
 import sys
 from datetime import datetime, timezone
 
-import prep
-from modelo import (
+# Ejecutable por ruta (`python Model/pipeline.py`) o como módulo
+# (`python -m Model.pipeline`): en el primer caso Python pone en el path esta
+# carpeta y no `backend/`, así que el paquete `Model` no se encontraría.
+if __package__ in (None, ""):
+    import sys
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from Model import prep
+from Model.cota_minima import COTA_MINIMA_COP, Cota_minimaBG
+from Model.modelo import (
     MINIMO_PRESELECCIONADOS,
     RUTA_HISTORIAL,
     RUTA_LLAMATIVOS,
@@ -31,14 +39,12 @@ from modelo import (
     primer_filtro,
 )
 
-DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
-RUTA_USUARIO_DEMO = os.path.join(DIRECTORIO, "usuario_ejemplo.json")
-RUTA_RESPUESTA = os.path.join(DIRECTORIO, "respuesta.json")
+from Model.rutas import RUTA_RESPUESTA, RUTA_USUARIO_DEMO, asegurar_salidas
 
 
 def recomendar(path_user_info, ruta_modelo=RUTA_MODELO, ruta_historial=RUTA_HISTORIAL,
                top_n=TOP_N, semilla=None, ruta_salida=RUTA_LLAMATIVOS, preparar=False,
-               verbose=True):
+               verbose=True, cota_cop=COTA_MINIMA_COP):
     """Ejecuta el pipeline completo y devuelve todas las etapas intermedias.
 
     Es la función que debe invocar la capa HTTP.
@@ -47,6 +53,9 @@ def recomendar(path_user_info, ruta_modelo=RUTA_MODELO, ruta_historial=RUTA_HIST
         path_user_info: el formulario del usuario, como dict (el payload que
             manda el front), como string JSON o como ruta a un archivo.
         preparar: fuerza la regeneración de `proyectos_model.json` desde el seed.
+        cota_cop: diferencia de precio a partir de la cual `Cota_minimaBG`
+            invierte dos posiciones del top aunque eso saque al usuario de la
+            localidad que pidió. `None` desactiva esa capa.
 
     Returns:
         dict con las llaves usuario_modelo, usuario_segmentado,
@@ -84,7 +93,18 @@ def recomendar(path_user_info, ruta_modelo=RUTA_MODELO, ruta_historial=RUTA_HIST
         usar_subsidio=usar_subsidio,
     )
 
-    # Etapa D: normalización comercial del score.
+    # Etapa D: la cota de precio y el esfuerzo de pago reordenan el top.
+    # Va DESPUÉS del modelo y ANTES del porcentaje comercial: el porcentaje
+    # tiene que describir el orden definitivo, no uno que todavía va a cambiar.
+    proyectos_seleccionados = Cota_minimaBG(
+        proyectos_seleccionados,
+        usuario_modelo,
+        cota_cop=cota_cop,
+        usar_subsidio=usar_subsidio,
+        verbose=verbose,
+    )
+
+    # Etapa E: normalización comercial del score.
     proyectos_listos_llamativos = post_arreglos(
         proyectos_seleccionados, semilla=semilla, ruta_salida=ruta_salida
     )
@@ -121,6 +141,13 @@ def respuesta_json(resultado, ruta_salida=RUTA_RESPUESTA):
         "nombre_proyecto": p["nombre_proyecto"],
         "tipo_vivienda": p["tipo_vivienda"],
         "localidad": p["localidad"],
+        # El sector catastral del proyecto y, si el usuario dio barrio, a
+        # cuantos km queda por el grafo de barrios. `distancia_km_estimada`
+        # avisa cuando el proyecto no tiene barrio y el numero es el tipico
+        # de su salto de localidad, no una medida.
+        "barrio": p.get("barrio_nombre"),
+        "distancia_km": p.get("_distancia_km"),
+        "distancia_km_estimada": p.get("_distancia_km_estimada", False),
         "direccion": p["direccion"],
         "precio_desde_cop": p["precio_desde_cop"],
         "area_construida_m2": p["area_construida_m2"],
@@ -129,6 +156,15 @@ def respuesta_json(resultado, ruta_salida=RUTA_RESPUESTA):
         "aplica_subsidio_caja": p["aplica_subsidio_caja"],
         "cuota_mensual_estimada_cop": p["cuota_mensual_estimada_cop"],
         "ingreso_requerido_smmlv": p["ingreso_requerido_smmlv"],
+        # Lo que aporta `Cota_minimaBG`: el esfuerzo de pago de ESTA persona
+        # sobre ESTE proyecto. `anos_de_pago` en null significa que con su
+        # tramo de ingreso la cuota no cubre ni los intereses — es un dato
+        # para decir, no para esconder.
+        "anos_de_pago": p.get("_anos_de_pago"),
+        "alcanzable": p.get("_alcanzable"),
+        "cuota_que_puede_pagar_cop": p.get("_cuota_que_puede_pagar_cop"),
+        "cuota_del_proyecto_cop": p.get("_cuota_del_proyecto_cop"),
+        "movido_por_cota": p.get("_movido_por_cota", 0),
         "zonas_comunes": p["zonas_comunes"],
         "zonas_en_comun": p["_zonas_coincidentes_nombres"],
         "url_ficha": p["url_ficha"],
@@ -155,6 +191,8 @@ def respuesta_json(resultado, ruta_salida=RUTA_RESPUESTA):
             "busqueda": {
                 "tipo_vivienda": segmentado["tipo_vivienda_nombre"],
                 "localidad": segmentado["localidad_nombre"],
+                "barrio": segmentado.get("barrio_nombre"),
+                "barrio_no_reconocido": contacto.get("barrio_no_reconocido"),
                 "numero_habitaciones": segmentado["numero_habitaciones"],
                 "piso": contacto["piso_nombre"],
                 "zonas_comunes": segmentado["zonas_comunes_nombres"],
@@ -164,6 +202,7 @@ def respuesta_json(resultado, ruta_salida=RUTA_RESPUESTA):
     }
 
     if ruta_salida:
+        asegurar_salidas()
         with open(ruta_salida, "w", encoding="utf-8") as archivo:
             json.dump(payload, archivo, ensure_ascii=False, indent=2)
     return payload
@@ -184,8 +223,11 @@ def imprimir_reporte(resultado, ruta_salida=RUTA_LLAMATIVOS):
     print("=" * 78)
     print(f" Perfil modelo   : salario={usuario['salario']}  "
           f"personas_a_cargo={usuario['personas_a_cargo']}  edad={usuario['edad']}")
+    barrio = (f", barrio {segmentado['barrio_nombre']}" if segmentado.get("barrio_nombre") else "")
     print(f" Busca           : {segmentado['tipo_vivienda_nombre']} en "
-          f"{segmentado['localidad_nombre']} ({segmentado['localidad']})")
+          f"{segmentado['localidad_nombre']} ({segmentado['localidad']}){barrio}")
+    if contacto.get("barrio_no_reconocido"):
+        print(f" AVISO           : barrio no reconocido -> {contacto['barrio_no_reconocido']!r}")
     print(f" Habitaciones    : {segmentado['numero_habitaciones']}+   "
           f"Piso: {contacto['piso_nombre']}   Afiliado: {'sí' if contacto['afiliado'] else 'no'}")
     print(f" Zonas comunes   : {', '.join(segmentado['zonas_comunes_nombres']) or '(ninguna)'}")
@@ -214,11 +256,26 @@ def imprimir_reporte(resultado, ruta_salida=RUTA_LLAMATIVOS):
         print(f" {proyecto['posicion']}. {proyecto['porcentaje_texto']:>4}  "
               f"{proyecto['nombre_proyecto']}  ({proyecto['id_proyecto']})")
         aviso_hab = "" if proyecto["_cumple_habitaciones"] else "  <- menos hab. de las pedidas"
-        print(f"        {proyecto['localidad']} · {proyecto['tipo_vivienda']} · "
+        km = proyecto.get("_distancia_km")
+        cerca = ("" if km is None else
+                 f" · a {km:.1f} km{' (est.)' if proyecto.get('_distancia_km_estimada') else ''}")
+        lugar = f"{proyecto['localidad']}" + (f" / {proyecto['barrio_nombre']}" if proyecto.get("barrio_nombre") else "")
+        print(f"        {lugar}{cerca} · {proyecto['tipo_vivienda']} · "
               f"{proyecto['area_construida_m2']} m² · "
               f"{proyecto['habitaciones_cod']} hab · "
               f"${proyecto['precio_desde_cop']:,.0f} COP".replace(",", ".") + aviso_hab)
+        anos = proyecto.get("_anos_de_pago")
+        esfuerzo = ("no alcanza" if anos is None
+                    else f"{anos:.1f} anos".replace(".", ","))
+        movido = proyecto.get("_movido_por_cota", 0)
+        aviso_cota = f"   <- la cota lo subio {movido}" if movido > 0 else (
+            f"   <- la cota lo bajo {-movido}" if movido < 0 else "")
+        print(f"        pagaria en: {esfuerzo}  "
+              f"(cuota proyecto ${proyecto.get('_cuota_del_proyecto_cop', 0):,.0f} vs. "
+              f"puede ${proyecto.get('_cuota_que_puede_pagar_cop', 0):,.0f})"
+              .replace(",", ".") + aviso_cota)
         print(f"        score={proyecto['score']}  (perfil={proyecto['score_afinidad_perfil']} "
+              f"esfuerzo={proyecto.get('score_esfuerzo')} "
               f"zonas={proyecto['score_zonas']} localidad={proyecto['score_localidad']})")
         print(f"        zonas en común: "
               f"{', '.join(proyecto['_zonas_coincidentes_nombres']) or '(ninguna)'}")
