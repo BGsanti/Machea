@@ -2,7 +2,7 @@
 window.GDF_PROYECTOS = [
  {
   "id": 83,
-  "name": "Borneo",
+  "name": "Borneo","direccion":"La Colina, Bogotá. Cl. 152 # 58C - 39*",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -159,7 +159,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 84,
-  "name": "GRAN RESERVA DE SYRAH",
+  "name": "GRAN RESERVA DE SYRAH","direccion":"El Salitre, Bogotá. Cl. 25B #70B - 50","barrio":"El Salitre",
   "localidad": "Teusaquillo",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -296,7 +296,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 85,
-  "name": "GREGAL",
+  "name": "GREGAL","direccion":"Montevideo, Bogotá. Cl. 20 #68D - 30","barrio":"Montevideo",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -491,7 +491,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 86,
-  "name": "LA GRATITUD I DE LA MARLENE",
+  "name": "LA GRATITUD I DE LA MARLENE","direccion":"Bosa, Bogotá. Cl. 93 Sur #94 A-26  (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -599,7 +599,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 87,
-  "name": "LA GRATITUD II DE LA MARLENE",
+  "name": "LA GRATITUD II DE LA MARLENE","direccion":"Bosa, Bogotá. Cra. 95 A #92-51 Sur  (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -750,7 +750,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 88,
-  "name": "LA GRATITUD IV DE LA MARLENE",
+  "name": "LA GRATITUD IV DE LA MARLENE","direccion":"Bosa, Bogotá. Cl. 93 Sur #94 - 49.  (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -847,7 +847,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 89,
-  "name": "LA UNIÓN I DE LA MARLENE",
+  "name": "LA UNIÓN I DE LA MARLENE","direccion":"Bosa, Bogotá. Cra. 95 A #90-42 Sur (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -989,7 +989,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 90,
-  "name": "LA UNIÓN II DE LA MARLENE",
+  "name": "LA UNIÓN II DE LA MARLENE","direccion":"Bosa, Bogotá. Cra. 95a #90 -51 Sur (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1128,7 +1128,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 91,
-  "name": "LUAR",
+  "name": "LUAR","direccion":"La Colina, Bogotá. Cra. 58C #147-36",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1323,7 +1323,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 92,
-  "name": "Murales",
+  "name": "Murales","direccion":"Las Brisas, Bogotá. Cra. 7 #1 - 56 (Dirección provisional)","barrio":"Las Brisas",
   "localidad": "Santa Fe",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1451,7 +1451,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 94,
-  "name": "TUSET",
+  "name": "TUSET","direccion":"La Colina, Bogotá. Cra. 55 #152b-71",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1630,7 +1630,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 95,
-  "name": "VIEW 63",
+  "name": "VIEW 63","direccion":"Chapinero alto, Bogotá. Cl. 63 # 1-59",
   "localidad": "Chapinero",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1752,7 +1752,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 96,
-  "name": "Vizcaya",
+  "name": "Vizcaya","direccion":"Lagos de Torca, Bogotá. Cra. 67 #201 - 58 (Dirección provisional)",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",

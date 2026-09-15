@@ -2,7 +2,7 @@
 window.GDF_PROYECTOS = [
  {
   "id": 1,
-  "name": "Alamo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Alamo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -152,7 +152,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 2,
-  "name": "Alicante - Hacienda El Otoño - Lagos De Torca",
+  "name": "Alicante - Hacienda El Otoño - Lagos De Torca","direccion":"Calle 201 # 49-33, Bogotá","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -250,7 +250,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 3,
-  "name": "Almendro - Hacienda El Bosque - Lagos De Torca",
+  "name": "Almendro - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -384,7 +384,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 4,
-  "name": "Andalucía - Hacienda El Otoño - Lagos De Torca",
+  "name": "Andalucía - Hacienda El Otoño - Lagos De Torca","direccion":"Calle 201 # 49-33","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -498,7 +498,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 5,
-  "name": "Balcones del Portal - Ciudadela del Portal",
+  "name": "Balcones del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -644,7 +644,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 6,
-  "name": "Boreal",
+  "name": "Boreal","direccion":"Av Calle 6 #68-45 (Ingreso Av Américas)","barrio":"Hipotecho Sur",
   "localidad": "Kennedy",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -797,7 +797,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 7,
-  "name": "BOSQUES DEL PORTAL - CIUDADELA DEL PORTAL",
+  "name": "BOSQUES DEL PORTAL - CIUDADELA DEL PORTAL","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -929,7 +929,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 8,
-  "name": "Canelo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Canelo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1081,7 +1081,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 9,
-  "name": "Cantabria",
+  "name": "Cantabria","direccion":"Calle 26, Costado Norte, 500 Metros Abajo De La Av. Boyacá","barrio":"Boyaca",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1223,7 +1223,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 10,
-  "name": "Cedro - Hacienda El Bosque - Lagos De Torca",
+  "name": "Cedro - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1395,7 +1395,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 11,
-  "name": "Cerezo - Hacienda El Otoño - Lagos de Torca",
+  "name": "Cerezo - Hacienda El Otoño - Lagos de Torca","direccion":"Calle 201 # 49-33, Bogotá","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1568,7 +1568,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 12,
-  "name": "Ciruelo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Ciruelo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1698,7 +1698,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 14,
-  "name": "Coral - La Felicidad",
+  "name": "Coral - La Felicidad","direccion":"Av. Boyacá # 21-11","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1844,7 +1844,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 15,
-  "name": "El Puerto - La Felicidad",
+  "name": "El Puerto - La Felicidad","direccion":"Av. Boyacá # 21-11","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2033,7 +2033,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 16,
-  "name": "Guayacan - Hacienda El Bosque - Lagos De Torca",
+  "name": "Guayacan - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2177,7 +2177,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 17,
-  "name": "Jardines del Portal - Ciudadela del Portal",
+  "name": "Jardines del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2329,7 +2329,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 18,
-  "name": "La Bahia - La Felicidad",
+  "name": "La Bahia - La Felicidad","direccion":"Av Boyaca No. 21 -11","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2454,7 +2454,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 20,
-  "name": "Manzano - Hacienda El Bosque - Lagos De Torca",
+  "name": "Manzano - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2583,7 +2583,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 21,
-  "name": "Navarra",
+  "name": "Navarra","direccion":"Av. 70 #51-14","barrio":"Normandia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2814,7 +2814,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 22,
-  "name": "Nogal - Hacienda El Bosque - Lagos De Torca",
+  "name": "Nogal - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2966,7 +2966,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 23,
-  "name": "Orquidea - Hacienda El Otoño - Lagos de Torca",
+  "name": "Orquidea - Hacienda El Otoño - Lagos de Torca","direccion":"Calle 201 # 49-33, Bogotá","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3113,7 +3113,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 24,
-  "name": "Parques del Portal - Ciudadela del Portal",
+  "name": "Parques del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3239,7 +3239,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 25,
-  "name": "Paseo del Parque",
+  "name": "Paseo del Parque","direccion":"Calle 13#28-52","barrio":"La Sabana",
   "localidad": "Los Mártires",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3411,7 +3411,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 26,
-  "name": "Pimiento - Hacienda el Bosque - Lagos De Torca",
+  "name": "Pimiento - Hacienda el Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3556,7 +3556,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 27,
-  "name": "Pomelo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Pomelo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3659,7 +3659,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 28,
-  "name": "Portales de Granada - Granada",
+  "name": "Portales de Granada - Granada","direccion":"Av Cl 80 #116b-91","barrio":"El Dorado Industrial",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3770,7 +3770,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 30,
-  "name": "Reserva del Dorado",
+  "name": "Reserva del Dorado","direccion":"Av. 70 #51-14","barrio":"Normandia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3901,7 +3901,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 31,
-  "name": "Roble - Hacienda El Bosque - Lagos De Torca",
+  "name": "Roble - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4045,7 +4045,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 32,
-  "name": "Senderos de Modelia",
+  "name": "Senderos de Modelia","direccion":"Av. 70 #51-14","barrio":"Normandia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4213,7 +4213,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 33,
-  "name": "Senderos del Portal - Ciudadela del Portal",
+  "name": "Senderos del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4323,7 +4323,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 34,
-  "name": "Serranía de los Nogales",
+  "name": "Serranía de los Nogales","direccion":"Calle 79B # 4 - 26","barrio":"Los Rosales",
   "localidad": "Chapinero",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4487,7 +4487,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 35,
-  "name": "Tagua - Hacienda El Bosque - Lagos De Torca",
+  "name": "Tagua - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4644,7 +4644,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 36,
-  "name": "Verona",
+  "name": "Verona","direccion":"Transversal 60 #106-62, Bogotá (Antiguo Cc Puente Largo)","barrio":"Puente Largo",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4834,7 +4834,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 37,
-  "name": "Zermatt",
+  "name": "Zermatt","direccion":"Carrera 7, 127b-31, Bogotá, Cundinamarca","barrio":"Bella Suiza",
   "localidad": "Usaquén",
   "ciudad": "Bogotá",
   "muni": "Bogotá",

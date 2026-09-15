@@ -2,7 +2,7 @@
 window.GDF_PROYECTOS = [
  {
   "id": 1,
-  "name": "Alamo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Alamo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -157,7 +157,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 2,
-  "name": "Alicante - Hacienda El Otoño - Lagos De Torca",
+  "name": "Alicante - Hacienda El Otoño - Lagos De Torca","direccion":"Calle 201 # 49-33, Bogotá","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -255,7 +255,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 3,
-  "name": "Almendro - Hacienda El Bosque - Lagos De Torca",
+  "name": "Almendro - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -389,7 +389,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 4,
-  "name": "Andalucía - Hacienda El Otoño - Lagos De Torca",
+  "name": "Andalucía - Hacienda El Otoño - Lagos De Torca","direccion":"Calle 201 # 49-33","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -503,7 +503,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 5,
-  "name": "Balcones del Portal - Ciudadela del Portal",
+  "name": "Balcones del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -649,7 +649,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 6,
-  "name": "Boreal",
+  "name": "Boreal","direccion":"Av Calle 6 #68-45 (Ingreso Av Américas)","barrio":"Hipotecho Sur",
   "localidad": "Kennedy",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -807,7 +807,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 7,
-  "name": "BOSQUES DEL PORTAL - CIUDADELA DEL PORTAL",
+  "name": "BOSQUES DEL PORTAL - CIUDADELA DEL PORTAL","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -939,7 +939,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 8,
-  "name": "Canelo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Canelo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1091,7 +1091,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 9,
-  "name": "Cantabria",
+  "name": "Cantabria","direccion":"Calle 26, Costado Norte, 500 Metros Abajo De La Av. Boyacá","barrio":"Boyaca",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1233,7 +1233,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 10,
-  "name": "Cedro - Hacienda El Bosque - Lagos De Torca",
+  "name": "Cedro - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1405,7 +1405,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 11,
-  "name": "Cerezo - Hacienda El Otoño - Lagos de Torca",
+  "name": "Cerezo - Hacienda El Otoño - Lagos de Torca","direccion":"Calle 201 # 49-33, Bogotá","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1578,7 +1578,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 12,
-  "name": "Ciruelo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Ciruelo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1708,7 +1708,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 14,
-  "name": "Coral - La Felicidad",
+  "name": "Coral - La Felicidad","direccion":"Av. Boyacá # 21-11","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1854,7 +1854,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 15,
-  "name": "El Puerto - La Felicidad",
+  "name": "El Puerto - La Felicidad","direccion":"Av. Boyacá # 21-11","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2043,7 +2043,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 16,
-  "name": "Guayacan - Hacienda El Bosque - Lagos De Torca",
+  "name": "Guayacan - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2187,7 +2187,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 17,
-  "name": "Jardines del Portal - Ciudadela del Portal",
+  "name": "Jardines del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2339,7 +2339,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 18,
-  "name": "La Bahia - La Felicidad",
+  "name": "La Bahia - La Felicidad","direccion":"Av Boyaca No. 21 -11","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2464,7 +2464,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 20,
-  "name": "Manzano - Hacienda El Bosque - Lagos De Torca",
+  "name": "Manzano - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2593,7 +2593,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 21,
-  "name": "Navarra",
+  "name": "Navarra","direccion":"Av. 70 #51-14","barrio":"Normandia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2824,7 +2824,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 22,
-  "name": "Nogal - Hacienda El Bosque - Lagos De Torca",
+  "name": "Nogal - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2976,7 +2976,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 23,
-  "name": "Orquidea - Hacienda El Otoño - Lagos de Torca",
+  "name": "Orquidea - Hacienda El Otoño - Lagos de Torca","direccion":"Calle 201 # 49-33, Bogotá","barrio":"Casablanca Suba Urbano I",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3123,7 +3123,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 24,
-  "name": "Parques del Portal - Ciudadela del Portal",
+  "name": "Parques del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3249,7 +3249,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 25,
-  "name": "Paseo del Parque",
+  "name": "Paseo del Parque","direccion":"Calle 13#28-52","barrio":"La Sabana",
   "localidad": "Los Mártires",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3421,7 +3421,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 26,
-  "name": "Pimiento - Hacienda el Bosque - Lagos De Torca",
+  "name": "Pimiento - Hacienda el Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3566,7 +3566,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 27,
-  "name": "Pomelo - Hacienda El Bosque - Lagos De Torca",
+  "name": "Pomelo - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3669,7 +3669,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 28,
-  "name": "Portales de Granada - Granada",
+  "name": "Portales de Granada - Granada","direccion":"Av Cl 80 #116b-91","barrio":"El Dorado Industrial",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3780,7 +3780,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 30,
-  "name": "Reserva del Dorado",
+  "name": "Reserva del Dorado","direccion":"Av. 70 #51-14","barrio":"Normandia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3911,7 +3911,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 31,
-  "name": "Roble - Hacienda El Bosque - Lagos De Torca",
+  "name": "Roble - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 # 52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4055,7 +4055,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 32,
-  "name": "Senderos de Modelia",
+  "name": "Senderos de Modelia","direccion":"Av. 70 #51-14","barrio":"Normandia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4223,7 +4223,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 33,
-  "name": "Senderos del Portal - Ciudadela del Portal",
+  "name": "Senderos del Portal - Ciudadela del Portal","direccion":"Calle 65 c sur #11-90","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4333,7 +4333,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 34,
-  "name": "Serranía de los Nogales",
+  "name": "Serranía de los Nogales","direccion":"Calle 79B # 4 - 26","barrio":"Los Rosales",
   "localidad": "Chapinero",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4502,7 +4502,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 35,
-  "name": "Tagua - Hacienda El Bosque - Lagos De Torca",
+  "name": "Tagua - Hacienda El Bosque - Lagos De Torca","direccion":"Calle 235 #52-50, Bogotá","barrio":"Casablanca Suba Urbano",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4659,7 +4659,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 36,
-  "name": "Verona",
+  "name": "Verona","direccion":"Transversal 60 #106-62, Bogotá (Antiguo Cc Puente Largo)","barrio":"Puente Largo",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4849,7 +4849,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 37,
-  "name": "Zermatt",
+  "name": "Zermatt","direccion":"Carrera 7, 127b-31, Bogotá, Cundinamarca","barrio":"Bella Suiza",
   "localidad": "Usaquén",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -4964,7 +4964,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 38,
-  "name": "80 Deck Living",
+  "name": "80 Deck Living","direccion":"Calle 79 # 114 37, Calle 80","barrio":"El Dorado Industrial",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -5116,7 +5116,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 39,
-  "name": "Álamo - Veramonte",
+  "name": "Álamo - Veramonte","direccion":"Calle 153 No 73-32, Colina Campestre","barrio":"El Plan",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -5362,7 +5362,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 40,
-  "name": "Atria - Tramonte",
+  "name": "Atria - Tramonte","direccion":"Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -5509,7 +5509,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 42,
-  "name": "Aurora - Tramonte",
+  "name": "Aurora - Tramonte","direccion":"Cra 57A # 185-01, Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -5703,7 +5703,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 43,
-  "name": "Austro de Cuatro Vientos",
+  "name": "Austro de Cuatro Vientos","direccion":"Carrera 68D # 19-38, Montevideo","barrio":"Terminal de Transportes",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -5912,7 +5912,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 44,
-  "name": "Baviera Park",
+  "name": "Baviera Park","direccion":"Cra 52a con calle 176, Villa Del Prado","barrio":"Villa del Prado",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -6093,7 +6093,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 45,
-  "name": "Celeste - Tramonte",
+  "name": "Celeste - Tramonte","direccion":"Cra 57A # 185-01, Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -6266,7 +6266,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 46,
-  "name": "La Cristalina - Tres Quebradas",
+  "name": "La Cristalina - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"Villa Anita",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -6413,7 +6413,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 47,
-  "name": "La Floresta Living",
+  "name": "La Floresta Living","direccion":"Calle 95 #68-99, Floresta","barrio":"Santa Rosa",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -6678,7 +6678,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 48,
-  "name": "La fortuna - Tres Quebradas",
+  "name": "La fortuna - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"La Requilina",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -6841,7 +6841,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 49,
-  "name": "La Requilina - Tres Quebradas",
+  "name": "La Requilina - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"El Tuno",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -6957,7 +6957,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 50,
-  "name": "Las Violetas - Tres Quebradas",
+  "name": "Las Violetas - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"La Requilina",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -7094,7 +7094,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 51,
-  "name": "Mistral Cuatro Vientos",
+  "name": "Mistral Cuatro Vientos","direccion":"Carrera 68D # 19-38, Montevideo","barrio":"Franco",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -7246,7 +7246,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 52,
-  "name": "Novum Ricaurte",
+  "name": "Novum Ricaurte","direccion":"Avenida carrera 30 (NQS) #14 - 75 sentido Norte - Sur, Bogotá y sus alrededores","barrio":"Ricaurte",
   "localidad": "Puente Aranda",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -7438,7 +7438,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 53,
-  "name": "Rosa Amatista - Ciudad Rosaleda",
+  "name": "Rosa Amatista - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XIX",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -7558,7 +7558,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 54,
-  "name": "Rosa Celeste - Ciudad Rosaleda",
+  "name": "Rosa Celeste - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XXV",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -7699,7 +7699,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 55,
-  "name": "Rosa Turquesa - Ciudad Rosaleda",
+  "name": "Rosa Turquesa - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XXV",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -7820,7 +7820,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 56,
-  "name": "Rosa Violeta - Ciudad Rosaleda",
+  "name": "Rosa Violeta - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XIX",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -8072,7 +8072,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 57,
-  "name": "Senderos de Fontibón",
+  "name": "Senderos de Fontibón","direccion":"Transversal 128 # 17-87, Calle 13","barrio":"Puente Grande",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -8234,7 +8234,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 58,
-  "name": "Tramonte Living",
+  "name": "Tramonte Living","direccion":"Cra 57A # 185-01, Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -8369,7 +8369,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 59,
-  "name": "Urbana 30",
+  "name": "Urbana 30","direccion":"Avenida carrera 30 (NQS) #14 - 75 sentido Norte - Sur, Bogotá y sus alrededores","barrio":"Estacion Central",
   "localidad": "Puente Aranda",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -8576,7 +8576,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 60,
-  "name": "Abeto",
+  "name": "Abeto","direccion":"Centro Comercial Unicentro de Occidente, local 101, carrera 111C # 86-05.","barrio":"El Cortijo",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -8717,7 +8717,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 61,
-  "name": "Acanto",
+  "name": "Acanto","direccion":"Carrera 95A # 78 Sur, Bosa Recreo","barrio":"Campo Verde",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -8894,7 +8894,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 62,
-  "name": "Araucaria",
+  "name": "Araucaria","direccion":"Centro Comercial Unicentro de Occidente, local 101, carrera 111C # 86-05","barrio":"Bolivia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -9057,7 +9057,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 63,
-  "name": "Calia",
+  "name": "Calia","direccion":"Calle 169A # 62-07, Bogotá.","barrio":"Portales del Norte",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -9275,7 +9275,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 64,
-  "name": "Centriko",
+  "name": "Centriko","direccion":"Carrera 81B # 17-55, Fontibón","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -9448,7 +9448,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 65,
-  "name": "Connect Living",
+  "name": "Connect Living","direccion":"Avenida calle 63 # 86-34",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -9580,7 +9580,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 66,
-  "name": "Eskala",
+  "name": "Eskala","direccion":"Avenida carrera 50 # 5F-19, Bogotá",
   "localidad": "Puente Aranda",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -9747,7 +9747,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 67,
-  "name": "Florecer",
+  "name": "Florecer","direccion":"Carrera 95A # 78 Sur, Bosa Recreo","barrio":"Campo Verde",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -9914,7 +9914,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 68,
-  "name": "Karakalí",
+  "name": "Karakalí","direccion":"Carrera 15 # 63A Bis-40","barrio":"La Esperanza",
   "localidad": "Barrios Unidos",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -10127,7 +10127,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 69,
-  "name": "La Arboleda",
+  "name": "La Arboleda","direccion":"Carrera 15 este 47-02 sur, San Cristóbal sur, junto al patio Gaviotas del SITP Calle 22 sur # 6-41, Bogotá","barrio":"San Cristobal Sur",
   "localidad": "San Cristóbal",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -10264,7 +10264,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 70,
-  "name": "Las Violetas",
+  "name": "Las Violetas","direccion":"Carrera 1 # 65D 58 sur, local 40","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -10375,7 +10375,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 71,
-  "name": "Los Nogales",
+  "name": "Los Nogales","direccion":"Centro Comercial Unicentro de Occidente, local 101, carrera 111C # 86-05.","barrio":"Bolivia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -10548,7 +10548,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 72,
-  "name": "Lúmina 77",
+  "name": "Lúmina 77","direccion":"Sala de negocios, centro Comercial Los Héroes, local 47","barrio":"Espartillal",
   "localidad": "Chapinero",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -10700,7 +10700,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 73,
-  "name": "Nuva Park",
+  "name": "Nuva Park","direccion":"Calle 131 # 52A-90","barrio":"Prado Veraniego Norte",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -10931,7 +10931,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 74,
-  "name": "Reserva del Nogal",
+  "name": "Reserva del Nogal","direccion":"Calle 59B sur # 86a-15, Bosa Nova, Bogotá","barrio":"Bosa Nova",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11027,7 +11027,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 75,
-  "name": "Rosa Amatista",
+  "name": "Rosa Amatista","direccion":"Pendiente por parte UES","barrio":"San Bernardino XXV",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11168,7 +11168,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 76,
-  "name": "Rosa Violeta",
+  "name": "Rosa Violeta","direccion":"Calle 57Q sur # 75C-24, al lado del Terminal del Sur","barrio":"Corredor Ferreo del Sur",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11305,7 +11305,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 77,
-  "name": "Triventto",
+  "name": "Triventto","direccion":"Diagonal 4A # 15A-16","barrio":"El Progreso",
   "localidad": "Los Mártires",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11437,7 +11437,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 78,
-  "name": "Udara Samai 72",
+  "name": "Udara Samai 72","direccion":"calle 72A # 86-26","barrio":"Florencia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11543,7 +11543,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 79,
-  "name": "Urbania Bio",
+  "name": "Urbania Bio","direccion":"Calle 22A # 130-89","barrio":"Brisas Aldea Fontibon",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11685,7 +11685,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 80,
-  "name": "Urbania Eco",
+  "name": "Urbania Eco","direccion":"Calle 22A # 130-89","barrio":"Brisas Aldea Fontibon",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11826,7 +11826,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 81,
-  "name": "Urbania Terra",
+  "name": "Urbania Terra","direccion":"Calle 22A #130-89","barrio":"Brisas Aldea Fontibon",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -11967,7 +11967,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 82,
-  "name": "Vibo Once",
+  "name": "Vibo Once","direccion":"Avenida Caracas # 3-90","barrio":"El Progreso",
   "localidad": "Los Mártires",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -12124,7 +12124,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 83,
-  "name": "Borneo",
+  "name": "Borneo","direccion":"La Colina, Bogotá. Cl. 152 # 58C - 39*",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -12281,7 +12281,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 84,
-  "name": "GRAN RESERVA DE SYRAH",
+  "name": "GRAN RESERVA DE SYRAH","direccion":"El Salitre, Bogotá. Cl. 25B #70B - 50","barrio":"El Salitre",
   "localidad": "Teusaquillo",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -12418,7 +12418,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 85,
-  "name": "GREGAL",
+  "name": "GREGAL","direccion":"Montevideo, Bogotá. Cl. 20 #68D - 30","barrio":"Montevideo",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -12613,7 +12613,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 86,
-  "name": "LA GRATITUD I DE LA MARLENE",
+  "name": "LA GRATITUD I DE LA MARLENE","direccion":"Bosa, Bogotá. Cl. 93 Sur #94 A-26  (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -12721,7 +12721,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 87,
-  "name": "LA GRATITUD II DE LA MARLENE",
+  "name": "LA GRATITUD II DE LA MARLENE","direccion":"Bosa, Bogotá. Cra. 95 A #92-51 Sur  (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -12872,7 +12872,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 88,
-  "name": "LA GRATITUD IV DE LA MARLENE",
+  "name": "LA GRATITUD IV DE LA MARLENE","direccion":"Bosa, Bogotá. Cl. 93 Sur #94 - 49.  (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -12969,7 +12969,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 89,
-  "name": "LA UNIÓN I DE LA MARLENE",
+  "name": "LA UNIÓN I DE LA MARLENE","direccion":"Bosa, Bogotá. Cra. 95 A #90-42 Sur (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -13111,7 +13111,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 90,
-  "name": "LA UNIÓN II DE LA MARLENE",
+  "name": "LA UNIÓN II DE LA MARLENE","direccion":"Bosa, Bogotá. Cra. 95a #90 -51 Sur (Dirección provisional), Bosa",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -13250,7 +13250,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 91,
-  "name": "LUAR",
+  "name": "LUAR","direccion":"La Colina, Bogotá. Cra. 58C #147-36",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -13445,7 +13445,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 92,
-  "name": "Murales",
+  "name": "Murales","direccion":"Las Brisas, Bogotá. Cra. 7 #1 - 56 (Dirección provisional)","barrio":"Las Brisas",
   "localidad": "Santa Fe",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -13573,7 +13573,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 94,
-  "name": "TUSET",
+  "name": "TUSET","direccion":"La Colina, Bogotá. Cra. 55 #152b-71",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -13752,7 +13752,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 95,
-  "name": "VIEW 63",
+  "name": "VIEW 63","direccion":"Chapinero alto, Bogotá. Cl. 63 # 1-59",
   "localidad": "Chapinero",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -13874,7 +13874,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 96,
-  "name": "Vizcaya",
+  "name": "Vizcaya","direccion":"Lagos de Torca, Bogotá. Cra. 67 #201 - 58 (Dirección provisional)",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",

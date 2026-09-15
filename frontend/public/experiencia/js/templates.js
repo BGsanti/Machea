@@ -1083,7 +1083,12 @@
       '<div class="gdf-project-name">' + esc(vm.nombre) + '</div>' +
       precioHtml +
       subsidioHtml +
+      // DOS LINEAS, no una. Arriba localidad y barrio, que es lo que el
+      // usuario acaba de elegir en el mapa y lo que le deja reconocer cual de
+      // sus zonas es esta. Debajo la direccion exacta, en tono mas bajo:
+      // interesa cuando ya decidio mirar el proyecto, no antes.
       (vm.ubicacion ? '<div class="gdf-project-loc">📍 ' + esc(vm.ubicacion) + '</div>' : '') +
+      (vm.direccion ? '<div class="gdf-project-dir">' + esc(vm.direccion) + '</div>' : '') +
       '<div class="gdf-project-tags">' + especificaciones + '</div>' +
       accionesContacto(vm, state) +
       avisoHab +

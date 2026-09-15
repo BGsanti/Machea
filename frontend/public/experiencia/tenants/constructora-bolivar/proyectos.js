@@ -2,7 +2,7 @@
 window.GDF_PROYECTOS = [
  {
   "id": 38,
-  "name": "80 Deck Living",
+  "name": "80 Deck Living","direccion":"Calle 79 # 114 37, Calle 80","barrio":"El Dorado Industrial",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -154,7 +154,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 39,
-  "name": "Álamo - Veramonte",
+  "name": "Álamo - Veramonte","direccion":"Calle 153 No 73-32, Colina Campestre","barrio":"El Plan",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -400,7 +400,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 40,
-  "name": "Atria - Tramonte",
+  "name": "Atria - Tramonte","direccion":"Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -547,7 +547,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 42,
-  "name": "Aurora - Tramonte",
+  "name": "Aurora - Tramonte","direccion":"Cra 57A # 185-01, Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -741,7 +741,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 43,
-  "name": "Austro de Cuatro Vientos",
+  "name": "Austro de Cuatro Vientos","direccion":"Carrera 68D # 19-38, Montevideo","barrio":"Terminal de Transportes",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -950,7 +950,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 44,
-  "name": "Baviera Park",
+  "name": "Baviera Park","direccion":"Cra 52a con calle 176, Villa Del Prado","barrio":"Villa del Prado",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1131,7 +1131,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 45,
-  "name": "Celeste - Tramonte",
+  "name": "Celeste - Tramonte","direccion":"Cra 57A # 185-01, Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1304,7 +1304,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 46,
-  "name": "La Cristalina - Tres Quebradas",
+  "name": "La Cristalina - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"Villa Anita",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1451,7 +1451,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 47,
-  "name": "La Floresta Living",
+  "name": "La Floresta Living","direccion":"Calle 95 #68-99, Floresta","barrio":"Santa Rosa",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1716,7 +1716,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 48,
-  "name": "La fortuna - Tres Quebradas",
+  "name": "La fortuna - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"La Requilina",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1879,7 +1879,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 49,
-  "name": "La Requilina - Tres Quebradas",
+  "name": "La Requilina - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"El Tuno",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1995,7 +1995,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 50,
-  "name": "Las Violetas - Tres Quebradas",
+  "name": "Las Violetas - Tres Quebradas","direccion":"Cra 1 # 65D 58 Sur - Local 40, Tres quebradas","barrio":"La Requilina",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2132,7 +2132,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 51,
-  "name": "Mistral Cuatro Vientos",
+  "name": "Mistral Cuatro Vientos","direccion":"Carrera 68D # 19-38, Montevideo","barrio":"Franco",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2284,7 +2284,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 52,
-  "name": "Novum Ricaurte",
+  "name": "Novum Ricaurte","direccion":"Avenida carrera 30 (NQS) #14 - 75 sentido Norte - Sur, Bogotá y sus alrededores","barrio":"Ricaurte",
   "localidad": "Puente Aranda",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2476,7 +2476,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 53,
-  "name": "Rosa Amatista - Ciudad Rosaleda",
+  "name": "Rosa Amatista - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XIX",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2596,7 +2596,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 54,
-  "name": "Rosa Celeste - Ciudad Rosaleda",
+  "name": "Rosa Celeste - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XXV",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2737,7 +2737,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 55,
-  "name": "Rosa Turquesa - Ciudad Rosaleda",
+  "name": "Rosa Turquesa - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XXV",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2858,7 +2858,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 56,
-  "name": "Rosa Violeta - Ciudad Rosaleda",
+  "name": "Rosa Violeta - Ciudad Rosaleda","direccion":"Calle 57 Q sur # 75C-24 (al lado del terminal del sur), Bosa","barrio":"San Bernardino XIX",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3110,7 +3110,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 57,
-  "name": "Senderos de Fontibón",
+  "name": "Senderos de Fontibón","direccion":"Transversal 128 # 17-87, Calle 13","barrio":"Puente Grande",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3272,7 +3272,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 58,
-  "name": "Tramonte Living",
+  "name": "Tramonte Living","direccion":"Cra 57A # 185-01, Tramonte","barrio":"Mirandela",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3407,7 +3407,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 59,
-  "name": "Urbana 30",
+  "name": "Urbana 30","direccion":"Avenida carrera 30 (NQS) #14 - 75 sentido Norte - Sur, Bogotá y sus alrededores","barrio":"Estacion Central",
   "localidad": "Puente Aranda",
   "ciudad": "Bogotá",
   "muni": "Bogotá",

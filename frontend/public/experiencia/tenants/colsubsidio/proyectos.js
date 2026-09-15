@@ -2,7 +2,7 @@
 window.GDF_PROYECTOS = [
  {
   "id": 60,
-  "name": "Abeto",
+  "name": "Abeto","direccion":"Centro Comercial Unicentro de Occidente, local 101, carrera 111C # 86-05.","barrio":"El Cortijo",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -143,7 +143,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 61,
-  "name": "Acanto",
+  "name": "Acanto","direccion":"Carrera 95A # 78 Sur, Bosa Recreo","barrio":"Campo Verde",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -320,7 +320,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 62,
-  "name": "Araucaria",
+  "name": "Araucaria","direccion":"Centro Comercial Unicentro de Occidente, local 101, carrera 111C # 86-05","barrio":"Bolivia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -483,7 +483,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 63,
-  "name": "Calia",
+  "name": "Calia","direccion":"Calle 169A # 62-07, Bogotá.","barrio":"Portales del Norte",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -701,7 +701,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 64,
-  "name": "Centriko",
+  "name": "Centriko","direccion":"Carrera 81B # 17-55, Fontibón","barrio":"Ciudad Hayuelos",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -874,7 +874,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 65,
-  "name": "Connect Living",
+  "name": "Connect Living","direccion":"Avenida calle 63 # 86-34",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1006,7 +1006,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 66,
-  "name": "Eskala",
+  "name": "Eskala","direccion":"Avenida carrera 50 # 5F-19, Bogotá",
   "localidad": "Puente Aranda",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1173,7 +1173,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 67,
-  "name": "Florecer",
+  "name": "Florecer","direccion":"Carrera 95A # 78 Sur, Bosa Recreo","barrio":"Campo Verde",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1340,7 +1340,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 68,
-  "name": "Karakalí",
+  "name": "Karakalí","direccion":"Carrera 15 # 63A Bis-40","barrio":"La Esperanza",
   "localidad": "Barrios Unidos",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1553,7 +1553,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 69,
-  "name": "La Arboleda",
+  "name": "La Arboleda","direccion":"Carrera 15 este 47-02 sur, San Cristóbal sur, junto al patio Gaviotas del SITP Calle 22 sur # 6-41, Bogotá","barrio":"San Cristobal Sur",
   "localidad": "San Cristóbal",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1690,7 +1690,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 70,
-  "name": "Las Violetas",
+  "name": "Las Violetas","direccion":"Carrera 1 # 65D 58 sur, local 40","barrio":"Porvenir",
   "localidad": "Usme",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1801,7 +1801,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 71,
-  "name": "Los Nogales",
+  "name": "Los Nogales","direccion":"Centro Comercial Unicentro de Occidente, local 101, carrera 111C # 86-05.","barrio":"Bolivia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -1974,7 +1974,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 72,
-  "name": "Lúmina 77",
+  "name": "Lúmina 77","direccion":"Sala de negocios, centro Comercial Los Héroes, local 47","barrio":"Espartillal",
   "localidad": "Chapinero",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2126,7 +2126,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 73,
-  "name": "Nuva Park",
+  "name": "Nuva Park","direccion":"Calle 131 # 52A-90","barrio":"Prado Veraniego Norte",
   "localidad": "Suba",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2357,7 +2357,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 74,
-  "name": "Reserva del Nogal",
+  "name": "Reserva del Nogal","direccion":"Calle 59B sur # 86a-15, Bosa Nova, Bogotá","barrio":"Bosa Nova",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2453,7 +2453,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 75,
-  "name": "Rosa Amatista",
+  "name": "Rosa Amatista","direccion":"Pendiente por parte UES","barrio":"San Bernardino XXV",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2594,7 +2594,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 76,
-  "name": "Rosa Violeta",
+  "name": "Rosa Violeta","direccion":"Calle 57Q sur # 75C-24, al lado del Terminal del Sur","barrio":"Corredor Ferreo del Sur",
   "localidad": "Bosa",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2731,7 +2731,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 77,
-  "name": "Triventto",
+  "name": "Triventto","direccion":"Diagonal 4A # 15A-16","barrio":"El Progreso",
   "localidad": "Los Mártires",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2863,7 +2863,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 78,
-  "name": "Udara Samai 72",
+  "name": "Udara Samai 72","direccion":"calle 72A # 86-26","barrio":"Florencia",
   "localidad": "Engativá",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -2969,7 +2969,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 79,
-  "name": "Urbania Bio",
+  "name": "Urbania Bio","direccion":"Calle 22A # 130-89","barrio":"Brisas Aldea Fontibon",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3111,7 +3111,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 80,
-  "name": "Urbania Eco",
+  "name": "Urbania Eco","direccion":"Calle 22A # 130-89","barrio":"Brisas Aldea Fontibon",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3252,7 +3252,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 81,
-  "name": "Urbania Terra",
+  "name": "Urbania Terra","direccion":"Calle 22A #130-89","barrio":"Brisas Aldea Fontibon",
   "localidad": "Fontibón",
   "ciudad": "Bogotá",
   "muni": "Bogotá",
@@ -3393,7 +3393,7 @@ window.GDF_PROYECTOS = [
  },
  {
   "id": 82,
-  "name": "Vibo Once",
+  "name": "Vibo Once","direccion":"Avenida Caracas # 3-90","barrio":"El Progreso",
   "localidad": "Los Mártires",
   "ciudad": "Bogotá",
   "muni": "Bogotá",

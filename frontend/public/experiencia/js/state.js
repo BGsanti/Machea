@@ -156,7 +156,19 @@
     if (a.tipo) perfilChips.push({ text: a.tipo, hi: true });
     if (a.ingresos) perfilChips.push({ text: a.ingresos, hi: false });
     if (a.habitaciones) perfilChips.push({ text: a.habitaciones + ' hab', hi: false });
-    if (a.zona) perfilChips.push({ text: a.zona, hi: false });
+    // UN CHIP POR ZONA, no solo la primera. `a.zona` es unicamente la inicial;
+    // en el mapa se pueden marcar varios sectores y el resumen mostraba una
+    // sola, dando a entender que se recomendo sobre ella nada mas. No es asi:
+    // los dos motores puntuan contra la lista entera (matching.js y el
+    // `Localidad` multiple del contrato), y el resumen tiene que decirlo.
+    // Por encima de tres se resume, para no romper la linea de chips.
+    var zonasChip = (a.zonas && a.zonas.length) ? a.zonas : (a.zona ? [a.zona] : []);
+    zonasChip.slice(0, 3).forEach(function (z) {
+      perfilChips.push({ text: z, hi: false });
+    });
+    if (zonasChip.length > 3) {
+      perfilChips.push({ text: '+' + (zonasChip.length - 3) + ' zonas', hi: false });
+    }
     if (a.afiliado === 'Sí') perfilChips.push({ text: 'Afiliado ✓', hi: true });
 
     return {

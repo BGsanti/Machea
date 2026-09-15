@@ -105,7 +105,12 @@
       // de elegir y lo único que le deja reconocer si el proyecto le queda
       // donde pidió. La dirección sola ("Cra 57A # 185-01, Tramonte") no se lo
       // dice: Tramonte es un sector, no una de las 20 localidades.
-      ubicacion: [item.localidad, item.direccion].filter(Boolean).join(' · '),
+      // El BARRIO va entre las dos: es la pieza que faltaba. Con varias zonas
+      // elegidas en el mapa, la localidad sola no dice cuál de ellas es —y el
+      // usuario que marcó cinco sectores no sabe si este cae en el suyo—.
+      ubicacion: [item.localidad, item.barrio].filter(Boolean).join(' · '),
+      direccion: item.direccion || '',
+      barrio: item.barrio || '',
       // Aparte y sin mezclar, porque la razón de la tarjeta la compara contra
       // la localidad elegida. Antes se sacaba partiendo `ubicacion` por la
       // primera coma, y con una dirección delante leía "Cra 57A # 185-01" como
@@ -180,8 +185,15 @@
       // La LOCALIDAD, no la zona cardinal del CMS ("Occidente", "Norte"): es
       // lo que el usuario acaba de elegir en el quiz, así que es lo único que
       // le permite reconocer si el proyecto le queda donde pidió.
-      ubicacion: p.localidad ? p.localidad + ', Bogotá' : p.muni,
+      // Localidad · barrio, y la direccion aparte (la pinta la tarjeta en su
+      // propia linea). El catalogo del tenant no traia ninguno de los dos: se
+      // cruzan desde proyectos_model.json por nombre, que es donde el backend
+      // si los tiene. Sin el barrio, quien marca cinco sectores en el mapa ve
+      // "Suba" en las seis tarjetas y no sabe cual cae donde pidio.
+      ubicacion: [p.localidad, p.barrio].filter(Boolean).join(' · ') || p.muni || '',
       localidad: p.localidad || '',
+      direccion: p.direccion || '',
+      barrio: p.barrio || '',
       // `price` del catalogo YA viene en pesos (262635750), no en millones.
       // Multiplicarlo daba 2,6e14 y la tarjeta escribia "Desde $262635750,0M".
       precioCop: p.price || 0,
@@ -278,11 +290,38 @@
     var malas = [];
 
     // 1. Localidad. Sale de `vm.localidad`, que el modelo manda aparte.
+    //
+    // SE COMPARA CONTRA TODAS LAS ZONAS PEDIDAS, no solo contra la primera.
+    // En el mapa se pueden marcar varios sectores y caen en localidades
+    // distintas; `a.zona` es unicamente la primera. Comparando solo contra
+    // ella, un proyecto que caia justo en la segunda zona elegida se anunciaba
+    // como "al otro lado de <la primera>", que es literalmente falso: el
+    // usuario SI habia pedido esa localidad. Los dos motores ya puntuaban
+    // bien con la lista entera (ver matching.js y `localidadIds`); lo que
+    // mentia era la frase.
+    var zonas = (a.zonas && a.zonas.length) ? a.zonas : (a.zona ? [a.zona] : []);
     var localidad = String(vm.localidad || vm.ubicacion || '').split(/[,·]/)[0].trim();
-    if (localidad && a.zona) {
-      if (localidad === a.zona) buenas.push('queda en ' + localidad + ', exactamente la localidad que pediste');
-      else if ((VECINAS[a.zona] || []).indexOf(localidad) > -1) buenas.push('queda en ' + localidad + ', vecina de ' + a.zona + ', así que sigues en la misma zona de la ciudad');
-      else malas.push('queda en ' + localidad + ', al otro lado de ' + a.zona);
+    if (localidad && zonas.length) {
+      var barrio = vm.barrio ? ', barrio ' + vm.barrio + ',' : '';
+      if (zonas.indexOf(localidad) > -1) {
+        buenas.push(zonas.length > 1
+          ? 'queda en ' + localidad + barrio + ' una de las zonas que marcaste'
+          : 'queda en ' + localidad + barrio + ' exactamente la localidad que pediste');
+      } else {
+        // La vecindad se mira contra CUALQUIERA de las pedidas, y se nombra la
+        // que la produce: decir "vecina de" sin decir de cual no ubica a nadie.
+        var vecinaDe = null;
+        for (var z = 0; z < zonas.length; z++) {
+          if ((VECINAS[zonas[z]] || []).indexOf(localidad) > -1) { vecinaDe = zonas[z]; break; }
+        }
+        if (vecinaDe) {
+          buenas.push('queda en ' + localidad + barrio + ' vecina de ' + vecinaDe +
+                      ', así que sigues en la misma zona de la ciudad');
+        } else {
+          malas.push('queda en ' + localidad + ', al otro lado de ' +
+                     (zonas.length > 1 ? 'lo que marcaste' : zonas[0]));
+        }
+      }
     }
 
     // 2. Habitaciones.
