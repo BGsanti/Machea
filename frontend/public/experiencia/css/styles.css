@@ -2349,17 +2349,19 @@ a.pt-flink:hover {
 /* Reutiliza '.gdf-entorno-combo' y '.gdf-multi-opt-list' de arriba; lo de
    aquí es solo lo propio del mapa y de la sugerencia a dos líneas.
 
-   LAS ETIQUETAS VAN DENTRO DEL CAMPO, no debajo. `.gdf-zona-input-wrap` es la
-   caja que se ve como el buscador —fondo, borde, radio— y adentro conviven
-   los chips y el <input> de texto, que pierde su propio borde y fondo para
-   que los dos lean como una sola pieza. Es el patrón de "para:" de un cliente
-   de correo: se toca una zona en el mapa, aparece su etiqueta empujando el
-   cursor, y se puede seguir escribiendo para agregar la próxima.
+   `.gdf-zona-input-wrap` es la caja que se ve como el buscador —fondo, borde,
+   radio— y adentro va el <input>, que pierde su propio borde y fondo para que
+   los dos lean como una sola pieza.
 
-   `#zonaChips` usa `display: contents` (más abajo) para que sus `.gdf-entorno-
-   chip` dejen de ser un bloque aparte y pasen a ser hijos flex DIRECTOS de
-   `.gdf-zona-input-wrap`: así envuelven junto con el input en la misma fila,
-   en vez de vivir en una fila propia encima o debajo de él.
+   LOS CHIPS YA NO VIVEN AHÍ DENTRO. Hasta que la pregunta tuvo un solo
+   buscador, las etiquetas iban dentro del propio campo (el patrón "para:" de
+   un cliente de correo) y `#zonaChips` usaba `display: contents` para que sus
+   `.gdf-entorno-chip` fueran hijos flex directos del envoltorio. Con dos
+   buscadores —barrio y lugar— eso obligaba a elegir en cuál de los dos
+   aparecen, y cambiar de pestaña se leía como perder lo ya elegido. Ahora
+   son una fila propia ARRIBA de los dos paneles (`.gdf-zona-chips`), que es
+   lo que dice la verdad: son la respuesta completa, venga del buscador que
+   venga.
 
    OJO con el contexto de apilamiento: la animación de entrada va sobre
    '.gdf-quiz-freeform' y NUNCA sobre sus hijos. Un `animation-fill:both` en
@@ -2651,10 +2653,58 @@ a.pt-flink:hover {
 .gdf-zona-input-wrap:focus-within {
   border-color: var(--marca);
 }
-/* Los chips pasan a ser hijos DIRECTOS del envoltorio flex — ver la nota de
-   arriba en la cabecera de esta sección. */
-.gdf-zona-input-wrap #zonaChips {
-  display: contents;
+/* LAS DOS PESTAÑAS de la pregunta de ubicación: buscar por barrio (para quien
+   conoce Bogotá) o por un lugar cercano (para quien no). Se leen como un solo
+   control segmentado, no como dos botones sueltos: por eso comparten el borde
+   exterior y solo el activo se llena de color. */
+.gdf-zona-modos {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 12px;
+  background: var(--papel-2);
+  border: 1.5px solid var(--borde);
+  border-radius: 12px;
+}
+.gdf-zona-modo-btn {
+  flex: 1 1 0;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--tinta-media);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.gdf-zona-modo-btn:hover {
+  color: var(--tinta);
+}
+.gdf-zona-modo-btn.activo {
+  background: var(--marca);
+  color: var(--sobre-marca);
+}
+/* Cada panel de búsqueda. El oculto lleva el atributo nativo `hidden`; esta
+   regla existe porque `.gdf-entorno-combo` trae su propio `display`, que
+   ganaría al `display:none` que el navegador le da a `[hidden]`. */
+.gdf-zona-modo-panel[hidden] {
+  display: none;
+}
+/* Los chips, ahora fuera de los dos buscadores y compartidos por ambos (ver
+   `zonaPanel` en templates.js). `.gdf-entorno-chips` ya los pinta como fila
+   flex por sí sola — igual que en 'entorno_deseado', donde también viven
+   sueltos—, así que aquí solo hace falta separarlos del panel de abajo. */
+.gdf-zona-chips:not(:empty) {
+  margin-bottom: 12px;
+}
+/* La línea que explica qué va a pasar al elegir un lugar. Va debajo del
+   buscador y no arriba: se lee al terminar de mirar el campo, no antes. */
+.gdf-zona-pista {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  color: var(--tinta-tenue);
 }
 /* El <input> de adentro pierde el aspecto de `.gdf-input` —fondo, borde,
    radio, el margen inferior de 14px que dejaba un hueco vacío bajo el

@@ -24,7 +24,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="css/styles.css?v=105" />
+    <link rel="stylesheet" href="css/styles.css?v=106" />
   </head>
   <body>
     <div id="root"></div>
@@ -87,8 +87,14 @@
          en cualquier punto del mapa resuelva en cual cayo. NO es una capa que
          se dibuje —js/mapa.js lo usa como datos y solo pinta el elegido—, asi
          que puede cargarse aqui sin costarle nada al DOM. -->
-    <script src="js/mapa_barrios.js?v=105"></script>
-    <script src="js/data.js?v=105"></script>
+    <script src="js/mapa_barrios.js?v=106"></script>
+    <!-- Y el catalogo de sitios con nombre de Bogota (centros comerciales,
+         parques, universidades...), para el buscador "se un lugar cerca" de la
+         misma pregunta. Cada uno viaja ya resuelto a su localidad y sector, asi
+         que el buscador responde sin red; lo que no este aqui lo completa el
+         geocodificador en vivo (ver PHOTON_URL en js/main.js). -->
+    <script src="js/mapa_lugares.js?v=106"></script>
+    <script src="js/data.js?v=106"></script>
     <!-- La libreria del mapa y el modulo que la envuelve. `defer` no: el resto
          de este front se carga sincrono y js/mapa.js solo toca a Leaflet en
          tiempo de ejecucion, cuando main.js lo monta. Si la red falla, window.L
@@ -99,7 +105,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="js/mapa.js?v=105"></script>
+    <script src="js/mapa.js?v=106"></script>
     <script src="js/matching.js?v=105"></script>
     <!-- el plano que arma el quiz: cortes generados por tools/analizar_planos.py,
          normalización de espacios, sorteo del apartamento y cuánto se ve ya -->
@@ -118,8 +124,8 @@
     <!-- el contrato del modelo de recomendacion (Machea) -->
     <script src="js/iconos.js?v=105"></script>
     <script src="js/machea.js?v=105"></script>
-    <script src="js/templates.js?v=105"></script>
+    <script src="js/templates.js?v=106"></script>
     <script src="js/state.js?v=105"></script>
-    <script src="js/main.js?v=105"></script>
+    <script src="js/main.js?v=106"></script>
   </body>
 </html>

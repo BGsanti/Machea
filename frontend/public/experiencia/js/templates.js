@@ -536,26 +536,49 @@
   // entre mapa y buscador, ni forma de corregirse. La elección en curso vive
   // fuera de `state` (ver `zonaSeleccion` en main.js) y se compromete al
   // pulsar Continuar, exactamente como 'entorno_deseado'.
+  // DOS CAMINOS PARA LA MISMA RESPUESTA, y las pestañas son lo primero que se
+  // ve porque la elección es sobre QUIÉN es el que busca, no sobre qué busca:
+  // quien conoce los barrios de Bogotá escribe el suyo; quien no, reconoce el
+  // centro comercial o el parque de al lado. Los dos terminan en el mismo
+  // `{localidad, barrio, bi}` y se pueden mezclar en la misma respuesta.
+  //
+  // LOS CHIPS VAN FUERA DE LOS DOS PANELES. Antes vivían dentro del propio
+  // buscador (fundidos en su caja, como el "para:" de un correo). Con dos
+  // buscadores eso obligaría a elegir en cuál de los dos aparecen, y cambiar
+  // de pestaña se leería como que se perdió lo ya elegido. Arriba y
+  // compartidos dicen lo que son: la respuesta completa, venga de donde venga.
   function zonaPanel(q, state) {
     // Habilitado si ya había zonas elegidas —se vuelve aquí con "Atrás"—; con
     // la lista vacía, el botón lo enciende sincronizarZona() al primer clic.
     var elegida = (state.zonaSectores || []).length;
     return (
       '<div class="gdf-quiz-freeform gdf-zona">' +
-      '<div class="gdf-entorno-combo">' +
-      // LAS ETIQUETAS VAN DENTRO DEL BUSCADOR, como un campo de "para:" de
-      // correo. El borde y el fondo que antes llevaba <input> se mudan a este
-      // envoltorio; el <input> de adentro queda transparente y sin borde
-      // propio, así que visualmente los dos son una sola caja. Un chip por
-      // sector elegido, igual que en 'entorno_deseado' y con sus mismos
-      // estilos — lo llena renderZonaChips() en main.js.
+      '<div class="gdf-zona-modos" role="tablist">' +
+      '<button type="button" class="gdf-zona-modo-btn activo" role="tab" aria-selected="true"' +
+      ' data-action="zonaModo" data-modo="barrio">Conozco el barrio</button>' +
+      '<button type="button" class="gdf-zona-modo-btn" role="tab" aria-selected="false"' +
+      ' data-action="zonaModo" data-modo="lugar">Sé un lugar cerca</button>' +
+      '</div>' +
+
+      '<div class="gdf-entorno-chips gdf-zona-chips" id="zonaChips"></div>' +
+
+      '<div class="gdf-entorno-combo gdf-zona-modo-panel" data-modo-panel="barrio">' +
       '<div class="gdf-zona-input-wrap" id="zonaInputWrap">' +
-      '<div class="gdf-entorno-chips" id="zonaChips"></div>' +
       '<input class="gdf-input gdf-zona-input" id="zonaSearch" type="text" autocomplete="off" ' +
       'placeholder="' + (elegida ? 'Agregar otra zona…' : 'Busca tu barrio (Cedritos, El Polo…)') + '" />' +
       '</div>' +
       '<div class="gdf-multi-opt-list" id="zonaOpciones"></div>' +
       '</div>' +
+
+      '<div class="gdf-entorno-combo gdf-zona-modo-panel" data-modo-panel="lugar" hidden>' +
+      '<div class="gdf-zona-input-wrap" id="zonaLugarInputWrap">' +
+      '<input class="gdf-input gdf-zona-input" id="zonaLugarSearch" type="text" autocomplete="off" ' +
+      'placeholder="Un centro comercial, parque, universidad…" />' +
+      '</div>' +
+      '<div class="gdf-multi-opt-list" id="zonaLugarOpciones"></div>' +
+      '<p class="gdf-zona-pista">Ubicamos el barrio al que pertenece el lugar que elijas.</p>' +
+      '</div>' +
+
       '<p class="gdf-zona-eco" id="zonaEco">' + zonaEco(state.zonaSectores) + '</p>' +
       '<button class="gdf-btn-primary' + (elegida ? ' enabled' : '') + '" ' +
       'data-action="answerQuizZona" data-qid="' + q.id + '">Continuar →</button>' +

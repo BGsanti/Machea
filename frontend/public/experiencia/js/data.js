@@ -76,7 +76,11 @@
       escena: 'mapa',
       type: 'zona',
       title: '¿Dónde te gustaría vivir?',
-      sub: 'Busca tu barrio o tócalo en el mapa.',
+      // Las tres formas de contestar, en el orden en que aparecen en pantalla.
+      // El lugar cercano se nombra explícitamente porque es lo que no se
+      // espera: quien no se sabe los barrios da por hecho que no puede
+      // contestar, y se va con lo primero que encuentre.
+      sub: 'Busca tu barrio, un lugar cercano, o tócalo en el mapa.',
       options: [],
     },
     {

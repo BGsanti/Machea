@@ -242,6 +242,25 @@
         if (btn && zonaSeleccion.length) btn.click();
       });
     }
+
+    // El buscador de LUGARES, la otra pestaña de la misma pregunta. Mismo
+    // trato que el de barrios; lo que cambia es de dónde salen las filas
+    // (catálogo local + Photon, ver renderLugarSugerencias).
+    var zonaLugarSearch = document.getElementById('zonaLugarSearch');
+    if (zonaLugarSearch) {
+      zonaLugarSearch.addEventListener('input', renderLugarSugerencias);
+      zonaLugarSearch.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var primera = document.querySelector('#zonaLugarOpciones .gdf-zona-opt');
+        if (primera) {
+          primera.click();
+          return;
+        }
+        var btn = document.querySelector('[data-action="answerQuizZona"]');
+        if (btn && zonaSeleccion.length) btn.click();
+      });
+    }
   }
 
   // ------------------------------------------------ scroll de los resultados
@@ -398,6 +417,187 @@
     lista.classList.toggle('abierto', filas.length > 0);
   }
 
+  // ---------------------------------------------- buscador por LUGAR cercano
+  //
+  // El segundo camino de la pregunta de ubicación, para quien no se sabe los
+  // barrios pero sí reconoce el centro comercial o el parque de al lado.
+  //
+  // SON DOS CAPAS, y el orden importa:
+  //   1. `GDF_LUGARES`, el catálogo que baja tools/generar_mapa.py de OSM y
+  //      viaja YA RESUELTO a `{loc, bi}`. Responde sin red y sin esperar, así
+  //      que se pinta de inmediato.
+  //   2. Photon (photon.komoot.io), el geocodificador en vivo, para todo lo
+  //      que el catálogo no tenga. Llega después y se AGREGA debajo.
+  // Si no hay internet o Photon no responde, la capa 1 ya está en pantalla y
+  // no se muestra ningún error: el buscador simplemente sabe menos.
+  //
+  // Photon y no Nominatim porque Nominatim PROHÍBE el uso tipo autocompletar
+  // en su política; Photon está hecho justamente para eso y no pide llave.
+  var PHOTON_URL = 'https://photon.komoot.io/api/';
+  // El mismo recuadro de Bogotá que OSM_BBOX en tools/generar_mapa.py, pero
+  // en el orden que quiere Photon: minLon,minLat,maxLon,maxLat.
+  var PHOTON_BBOX = '-74.25,4.45,-73.98,4.85';
+  // Lo que devuelve OSM y NO sirve como punto de referencia: un paradero o un
+  // portal no ubican a nadie, y ensucian la lista empujando hacia abajo el
+  // centro comercial que sí se buscaba.
+  var LUGAR_RUIDO = { highway: 1, building: 1, barrier: 1, entrance: 1, traffic_signals: 1 };
+  var lugarPeticion = null;    // AbortController de la búsqueda en vuelo
+  var lugarDebounce = null;
+
+  /** Las mejores coincidencias del CATÁLOGO LOCAL. Instantáneo, sin red. */
+  function sugerenciasLugar(termino) {
+    var idx = window.GDF_LUGARES || [];
+    var empiezan = [];
+    var contienen = [];
+    for (var i = 0; i < idx.length; i++) {
+      var pos = normalizarTexto(idx[i].n).indexOf(termino);
+      if (pos === 0) empiezan.push(idx[i]);
+      else if (pos > 0) contienen.push(idx[i]);
+    }
+    var porLargo = function (a, b) { return a.n.length - b.n.length; };
+    empiezan.sort(porLargo);
+    contienen.sort(porLargo);
+    return empiezan.concat(contienen).slice(0, 6);
+  }
+
+  /**
+   * Pregunta a Photon por `termino` y devuelve lo que caiga DENTRO de Bogotá.
+   *
+   * Cada resultado se resuelve aquí mismo a `{localidad, barrio, bi}` con los
+   * polígonos que ya están cargados (`mapa.zonaEnPunto`), y lo que no cae en
+   * ninguna de las 20 localidades —un sitio de Chía, de Soacha, de otro país—
+   * se descarta ANTES de pintarse. Así toda sugerencia que se ve es elegible;
+   * no hay forma de tocar una y que no pase nada.
+   */
+  function buscarLugaresEnVivo(termino, alLlegar) {
+    if (lugarPeticion) lugarPeticion.abort();
+    if (typeof AbortController === 'undefined' || typeof fetch !== 'function') return;
+    lugarPeticion = new AbortController();
+    var ctrl = lugarPeticion;
+    // Si tarda, no se espera: lo local ya está en pantalla.
+    var corte = setTimeout(function () { ctrl.abort(); }, 4000);
+
+    fetch(PHOTON_URL + '?q=' + encodeURIComponent(termino) +
+          '&limit=10&bbox=' + PHOTON_BBOX, { signal: ctrl.signal })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (datos) {
+        clearTimeout(corte);
+        if (!datos || !datos.features || ctrl !== lugarPeticion) return;
+        var mapa = window.GDF.mapa;
+        if (!mapa || !mapa.zonaEnPunto) return;
+        var salida = [];
+        datos.features.forEach(function (f) {
+          var p = f.properties || {};
+          var c = (f.geometry || {}).coordinates;
+          if (!p.name || !c || LUGAR_RUIDO[p.osm_key]) return;
+          var zona = mapa.zonaEnPunto(c[0], c[1]);
+          if (!zona) return;                       // fuera de Bogotá
+          salida.push({ n: p.name, cat: p.osm_value || '', zona: zona });
+        });
+        alLlegar(salida);
+      })
+      .catch(function () {
+        clearTimeout(corte);
+        // Sin red, Photon caído o petición cancelada: no se dice nada. Las
+        // sugerencias locales ya están y el flujo sigue.
+      });
+  }
+
+  /** Una fila del desplegable de lugares. `zona` es `{localidad, barrio, bi}`. */
+  function filaLugar(nombre, zona) {
+    // Debajo del nombre va DÓNDE queda, que es la respuesta a la pregunta
+    // que el usuario está contestando — no la categoría de OSM, que a nadie
+    // le dice nada.
+    var donde = zona.barrio && zona.barrio !== zona.localidad
+      ? zona.barrio + ' · ' + zona.localidad
+      : zona.localidad;
+    return (
+      '<button type="button" class="gdf-multi-opt gdf-zona-opt" data-action="elegirLugar"' +
+      ' data-loc="' + esc(zona.localidad) + '"' +
+      ' data-barrio="' + esc(zona.barrio || '') + '"' +
+      ' data-bi="' + (zona.bi == null ? '' : zona.bi) + '"' +
+      ' data-lugar="' + esc(nombre) + '">' +
+      '<span class="b">' + esc(nombre) + '</span>' +
+      '<span class="l">' + esc(donde) + '</span>' +
+      '</button>'
+    );
+  }
+
+  /**
+   * Pinta el desplegable de lugares: primero lo local, y cuando (y si) llega
+   * la respuesta en vivo, se agrega debajo lo que el catálogo no tenía.
+   */
+  function renderLugarSugerencias() {
+    var input = document.getElementById('zonaLugarSearch');
+    var lista = document.getElementById('zonaLugarOpciones');
+    if (!input || !lista) return;
+    var termino = normalizarTexto(input.value).trim();
+    clearTimeout(lugarDebounce);
+    if (termino.length < 2) {
+      if (lugarPeticion) lugarPeticion.abort();
+      lista.classList.remove('abierto');
+      lista.innerHTML = '';
+      return;
+    }
+
+    var mapa = window.GDF.mapa;
+    var locales = sugerenciasLugar(termino);
+    var vistos = {};
+    var html = locales.map(function (l) {
+      vistos[normalizarTexto(l.n)] = true;
+      var zona = { localidad: localidadPorId(l.loc), barrio: null, bi: l.bi };
+      // El catálogo guarda `loc`+`bi`; el nombre del barrio sale del mapa,
+      // que es quien tiene los contornos (mismo camino que `barrioPorIndice`).
+      if (l.bi != null && mapa && mapa.nombreDeBarrio) zona.barrio = mapa.nombreDeBarrio(l.loc, l.bi);
+      return filaLugar(l.n, zona);
+    }).join('');
+    lista.innerHTML = html;
+    lista.classList.toggle('abierto', locales.length > 0);
+
+    // La capa en vivo va con freno: se dispara cuando el usuario deja de
+    // escribir, no en cada tecla.
+    lugarDebounce = setTimeout(function () {
+      buscarLugaresEnVivo(termino, function (remotos) {
+        // Puede haber cambiado el texto mientras la red iba y venía.
+        if (normalizarTexto(input.value).trim() !== termino) return;
+        var nuevos = remotos.filter(function (r) {
+          var clave = normalizarTexto(r.n);
+          if (vistos[clave]) return false;         // ya lo trae el catálogo
+          vistos[clave] = true;
+          return true;
+        });
+        if (!nuevos.length) return;
+        // `insertAdjacentHTML` y no `innerHTML +=`: lo segundo vuelve a
+        // parsear la lista entera y destruye las filas locales que ya están
+        // pintadas, que es justo lo que se ve como un parpadeo al escribir.
+        lista.insertAdjacentHTML('beforeend', nuevos.slice(0, 6).map(function (r) {
+          return filaLugar(r.n, r.zona);
+        }).join(''));
+        lista.classList.add('abierto');
+      });
+    }, 300);
+  }
+
+  /**
+   * Cambia de pestaña. Es PURAMENTE de interfaz: no toca `zonaSeleccion`, así
+   * que lo elegido en un modo sigue estando al pasarse al otro — los chips
+   * viven fuera de los dos paneles justamente para eso.
+   */
+  function cambiarModoZona(modo) {
+    var paneles = document.querySelectorAll('.gdf-zona-modo-panel');
+    for (var i = 0; i < paneles.length; i++) {
+      paneles[i].hidden = paneles[i].dataset.modoPanel !== modo;
+    }
+    var botones = document.querySelectorAll('.gdf-zona-modo-btn');
+    for (var j = 0; j < botones.length; j++) {
+      var activo = botones[j].dataset.modo === modo;
+      botones[j].classList.toggle('activo', activo);
+      botones[j].setAttribute('aria-selected', activo ? 'true' : 'false');
+    }
+    var foco = document.getElementById(modo === 'lugar' ? 'zonaLugarSearch' : 'zonaSearch');
+    if (foco) foco.focus();
+  }
+
   // La identidad de un sector elegido. El barrio cuando lo hay y, si no, la
   // localidad: así "Suba" a secas y el barrio "Suba Rincón" son cosas
   // distintas y las dos se pueden tener a la vez.
@@ -414,7 +614,7 @@
    * única forma de deshacer directamente sobre el mapa —donde no hay una × que
    * pulsar— y es lo mismo que hace la grilla de `entorno_deseado`.
    */
-  function alternarZonaValor(localidad, barrio, bi) {
+  function alternarZonaValor(localidad, barrio, bi, origenLugar) {
     if (!localidad) return;
     var clave = claveZona(localidad, barrio);
     var yaEsta = -1;
@@ -424,7 +624,17 @@
         break;
       }
     }
-    if (yaEsta > -1) zonaSeleccion.splice(yaEsta, 1);
+    if (yaEsta > -1) {
+      // ALTERNAR SOLO CUANDO ES EL MISMO ORIGEN. Dos lugares distintos pueden
+      // caer en el mismo sector catastral (dos centros comerciales de la misma
+      // zona), y ahí quitar el que ya estaba se leería como "toqué uno nuevo y
+      // me borró el anterior". Cuando el origen cambia se actualiza la
+      // etiqueta y el sector se queda; solo se quita al repetir exactamente lo
+      // mismo, que es lo que hace el clic en el mapa o en un barrio ya elegido.
+      var mismoOrigen = zonaSeleccion[yaEsta].lugar === (origenLugar || null);
+      if (mismoOrigen) zonaSeleccion.splice(yaEsta, 1);
+      else zonaSeleccion[yaEsta].lugar = origenLugar || zonaSeleccion[yaEsta].lugar;
+    }
     // `bi` es la posición del barrio dentro de su localidad y solo la trae el
     // mapa, que sabe exactamente qué polígono se tocó. Viaja para que
     // `mapa.marcar` resalte ESE y no otro con el mismo nombre: hay 46 nombres
@@ -432,13 +642,38 @@
     // (ver `porLoc` y `barrioPorIndice` en js/mapa.js). Es dato de pintado, no
     // de negocio: no entra en `answers` ni viaja al modelo, que sigue
     // filtrando por localidad.
+    //
+    // `lugar` es el nombre del sitio que el usuario buscó cuando el sector
+    // vino del buscador de lugares (null si vino del de barrios o del mapa).
+    // Tampoco es dato de negocio: solo cambia lo que dice el chip, para
+    // devolverle lo que escribió y no un barrio que nunca nombró.
     else zonaSeleccion.push({
       localidad: localidad,
       barrio: barrio || null,
       bi: bi == null ? null : bi,
+      lugar: origenLugar || null,
     });
 
     sincronizarZona();
+  }
+
+  /**
+   * Quita un sector, pase lo que pase. Es lo que hace la × de un chip.
+   *
+   * No pasa por `alternarZonaValor` a propósito: esa ALTERNA según el origen
+   * (ver el comentario de allá), así que la × de un chip que vino del
+   * buscador de lugares habría caído en la rama de "origen distinto" y le
+   * habría cambiado la etiqueta en vez de quitarlo. La × no alterna: quita.
+   */
+  function quitarZonaValor(localidad, barrio) {
+    var clave = claveZona(localidad, barrio);
+    for (var i = 0; i < zonaSeleccion.length; i++) {
+      if (claveZona(zonaSeleccion[i].localidad, zonaSeleccion[i].barrio) === clave) {
+        zonaSeleccion.splice(i, 1);
+        sincronizarZona();
+        return;
+      }
+    }
   }
 
   /** Repinta todo lo que depende de `zonaSeleccion`. */
@@ -459,6 +694,15 @@
       input.placeholder = zonaSeleccion.length
         ? 'Agregar otra zona…'
         : 'Busca tu barrio (Cedritos, El Polo…)';
+    }
+    // El de lugares, por lo mismo: lo elegido ya está en su chip y dejar el
+    // texto obligaría a borrarlo a mano para buscar el siguiente.
+    var inputLugar = document.getElementById('zonaLugarSearch');
+    if (inputLugar) {
+      inputLugar.value = '';
+      inputLugar.placeholder = zonaSeleccion.length
+        ? 'Agregar otro lugar…'
+        : 'Un centro comercial, parque, universidad…';
     }
 
     // El mapa vive en el lienzo grande y lo pinta Leaflet, no este HTML: se
@@ -490,9 +734,15 @@
     if (!cont) return;
     cont.innerHTML = zonaSeleccion
       .map(function (sector) {
-        var etiqueta = sector.barrio && sector.barrio !== sector.localidad
-          ? sector.barrio + ' · ' + sector.localidad
-          : sector.localidad;
+        // Si el sector vino del buscador de lugares, el chip dice el LUGAR,
+        // no el barrio al que resolvió: es lo que la persona escribió y lo
+        // único que reconoce. El barrio sigue estando en el dato (y es lo
+        // que se pinta en el mapa), solo que no es lo que se muestra acá.
+        var etiqueta = sector.lugar
+          ? 'Cerca de ' + sector.lugar
+          : (sector.barrio && sector.barrio !== sector.localidad
+            ? sector.barrio + ' · ' + sector.localidad
+            : sector.localidad);
         return (
           '<span class="gdf-entorno-chip">' + esc(etiqueta) +
           '<button type="button" class="gdf-entorno-chip-x" data-action="quitarZona"' +
@@ -1396,9 +1646,29 @@
       if (window.GDF.mapa) window.GDF.mapa.volarA(el.dataset.loc, el.dataset.barrio, bi);
       return;
     }
-    // La × de un chip. Alterna igual que elegirlo: quitar es volver a tocar.
+    // El buscador de lugares. Mismo destino que `elegirZona` —la selección de
+    // zonas es una sola, vengan del buscador que vengan— pero pasando además
+    // el nombre del lugar, que es lo que dirá el chip.
+    if (el.dataset.action === 'elegirLugar') {
+      var biL = el.dataset.bi === '' ? null : parseInt(el.dataset.bi, 10);
+      alternarZonaValor(el.dataset.loc, el.dataset.barrio || null, biL, el.dataset.lugar);
+      if (window.GDF.mapa) window.GDF.mapa.volarA(el.dataset.loc, el.dataset.barrio || null, biL);
+      // El campo se vacía como en el de barrios (lo hace sincronizarZona) y
+      // el desplegable se cierra: lo elegido ya está arriba, en su chip.
+      var listaL = document.getElementById('zonaLugarOpciones');
+      if (listaL) {
+        listaL.classList.remove('abierto');
+        listaL.innerHTML = '';
+      }
+      return;
+    }
+    if (el.dataset.action === 'zonaModo') {
+      cambiarModoZona(el.dataset.modo);
+      return;
+    }
+    // La × de un chip. Quita siempre, sin importar de qué buscador salió.
     if (el.dataset.action === 'quitarZona') {
-      alternarZonaValor(el.dataset.loc, el.dataset.barrio || null);
+      quitarZonaValor(el.dataset.loc, el.dataset.barrio || null);
       return;
     }
     if (el.dataset.action === 'answerQuizZona') {
@@ -1432,13 +1702,18 @@
   // clic porque el <input>/panel solo existen mientras esa pregunta está en
   // pantalla; en cualquier otra pantalla no hace nada.
   function cerrarEntornoSiTocaAfuera(e) {
-    var combo = document.querySelector('.gdf-entorno-combo');
-    if (!combo) return;
-    // Las dos preguntas con buscador reusan '.gdf-entorno-combo', pero cada
-    // una nombra su propia lista. Solo una existe a la vez.
-    var lista = document.getElementById('entornoOpciones') || document.getElementById('zonaOpciones');
-    if (!lista) return;
-    if (!combo.contains(e.target)) lista.classList.remove('abierto');
+    // SE RECORREN TODOS LOS COMBOS, no el primero. Antes se asumía que solo
+    // existía un buscador a la vez y se tomaba `querySelector` a secas; desde
+    // que la pregunta de zona tiene dos pestañas —barrio y lugar— hay dos
+    // '.gdf-entorno-combo' en el DOM al mismo tiempo (uno oculto), y con la
+    // versión vieja el desplegable del segundo no se cerraba nunca al tocar
+    // afuera. Cada combo cierra su propia lista; no hace falta saber cuál es.
+    var combos = document.querySelectorAll('.gdf-entorno-combo');
+    for (var i = 0; i < combos.length; i++) {
+      if (combos[i].contains(e.target)) continue;
+      var lista = combos[i].querySelector('.gdf-multi-opt-list');
+      if (lista) lista.classList.remove('abierto');
+    }
   }
 
   function boot() {
