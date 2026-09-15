@@ -189,10 +189,25 @@
       habitaciones: p.hab ? [p.hab] : [],
       vis: !!p.vis,
       subsidio: !!p.vis,
-      // Zonas comunes reales de la ficha: { label, icon, clave }. `clave` es
-      // la del vocabulario de 26 del contrato y es lo que permite resaltar las
-      // que el usuario pidió en la pregunta de entorno.
-      amenidades: p.amenidades || [],
+      // Zonas comunes reales de la ficha: { label, icon, clave }.
+      //
+      // El catálogo del tenant guarda en `clave` la ETIQUETA del vocabulario
+      // ('Gimnasio', 'Cancha de pádel'), mientras que `answers.entorno_deseado`
+      // guarda los SLUGS de la pregunta ('gymnasio', 'cancha e padel'). La
+      // tarjeta compara las dos con un `indexOf`, así que sin esta vuelta no
+      // coincidía NUNCA ninguna: "Tiene lo que buscas ✓" no se pintaba jamás
+      // en la demo sin red, y las razones perdían la línea de zonas en común.
+      // `desdeMachea` ya hacía esta misma conversión con `claveDe`; aquí
+      // faltaba, y por eso el fallo solo se veía con SIN_BACKEND.
+      amenidades: (p.amenidades || []).map(function (a) {
+        return {
+          label: a.label,
+          icon: a.icon,
+          // Si la zona no cruza con el vocabulario, `claveDe` devuelve null y
+          // la amenidad se sigue listando: simplemente no se resalta.
+          clave: window.GDF.machea.claveDe(a.clave || a.label),
+        };
+      }),
       score: p.score != null ? p.score : null,
       origen: 'local',
       local: p,
