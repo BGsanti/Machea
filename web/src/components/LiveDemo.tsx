@@ -52,9 +52,16 @@ import { Reveal } from "./Reveal";
 // La copia publicada va con `SIN_BACKEND: true`: calcula el Top 6 con el motor
 // de reglas de matching.js en vez de llamar al modelo, porque ahi fuera no hay
 // ningun :8100 al que llamar. La propia tarjeta lo dice.
+// SE NOMBRA `index.html`, no el directorio. `/experiencia/` funciona publicado
+// —un servidor de estaticos resuelve el indice de la carpeta— pero NO en el
+// servidor de desarrollo: Vite trata una ruta sin extension como navegacion de
+// la SPA y devuelve el `index.html` de la landing. El iframe cargaba entonces
+// la propia landing dentro de si misma, con 200 y sin un solo error, y el
+// formulario simplemente no aparecia. Nombrar el archivo sirve lo mismo en los
+// dos sitios.
 const EXPERIENCIA_URL =
   import.meta.env.VITE_EXPERIENCIA_URL ??
-  "/experiencia/?marca=machea&embed=1";
+  "/experiencia/index.html?marca=machea&embed=1";
 
 export function LiveDemo() {
   const [open, setOpen] = useState(false);

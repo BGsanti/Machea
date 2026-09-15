@@ -4,24 +4,81 @@
 (function () {
   'use strict';
 
-  // EL ORDEN NO ES ARBITRARIO. Va de lo que mas define la recomendacion a lo
-  // que menos: capacidad de compra (tipo, ingresos) -> necesidad (personas,
-  // habitaciones) -> ubicacion (zona) -> preferencias (entorno) -> edad.
+  // EL ORDEN NO ES ARBITRARIO, y tiene una regla dura y una decision de
+  // producto.
   //
-  // El motivo es la ESCENA. El plano se cierra al contestar la 6.a pregunta
-  // (`cierran=6` en tools/analizar_planos.py) porque la 7.a salta a resultados
-  // y lo que revelara no lo veria nadie. Asi que la ultima pregunta tiene que
+  // LA REGLA DURA ES SOBRE LA ULTIMA. El plano se cierra al contestar la 6.a
+  // pregunta (`cierran=6` en tools/analizar_planos.py) porque la 7.a salta a
+  // resultados y lo que revelara no lo veria nadie. Asi que la ultima tiene que
   // ser la que MENOS mueva el plano, o se veria cambiar la recomendacion sin
   // tiempo de redibujarla. Medido sobre 600 quices al azar, cuanto mueve el
   // plano cada una: ingresos 69 %, habitaciones 66 %, tipo 51 %, zona 45 %,
-  // personas 16 %, entorno 7 %, edad 3 %. Por eso `edad` va de ultima y las
-  // dos de mas peso van de primeras.
+  // personas 16 %, entorno 7 %, edad 3 %. Por eso `edad` sigue de ultima.
+  //
+  // LA DECISION DE PRODUCTO ES QUE `zona` VA PRIMERA. Antes iba 5.a, detras de
+  // capacidad de compra y necesidad, ordenando de lo que mas pesa en el score a
+  // lo que menos. Se movio porque es la unica pregunta que la persona ya trae
+  // contestada de casa —nadie empieza a buscar vivienda sin una idea de donde
+  // quiere vivir— y porque es la que da la pantalla de entrada: el mapa de
+  // Bogota ocupando el lienzo, en vez de un plano todavia vacio. Ver la llave
+  // `escena` de esa pregunta.
+  //
+  // Lo que NO cambia por moverla: el reparto de piezas de la escena va por
+  // NUMERO DE RESPUESTAS y no por posicion (ver scene.js), el contador de pasos
+  // tambien, y `qListFor` no filtra nada. Lo que si cambio es la barra de
+  // encaje, que ahora aparece desde la 2.a respuesta (ver matching.js).
   //
   // ERAN OCHO. La que se fue es `piso_preferido`, y es la que menos duele: era
   // la unica que NO puntuaba en nada (0 % de movimiento del plano, y ni los
   // proyectos ni las tipologias guardan en que piso esta nada). El contrato
   // del modelo tambien la da por opcional. Ver js/machea.js.
   var QUESTIONS = [
+    {
+      // LAS OPCIONES SON LAS 20 LOCALIDADES DE BOGOTA, Y SALEN DEL CONTRATO
+      // DEL MODELO (js/machea.js), no del catálogo del tenant. Esto ES un
+      // cambio: antes se derivaban del catálogo, con la lógica de "no ofrecer
+      // un sitio donde no hay nada".
+      //
+      // Ya no vale, y el motivo es que quien recomienda es el modelo, que
+      // indexa por `Localidad` 1..20 y solo conoce Bogotá. Los catálogos de las
+      // cuatro constructoras son NACIONALES (Cali 19, Barranquilla, Medellín,
+      // Pereira…) y, donde sí están en Bogotá, la ficha suele nombrar el barrio
+      // y no la localidad ("Bella Suiza", "El Salitre", "Lagos de Torca").
+      // Derivando de ahí, la respuesta no cruzaba con ningún id y el modelo
+      // devolvía 400 con "Localidad debe estar entre 1 y 20".
+      //
+      // Se ofrecen las 20 aunque no todas tengan oferta: el contrato lo
+      // permite en §4 y el modelo expande la búsqueda a las localidades
+      // vecinas por su grafo de colindancia, así que nunca es un callejón sin
+      // salida.
+      //
+      // TIPO `mapa`, Y YA NO UNA GRILLA DE 20 BOTONES. Nadie dice "quiero
+      // vivir en Barrios Unidos": dice "por el Polo" o "cerca de Cedritos".
+      // Ahora hay dos formas de contestar lo mismo, sincronizadas — un
+      // buscador de barrios y un mapa clicable — y las dos terminan
+      // guardando el NOMBRE de la localidad, que es lo que ya esperaban
+      // matching.js, planta.js, recommender.js y el localidadId() de
+      // machea.js. El contrato de la respuesta no cambia.
+      //
+      // `options` se queda vacío a propósito: las localidades salen de
+      // GDF_MAPA (las 20, dibujadas sobre el mapa) y de GDF_BARRIOS (las
+      // 1.256 entradas del buscador: el gazetteer mas los sectores
+      // catastrales), ambos generados por tools/generar_mapa.py. El contorno
+      // de los barrios va aparte, en GDF_BARRIOS_GEO.
+      //
+      // DOS LLAVES Y NO UNA. `escena: 'mapa'` dice que esta pregunta ocupa
+      // el lienzo grande con el mapa en vez del plano armándose; `type:
+      // 'zona'` dice cómo se pinta su panel. Van separadas porque son dos
+      // decisiones distintas, y porque así la escena se elige por una
+      // propiedad declarada y no por el ÍNDICE de la pregunta: si mañana
+      // vuelve a moverse de sitio, no hay nada que ajustar.
+      id: 'zona',
+      escena: 'mapa',
+      type: 'zona',
+      title: '¿Dónde te gustaría vivir?',
+      sub: 'Busca tu barrio o tócalo en el mapa.',
+      options: [],
+    },
     {
       id: 'tipo',
       title: '¿Qué tipo de vivienda buscas?',
@@ -69,30 +126,6 @@
         { v: '2', label: '2' },
         { v: '3+', label: '3+' },
       ],
-    },
-    {
-      // LAS OPCIONES SON LAS 20 LOCALIDADES DE BOGOTA, Y SALEN DEL CONTRATO
-      // DEL MODELO (js/machea.js), no del catálogo del tenant. Esto ES un
-      // cambio: antes se derivaban del catálogo, con la lógica de "no ofrecer
-      // un sitio donde no hay nada".
-      //
-      // Ya no vale, y el motivo es que quien recomienda es el modelo, que
-      // indexa por `Localidad` 1..20 y solo conoce Bogotá. Los catálogos de las
-      // cuatro constructoras son NACIONALES (Cali 19, Barranquilla, Medellín,
-      // Pereira…) y, donde sí están en Bogotá, la ficha suele nombrar el barrio
-      // y no la localidad ("Bella Suiza", "El Salitre", "Lagos de Torca").
-      // Derivando de ahí, la respuesta no cruzaba con ningún id y el modelo
-      // devolvía 400 con "Localidad debe estar entre 1 y 20".
-      //
-      // Se ofrecen las 20 aunque no todas tengan oferta: el contrato lo
-      // permite en §4 y el modelo expande la búsqueda a las localidades
-      // vecinas por su grafo de colindancia, así que nunca es un callejón sin
-      // salida.
-      id: 'zona',
-      title: '¿En qué localidad de Bogotá te gustaría vivir?',
-      sub: 'Te mostramos proyectos ahí y en las localidades vecinas.',
-      cols: 2,
-      options: [],
     },
     // `entorno_deseado` es OPCIONAL en el contrato del modelo, pero se
     // pregunta a proposito: alli declaran que vale el 20 % del score, y sin
@@ -218,13 +251,6 @@
     ? window.GDF_PROYECTOS
     : PROJECTS_RESPALDO;
 
-  function preguntaPorId(id) {
-    for (var i = 0; i < QUESTIONS.length; i++) {
-      if (QUESTIONS[i].id === id) return QUESTIONS[i];
-    }
-    return null;
-  }
-
   // Las 20 localidades del contrato del modelo (ver LOCALIDADES en
   // js/machea.js, que es la única copia de esa tabla). Se ordenan por cuántos
   // proyectos del catálogo caen en cada una, para que las que sí tienen oferta
@@ -242,20 +268,22 @@
     'Sumapaz',
   ];
 
-  (function () {
-    var conteo = {};
-    PROJECTS.forEach(function (p) {
-      if (p.localidad) conteo[p.localidad] = (conteo[p.localidad] || 0) + 1;
-    });
-    preguntaPorId('zona').options = LOCALIDADES_BOGOTA
-      .slice()
-      .sort(function (a, b) {
-        return (conteo[b] || 0) - (conteo[a] || 0) || a.localeCompare(b, 'es');
-      })
-      .map(function (n) {
-        return { v: n, label: n };
-      });
-  })();
+  // CUANTOS PROYECTOS TIENE CADA LOCALIDAD. Antes esto ordenaba los 20
+  // botones de la pregunta `zona`, de más oferta a menos. Ya no hay botones
+  // —hay un mapa—, pero el conteo sigue haciendo falta: es lo que decide qué
+  // zonas se pintan atenuadas.
+  //
+  // Seis localidades están hoy en cero (Tunjuelito, Antonio Nariño, La
+  // Candelaria, Rafael Uribe Uribe, Ciudad Bolívar y Sumapaz) y AUN ASÍ se
+  // pueden elegir: el modelo expande a las vecinas por su grafo, así que
+  // devuelve resultados igual. Se marcan, no se bloquean.
+  var OFERTA = {};
+  LOCALIDADES_BOGOTA.forEach(function (n) {
+    OFERTA[n] = 0;
+  });
+  PROJECTS.forEach(function (p) {
+    if (p.localidad && OFERTA[p.localidad] !== undefined) OFERTA[p.localidad] += 1;
+  });
 
   // Localidades que colindan, calculadas de los límites oficiales del Distrito
   // por tools/scrape_proyectos.py (ver GDF_LOCALIDADES_VECINAS en
@@ -271,5 +299,7 @@
     AMENITIES: AMENITIES,
     VECINAS: VECINAS,
     GENDERS: GENDERS,
+    LOCALIDADES: LOCALIDADES_BOGOTA,
+    OFERTA: OFERTA,
   };
 })();

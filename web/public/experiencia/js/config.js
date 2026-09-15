@@ -35,4 +35,9 @@ window.GDF_CONFIG = {
   // la llamada de Manuela, que no puede hacerse desde el navegador porque
   // necesita la API key de Dapta, y esa nunca puede viajar al cliente.
   DAPTA_LLAMADA_BASE: 'https://machea.onrender.com',
+
+  // El número al que escribe el botón "WhatsApp" de la tarjeta elegida, en
+  // formato internacional y sin "+" (57 + celular de 10 dígitos). Vacío, el
+  // enlace abre WhatsApp con el mensaje listo y la persona elige el contacto.
+  WHATSAPP_NUMERO: '',
 };

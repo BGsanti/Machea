@@ -53,6 +53,28 @@
     return POR_NOMBRE_PLANO[plano(nombre)] || null;
   }
 
+  /**
+   * Los ids de TODAS las zonas pedidas, sin repetir y sin nulos.
+   *
+   * El formulario dejó de admitir una sola: en el mapa se pueden señalar
+   * varios sectores, y esos caen en localidades distintas. El modelo lo recibe
+   * como lista y mide la distancia de cada proyecto a la MÁS CERCANA de todas
+   * (ver `ids_localidades` y el BFS multi-origen de catalogos.py).
+   *
+   * `answers.zonas` es la lista de nombres; `answers.zona` es la primera, y se
+   * usa de respaldo para cualquier respuesta guardada antes de que existiera
+   * la selección múltiple.
+   */
+  function localidadIds(a) {
+    var nombres = (a && a.zonas && a.zonas.length) ? a.zonas : [a && a.zona];
+    var ids = [];
+    nombres.forEach(function (nombre) {
+      var id = localidadId(nombre);
+      if (id && ids.indexOf(id) < 0) ids.push(id);
+    });
+    return ids;
+  }
+
   // --- Las escalas del contrato -------------------------------------------
   // salario: 1 hasta 2 SMMLV · 2 de 2 a 4 · 3 de 4 a 8 · 4 más de 8. Las claves
   // son los `v` de la pregunta 'ingresos' en data.js.
@@ -179,7 +201,12 @@
       // OJO: `Localidad` con L MAYUSCULA y sin ceros a la izquierda. Lo avisa
       // el contrato en §1, y es de los errores que no dan mensaje claro: llega
       // como dato inválido, no como campo ausente.
-      Localidad: localidadId(a.zona),
+      //
+      // Va como LISTA porque se pueden pedir varias zonas. El contrato admite
+      // las dos formas —un entero suelto sigue valiendo— pero mandar siempre
+      // la lista evita tener dos caminos que probar; con una sola zona es una
+      // lista de un elemento.
+      Localidad: localidadIds(a),
       numero_habitaciones: a.habitaciones === '3+' ? 3 : parseInt(a.habitaciones || '1', 10),
       piso: 4,
       zonas_comunes: zonasComunesDe(a),
@@ -298,6 +325,7 @@
     constructoraDelTenant: constructoraDelTenant,
     urlDeRecomendar: urlDeRecomendar,
     localidadId: localidadId,
+    localidadIds: localidadIds,
     zonasComunesDe: zonasComunesDe,
     claveDe: claveDe,
     LOCALIDADES: LOCALIDADES,

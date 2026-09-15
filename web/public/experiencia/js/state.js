@@ -29,6 +29,19 @@
       consent: false,
       qi: 0,
       answers: {},
+      // El barrio elegido en la pregunta de ubicacion. Vive FUERA de `answers`
+      // a proposito (ver 'answerQuizZona' en main.js): dentro contaria como una
+      // pregunta mas contestada en computeDerived y en las piezas que destapa
+      // la escena. Pero tiene que estar declarado AQUI igualmente, porque
+      // `restart` solo copia las claves de este objeto — si falta, reiniciar
+      // arrastra el barrio de la partida anterior.
+      zonaBarrio: null,
+      // Los sectores elegidos, `[{localidad, barrio}, ...]`. Se pueden pedir
+      // varios (ver `zonaSeleccion` en main.js). Vive fuera de `answers` por lo
+      // mismo que `zonaBarrio`, y por lo mismo tiene que estar declarado AQUI:
+      // `restart` solo copia las claves de este objeto, asi que sin esta linea
+      // reiniciar arrastraria las zonas de la partida anterior.
+      zonaSectores: [],
       matches: [],
       lead: null, // resultado de computeLeadQualification
       // Selección ÚNICA: guarda el `id` del view-model elegido (id_proyecto si
@@ -78,18 +91,6 @@
       // cambia si el clustering reordena la lista).
       detalleAbierto: {}, // nombre -> bool
       tipologiaActiva: {}, // nombre -> índice de la pestaña
-      // nombre -> { inicial: %, plazo: años, modalidad: 'uvr'|'pesos',
-      //             categoria: 'A'|'B'|'C', complementario: bool, ingreso: pesos }
-      // Se conserva por proyecto para que volver a abrir el simulador de una
-      // tarjeta que ya se tocó no pierda lo que el usuario había ajustado.
-      simConfig: {},
-
-      // Simulador de pagos: overlay de dos pasos (1 = elegir producto,
-      // 2 = el simulador completo). Ver simuladorOverlay en templates.js.
-      // Uno solo a la vez en toda la app —no hace falta un mapa por proyecto
-      // como los de arriba— porque solo se puede simular un proyecto a la vez.
-      simulador: null, // null | { proyecto: nombre, tipologia: idx, paso: 1|2 }
-
       // El apartamento REAL que arma el quiz: qué plano oficial se está
       // montando y la geometría de sus piezas. Arranca con elegirApartamento
       // (sorteo estable por nombre) y se REELIGE con cada respuesta vía
@@ -123,12 +124,13 @@
       return state.answers[x.id] !== undefined;
     });
     var answered = answeredQs.length;
-    // Ya no es un número fijo con excepciones: todas las preguntas se hacen
-    // siempre (tipo, ingresos, personas, habitaciones, zona/localidad,
-    // piso_preferido, entorno_deseado, edad), así que el total es la lista
-    // misma. Ese orden lo fija data.js y no es arbitrario: la última tiene que
-    // ser la que menos mueva la recomendación, porque al contestarla se salta
-    // a resultados.
+    // Ya no es un número fijo con excepciones: las siete preguntas se hacen
+    // siempre (zona, tipo, ingresos, personas, habitaciones, entorno_deseado,
+    // edad), así que el total es la lista misma. Ese orden lo fija data.js y no
+    // es arbitrario: la última tiene que ser la que menos mueva la
+    // recomendación, porque al contestarla se salta a resultados. El porqué
+    // completo, incluido por qué `zona` va primera, está en la cabecera de
+    // data.js.
     var stepTotal = qList.length;
 
     var nHab = state.answers.habitaciones === '3+' ? 3 : parseInt(state.answers.habitaciones || '2', 10);
@@ -381,6 +383,23 @@
         delete nextAnswers2[prev.id];
         state.qi = state.qi - 1;
         state.answers = nextAnswers2;
+        // El barrio vive fuera de `answers` (ver 'answerQuizZona' en main.js),
+        // así que el delete de arriba no lo alcanza: si no se borra aquí,
+        // al volver sobre la pregunta de ubicación seguiría anunciando el
+        // barrio de la respuesta que se acaba de deshacer.
+        //
+        // `zonas` SI vive dentro de `answers` —es lo que leen matching.js y
+        // machea.js— pero el delete de arriba solo quita la llave de la
+        // pregunta (`zona`), así que hay que quitarla a mano o la respuesta
+        // quedaría medio deshecha: sin `zona` pero con las localidades.
+        //
+        // `zonaSectores` NO se borra a propósito: es lo que se acaba de
+        // elegir, y al volver aquí se recupera para poder corregirlo (ver
+        // attachInputListeners). Deshacer la respuesta no es tirar el trabajo.
+        if (prev.id === 'zona') {
+          state.zonaBarrio = null;
+          delete state.answers.zonas;
+        }
         // El apartamento NO se pierde al retroceder, ni siquiera hasta la
         // primera pregunta: se queda sin piezas y en pantalla sigue la silueta.
         // Eso es lo que evita tener que reconstruir la escena por innerHTML.
@@ -388,11 +407,13 @@
         break;
       }
 
-      // Selección ÚNICA: el contrato manda un solo `proyecto_elegido`, así que
-      // elegir otro reemplaza al anterior. Volver a tocar el ya elegido lo
-      // desmarca, para poder deshacer sin reiniciar.
-      case 'chooseProject':
-        state.chosen = state.chosen === ds.value ? null : ds.value;
+      // Tocar "Llamar" en una tarjeta ES elegir el proyecto: el contrato manda
+      // un solo `proyecto_elegido`, y aquí queda fijado en el mismo gesto que
+      // lleva al cierre. Ya no hay un paso previo de marcar la tarjeta.
+      case 'llamarProyecto':
+        if (!ds.value) return false;
+        state.chosen = ds.value;
+        state.screen = 'confirmacion';
         break;
 
       // Las 3 acciones del desplegable de planos solo guardan la preferencia:
@@ -404,78 +425,6 @@
 
       case 'verTipologia':
         state.tipologiaActiva[ds.proyecto] = parseInt(ds.idx, 10) || 0;
-        break;
-
-      case 'simSet': {
-        var cfg = state.simConfig[ds.proyecto] || {};
-        // 'modalidad' y 'categoria' son strings; 'complementario' es un
-        // interruptor; el resto (inicial, plazo, ingreso) son numéricos.
-        if (ds.campo === 'modalidad' || ds.campo === 'categoria') {
-          cfg[ds.campo] = ds.valor;
-        } else if (ds.campo === 'complementario') {
-          cfg.complementario = ds.valor === '1';
-        } else {
-          cfg[ds.campo] = parseInt(ds.valor, 10) || 0;
-        }
-        state.simConfig[ds.proyecto] = cfg;
-        break;
-      }
-
-      // Acciones del overlay del simulador. Van por el dispatch/render normal,
-      // a diferencia de 'simSet': abrir, avanzar de paso o cerrar son acciones
-      // discretas, no inputs continuos, así que no hace falta el atajo de
-      // parcheo de DOM — y un re-render completo es seguro acá porque ya
-      // restaura detalleAbierto/tipologiaActiva/simConfig solo.
-      case 'abrirSimulador': {
-        var idx = parseInt(ds.tipologia, 10) || 0;
-        state.simulador = { proyecto: ds.proyecto, tipologia: idx, paso: 1 };
-        // Sembrar los valores por defecto que dependen de las respuestas del
-        // quiz. Solo la primera vez: si el usuario ya movió los controles de
-        // este proyecto, se respeta lo que dejó.
-        if (!state.simConfig[ds.proyecto]) {
-          var sim = window.GDF.simulador;
-          var cat = sim.categoriaSugerida(state.answers.ingresos);
-          state.simConfig[ds.proyecto] = {
-            inicial: sim.SUPUESTOS.cuotaInicialDefault,
-            plazo: sim.SUPUESTOS.plazoDefault,
-            // Se arranca en UVR solo si la tasa de esa categoría está
-            // publicada (A y B). Para la C, cuya tasa en UVR es todavía un
-            // placeholder, se abre en pesos: es la que sí está verificada.
-            modalidad: cat && !sim.tasaUvrPorConfirmar(cat) ? 'uvr' : 'pesos',
-            categoria: cat || 'B',
-            complementario: false,
-            ingreso: Math.round(sim.ingresoMedioDe(state.answers.ingresos)),
-          };
-        }
-        break;
-      }
-
-      case 'simPaso':
-        if (!state.simulador) return false;
-        state.simulador.paso = parseInt(ds.valor, 10) || 1;
-        break;
-
-      case 'cerrarSimulador':
-        state.simulador = null;
-        break;
-
-      // Elegir producto en el paso 1 NO cierra el overlay: avanza al paso 2,
-      // que es el simulador completo. El hipotecario es la base siempre; el
-      // complementario se enciende sobre él (ver `simular` en simulador.js).
-      case 'elegirProducto': {
-        if (!state.simulador) return false;
-        var cfgProd = state.simConfig[state.simulador.proyecto] || {};
-        cfgProd.complementario = ds.valor === 'complementario';
-        state.simConfig[state.simulador.proyecto] = cfgProd;
-        state.simulador.paso = 2;
-        break;
-      }
-
-      case 'goConfirmacion':
-        // Sin nada marcado no tiene sentido cerrar: el botón está deshabilitado
-        // en la UI, pero se valida igual acá por si acaso.
-        if (!state.chosen) return false;
-        state.screen = 'confirmacion';
         break;
 
       case 'goSeleccion':

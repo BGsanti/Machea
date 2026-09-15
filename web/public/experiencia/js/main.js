@@ -26,6 +26,25 @@
   // después de un render que aterriza en ella.
   var entornoSeleccion = [];
 
+  // Selección en curso de la pregunta 'zona' (buscador de barrios + mapa).
+  // Vive fuera de `state` por lo mismo que `entornoSeleccion`, y además
+  // porque aquí hay DOS controles que tienen que quedar de acuerdo: al tocar
+  // el mapa se escribe el nombre en el buscador, y al elegir un barrio se
+  // marca su localidad en el mapa. Con un re-render por clic, el buscador
+  // perdería el foco a media escritura.
+  //
+  // ES UNA LISTA: se pueden pedir VARIOS sectores. Nadie busca casa en un solo
+  // sitio —"por Cedritos, o por el Polo, o por Suba"— y el modelo ya sabe
+  // recibir varias localidades y medir la distancia a la más cercana de todas
+  // (ver `ids_localidades` y el BFS multi-origen de catalogos.py).
+  //
+  // Cada elemento es `{ localidad, barrio }`. Los NOMBRES de localidad son lo
+  // que viaja a `state.answers.zona` (la primera, para todo lo que espera una
+  // sola) y a `state.answers.zonas` (todas, que es lo que se manda al modelo).
+  // El barrio es solo para mostrar: el catálogo no guarda el barrio de cada
+  // proyecto, así que el filtro real es y sigue siendo por localidad.
+  var zonaSeleccion = [];
+
   function render() {
     var sameScreen = state.screen === lastScreen;
     // Reconstruir TODO el innerHTML también destruye y recrea el nodo que
@@ -42,6 +61,12 @@
       prevWindowScroll = window.scrollY;
     }
     var derived = window.GDF.state.computeDerived(state);
+    // El mapa muere ANTES de arrasar el innerHTML. `render()` reconstruye
+    // #root entero, asi que el nodo del mapa se destruye si o si; si Leaflet
+    // no se entera, se queda con listeners sobre un nodo huerfano y la
+    // siguiente vez que se monte falla con "Map container is already
+    // initialized". Es no-op si no habia mapa.
+    if (window.GDF.mapa) window.GDF.mapa.desmontar();
     root.innerHTML = window.GDF.templates.renderApp(state, derived);
     if (sameScreen) {
       var screenEl = root.querySelector('.gdf-screen');
@@ -59,6 +84,8 @@
     }
     lastScreen = state.screen;
     attachInputListeners();
+    // sceneBlock ya dejo el hueco del mapa en el HTML nuevo; esto lo llena.
+    updateMapaDOM(derived);
   }
 
   // Los inputs de nombre/apellido/correo/teléfono son "no controlados":
@@ -127,18 +154,17 @@
     // porque 'toggle' no es un clic.
     //
     // Además funcionan como ACORDEÓN: abrir el plano de un proyecto cierra el
-    // del anterior. Con seis desplegables abiertos a la vez (cada uno con sus
-    // planos y su simulador) la lista se volvía kilométrica y se perdía la
-    // referencia de qué se estaba comparando. Cerrar el otro dispara su propio
-    // 'toggle', así que `detalleAbierto` queda al día sin tocarlo aquí.
+    // del anterior. Con seis desplegables abiertos a la vez la lista se volvía
+    // kilométrica y se perdía la referencia de qué se estaba comparando.
+    // Cerrar el otro dispara su propio 'toggle', así que `detalleAbierto`
+    // queda al día sin tocarlo aquí.
     var detalles = root.querySelectorAll('.gdf-project-detalle');
     for (var d = 0; d < detalles.length; d++) {
       (function (el) {
         el.addEventListener('toggle', function () {
-          // Mismo eco del re-render que en el simulador (ver abajo): acá no
-          // causaba bucle, pero sí una pasada inútil del acordeón en cada
-          // render. Cerrar otro <details> por código sí contradice el estado,
-          // así que el acordeón sigue funcionando.
+          // Este chequeo evita una pasada inútil del acordeón en cada render.
+          // Cerrar otro <details> por código sí contradice el estado, así que
+          // el acordeón sigue funcionando.
           if (state.detalleAbierto[el.dataset.proyecto] === el.open) return;
           state.detalleAbierto[el.dataset.proyecto] = el.open;
           if (!el.open) return;
@@ -148,40 +174,6 @@
         });
       })(detalles[d]);
     }
-    // Los dos controles CONTINUOS del simulador (paso 2 del overlay). No van
-    // por el listener delegado de clics: un re-render en cada arrastre del
-    // slider o en cada tecla del ingreso perdería el foco del input y
-    // reiniciaría las animaciones del panel. Igual que los inputs de la
-    // escarapela, se parchea solo el recibo por DOM directo.
-    var simPlazo = document.getElementById('simPlazo');
-    if (simPlazo) {
-      simPlazo.addEventListener('input', function () {
-        var etiqueta = document.getElementById('simPlazoValor');
-        if (etiqueta) etiqueta.textContent = simPlazo.value + ' años';
-        dispatch('simSet', {
-          proyecto: simPlazo.dataset.proyecto, campo: 'plazo', valor: simPlazo.value,
-        });
-      });
-    }
-
-    var simIngreso = document.getElementById('simIngreso');
-    if (simIngreso) {
-      simIngreso.addEventListener('input', function () {
-        // Se escribe con separadores de miles ("$4.500.000"), así que hay que
-        // quedarse solo con los dígitos antes de mandarlo al estado.
-        var digitos = simIngreso.value.replace(/\D/g, '');
-        dispatch('simSet', {
-          proyecto: simIngreso.dataset.proyecto, campo: 'ingreso', valor: digitos,
-        });
-      });
-      // El formato bonito se aplica al salir del campo: hacerlo en cada tecla
-      // movería el cursor a un lugar impredecible mientras se escribe.
-      simIngreso.addEventListener('blur', function () {
-        var digitos = parseInt(simIngreso.value.replace(/\D/g, ''), 10);
-        simIngreso.value = digitos ? window.GDF.simulador.pesos(digitos) : '';
-      });
-    }
-
     var quizTextInput = document.getElementById('quizTextInput');
     if (quizTextInput) {
       quizTextInput.addEventListener('keydown', function (e) {
@@ -191,28 +183,326 @@
       });
     }
 
+    engancharScrollResultados();
+
     var entornoSearch = document.getElementById('entornoSearch');
     if (entornoSearch) {
       entornoSeleccion = [];
       renderEntornoChips();
       var entornoLista = document.getElementById('entornoOpciones');
-      // No hay "modo explorar todo": el panel solo aparece cuando hay algo
-      // escrito y ese algo tiene coincidencias — enfocar el input vacío no
-      // muestra nada, para que sea de verdad un buscador y no un desplegable
-      // disfrazado. Flota pegado al input (ver '.gdf-multi-opt-list' en CSS);
-      // el cierre por "clic afuera" vive en boot() (ver 'cerrarEntornoSiTocaAfuera').
-      entornoSearch.addEventListener('input', function () {
+      // AL ENFOCAR, EL LISTADO COMPLETO. Son las 25 zonas comunes del
+      // vocabulario, pre-renderizadas de una vez (a diferencia del buscador
+      // de barrios de 'zona', que sí arma sus opciones al vuelo porque son
+      // 1.258 — ver renderZonaSugerencias): mostrarlas todas de entrada no
+      // cuesta nada y deja hojear en vez de obligar a escribir una palabra
+      // exacta. Escribir sigue filtrando igual que antes; el campo vacío
+      // —recién enfocado, o borrado hasta el final— muestra todo en vez de
+      // nada. Flota pegado al input (ver '.gdf-multi-opt-list' en CSS); el
+      // cierre por "clic afuera" vive en boot() (ver 'cerrarEntornoSiTocaAfuera').
+      function filtrarEntorno() {
         var termino = normalizarTexto(entornoSearch.value);
         var botones = document.querySelectorAll('#entornoOpciones .gdf-multi-opt');
-        var hayCoincidencias = false;
+        var hayVisibles = false;
         for (var i = 0; i < botones.length; i++) {
-          var visible = termino !== '' && normalizarTexto(botones[i].textContent).indexOf(termino) > -1;
+          var visible = termino === '' || normalizarTexto(botones[i].textContent).indexOf(termino) > -1;
           botones[i].classList.toggle('oculto', !visible);
-          if (visible) hayCoincidencias = true;
+          if (visible) hayVisibles = true;
         }
-        if (entornoLista) entornoLista.classList.toggle('abierto', hayCoincidencias);
+        if (entornoLista) entornoLista.classList.toggle('abierto', hayVisibles);
+      }
+      entornoSearch.addEventListener('input', filtrarEntorno);
+      // 'focus' cubre el caso normal (entrar al campo); 'click' cubre el
+      // caso raro en que el campo ya tenía el foco pero el panel se había
+      // cerrado por un clic afuera que no llegó a quitarle el foco al input
+      // —'focus' no se dispara dos veces sin un blur de por medio—.
+      entornoSearch.addEventListener('focus', filtrarEntorno);
+      entornoSearch.addEventListener('click', filtrarEntorno);
+    }
+
+    // El buscador de barrios de la pregunta 'zona'. Igual que el de arriba:
+    // solo aparece con texto escrito, y la selección en curso se reinicia
+    // porque este código solo corre tras un render que aterriza aquí.
+    var zonaSearch = document.getElementById('zonaSearch');
+    if (zonaSearch) {
+      // Se RECUPERA lo ya elegido en vez de empezar en blanco: a esta pregunta
+      // se vuelve con "Atrás", y encontrarse el mapa vacío después de haber
+      // elegido tres zonas se lee como que se perdieron.
+      zonaSeleccion = (state.zonaSectores || []).slice();
+      zonaSearch.addEventListener('input', renderZonaSugerencias);
+      // Enter elige la primera sugerencia; si ya hay algo elegido, continúa.
+      zonaSearch.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var primera = document.querySelector('#zonaOpciones .gdf-zona-opt');
+        if (primera) {
+          primera.click();
+          return;
+        }
+        var btn = document.querySelector('[data-action="answerQuizZona"]');
+        if (btn && zonaSeleccion.length) btn.click();
       });
     }
+  }
+
+  // ------------------------------------------------ scroll de los resultados
+
+  var soltarScroll = null;
+
+  /**
+   * Marca `.gdf-result` mientras se está scrolleando, y congela el fondo
+   * animado durante ese rato. Las dos cosas atacan el mismo síntoma: que bajar
+   * por la lista de proyectos se sintiera a tirones.
+   *
+   * SON DOS CAUSAS DISTINTAS Y HACEN FALTA LAS DOS.
+   *
+   *   1. Las tarjetas SE MUEVEN SOLAS mientras la lista pasa bajo un cursor
+   *      quieto: cada una recibe `:hover` al cruzarlo y se levanta 2px. Eso es
+   *      lo que se lee como "salta todo". Lo corta la clase `scrolleando`,
+   *      que les quita los punteros (ver el CSS de `.gdf-project-card:hover`).
+   *
+   *   2. Detrás de la lista hay un canvas a pantalla completa repintándose a
+   *      60 fps (`js/senal.js`), y el panel que scrollea es TRANSPARENTE en la
+   *      marca Machea —`.gdf-con-senal .gdf-result { background: transparent }`—.
+   *      Un contenedor transparente sobre un fondo que cambia en cada frame no
+   *      se puede desplazar copiando píxeles: hay que repintarlo entero cada
+   *      vez. Parar la red mientras dura el gesto deja el fondo quieto y el
+   *      scroll vuelve a ser un simple desplazamiento. Nadie nota que una red
+   *      ambiental se congela 140 ms.
+   *
+   * El listener va sobre el nodo, no sobre el documento, y se re-engancha en
+   * cada render porque `render()` reconstruye el innerHTML entero: el
+   * `.gdf-result` de ahora no es el mismo nodo que el de antes. `soltarScroll`
+   * suelta el anterior para no dejar temporizadores de una pantalla que ya no
+   * existe.
+   */
+  function engancharScrollResultados() {
+    if (soltarScroll) soltarScroll();
+    var panel = document.querySelector('.gdf-result');
+    if (!panel) return;
+
+    var quieto = null;
+    function alScrollear() {
+      if (!quieto) {
+        panel.classList.add('scrolleando');
+        if (window.GDF.senal) window.GDF.senal.pausar();
+      }
+      clearTimeout(quieto);
+      // 140 ms sin un solo evento de scroll = el gesto terminó. Con menos, la
+      // inercia de un trackpad lo reactiva a cada instante y el hover parpadea.
+      quieto = setTimeout(function () {
+        quieto = null;
+        panel.classList.remove('scrolleando');
+        if (window.GDF.senal) window.GDF.senal.reanudar();
+      }, 140);
+    }
+
+    panel.addEventListener('scroll', alScrollear, { passive: true });
+    soltarScroll = function () {
+      clearTimeout(quieto);
+      panel.removeEventListener('scroll', alScrollear);
+      // Si se sale de la pantalla a mitad de un scroll, la red se quedaría
+      // congelada para siempre.
+      if (quieto && window.GDF.senal) window.GDF.senal.reanudar();
+      soltarScroll = null;
+    };
+  }
+
+  // ---------------------------------------------------------------- zona
+
+  // El mismo escape de templates.js: las sugerencias del buscador se pintan
+  // con innerHTML y llevan nombres de barrio que vienen de un archivo
+  // generado, no de la maquetación.
+  function esc(s) {
+    return window.GDF.templates.esc(s);
+  }
+
+  // Nombre de localidad a partir del id 1..20 del índice de barrios.
+  function localidadPorId(id) {
+    var lista = (window.GDF.data && window.GDF.data.LOCALIDADES) || [];
+    return lista[id - 1] || null;
+  }
+
+  // Las ~8 mejores coincidencias del buscador de barrios.
+  //
+  // ORDEN: primero lo que EMPIEZA por lo escrito, después lo que solo lo
+  // contiene; dentro de cada grupo, la clave más corta primero. Ojo que esto
+  // NO es la regla de _GAZETTEER_ORDENADO del scraper (más largo primero):
+  // aquella resuelve qué frase reconocer dentro de una dirección completa,
+  // donde la más larga es la más específica. Aquí el usuario está tecleando
+  // un prefijo, y lo que espera ver arriba es "Suba", no "Suba Rincón".
+  function sugerenciasZona(termino) {
+    var idx = window.GDF_BARRIOS || [];
+    var empiezan = [];
+    var contienen = [];
+    for (var i = 0; i < idx.length; i++) {
+      var pos = idx[i][0].indexOf(termino);
+      if (pos === 0) empiezan.push(idx[i]);
+      else if (pos > 0) contienen.push(idx[i]);
+    }
+    var porLargo = function (a, b) { return a[0].length - b[0].length; };
+    empiezan.sort(porLargo);
+    contienen.sort(porLargo);
+    // UN SITIO, UNA FILA. El gazetteer trae alias del mismo lugar para poder
+    // reconocerlo dentro de una dirección — "candelaria" y "la candelaria",
+    // "martires" y "los martires", "tunal" y "el tunal" — y los dos aciertan
+    // al buscar. Mostrarlos juntos daría dos filas idénticas y ninguna pista
+    // de en qué se diferencian. Se dedupe al pintar, no en el índice: quitar
+    // la clave de más rompería una de las dos formas de escribirlo.
+    // La identidad es el POLÍGONO (`bi`, ver GDF_BARRIOS en mapa_bogota.js),
+    // no el nombre: "chico" y "el chico" apuntan al mismo, y salen una vez.
+    var vistos = {};
+    var salida = [];
+    var todos = empiezan.concat(contienen);
+    for (var j = 0; j < todos.length && salida.length < 8; j++) {
+      var llave = todos[j][1] + '|' + (todos[j][3] != null ? todos[j][3] : todos[j][2]);
+      if (vistos[llave]) continue;
+      vistos[llave] = true;
+      salida.push(todos[j]);
+    }
+    return salida;
+  }
+
+  // El desplegable se pinta al vuelo y no pre-renderizado como el de
+  // 'entorno_deseado': son 1.258 entradas —el gazetteer mas los sectores
+  // catastrales que trajo el mapa—, y crear esos nodos en cada repintado del
+  // quiz para tenerlos ocultos no compensa.
+  function renderZonaSugerencias() {
+    var input = document.getElementById('zonaSearch');
+    var lista = document.getElementById('zonaOpciones');
+    if (!input || !lista) return;
+    var termino = normalizarTexto(input.value).trim();
+    if (!termino) {
+      lista.classList.remove('abierto');
+      lista.innerHTML = '';
+      return;
+    }
+    var filas = sugerenciasZona(termino);
+    lista.innerHTML = filas
+      .map(function (f) {
+        var loc = localidadPorId(f[1]);
+        // `bi` es el polígono exacto de esta entrada (ver GDF_BARRIOS). Viaja
+        // en el botón para que `mapa.marcar` pinte ESE y no el primero que se
+        // llame igual: hay nombres repetidos dentro de una misma localidad.
+        var bi = f[3] != null ? ' data-bi="' + f[3] + '"' : '';
+        // El barrio grande, y debajo la localidad a la que resuelve: es lo
+        // que evita prometer un filtro por barrio que el modelo no hace.
+        return (
+          '<button type="button" class="gdf-multi-opt gdf-zona-opt" data-action="elegirZona"' +
+          ' data-loc="' + esc(loc) + '" data-barrio="' + esc(f[2]) + '"' + bi + '>' +
+          '<span class="b">' + esc(f[2]) + '</span>' +
+          (loc && normalizarTexto(loc) !== f[0] ? '<span class="l">' + esc(loc) + '</span>' : '') +
+          '</button>'
+        );
+      })
+      .join('');
+    lista.classList.toggle('abierto', filas.length > 0);
+  }
+
+  // La identidad de un sector elegido. El barrio cuando lo hay y, si no, la
+  // localidad: así "Suba" a secas y el barrio "Suba Rincón" son cosas
+  // distintas y las dos se pueden tener a la vez.
+  function claveZona(localidad, barrio) {
+    return normalizarTexto(barrio || localidad || '');
+  }
+
+  /**
+   * Agrega o quita un sector de la selección, y pone de acuerdo a los cuatro
+   * controles: el buscador, los chips, el mapa y el botón Continuar. Sin pasar
+   * por dispatch()/render(), por lo dicho en `zonaSeleccion`.
+   *
+   * ALTERNA, no fija: volver a tocar un sector ya elegido lo quita. Es la
+   * única forma de deshacer directamente sobre el mapa —donde no hay una × que
+   * pulsar— y es lo mismo que hace la grilla de `entorno_deseado`.
+   */
+  function alternarZonaValor(localidad, barrio, bi) {
+    if (!localidad) return;
+    var clave = claveZona(localidad, barrio);
+    var yaEsta = -1;
+    for (var i = 0; i < zonaSeleccion.length; i++) {
+      if (claveZona(zonaSeleccion[i].localidad, zonaSeleccion[i].barrio) === clave) {
+        yaEsta = i;
+        break;
+      }
+    }
+    if (yaEsta > -1) zonaSeleccion.splice(yaEsta, 1);
+    // `bi` es la posición del barrio dentro de su localidad y solo la trae el
+    // mapa, que sabe exactamente qué polígono se tocó. Viaja para que
+    // `mapa.marcar` resalte ESE y no otro con el mismo nombre: hay 46 nombres
+    // de sector repetidos entre localidades y 23 repetidos dentro de una misma
+    // (ver `porLoc` y `barrioPorIndice` en js/mapa.js). Es dato de pintado, no
+    // de negocio: no entra en `answers` ni viaja al modelo, que sigue
+    // filtrando por localidad.
+    else zonaSeleccion.push({
+      localidad: localidad,
+      barrio: barrio || null,
+      bi: bi == null ? null : bi,
+    });
+
+    sincronizarZona();
+  }
+
+  /** Repinta todo lo que depende de `zonaSeleccion`. */
+  function sincronizarZona() {
+    // El buscador se VACIA en vez de quedarse con lo último elegido: ahora la
+    // confirmación de lo que hay elegido son los chips DENTRO del propio
+    // campo, y dejar el texto puesto obligaría a borrarlo a mano para buscar
+    // el siguiente.
+    var input = document.getElementById('zonaSearch');
+    if (input) {
+      input.value = '';
+      // El placeholder cambia una vez hay algo elegido: no hace falta seguir
+      // explicando qué es esto, y "Agregar otra zona…" deja claro que se
+      // puede seguir sumando. zonaPanel() ya lo pinta así al renderizar de
+      // cero; esto es lo que lo mantiene correcto cuando se agrega o quita un
+      // chip SIN pasar por un render completo (ver el comentario de
+      // `zonaSeleccion` sobre por qué no se usa dispatch()/render() aquí).
+      input.placeholder = zonaSeleccion.length
+        ? 'Agregar otra zona…'
+        : 'Busca tu barrio (Cedritos, El Polo…)';
+    }
+
+    // El mapa vive en el lienzo grande y lo pinta Leaflet, no este HTML: se
+    // le pide a el que marque. Si no esta montado (sin red, o fuera de esta
+    // pregunta) no pasa nada — el buscador funciona igual.
+    if (window.GDF.mapa) window.GDF.mapa.marcar(zonaSeleccion);
+
+    renderZonaChips();
+
+    var eco = document.getElementById('zonaEco');
+    if (eco && window.GDF.templates && window.GDF.templates.zonaEco) {
+      eco.innerHTML = window.GDF.templates.zonaEco(zonaSeleccion);
+    }
+
+    var lista = document.getElementById('zonaOpciones');
+    if (lista) {
+      lista.classList.remove('abierto');
+      lista.innerHTML = '';
+    }
+
+    var btn = document.querySelector('[data-action="answerQuizZona"]');
+    if (btn) btn.classList.toggle('enabled', zonaSeleccion.length > 0);
+  }
+
+  /** Un chip por sector elegido, con su × para quitarlo. Mismo patrón que
+   *  `renderEntornoChips`, y reusa sus estilos. */
+  function renderZonaChips() {
+    var cont = document.getElementById('zonaChips');
+    if (!cont) return;
+    cont.innerHTML = zonaSeleccion
+      .map(function (sector) {
+        var etiqueta = sector.barrio && sector.barrio !== sector.localidad
+          ? sector.barrio + ' · ' + sector.localidad
+          : sector.localidad;
+        return (
+          '<span class="gdf-entorno-chip">' + esc(etiqueta) +
+          '<button type="button" class="gdf-entorno-chip-x" data-action="quitarZona"' +
+          ' data-loc="' + esc(sector.localidad) + '"' +
+          ' data-barrio="' + esc(sector.barrio || '') + '"' +
+          ' aria-label="Quitar ' + esc(etiqueta) + '">×</button>' +
+          '</span>'
+        );
+      })
+      .join('');
   }
 
   // Sin tildes ni mayúsculas, para que "bano" encuentre "Baño" al buscar.
@@ -234,11 +524,16 @@
       }
     }
     renderEntornoChips();
-    // Cierra el panel de resultados apenas se elige algo: la confirmación
-    // visual es el chip nuevo abajo, no dejar la lista abierta encima tapando
-    // la fila de chips que se acaba de actualizar.
-    var lista = document.getElementById('entornoOpciones');
-    if (lista) lista.classList.remove('abierto');
+    // LA LISTA SE QUEDA ABIERTA. Antes se cerraba en cuanto se elegía algo, y
+    // eso convertía "quiero piscina, gimnasio y zona BBQ" en tres viajes:
+    // abrir, elegir uno, volver a abrir. Casi nadie pide una sola amenidad, así
+    // que lo normal es seguir eligiendo — la lista se queda hasta que se toque
+    // fuera de ella (ver `cerrarEntornoSiTocaAfuera` en boot()).
+    //
+    // La confirmación de lo elegido no se pierde por dejarla abierta: el botón
+    // de la opción se queda marcado con `.selected` justo arriba, que es
+    // feedback en el sitio donde está mirando la persona. El chip de abajo lo
+    // dice otra vez cuando la lista se cierre.
   }
 
   function renderEntornoChips() {
@@ -305,10 +600,6 @@
       updateTipologiaDOM(dataset);
       return;
     }
-    if (action === 'simSet') {
-      updateSimuladorDOM();
-      return;
-    }
     if (action === 'setDetalleAbierto') return; // el <details> ya se pintó solo
     // Se acaba de elegir el apartamento: se pide su plano ya, para que la
     // primera pieza que caiga no lo haga contra un hueco en blanco.
@@ -331,8 +622,8 @@
       cargarRecomendaciones();
     }
 
-    // PASO 2 del contrato. Ya no hace falta un botón de "Confirmar": elegir el
-    // proyecto y tocar "Continuar" (goConfirmacion) ES la confirmación, así
+    // PASO 2 del contrato. Ya no hace falta un botón de "Confirmar": tocar
+    // "Llamar" en la tarjeta (llamarProyecto) ES la confirmación, así
     // que la llamada de Manuela se dispara sola al entrar a esta pantalla —
     // misma idea que el paso 1 con 'result'. La pantalla relata en qué estado
     // va (ver confirmacion() en templates.js, y js/llamada.js para el POST).
@@ -494,6 +785,61 @@
     attachInputListeners();
     updatePlantaDOM(derived);
     updateEscenaExtrasDOM(derived);
+    updateMapaDOM(derived);
+  }
+
+  /**
+   * Pone o quita el mapa del lienzo segun la pregunta en la que se este.
+   *
+   * Es una operacion QUIRURGICA sobre un solo nodo, igual que la que hace
+   * updateEscenaExtrasDOM con `.gdf-halo`: no toca `.gdf-losa` ni los
+   * `.gdf-room`, asi que la escena nunca se reconstruye por innerHTML.
+   *
+   * El orden importa en los dos sentidos:
+   *   - al quitarlo, `desmontar()` va ANTES de sacar el nodo del DOM. Al reves,
+   *     Leaflet se queda con listeners sobre un nodo huerfano y la siguiente
+   *     vuelta a esta pregunta falla con "Map container is already initialized".
+   *   - al ponerlo, primero el nodo y despues `montar()`, que necesita medirlo.
+   */
+  function updateMapaDOM(derived) {
+    if (!window.GDF.mapa) return;
+    var escena = root.querySelector('.gdf-scene');
+    if (!escena) return;
+    var toca = !!(derived.q && derived.q.escena === 'mapa');
+    var nodo = document.getElementById('zonaMapa');
+
+    if (toca && !nodo) {
+      // Caso updateQuizDOM: se llega a la pregunta desde otra y el nodo no
+      // existe todavia, porque la escena no se repinta.
+      escena.insertAdjacentHTML('beforeend', '<div class="gdf-mapa-real" id="zonaMapa"></div>');
+      window.GDF.mapa.montar(document.getElementById('zonaMapa'), elegirZonaDesdeMapa);
+      sincronizarZona();
+    } else if (toca && nodo && !window.GDF.mapa.montado()) {
+      // Caso render completo: sceneBlock ya emitio el nodo, pero vacio.
+      window.GDF.mapa.montar(nodo, elegirZonaDesdeMapa);
+      // DESPUES de montar, no antes: `marcar()` sobre un mapa que aun no
+      // existe no pinta nada, y este es el camino por el que se vuelve a la
+      // pregunta con las zonas ya elegidas.
+      sincronizarZona();
+    } else if (!toca && nodo) {
+      window.GDF.mapa.desmontar();
+      nodo.remove();
+    }
+  }
+
+  // Lo que ocurre al tocar una zona en el mapa. Se separa en una funcion con
+  // nombre porque se le pasa a js/mapa.js como callback y conviene que en un
+  // stack trace se lea de donde sale.
+  //
+  // El mapa manda las DOS cosas: la localidad, que es lo que entiende el
+  // modelo, y el barrio que hay bajo el dedo, que es lo que la persona cree
+  // que esta tocando. `barrio` viene null donde no hay sector catastral
+  // —huecos entre barrios, zona rural—, y ahi vale la localidad sola.
+  // `bi` es la posicion del sector dentro de su localidad y solo existe por
+  // esta via: el mapa sabe exactamente cual toco el dedo. Ver el comentario de
+  // `alternarZonaValor`.
+  function elegirZonaDesdeMapa(nombre, barrio, bi) {
+    alternarZonaValor(nombre, barrio, bi);
   }
 
   /**
@@ -955,40 +1301,6 @@
     }, 300);
   }
 
-  // Recalcula el recibo al mover cualquier control del paso 2 del simulador.
-  // Repinta SOLO '#simResultado'; los botones segmentados se actualizan
-  // moviéndoles la clase .active, sin tocar el resto del panel — así el
-  // slider no pierde el arrastre ni el input de ingreso el foco.
-  function updateSimuladorDOM() {
-    var ctx = window.GDF.templates.contextoSimulador(state);
-    if (!ctx) return;
-
-    var panel = document.querySelector('.gdf-credito-modal');
-    if (!panel) return;
-
-    var botones = panel.querySelectorAll('.gdf-simc-opt');
-    for (var i = 0; i < botones.length; i++) {
-      var b = botones[i];
-      // Todos los valores se comparan como STRING: los campos del simulador
-      // mezclan números (inicial) con etiquetas ('uvr', 'A'), y normalizar en
-      // un solo sentido evita una comparación distinta por campo.
-      b.classList.toggle('active', b.dataset.valor === String(ctx.cfg[b.dataset.campo]));
-    }
-
-    // El interruptor del complementario no es un segmento: alterna, así que
-    // su data-valor tiene que quedar apuntando a la acción CONTRARIA.
-    var swProducto = panel.querySelector('.gdf-simc-producto[data-campo="complementario"]');
-    if (swProducto) {
-      swProducto.classList.toggle('on', ctx.cfg.complementario);
-      swProducto.dataset.valor = ctx.cfg.complementario ? '0' : '1';
-    }
-
-    var out = document.getElementById('simResultado');
-    if (out) {
-      out.innerHTML = window.GDF.templates.simuladorResultado(ctx, state.answers.ingresos);
-    }
-  }
-
   function findQuestionById(qid) {
     var QUESTIONS = window.GDF.data.QUESTIONS;
     for (var i = 0; i < QUESTIONS.length; i++) {
@@ -1001,9 +1313,8 @@
     var el = e.target.closest('[data-action]');
     if (!el) return;
 
-    // 'noop' es el freno del burbujeo: el <details> de planos de cada tarjeta y
-    // el panel del simulador. Sin él, cualquier clic ahí dentro burbujearía
-    // hasta el `chooseProject` de la tarjeta y marcaría el proyecto sin querer.
+    // 'noop' es el freno del burbujeo del <details> de planos de cada tarjeta:
+    // un clic ahí dentro no debe despachar ninguna acción del estado.
     if (el.dataset.action === 'noop') {
       if (el.tagName === 'A') e.preventDefault();
       return;
@@ -1067,6 +1378,49 @@
       toggleEntornoValor(el.dataset.value);
       return;
     }
+    // 'zona': tocar el mapa o elegir un barrio del buscador. NO avanza de
+    // pregunta —solo agrega a la selección y pone de acuerdo los controles—;
+    // se compromete al pulsar Continuar, abajo. Con varias zonas esto importa
+    // más que antes: autoavanzar al primer clic haría imposible pedir dos.
+    if (el.dataset.action === 'elegirZona') {
+      // El polígono exacto de la sugerencia (ver `renderZonaSugerencias`).
+      // Sin él —los 20 nombres de localidad— se pinta la localidad sola.
+      var bi = el.dataset.bi === undefined ? null : parseInt(el.dataset.bi, 10);
+      alternarZonaValor(el.dataset.loc, el.dataset.barrio, bi);
+      // Solo desde el buscador se mueve el mapa. Al tocar una zona no: la
+      // persona ya esta mirando donde toco, y recentrarle la vista debajo del
+      // dedo se siente como si el mapa se le escapara.
+      //
+      // Y vuela al BARRIO cuando lo hay, no a la localidad entera: quien
+      // escribio "Cedritos" quiere ver Cedritos, no Usaquen.
+      if (window.GDF.mapa) window.GDF.mapa.volarA(el.dataset.loc, el.dataset.barrio, bi);
+      return;
+    }
+    // La × de un chip. Alterna igual que elegirlo: quitar es volver a tocar.
+    if (el.dataset.action === 'quitarZona') {
+      alternarZonaValor(el.dataset.loc, el.dataset.barrio || null);
+      return;
+    }
+    if (el.dataset.action === 'answerQuizZona') {
+      if (!zonaSeleccion.length) return;
+      // Los sectores se guardan aparte de `answers`: es solo para poder decir
+      // "Cedritos · Usaquén" en la ficha, y el catálogo no indexa por barrio.
+      state.zonaSectores = zonaSeleccion.slice();
+      // `zonaBarrio` se conserva —lo leen templates.js y la ficha— con el
+      // barrio de la PRIMERA zona: es la que también acaba en `answers.zona`.
+      state.zonaBarrio = zonaSeleccion[0].barrio;
+      // TODAS las localidades pedidas, sin repetir, para el modelo. Va dentro
+      // de `answers` porque es lo que reciben matching.js y machea.js, y no
+      // cuenta como una pregunta más: computeDerived() filtra por id de
+      // pregunta, no por las llaves de `answers`.
+      var nombresLoc = [];
+      zonaSeleccion.forEach(function (sector) {
+        if (nombresLoc.indexOf(sector.localidad) < 0) nombresLoc.push(sector.localidad);
+      });
+      state.answers.zonas = nombresLoc;
+      dispatch('selectOption', { qid: el.dataset.qid, value: nombresLoc[0] });
+      return;
+    }
 
     dispatch(el.dataset.action, el.dataset);
   }
@@ -1079,23 +1433,23 @@
   // pantalla; en cualquier otra pantalla no hace nada.
   function cerrarEntornoSiTocaAfuera(e) {
     var combo = document.querySelector('.gdf-entorno-combo');
-    var lista = document.getElementById('entornoOpciones');
-    if (!combo || !lista) return;
+    if (!combo) return;
+    // Las dos preguntas con buscador reusan '.gdf-entorno-combo', pero cada
+    // una nombra su propia lista. Solo una existe a la vez.
+    var lista = document.getElementById('entornoOpciones') || document.getElementById('zonaOpciones');
+    if (!lista) return;
     if (!combo.contains(e.target)) lista.classList.remove('abierto');
-  }
-
-  // Escape cierra el simulador. Mismo criterio que el listener de arriba: se
-  // registra una sola vez en boot(), no por render.
-  function cerrarModalConEscape(e) {
-    if (e.key !== 'Escape' || !state.simulador) return;
-    dispatch('cerrarSimulador', {});
   }
 
   function boot() {
     root = document.getElementById('root');
     root.addEventListener('click', onRootClick);
     document.addEventListener('click', cerrarEntornoSiTocaAfuera);
-    document.addEventListener('keydown', cerrarModalConEscape);
+    // El fondo AI Signal. Va ANTES del primer render y una sola vez: cuelga
+    // del <body>, así que los re-renders de #root no lo tocan y la red sigue
+    // corriendo igual al pasar de la escarapela al quiz. Se monta solo con la
+    // marca Machea (ver senal.js).
+    if (window.GDF.senal) window.GDF.senal.montar();
     render();
   }
 

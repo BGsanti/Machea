@@ -16,9 +16,9 @@
   // LA MARCA ACTIVA
   // -------------------------------------------------------------------------
   // Los literales de marca que estaban repartidos por este archivo (el nombre,
-  // el logo, la pregunta de afiliación, el Habeas Data, los avisos del
-  // simulador, el cierre) salen ahora del manifiesto del tenant, para que la
-  // misma app pueda vestirse de cualquier constructora.
+  // el logo, la pregunta de afiliación, el Habeas Data, el cierre) salen
+  // ahora del manifiesto del tenant, para que la misma app pueda vestirse de
+  // cualquier constructora.
   //
   // CADA LECTURA LLEVA SU DEFAULT, y el default es el texto de Colsubsidio tal
   // como estaba escrito. Se duplica a propósito: si el manifiesto no cargara,
@@ -442,14 +442,32 @@
     var piso = answers.piso_preferido ? ' data-piso="' + esc(answers.piso_preferido) + '"' : '';
     var haloHtml = answers.entorno_deseado ? haloAmenidadesHtml(planta, answers) : '';
 
+    // EL MAPA TAPA LA ESCENA, NO LA SUSTITUYE. En la pregunta de ubicación el
+    // lienzo lo ocupa el mapa de Bogotá, pero `.gdf-scene` se sigue pintando
+    // igual y el mapa entra como un hijo en position:absolute encima.
+    //
+    // Es deliberado: reconstruir la escena por innerHTML destruye los
+    // `.gdf-room` y entonces cada respuesta rehace el plano entero en vez de
+    // añadirle una pieza (ver updateQuizDOM en main.js). Tapándola, la losa y
+    // la silueta no se destruyen NUNCA y esa invariante queda intacta.
+    //
+    // Y no hay nada que tapar de todos modos: con cero respuestas
+    // `scene.celdasVisibles` devuelve 0, así que durante esa pregunta no
+    // existe ni una sola pieza pintada.
+    //
+    // El nodo va vacío: lo llena Leaflet cuando main.js lo monta (js/mapa.js).
+    var mapaHtml = derived.q && derived.q.escena === 'mapa'
+      ? '<div class="gdf-mapa-real" id="zonaMapa"></div>'
+      : '';
+
     // Sin rótulo ni marca de localidad: el apartamento es un EJEMPLO para
     // enseñar cómo se arma una vivienda, y nombrarlo solo invita a creer que es
     // la recomendación. La recomendación sale al final, calculada con las
     // respuestas. Además el nombre de la localidad chocaba con la que el
-    // usuario acababa de elegir en la pregunta 5.
+    // usuario acababa de elegir.
     return (
       '<div class="gdf-scene"' + piso + '>' +
-      loteHtml + roomsHtml + haloHtml +
+      loteHtml + roomsHtml + haloHtml + mapaHtml +
       '</div>'
     );
   }
@@ -467,6 +485,82 @@
     // responder una pregunta NO se pasa por aquí — main.js parchea el DOM para
     // que solo caiga de la grúa la pieza nueva. Ver updateQuizDOM.
     return sceneBlock(state, derived, true) + quizPanel(state, derived);
+  }
+
+  // Texto de confirmación de la pregunta 'zona'. Lo repinta main.js sin pasar
+  // por render(), igual que los chips de 'entorno_deseado': un re-render en
+  // cada tecla perdería el foco del buscador.
+  // Recibe la LISTA de sectores elegidos, `[{localidad, barrio}, ...]`. Los
+  // nombres de cada uno los pintan los chips (ver renderZonaChips en main.js);
+  // esto es la línea de estado que va debajo: cuántos van y qué conviene saber.
+  function zonaEco(sectores) {
+    var lista = sectores || [];
+    if (!lista.length) {
+      return '<span class="vacio">Toca en el mapa las zonas donde te gustaría vivir, o búscalas arriba. Puedes elegir varias.</span>';
+    }
+    var oferta = window.GDF.data.OFERTA || {};
+    // Las localidades DISTINTAS: dos barrios de Suba son una sola localidad
+    // para el modelo, y decir "2 zonas" cuando filtra por una sería mentir.
+    var locs = [];
+    lista.forEach(function (s) {
+      if (locs.indexOf(s.localidad) < 0) locs.push(s.localidad);
+    });
+    var txt = lista.length === 1
+      ? '<strong>1 zona elegida</strong>'
+      : '<strong>' + lista.length + ' zonas elegidas</strong>';
+    if (locs.length !== lista.length) {
+      txt += '<span class="en">en ' + locs.length +
+        (locs.length === 1 ? ' localidad' : ' localidades') + '</span>';
+    }
+    // Las que no tienen un solo proyecto se pueden elegir igual: el modelo
+    // expande a las vecinas por su grafo. Se avisa para que no sorprenda, y se
+    // nombran, que con varias elegidas hace falta saber cuál es.
+    var sinOferta = locs.filter(function (l) { return !oferta[l]; });
+    if (sinOferta.length) {
+      txt += '<span class="aviso">Sin proyectos propios en ' + esc(sinOferta.join(', ')) +
+        ' — ahí te mostramos los de las zonas vecinas.</span>';
+    }
+    return txt;
+  }
+
+  // EL PANEL DE LA PREGUNTA DE UBICACIÓN. Aquí solo va el buscador de
+  // barrios: el mapa vive en el lienzo grande (ver `escena: 'mapa'` en
+  // data.js y el `.gdf-mapa-real` de sceneBlock), no dentro de esta columna.
+  //
+  // Los dos caminos llevan al mismo sitio, el NOMBRE de una localidad, que es
+  // lo que `state.answers.zona` ha guardado siempre y lo que traducen a
+  // `Localidad` 1..20 el localidadId() de machea.js y el motor local.
+  //
+  // NO autoavanza al tocar el mapa, y ahí se aparta de la grilla de botones:
+  // si el primer clic saltara de pregunta no habría nada que sincronizar
+  // entre mapa y buscador, ni forma de corregirse. La elección en curso vive
+  // fuera de `state` (ver `zonaSeleccion` en main.js) y se compromete al
+  // pulsar Continuar, exactamente como 'entorno_deseado'.
+  function zonaPanel(q, state) {
+    // Habilitado si ya había zonas elegidas —se vuelve aquí con "Atrás"—; con
+    // la lista vacía, el botón lo enciende sincronizarZona() al primer clic.
+    var elegida = (state.zonaSectores || []).length;
+    return (
+      '<div class="gdf-quiz-freeform gdf-zona">' +
+      '<div class="gdf-entorno-combo">' +
+      // LAS ETIQUETAS VAN DENTRO DEL BUSCADOR, como un campo de "para:" de
+      // correo. El borde y el fondo que antes llevaba <input> se mudan a este
+      // envoltorio; el <input> de adentro queda transparente y sin borde
+      // propio, así que visualmente los dos son una sola caja. Un chip por
+      // sector elegido, igual que en 'entorno_deseado' y con sus mismos
+      // estilos — lo llena renderZonaChips() en main.js.
+      '<div class="gdf-zona-input-wrap" id="zonaInputWrap">' +
+      '<div class="gdf-entorno-chips" id="zonaChips"></div>' +
+      '<input class="gdf-input gdf-zona-input" id="zonaSearch" type="text" autocomplete="off" ' +
+      'placeholder="' + (elegida ? 'Agregar otra zona…' : 'Busca tu barrio (Cedritos, El Polo…)') + '" />' +
+      '</div>' +
+      '<div class="gdf-multi-opt-list" id="zonaOpciones"></div>' +
+      '</div>' +
+      '<p class="gdf-zona-eco" id="zonaEco">' + zonaEco(state.zonaSectores) + '</p>' +
+      '<button class="gdf-btn-primary' + (elegida ? ' enabled' : '') + '" ' +
+      'data-action="answerQuizZona" data-qid="' + q.id + '">Continuar →</button>' +
+      '</div>'
+    );
   }
 
   function quizPanel(state, derived) {
@@ -488,13 +582,15 @@
         '<input class="gdf-input" id="quizTextInput" type="text" placeholder="' + esc(q.placeholder || '') + '" />' +
         '<button class="gdf-btn-primary enabled" data-action="answerQuizText" data-qid="' + q.id + '">Continuar →</button>' +
         '</div>';
+    } else if (q && q.type === 'zona') {
+      answerAreaHtml = zonaPanel(q, state);
     } else if (q && q.type === 'multiselect') {
-      // Buscador puro: la lista NO es un bloque aparte ni se puede "explorar
-      // todo" — solo aparece, filtrada, mientras hay texto con coincidencias
-      // (ver main.js). Flota pegado al buscador (position:absolute sobre
-      // '.gdf-entorno-combo', ver CSS), por eso no es un <details> nativo:
-      // ahí no hay forma de decidir por JS cuándo mostrarlo. Debajo, en su
-      // propio lugar: chips de lo elegido y Continuar al final.
+      // Buscador con "explorar todo": al enfocar aparece el listado completo
+      // (25 zonas, precargadas de una — ver main.js) y escribir lo filtra.
+      // Flota pegado al buscador (position:absolute sobre '.gdf-entorno-combo',
+      // ver CSS), por eso no es un <details> nativo: ahí no hay forma de
+      // decidir por JS cuándo mostrarlo. Debajo, en su propio lugar: chips de
+      // lo elegido y Continuar al final.
       var multiOpts = q.options
         .map(function (o) {
           return (
@@ -540,16 +636,28 @@
       // la barra falsa que había antes, esta puede BAJAR si una respuesta
       // aleja a la persona del catálogo, y prometerle "compatibilidad" a secas
       // haría que bajar se leyera como un error de la app.
-      '<div class="gdf-compat">' +
-      '<div class="gdf-compat-row"><span>Encaje con el catálogo ahora mismo</span><span>' + derived.compat + '%</span></div>' +
-      '<div class="gdf-progress-track"><div class="gdf-progress-fill" style="width:' + derived.compat + '%"></div></div>' +
-      '</div>' +
+      //
+      // NO SE MUESTRA HASTA LA SEGUNDA RESPUESTA. Con una sola contestada el
+      // número lo decide un único factor, y desde que `zona` va primera ese
+      // factor es el más brusco de la fórmula: +29 si el proyecto está en la
+      // localidad pedida, −16 si no (ver matching.js). Quien elija una de las
+      // seis localidades sin oferta veía la barra caer a su suelo del 40 % en
+      // la primera pantalla del quiz, que se lee como "no hay nada para ti"
+      // cuando en realidad el modelo va a expandir a las vecinas y sí le va a
+      // responder. A partir de dos respuestas el número ya promedia varios
+      // factores y vuelve a significar algo.
+      (derived.answered >= 2
+        ? '<div class="gdf-compat">' +
+          '<div class="gdf-compat-row"><span>Encaje con el catálogo ahora mismo</span><span>' + derived.compat + '%</span></div>' +
+          '<div class="gdf-progress-track"><div class="gdf-progress-fill" style="width:' + derived.compat + '%"></div></div>' +
+          '</div>'
+        : '<div class="gdf-compat gdf-compat-vacia"></div>') +
       // LAS TRES ZONAS. La barra de arriba y el "Atrás" de abajo son los dos
       // puntos fijos del panel: entre pregunta y pregunta no se mueven ni un
       // píxel. Todo lo que cambia vive en `.gdf-quiz-cuerpo`, que es lo único
       // que respira — se centra cuando sobra sitio (la pregunta de
       // habitaciones son tres botones en una fila) y scrollea cuando falta
-      // (las 20 localidades de `zona`).
+      // (el buscador de barrios de `zona`, o las 25 amenidades).
       //
       // El envoltorio hace falta AUNQUE en móvil no se use la maqueta de tres
       // zonas: es también lo que agrupa a los hijos que entran escalonados, y
@@ -728,9 +836,6 @@
         '</div>';
     }
 
-    var elegido = state.chosen;
-    var ctaLabel = elegido ? 'Continuar →' : 'Elige un proyecto para continuar';
-
     // Cuando las tarjetas salen del motor local hay que decirlo, siempre. Que
     // el backend esté caído no puede parecer un resultado del modelo.
     var avisoAprox = reco.aproximado
@@ -740,7 +845,9 @@
 
     return (
       avisoAprox +
-      '<p class="gdf-match-count">Ordenados por afinidad con tu perfil. Elige el que más te interese.' +
+      // Sin "Continuar" al pie ni proyecto que marcar: cada tarjeta trae sus
+      // propios botones de llamar y WhatsApp (ver `accionesContacto`).
+      '<p class="gdf-match-count">Ordenados por afinidad con tu perfil. Llama o escribe desde el que más te interese.' +
       (totalPaginas > 1
         ? ' <b>' + reco.items.length + ' proyectos</b>, de ' + (desde + 1) + ' a ' +
           Math.min(desde + porPagina, reco.items.length) + '.'
@@ -748,10 +855,7 @@
       '</p>' +
       debugPanel(state) +
       '<div class="gdf-projects">' + projectsHtml + '</div>' +
-      paginacionHtml +
-      '<div class="gdf-seleccion-cta">' +
-      '<button class="gdf-btn-primary' + (elegido ? ' enabled' : '') + '" data-action="goConfirmacion">' + ctaLabel + '</button>' +
-      '</div>'
+      paginacionHtml
     );
   }
 
@@ -856,9 +960,28 @@
   // arma js/recommender.js, no un proyecto del catálogo: así da igual si la
   // recomendación vino del backend o del motor local. `vm.local` es el proyecto
   // scrapeado equivalente (o null) y es lo que habilita imagen y planos.
-  // Selección ÚNICA — ver 'chooseProject' en state.js.
+  // El rango de área del proyecto: "42 - 65 m²" si publica varias tipologías
+  // con metrajes distintos, "50,6 m²" si son todas iguales (o solo hay una),
+  // null si no hay ningún dato. `local.tipologias` sale del catálogo del
+  // tenant y trae el metraje de cada unidad; cuando no cruzó (ver la nota de
+  // `foto` en projectCard) se cae al área única que sí manda siempre el
+  // modelo (`vm.area`).
+  function rangoArea(vm) {
+    var tips = (vm.local && vm.local.tipologias) || [];
+    var areas = tips
+      .map(function (t) { return t.area; })
+      .filter(function (a) { return a; });
+    if (areas.length) {
+      var min = Math.min.apply(null, areas);
+      var max = Math.max.apply(null, areas);
+      return min === max
+        ? numeroEs(min) + ' m²'
+        : numeroEs(min) + ' - ' + numeroEs(max) + ' m²';
+    }
+    return vm.area ? numeroEs(vm.area) + ' m²' : null;
+  }
+
   function projectCard(vm, state, i) {
-    var chosen = state.chosen === vm.id;
     var local = vm.local || {};
     var sim = window.GDF.simulador;
 
@@ -892,14 +1015,19 @@
 
     var habLabel = etiquetaHabitaciones(vm.habitaciones);
     // Apto para subsidio es una propiedad del INMUEBLE (VIS y bajo el techo de
-    // valor), así que el chip se muestra siempre que el proyecto califique. El
+    // valor), así que el badge se muestra siempre que el proyecto califique. El
     // monto, en cambio, depende del hogar: solo se añade si sus ingresos están
-    // dentro del escalón. Sin esa distinción el chip prometería plata a quien
-    // no la puede recibir.
+    // dentro del escalón. Sin esa distinción prometería plata a quien no la
+    // puede recibir.
     var montoSubsidio = sim.subsidioEstimado(state.answers.ingresos);
-    var chipSubsidio = sim.aptoParaSubsidio(vm.vis, vm.precioCop)
-      ? '<span class="gdf-project-tag subsidio">Apto para subsidio' +
-        (montoSubsidio ? ' · hasta ' + esc(sim.millones(montoSubsidio)) : '') + '</span>'
+    // LLAMATIVO A PROPÓSITO, y separado del precio: es la razón por la que
+    // este proyecto puede costarle menos al usuario de lo que dice la
+    // etiqueta de arriba, y esa es información que decide una compra — no
+    // puede quedar mezclada entre habitaciones y baños como una etiqueta más.
+    var subsidioHtml = sim.aptoParaSubsidio(vm.vis, vm.precioCop)
+      ? '<div class="gdf-project-subsidio">🏅 Apto para subsidio' +
+        (montoSubsidio ? '<span class="monto">hasta ' + esc(sim.pesos(montoSubsidio)) + '</span>' : '') +
+        '</div>'
       : '';
 
     // DATOS QUE LA CONSTRUCTORA NO PUBLICA. El modelo los nombra en
@@ -913,16 +1041,24 @@
       return '<span class="gdf-project-tag no-informado">' + esc(que) + ' no informado</span>';
     }
 
-    var tags =
-      (vm.precioCop
-        ? '<span class="gdf-project-tag">Desde ' + esc(sim.millones(vm.precioCop)) + '</span>'
-        : tagNoInformado('Precio')) +
-      (vm.area ? '<span class="gdf-project-tag">' + vm.area + ' m²</span>'
-        : sinDato('area_construida_m2') ? tagNoInformado('Área') : '') +
+    // EL PRECIO ES LO PRIMERO QUE SE LEE, así que sale de la fila de etiquetas
+    // y se pinta grande y en el color de marca — ver `.gdf-project-precio`.
+    // Sin precio publicado se queda como una etiqueta chica: un hueco enorme
+    // donde debería ir el número más buscado se lee peor que una etiqueta gris.
+    var precioHtml = vm.precioCop
+      ? '<div class="gdf-project-precio">Desde <strong>' + esc(sim.pesos(vm.precioCop)) + '</strong></div>'
+      : '<div class="gdf-project-tags">' + tagNoInformado('Precio') + '</div>';
+
+    // Habitaciones, baños y área VAN ABAJO, como especificaciones — el precio
+    // ya no vive acá. El área puede ser un rango: `rangoArea` mira todas las
+    // tipologías publicadas, no solo la primera.
+    var areaTexto = rangoArea(vm);
+    var especificaciones =
       (habLabel ? '<span class="gdf-project-tag">' + habLabel + '</span>'
         : sinDato('habitaciones') ? tagNoInformado('Habitaciones') : '') +
       (local.banos ? '<span class="gdf-project-tag">' + local.banos + (local.banos === 1 ? ' baño' : ' baños') + '</span>' : '') +
-      chipSubsidio;
+      (areaTexto ? '<span class="gdf-project-tag">' + esc(areaTexto) + '</span>'
+        : sinDato('area_construida_m2') ? tagNoInformado('Área') : '');
 
     // Entró relajando el requisito de habitaciones: conviene avisarlo, o el
     // usuario ve un 2 alcobas cuando pidió 3 y parece que no lo escuchamos.
@@ -930,18 +1066,26 @@
       ? '<div class="gdf-project-aviso">Tiene menos habitaciones de las que pediste</div>'
       : '';
 
-
+    // LA TARJETA NO SE ELIGE: se actúa sobre ella. Las dos salidas van en
+    // todas las tarjetas desde el principio, justo debajo de las
+    // especificaciones, sin un paso previo de "marcar" el proyecto.
+    //   - Llamar: `llamarProyecto` deja ese proyecto como el elegido y pasa a
+    //     la pantalla de cierre, que dispara la llamada de Manuela (ver
+    //     dispatch en main.js).
+    //   - WhatsApp: enlace directo a wa.me con el mensaje ya escrito.
     return (
-      '<div class="gdf-project-card' + (chosen ? ' chosen' : '') + '" data-action="chooseProject" data-value="' + esc(vm.id) + '">' +
+      '<div class="gdf-project-card">' +
       '<div class="gdf-project-header" style="' + headerStyle + '">' +
       emojiHtml +
       badge +
-      '<span class="gdf-project-check" aria-hidden="true">' + (chosen ? '✓' : '') + '</span>' +
       '</div>' +
       '<div class="gdf-project-body">' +
       '<div class="gdf-project-name">' + esc(vm.nombre) + '</div>' +
+      precioHtml +
+      subsidioHtml +
       (vm.ubicacion ? '<div class="gdf-project-loc">📍 ' + esc(vm.ubicacion) + '</div>' : '') +
-      '<div class="gdf-project-tags">' + tags + '</div>' +
+      '<div class="gdf-project-tags">' + especificaciones + '</div>' +
+      accionesContacto(vm, state) +
       avisoHab +
       // Por qué quedó en esta posición. Lo redacta js/recommender.js con los
       // mismos criterios del scoring, para que el % del badge no sea un número
@@ -949,27 +1093,42 @@
       (vm.razon ? '<p class="gdf-project-razon">' + esc(vm.razon) + '</p>' : '') +
       amenidadesCoincidenHtml(vm.amenidades, state.answers.entorno_deseado) +
       detalleProyecto(vm, state) +
-      // Atajo para no obligar a bajar hasta el botón fijo de abajo: solo
-      // aparece en la tarjeta ya elegida. Lleva su propio data-action, así
-      // que `onRootClick` (main.js) lo resuelve con `closest()` y NUNCA
-      // llega a burbujear hasta el `chooseProject` del div contenedor.
-      (chosen
-        ? '<button class="gdf-btn-primary enabled gdf-project-continuar" data-action="goConfirmacion">Continuar →</button>'
-        : '') +
       '</div>' +
       '</div>'
     );
   }
 
+  // El número de WhatsApp sale de la configuración (`WHATSAPP_NUMERO` en
+  // js/config.js, en formato internacional sin "+"). Sin número, wa.me abre
+  // WhatsApp con el mensaje listo para que la persona elija a quién mandarlo.
+  function accionesContacto(vm, state) {
+    var numero = String((window.GDF_CONFIG && window.GDF_CONFIG.WHATSAPP_NUMERO) || '').replace(/\D/g, '');
+    var quien = (state.nombre || '').trim();
+    var mensaje =
+      'Hola, me interesa el proyecto ' + vm.nombre +
+      (vm.ubicacion ? ' (' + vm.ubicacion + ')' : '') +
+      '. Vengo de Machea' + (quien ? ', mi nombre es ' + quien : '') + '.';
+    var url = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(mensaje);
+    return (
+      '<div class="gdf-project-acciones">' +
+      '<button class="gdf-btn-primary enabled gdf-project-llamar" data-action="llamarProyecto" data-value="' + esc(vm.id) + '">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6.2 6.2l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>' +
+      'Llamar</button>' +
+      '<a class="gdf-project-whatsapp" data-action="whatsapp" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>' +
+      'WhatsApp</a>' +
+      '</div>'
+    );
+  }
+
   // ---------------------------------------------------------------------
-  // Desplegable de planos + simulador de pagos (reemplaza al viejo enlace
-  // "Ver ficha oficial" suelto en la tarjeta).
+  // Desplegable de planos (reemplaza al viejo enlace "Ver ficha oficial"
+  // suelto en la tarjeta).
   //
   // Todo lo interactivo de acá adentro va con data-action propio; el
-  // <details> lleva data-action="noop" para que un clic dentro NO burbujee
-  // hasta el data-action="chooseProject" de la tarjeta y termine
-  // marcando/desmarcando el proyecto sin querer (applyAction devuelve false
-  // para 'noop', así que tampoco re-renderiza).
+  // <details> lleva data-action="noop" para que un clic dentro no despache
+  // ninguna acción del estado (applyAction devuelve false para 'noop', así
+  // que tampoco re-renderiza y el <details> abre y cierra solo).
   // ---------------------------------------------------------------------
 
   function numeroEs(v) {
@@ -1083,21 +1242,14 @@
   }
 
   function tipologiaPanel(vm, t, idx, activo, state) {
-    var sim = window.GDF.simulador;
-
-    // Las dos áreas van lado a lado; el precio va aparte y destacado, porque
-    // es el número que la gente busca primero (y el que alimenta el simulador).
-    var areas =
-      '<div class="gdf-tipo-metricas">' +
-      metrica('Área construida', t.area ? numeroEs(t.area) + ' m²' : '—') +
-      metrica('Área privada', t.areaPrivada ? numeroEs(t.areaPrivada) + ' m²' : '—') +
-      '</div>';
-
-    var precioHtml = t.precio
-      ? '<div class="gdf-tipo-precio">' +
-        '<span class="rotulo">Precio desde</span>' +
-        '<span class="valor">' + esc(sim.millones(t.precio)) + '</span>' +
-        (t.entrega ? '<span class="entrega">Entrega ' + esc(t.entrega) + '</span>' : '') +
+    // NI EL PRECIO NI EL ÁREA CONSTRUIDA SE REPITEN AQUÍ. El precio ya va
+    // grande en la cabecera de la tarjeta (`.gdf-project-precio`) y el área
+    // construida es lo que nombra la pestaña de la tipología ("Apto 48m²"):
+    // volver a ponerlos al fondo del pliego era decir dos veces lo mismo. Lo
+    // único que la pestaña no dice es el área privada.
+    var metricas = t.areaPrivada
+      ? '<div class="gdf-tipo-metricas">' +
+        metrica('Área privada', numeroEs(t.areaPrivada) + ' m²') +
         '</div>'
       : '';
 
@@ -1105,415 +1257,8 @@
       '<div class="gdf-tipo-panel' + (activo ? ' active' : '') + '" data-panel="' + idx + '">' +
       planosStrip(t) +
       tour360Html(t.tour360, 'Recorrido virtual 360° de este apartamento') +
-      areas +
-      precioHtml +
+      metricas +
       espaciosGrid(t) +
-      simuladorBoton(vm, t, idx) +
-      '</div>'
-    );
-  }
-
-  // Precio a simular: el de la tipología si la ficha la publica (97 de 106 lo
-  // hacen); si no, el del view-model, que SIEMPRE viene en pesos —también
-  // cuando la recomendación es del backend y no cruza con el catálogo local.
-  function precioParaSimular(vm, t) {
-    if (t && t.precio) return t.precio;
-    return vm.precioCop || 0;
-  }
-
-  // El simulador ya NO vive dentro de la tarjeta: es un overlay a pantalla
-  // casi completa (ver simuladorOverlay). Acá queda solo la puerta de
-  // entrada, que además recuerda la tipología abierta para que el overlay
-  // simule el precio que el usuario está viendo y no otro.
-  function simuladorBoton(vm, t, idx) {
-    var sim = window.GDF.simulador;
-    var precio = precioParaSimular(vm, t);
-    if (!precio) return '';
-    return (
-      '<button class="gdf-sim-abrir" data-action="abrirSimulador"' +
-      ' data-proyecto="' + esc(vm.id) + '" data-tipologia="' + (idx || 0) + '">' +
-      '<span class="gdf-sim-icon">💰</span>' +
-      '<span class="gdf-sim-abrir-texto">Simular plan de pagos' +
-      '<em>Desde ' + esc(sim.millones(precio)) + ' · cuota inicial, plazo y subsidio</em></span>' +
-      '<span class="gdf-sim-abrir-flecha">→</span>' +
-      '</button>'
-    );
-  }
-
-  // ---------------------------------------------------------------------
-  // SIMULADOR DE PAGOS — overlay de dos pasos.
-  //
-  // Paso 1: elegir el producto de crédito viendo ya la cuota que daría cada
-  // uno. Paso 2: el simulador completo (encabezado del proyecto, controles a
-  // la izquierda, recibo en vivo a la derecha). Elegir producto NO cierra el
-  // overlay: avanza al paso 2, que es el destino del flujo — es el momento de
-  // mayor intención de compra de toda la demo y no puede terminar en un
-  // bloque diminuto dentro de una tarjeta.
-  //
-  // Se pinta como último hijo de .gdf-shell (ver renderApp) para que su
-  // position:fixed sea contra el viewport y no contra una tarjeta con
-  // overflow:hidden.
-  // ---------------------------------------------------------------------
-
-  // Qué proyecto/tipología/precio está simulando el overlay ahora mismo.
-  // Devuelve null si el proyecto ya no está en la lista (p. ej. si el backend
-  // respondió de nuevo con otras recomendaciones mientras estaba abierto).
-  function contextoSimulador(state) {
-    if (!state.simulador) return null;
-    var vm = (state.reco.items || []).filter(function (x) {
-      return x.id === state.simulador.proyecto;
-    })[0];
-    if (!vm) return null;
-
-    var tips = (vm.local && vm.local.tipologias) || [];
-    var idx = state.simulador.tipologia || 0;
-    if (idx >= tips.length) idx = 0;
-    var t = tips[idx] || null;
-    var precio = precioParaSimular(vm, t);
-    if (!precio) return null;
-
-    var sim = window.GDF.simulador;
-    var cfg = state.simConfig[vm.id] || {};
-    return {
-      vm: vm,
-      tipologia: t,
-      precio: precio,
-      cfg: {
-        inicial: cfg.inicial || sim.SUPUESTOS.cuotaInicialDefault,
-        plazo: cfg.plazo || sim.SUPUESTOS.plazoDefault,
-        // FUERA DE UNA CAJA DE COMPENSACION SOLO HAY PESOS. La tasa en UVR de
-        // este simulador es la PREFERENCIAL POR AFILIACION (ver TASAS.hipotecario
-        // .uvr en simulador.js, abierta por categoria A/B/C): sin afiliacion no
-        // hay a que acogerse, asi que ofrecerla seria prometer una tasa que ese
-        // hogar no puede pedir. Se fuerza a pesos y el control se esconde —
-        // misma regla que ya usa la pregunta de afiliacion del quiz.
-        modalidad: !pideAfiliacion() ? 'pesos' : (cfg.modalidad === 'pesos' ? 'pesos' : 'uvr'),
-        categoria: sim.normalizarCategoria(cfg.categoria),
-        complementario: !!cfg.complementario,
-        ingreso: cfg.ingreso || Math.round(sim.ingresoMedioDe(state.answers.ingresos)),
-      },
-    };
-  }
-
-  // Corre `simular` con la configuración vigente del overlay. Lo usan tanto el
-  // render inicial como el parcheo de DOM de main.js, para que no haya dos
-  // formas distintas de armar los mismos argumentos.
-  function simularContexto(ctx, rangoIngresos) {
-    return window.GDF.simulador.simular({
-      precio: ctx.precio,
-      vis: ctx.vm.vis,
-      rangoIngresos: rangoIngresos,
-      porcentajeInicial: ctx.cfg.inicial,
-      plazoAnios: ctx.cfg.plazo,
-      modalidad: ctx.cfg.modalidad,
-      categoria: ctx.cfg.categoria,
-      complementario: ctx.cfg.complementario,
-      ingresoMensual: ctx.cfg.ingreso,
-    });
-  }
-
-  // Paso 1: los dos productos, cada uno con la cuota que implicaría. La idea
-  // es elegir viendo el número, no a ciegas.
-  function simuladorPaso1(ctx, state) {
-    var sim = window.GDF.simulador;
-    var esAfiliado = state.answers.afiliado === 'Sí';
-
-    var opcionesHtml = sim.SUPUESTOS.productos
-      .map(function (pr) {
-        var r = simularContexto(
-          {
-            vm: ctx.vm,
-            precio: ctx.precio,
-            cfg: Object.assign({}, ctx.cfg, { complementario: pr.v === 'complementario' }),
-          },
-          state.answers.ingresos
-        );
-        // El complementario solo tiene sentido si de verdad falta plata: con
-        // una inicial que ya cubre el tope no hay nada que complementar, y
-        // ofrecerlo igual sería vender un crédito que no se necesita.
-        var cuotaHtml =
-          pr.v === 'complementario' && !r.usaComplementario
-            ? '<span class="gdf-credito-cuota"><em>No lo necesitas con una cuota inicial del ' +
-              ctx.cfg.inicial + '%</em></span>'
-            : '<span class="gdf-credito-cuota">' + sim.pesos(r.cuotaMensual) +
-              '<em>/mes · ' + sim.porcentaje(pr.v === 'complementario' ? r.tasaEaComplementario : r.tasaEa) +
-              '% E.A.' +
-              // La del complementario nunca está confirmada; la del
-              // hipotecario, solo cuando es la de UVR categoría C.
-              ((pr.v === 'complementario' || r.tasaEaPorConfirmar) ? ' (por confirmar)' : '') +
-              '</em></span>';
-        // Solo se advierte a quien dijo que no está afiliado: para un afiliado
-        // la condición ya está cumplida y repetírsela sobraría.
-        var nota = !esAfiliado
-          ? '<span class="gdf-credito-req">Requiere estar afiliado a ' + esc(nombreMarca()) + '</span>'
-          : '';
-        return (
-          '<button class="gdf-credito-opcion' + (pr.v === 'hipotecario' ? ' recomendada' : '') + '"' +
-          ' data-action="elegirProducto" data-valor="' + esc(pr.v) + '">' +
-          (pr.v === 'hipotecario' ? '<span class="gdf-credito-tag">Tu crédito base</span>' : '') +
-          '<span class="gdf-credito-nombre">' + esc(pr.label) + '</span>' +
-          '<span class="gdf-credito-blurb">' + esc(pr.blurb) + ' · ' + esc(pr.detalle) + '</span>' +
-          nota +
-          cuotaHtml +
-          '</button>'
-        );
-      })
-      .join('');
-
-    return (
-      '<h3>Elige tu tipo de crédito</h3>' +
-      '<p class="gdf-credito-sub">Para ' + esc(ctx.vm.nombre) + ', con cuota inicial ' +
-      ctx.cfg.inicial + '% a ' + ctx.cfg.plazo + ' años. En el siguiente paso lo ajustas todo.</p>' +
-      '<div class="gdf-credito-opciones">' + opcionesHtml + '</div>' +
-      '<p class="gdf-sim-nota">Estimación, no es una cotización ni una aprobación de crédito. ' +
-      'Confirma las condiciones exactas con ' + esc(nombreMarca()) + '.</p>'
-    );
-  }
-
-  // Un grupo de botones segmentados de los controles (izquierda del paso 2).
-  function simSegmento(proyecto, campo, opciones, actual) {
-    return opciones
-      .map(function (o) {
-        return (
-          '<button class="gdf-simc-opt' + (String(o.v) === String(actual) ? ' active' : '') + '"' +
-          ' data-action="simSet" data-proyecto="' + esc(proyecto) + '"' +
-          ' data-campo="' + campo + '" data-valor="' + esc(String(o.v)) + '">' +
-          esc(o.label) + '</button>'
-        );
-      })
-      .join('');
-  }
-
-  // Columna izquierda del paso 2. No se repinta al mover los controles (solo
-  // se les mueve la clase .active desde main.js), así que acá no puede haber
-  // nada que dependa del resultado del cálculo.
-  function simuladorControles(ctx, state) {
-    var sim = window.GDF.simulador;
-    var S = sim.SUPUESTOS;
-    var id = ctx.vm.id;
-    var esAfiliado = state.answers.afiliado === 'Sí';
-
-    // Este aviso NO se repinta al mover los controles, así que tiene que ser
-    // texto estable: describe las tres categorías en vez de hablar de la que
-    // esté seleccionada. Que la tasa de la C esté por confirmar se marca en el
-    // recibo, que sí se repinta.
-    var avisoCategoria =
-      '<p class="gdf-simc-aviso">' +
-      (esAfiliado ? '' : 'Las tasas preferenciales requieren estar afiliado a ' + esc(nombreMarca()) + '. ') +
-      S.categorias
-        .map(function (c) {
-          return c.label + ': ' + c.rango;
-        })
-        .join(' · ') +
-      '. Preseleccionamos la que corresponde a tus ingresos.</p>';
-
-    return (
-      '<div class="gdf-simc">' +
-      '<div class="gdf-simc-campo">' +
-      '<label>Tipo de crédito</label>' +
-      '<div class="gdf-simc-productos">' +
-      '<div class="gdf-simc-producto fijo"><strong>Hipotecario</strong>' +
-      '<em>Hasta ' + Math.round((ctx.vm.vis ? S.maxLtv.vis : S.maxLtv.noVis) * 100) + '% del valor' +
-      (ctx.vm.vis ? ' (VIS)' : ' (No VIS)') + '</em></div>' +
-      '<button class="gdf-simc-producto' + (ctx.cfg.complementario ? ' on' : '') + '"' +
-      ' data-action="simSet" data-proyecto="' + esc(id) + '" data-campo="complementario"' +
-      ' data-valor="' + (ctx.cfg.complementario ? '0' : '1') + '">' +
-      '<strong>Complementario <span class="gdf-simc-switch"></span></strong>' +
-      '<em>Cubre el faltante de la cuota inicial, escrituración y acabados</em></button>' +
-      '</div>' +
-      '</div>' +
-
-      // LOS DOS CONTROLES DE LA CAJA. Modalidad y categoria de afiliacion solo
-      // tienen sentido si la marca ES una caja de compensacion: la tasa en UVR
-      // se cotiza por categoria de afiliado (A/B/C) y quien no esta afiliado no
-      // accede a ninguna de las tres. En una constructora privada —y en la demo
-      // neutra de Machea, que no es de ninguna— el simulador va en pesos y no
-      // se pregunta nada de afiliacion. Es la misma regla de `pideAfiliacion()`
-      // que ya esconde esa pregunta en el quiz.
-      (pideAfiliacion()
-        ? '<div class="gdf-simc-campo"><label>Modalidad</label>' +
-          '<div class="gdf-simc-seg">' +
-          simSegmento(id, 'modalidad', [{ v: 'uvr', label: 'UVR' }, { v: 'pesos', label: 'Pesos' }], ctx.cfg.modalidad) +
-          '</div></div>' +
-          '<div class="gdf-simc-campo"><label>Categoría de afiliación</label>' +
-          '<div class="gdf-simc-seg">' +
-          simSegmento(id, 'categoria', S.categorias, ctx.cfg.categoria) +
-          '</div>' + avisoCategoria + '</div>'
-        : '') +
-
-      '<div class="gdf-simc-campo"><label>Cuota inicial</label>' +
-      '<div class="gdf-simc-seg">' +
-      simSegmento(
-        id,
-        'inicial',
-        S.cuotaInicialOpciones.map(function (v) {
-          return { v: v, label: v + '%' };
-        }),
-        ctx.cfg.inicial
-      ) +
-      '</div></div>' +
-
-      '<div class="gdf-simc-campo">' +
-      '<label>Plazo del crédito <span class="gdf-simc-valor" id="simPlazoValor">' + ctx.cfg.plazo + ' años</span></label>' +
-      '<input class="gdf-simc-slider" id="simPlazo" type="range" min="' + S.plazoMin + '" max="' + S.plazoMax + '"' +
-      ' step="1" value="' + ctx.cfg.plazo + '" data-proyecto="' + esc(id) + '" />' +
-      '<div class="gdf-simc-slider-rango"><span>' + S.plazoMin + ' años</span><span>' + S.plazoMax + ' años</span></div>' +
-      '</div>' +
-
-      '<div class="gdf-simc-campo"><label>Ingreso mensual del hogar</label>' +
-      '<input class="gdf-simc-input" id="simIngreso" type="text" inputmode="numeric"' +
-      ' value="' + sim.pesos(ctx.cfg.ingreso) + '" data-proyecto="' + esc(id) + '" />' +
-      '<p class="gdf-simc-aviso">Lo usamos solo para avisarte si la cuota se sale del 30% recomendado.</p>' +
-      '</div>' +
-      '</div>'
-    );
-  }
-
-  // Columna derecha del paso 2 — el recibo en vivo. Se genera aparte porque
-  // main.js la vuelve a llamar al mover cada control y reemplaza SOLO este
-  // pedazo por DOM directo, sin re-render (que perdería el foco del input de
-  // ingreso y reiniciaría las animaciones).
-  function simuladorResultado(ctx, rangoIngresos) {
-    var sim = window.GDF.simulador;
-    var r = simularContexto(ctx, rangoIngresos);
-    var esUvr = r.modalidad === 'uvr';
-
-    // Desglose de la cuota cuando hay dos créditos: sin esto el titular
-    // parecería el de un solo producto más caro de lo que es.
-    var desglose = r.usaComplementario
-      ? '<span class="detalle">hipotecario ' + sim.pesos(r.cuotaHipotecario) +
-        ' + complementario ' + sim.pesos(r.cuotaComplementario) + '</span>'
-      : '<span class="detalle">a ' + r.plazoAnios + ' años</span>';
-
-    // La cuota en UVR es la del PRIMER mes en pesos de hoy: la tasa es real y
-    // el saldo se indexa al IPC, así que en la vida real la cuota sube. Se
-    // dice acá arriba, no en la letra chica.
-    var notaUvr = esUvr
-      ? '<span class="gdf-sim-uvr">En UVR: es la cuota de hoy, sube cada año con la inflación</span>'
-      : '';
-
-    var planHtml = '';
-    if (r.ahorroNecesario > 0) {
-      var plan = sim.planAhorro(r.ahorroNecesario, ctx.tipologia && ctx.tipologia.entrega);
-      planHtml =
-        '<div class="gdf-sim-plan">' +
-        '<span class="rotulo">Ahorrando</span>' +
-        '<strong>' + sim.pesos(plan.mensual) + '/mes</strong>' +
-        '<span class="detalle">durante ' + plan.meses + ' meses' +
-        (plan.desdeEntrega ? ', hasta la entrega en ' + esc(plan.anioEntrega) : '') + '</span>' +
-        '</div>';
-    }
-
-    var filas =
-      '<div class="gdf-sim-fila"><span>Valor de la vivienda</span><strong>' + sim.pesos(r.precio) + '</strong></div>' +
-      '<div class="gdf-sim-fila"><span>Cuota inicial (' + r.porcentajeInicial + '%)</span><strong>−' + sim.pesos(r.cuotaInicial) + '</strong></div>' +
-      (r.subsidio
-        ? '<div class="gdf-sim-fila subsidio"><span>Subsidio estimado <em>sujeto a verificación</em></span>' +
-          '<strong>−' + sim.pesos(r.subsidio) + '</strong></div>'
-        : '') +
-      '<div class="gdf-sim-fila"><span>Ahorro que debes reunir</span><strong>' + sim.pesos(r.ahorroNecesario) + '</strong></div>' +
-      '<div class="gdf-sim-fila"><span>Monto a financiar</span><strong>' + sim.pesos(r.montoCredito) + '</strong></div>' +
-      (r.usaComplementario
-        ? '<div class="gdf-sim-fila sub"><span>· Hipotecario (' + Math.round(r.maxLtv * 100) + '% del valor)</span>' +
-          '<strong>' + sim.pesos(r.montoHipotecario) + '</strong></div>' +
-          '<div class="gdf-sim-fila sub"><span>· Complementario a ' + r.plazoComplementario + ' años · ' +
-          sim.porcentaje(r.tasaEaComplementario, 0) + '% E.A. <em>por confirmar</em></span>' +
-          '<strong>' + sim.pesos(r.montoComplementario) + '</strong></div>'
-        : '') +
-      '<div class="gdf-sim-fila"><span>Tasa y plazo' +
-      (r.tasaEaPorConfirmar ? ' <em>por confirmar</em>' : '') + '</span><strong>' +
-      sim.porcentaje(r.tasaEa) + '% E.A. ' +
-      (esUvr ? 'en UVR (cat. ' + r.categoria + ')' : 'en pesos') + ' · ' + r.plazoAnios + ' años</strong></div>';
-
-    // El faltante sin complementario no es un detalle: es plata que hay que
-    // poner de bolsillo, y conviene decirlo donde se ve el ahorro.
-    var avisoFaltante =
-      r.faltante > 0 && !r.usaComplementario
-        ? '<div class="gdf-sim-alerta info">Con una cuota inicial del ' + r.porcentajeInicial +
-          '% el hipotecario solo cubre el ' + Math.round(r.maxLtv * 100) + '% del valor: faltan ' +
-          sim.pesos(r.faltante) + '. Enciende el crédito complementario o sube la cuota inicial.</div>'
-        : '';
-
-    var alerta = '';
-    if (r.holgado === false) {
-      alerta =
-        '<div class="gdf-sim-alerta">⚠️ La cuota es el ' + Math.round(r.porcentajeDelIngreso * 100) +
-        '% de tu ingreso, por encima del 30% recomendado. ' +
-        'Sube la cuota inicial, alarga el plazo o mira un proyecto de menor valor.</div>';
-    } else if (r.holgado === true) {
-      alerta =
-        '<div class="gdf-sim-alerta ok">✅ La cuota es el ' + Math.round(r.porcentajeDelIngreso * 100) +
-        '% de tu ingreso: cabe dentro del 30% recomendado.</div>';
-    }
-
-    return (
-      '<div class="gdf-sim-cuota">' +
-      '<span class="rotulo">Cuota mensual estimada</span>' +
-      '<span class="valor">' + sim.pesos(r.cuotaMensual) + '</span>' +
-      desglose +
-      notaUvr +
-      '</div>' +
-      planHtml +
-      '<div class="gdf-sim-filas">' + filas + '</div>' +
-      avisoFaltante +
-      alerta
-    );
-  }
-
-  function simuladorPaso2(ctx, state) {
-    var sim = window.GDF.simulador;
-    return (
-      '<div class="gdf-sim-grid">' +
-      simuladorControles(ctx, state) +
-      '<div class="gdf-sim-out" id="simResultado">' + simuladorResultado(ctx, state.answers.ingresos) + '</div>' +
-      '</div>' +
-      // LA LETRA CHICA TAMBIEN CAMBIA, y no es cosmetica. La version de la caja
-      // dice que las tasas "son las publicadas por <marca>", y eso solo es
-      // cierto de una caja de compensacion: en la demo neutra habria escrito
-      // "publicadas por Machea", que no publica ninguna tasa hipotecaria.
-      // Atribuir un dato a quien no lo publica es peor que no citarlo.
-      // Tampoco se nombran las categorias A/B/C, que ahi no existen.
-      '<p class="gdf-sim-nota">Estimación con SMMLV ' + sim.SUPUESTOS.anioSmmlv +
-      (pideAfiliacion()
-        ? '. Las tasas del crédito hipotecario en UVR categorías A y B y en pesos son las ' +
-          'publicadas por ' + esc(nombreMarca()) + '; la de la categoría C, la del complementario y el monto ' +
-          'del subsidio están sujetos a verificación.'
-        : '. Las tasas son una referencia de mercado, no una oferta de ninguna entidad, ' +
-          'y tanto ellas como el monto del subsidio están sujetas a verificación.') +
-      ' No es una cotización ni una aprobación de crédito.</p>'
-    );
-  }
-
-  function simuladorOverlay(state) {
-    var ctx = contextoSimulador(state);
-    if (!ctx) return '';
-    var paso = state.simulador.paso === 2 ? 2 : 1;
-
-    // Encabezado que recuerda qué se está simulando: sin esto, a los tres
-    // controles movidos ya no se sabe de cuál de los seis proyectos era.
-    var subtitulo = [ctx.vm.ubicacion, ctx.tipologia && ctx.tipologia.nombre]
-      .filter(Boolean)
-      .map(esc)
-      .join(' · ');
-    var encabezado =
-      '<div class="gdf-sim-head">' +
-      (paso === 2
-        ? '<button class="gdf-sim-volver" data-action="simPaso" data-valor="1">← Tipo de crédito</button>'
-        : '<span class="gdf-sim-head-paso">Paso 1 de 2</span>') +
-      '<div class="gdf-sim-head-proyecto"><strong>' + esc(ctx.vm.nombre) + '</strong>' +
-      (subtitulo ? '<span>' + subtitulo + '</span>' : '') + '</div>' +
-      '<button class="gdf-credito-cerrar" data-action="cerrarSimulador" aria-label="Cerrar">×</button>' +
-      '</div>';
-
-    return (
-      '<div class="gdf-credito-backdrop" data-action="cerrarSimulador">' +
-      // data-action="noop" para que un clic DENTRO del panel no burbujee
-      // hasta el backdrop y lo cierre sin querer (mismo truco que el
-      // <details> de cada tarjeta de proyecto).
-      '<div class="gdf-credito-modal' + (paso === 2 ? ' ancho' : '') + '" data-action="noop">' +
-      encabezado +
-      (paso === 2 ? simuladorPaso2(ctx, state) : simuladorPaso1(ctx, state)) +
-      '</div>' +
       '</div>'
     );
   }
@@ -1550,7 +1295,6 @@
     //     tipologías (20 de los 66);
     //   - el proyecto viene del catálogo del backend y no lo tenemos scrapeado,
     //     así que no hay de dónde sacar los planos.
-    // En ambos casos el simulador funciona igual, porque el precio siempre está.
     if (!tips.length) {
       var motivo = vm.local
         ? 'Este proyecto todavía no publica planos por tipología en su ficha oficial.'
@@ -1562,12 +1306,11 @@
           );
       return (
         '<details class="gdf-project-detalle"' + (abierto ? ' open' : '') + ' data-action="noop" data-proyecto="' + esc(vm.id) + '">' +
-        '<summary><span class="gdf-detalle-titulo">Ver todo lo que incluye y simular pagos</span>' +
+        '<summary><span class="gdf-detalle-titulo">Ver todo lo que incluye</span>' +
         '<span class="gdf-detalle-chevron">▾</span></summary>' +
         '<div class="gdf-detalle-body">' +
         restoAmenidadesHtml +
           '<p class="gdf-detalle-vacio">' + motivo + '</p>' +
-        simuladorBoton(vm, null, 0) +
         tour360ProyectoHtml +
         fichaHtml +
         '</div>' +
@@ -1611,8 +1354,7 @@
       'Ver todo lo que incluye' +
       (tips.length === 1
         ? (hayPlano ? ', el plano' : '')
-        : ', ' + tips.length + ' ' + grupo) +
-      ' y simular pagos';
+        : ', ' + tips.length + ' ' + grupo);
 
     return (
       '<details class="gdf-project-detalle"' + (abierto ? ' open' : '') + ' data-action="noop" data-proyecto="' + esc(vm.id) + '">' +
@@ -1799,7 +1541,7 @@
     );
   }
 
-  // Cierre del flujo. Elegir el proyecto y tocar "Continuar" YA es la
+  // Cierre del flujo. Elegir el proyecto y tocar "Llamar" YA es la
   // confirmación: acá no se pide otra acción para lograr lo que el usuario ya
   // pidió. Solo se cierra y se dice qué sigue.
   function confirmacion(state, derived) {
@@ -1839,7 +1581,7 @@
       '<div class="gdf-confirm-proyecto-nombre">' + esc(nombreProyecto) + '</div>' +
       (elegido && elegido.ubicacion ? '<div class="gdf-confirm-proyecto-loc">📍 ' + esc(elegido.ubicacion) + '</div>' : '') +
       (elegido
-        ? '<div class="gdf-confirm-proyecto-precio">Desde ' + esc(sim.millones(elegido.precioCop)) +
+        ? '<div class="gdf-confirm-proyecto-precio">Desde ' + esc(sim.pesos(elegido.precioCop)) +
           (elegido.area ? ' · ' + elegido.area + ' m²' : '') + '</div>'
         : '') +
       '</div>' +
@@ -1963,16 +1705,12 @@
         // guardado, se entra por el splash en vez de a una pantalla en blanco.
         screenHtml = splash();
     }
-    // El modal va de último y fuera de screenHtml a propósito: así su
-    // position:fixed es contra el viewport, sin quedar dentro de la tarjeta
-    // (que tiene overflow:hidden) ni de ningún ancestro que lo recorte.
     // `data-embed` cuelga del shell y no del <body> porque es este nodo el
     // que lleva el grid de dos columnas del media query de 900px: la regla que
     // invierte la escena y el panel tiene que poder leerlo en el mismo
     // elemento sobre el que aplica.
     return (
-      '<div class="gdf-shell"' + (window.GDF_EMBED ? ' data-embed' : '') + '>' + screenHtml +
-      simuladorOverlay(state) + '</div>'
+      '<div class="gdf-shell"' + (window.GDF_EMBED ? ' data-embed' : '') + '>' + screenHtml + '</div>'
     );
   }
 
@@ -1980,17 +1718,14 @@
   window.GDF.templates = {
     renderApp: renderApp,
     esc: esc,
-    // Las dos que usa main.js para repintar SOLO el recibo del simulador
-    // cuando se mueven sus controles, sin re-render de toda la pantalla:
-    // `contextoSimulador` arma los argumentos desde el estado y
-    // `simuladorResultado` devuelve el HTML del recibo.
-    contextoSimulador: contextoSimulador,
-    simuladorResultado: simuladorResultado,
     // Las que usa main.js para actualizar el quiz sin re-render completo:
     // `quizPanel` repinta la pregunta (la escena no se toca), `cuartoHtml`
     // inserta las piezas del plano que acaban de caer y `haloAmenidadesHtml`
     // rehace las zonas comunes de la última pregunta.
     quizPanel: quizPanel,
+    // main.js la usa para repintar la línea de confirmación de 'zona' cada
+    // vez que se toca el mapa o se elige un barrio, sin re-render.
+    zonaEco: zonaEco,
     cuartoHtml: cuartoHtml,
     siluetaHtml: siluetaHtml,
     haloAmenidadesHtml: haloAmenidadesHtml,

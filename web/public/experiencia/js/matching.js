@@ -70,7 +70,14 @@
     // La demo es solo de Bogotá: la ubicación que se pide es la LOCALIDAD, no
     // el municipio (esa pregunta ya no existe). `zona` conserva el id viejo
     // para no renombrar la respuesta en todo el flujo.
-    var loc = a.zona;
+    //
+    // Y SON VARIAS. Se pueden pedir varios sectores del mapa, así que `zonas`
+    // trae todas las localidades pedidas y `zona` la primera. Un proyecto se
+    // puntúa contra la MEJOR de ellas —la que le dé más puntos—, que es lo
+    // mismo que hace el modelo de verdad midiendo la distancia a la más
+    // cercana del conjunto (ver el BFS multi-origen de catalogos.py). Con una
+    // sola zona la fórmula es idéntica a la de antes.
+    var locs = (a.zonas && a.zonas.length) ? a.zonas : (a.zona ? [a.zona] : []);
     var band = bandaDe(a);
 
     return PROJECTS.map(function (p) {
@@ -83,18 +90,39 @@
 
       // Mientras la pregunta de zona no se haya contestado NO se penaliza a
       // nadie. Antes caía un -16 a los 31 proyectos, y como el puntaje se
-      // muestra en vivo eso hundía la barra al piso del clamp (51) durante las
-      // cuatro primeras preguntas: contestabas y el número no se movía. Además
-      // el motivo se escribía 'queda lejos de undefined' en el panel #debug.
-      if (!loc) {
+      // muestra en vivo eso hundía la barra al piso del clamp: contestabas y el
+      // número no se movía. Además el motivo se escribía 'queda lejos de
+      // undefined' en el panel #debug.
+      //
+      // Esta rama casi no se usa ya: desde que `zona` es la PRIMERA pregunta
+      // (ver la cabecera de data.js), `loc` está definida durante todo el resto
+      // del quiz. Se conserva porque sigue cubriendo el primer pintado, cuando
+      // aún no hay ninguna respuesta.
+      //
+      // Y el reverso de moverla: este es el factor más brusco de la fórmula
+      // (+29 / +11 / −16), así que ahora es la primera respuesta la que más
+      // mueve el número. Por eso la barra de encaje no se muestra hasta la
+      // segunda (ver quizPanel en templates.js).
+      if (!locs.length) {
         // sin factor: aún no sabemos dónde quiere vivir
-      } else if (p.localidad === loc) {
-        suma(29, 'Está en ' + loc);
-      } else if ((VECINAS[loc] || []).indexOf(p.localidad) > -1) {
-        // Colindante según los límites oficiales del Distrito.
-        suma(11, p.localidad + ' colinda con ' + loc);
       } else {
-        suma(-16, p.localidad + ' queda lejos de ' + loc);
+        // La mejor de las pedidas: estar EN una de ellas gana a colindar con
+        // otra, y colindar gana a quedar lejos de todas.
+        var mejor = null;
+        for (var z = 0; z < locs.length; z++) {
+          var loc = locs[z];
+          var cand;
+          if (p.localidad === loc) {
+            cand = { puntos: 29, motivo: 'Está en ' + loc };
+          } else if ((VECINAS[loc] || []).indexOf(p.localidad) > -1) {
+            // Colindante según los límites oficiales del Distrito.
+            cand = { puntos: 11, motivo: p.localidad + ' colinda con ' + loc };
+          } else {
+            cand = { puntos: -16, motivo: p.localidad + ' queda lejos de ' + loc };
+          }
+          if (!mejor || cand.puntos > mejor.puntos) mejor = cand;
+        }
+        suma(mejor.puntos, mejor.motivo);
       }
 
       suma(p.vis === wantVis ? 11 : -13, p.vis === wantVis ? 'Coincide ' + (p.vis ? 'VIS' : 'No VIS') : 'No coincide con ' + (wantVis ? 'VIS' : 'No VIS'));

@@ -87,6 +87,11 @@
      pese, pero con contraste suficiente. */
   --marca-texto: #ffa25c;
 
+  /* Verde de "esto te sirve" (el badge de subsidio). Este es el valor de la
+     consola negra; sobre la superficie clara de Machea lo oscurece tema.js.
+     Ver .gdf-project-subsidio. */
+  --exito: #4fd6bf;
+
   --texto-cta: #1b1c1f;
 }
 
@@ -2138,6 +2143,14 @@ a.pt-flink:hover {
 .gdf-compat {
   margin-bottom: 14px;
 }
+/* La barra no se pinta hasta la 2.a respuesta (ver quizPanel en templates.js),
+   pero su hueco se reserva igual: es uno de los dos puntos fijos del panel, y
+   dejarlo colapsar haria saltar la pregunta entera hacia arriba justo al pasar
+   de la primera a la segunda.
+   11px de texto + 5 de margen + 9 de barra = 25. */
+.gdf-compat-vacia {
+  height: 25px;
+}
 .gdf-compat-row {
   display: flex;
   justify-content: space-between;
@@ -2331,6 +2344,259 @@ a.pt-flink:hover {
 .gdf-multi-opt.oculto {
   display: none;
 }
+
+/* ============ PREGUNTA 'zona': BUSCADOR DE BARRIOS + MAPA ============ */
+/* Reutiliza '.gdf-entorno-combo' y '.gdf-multi-opt-list' de arriba; lo de
+   aquí es solo lo propio del mapa y de la sugerencia a dos líneas.
+
+   LAS ETIQUETAS VAN DENTRO DEL CAMPO, no debajo. `.gdf-zona-input-wrap` es la
+   caja que se ve como el buscador —fondo, borde, radio— y adentro conviven
+   los chips y el <input> de texto, que pierde su propio borde y fondo para
+   que los dos lean como una sola pieza. Es el patrón de "para:" de un cliente
+   de correo: se toca una zona en el mapa, aparece su etiqueta empujando el
+   cursor, y se puede seguir escribiendo para agregar la próxima.
+
+   `#zonaChips` usa `display: contents` (más abajo) para que sus `.gdf-entorno-
+   chip` dejen de ser un bloque aparte y pasen a ser hijos flex DIRECTOS de
+   `.gdf-zona-input-wrap`: así envuelven junto con el input en la misma fila,
+   en vez de vivir en una fila propia encima o debajo de él.
+
+   OJO con el contexto de apilamiento: la animación de entrada va sobre
+   '.gdf-quiz-freeform' y NUNCA sobre sus hijos. Un `animation-fill:both` en
+   un hijo crea contexto y el desplegable (position:absolute, z-index:20)
+   queda por debajo del mapa. Es el mismo error ya documentado arriba. */
+
+/* Sugerencia del buscador: el barrio grande y, debajo, la localidad a la que
+   resuelve. Esa segunda línea es la que evita prometer un filtro por barrio
+   que el modelo no hace — solo indexa por localidad. */
+.gdf-zona-opt {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+}
+.gdf-zona-opt .b {
+  font-size: 14px;
+  font-weight: 700;
+}
+.gdf-zona-opt .l {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+}
+
+/* La confirmación de lo elegido. Ocupa sitio aunque esté vacía para que el
+   mapa no salte hacia arriba al elegir la primera zona. */
+.gdf-zona-eco {
+  min-height: 34px;
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--tinta-media);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+.gdf-zona-eco .vacio {
+  color: var(--tinta-tenue);
+}
+.gdf-zona-eco strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--marca);
+}
+.gdf-zona-eco .en {
+  color: var(--tinta-tenue);
+}
+.gdf-zona-eco .aviso {
+  flex-basis: 100%;
+  font-size: 12px;
+  color: var(--tinta-suave);
+}
+
+/* ---------- EL MAPA REAL, en el lienzo grande ---------- */
+/* Tapa `.gdf-scene` durante la pregunta de ubicación en vez de sustituirla:
+   reconstruir la escena por innerHTML destruiría los `.gdf-room` y entonces
+   cada respuesta rehace el plano entero (ver updateQuizDOM en main.js). Y no
+   hay nada que tapar de todos modos — con cero respuestas no existe ni una
+   pieza pintada. */
+.gdf-mapa-real {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  /* El color de tierra de OpenStreetMap, literal y NO un token: es lo que se
+     ve en los huecos mientras cargan las teselas y en las costuras de subpíxel
+     que deja el zoom fraccionario entre una tesela y la siguiente. Con
+     `var(--fondo)` esas costuras se pintaban negras y cada tesela salía con un
+     recuadro alrededor. Leaflet se monta SOBRE este mismo nodo (ver
+     `montar` en js/mapa.js), así que el fondo del mapa se declara aquí y no en
+     un descendiente `.leaflet-container`, que no existe. */
+  background: #f2efe9;
+}
+
+/* AQUI NO HAY FILTRO SOBRE LAS TESELAS, y es el cambio que hace que el mapa se
+   vea como un mapa. Antes había un `brightness(0.72) saturate(0.75)` para
+   apagar el blanco de OpenStreetMap contra el panel oscuro, y el efecto era
+   justo el que se quería evitar: un mapa gris y sin vida. Se prefiere que las
+   calles, los parques y el agua salgan en sus colores —que además es lo que
+   hace legibles los rótulos de barrios, que es lo que hay que leer para
+   elegir— aunque el recuadro contraste con el resto del panel. */
+
+.gdf-mapa-real.leaflet-container {
+  width: 100%;
+  height: 100%;
+  font: inherit;
+}
+
+/* LAS TESELAS SE SOLAPAN UN PIXEL, como guarda contra las costuras del zoom
+   fraccionario. (El recuadro negro que se veía al arrastrar NO era esto: era
+   el anillo de foco del <path> de la localidad, ver `.leaflet-interactive:focus`
+   más abajo.)
+
+   Con zoom fraccionario (`zoomSnap: 0.25` en js/mapa.js) Leaflet escala la
+   cuadrícula de teselas con un `transform`, y el compositor del navegador
+   —según GPU y escala de pantalla— puede dejar el borde de cada imagen a
+   medio cubrir: una costura de subpíxel entre vecinas. Leaflet 1.9 la
+   "arregla" con `mix-blend-mode: plus-lighter` sobre fondo transparente, que
+   sobre una costura la pinta más oscura en vez de taparla.
+
+   Aquí se resuelve por construcción: cada tesela crece un 0,4 % desde su
+   esquina superior izquierda (~1 px) y pisa a la de la derecha y a la de
+   abajo. Como la imagen continúa exactamente igual en la vecina, el solape es
+   invisible; y ya no hay hueco por el que asomar nada. Va con la propiedad
+   `scale` y NO con `width`: el ancho fraccionario en el <img> obliga a
+   relayout y en Chromium deja un filo claro en cada unión, peor que antes.
+   Con el solape, el blend aditivo sobra —doblaría el brillo de la franja
+   solapada— así que vuelve a `normal`. */
+.gdf-mapa-real img.leaflet-tile {
+  mix-blend-mode: normal;
+  scale: 1.004;
+  transform-origin: 0 0;
+}
+
+/* Los controles y la atribución de Leaflet vienen con su propio blanco. */
+.gdf-mapa-real .leaflet-control-zoom a {
+  background: var(--papel);
+  color: var(--tinta);
+  border-color: var(--borde);
+}
+.gdf-mapa-real .leaflet-control-zoom a:hover {
+  background: var(--papel-2);
+  color: var(--marca);
+}
+.gdf-mapa-real .leaflet-control-attribution {
+  background: rgba(10, 11, 13, 0.72);
+  color: var(--tinta-tenue);
+  font-size: 10px;
+}
+.gdf-mapa-real .leaflet-control-attribution a {
+  color: var(--tinta-suave);
+}
+
+/* Las zonas. El aspecto vive aquí y no en js/mapa.js a propósito: así la
+   paleta sigue saliendo de los tokens que tema.js reescribe por constructora,
+   en vez de quedar congelada en colores dentro del JS.
+
+   EL MAPA EN REPOSO NO LLEVA COLOR DE MARCA. Antes las 20 localidades iban con
+   un lavado coral al 18 %, y el resultado era una ciudad entera teñida de rojo
+   donde lo elegido apenas se distinguía del resto. Ahora el reposo es un gris
+   de la propia paleta y el coral queda reservado para una sola cosa: el barrio
+   que la persona acaba de elegir. */
+/* SIN ANILLO DE FOCO SOBRE LOS POLÍGONOS. Es lo que dibujaba el RECUADRO
+   NEGRO al arrastrar el mapa: el <path> de la localidad que recibe el
+   mousedown queda enfocado, y el navegador pinta su `outline: auto` como el
+   rectángulo envolvente del path —una caja recta del tamaño de Fontibón o
+   Engativá, encima del mapa—. No se pierde nada: los polígonos se manejan con
+   el ratón o el dedo, y lo elegido ya se marca con su propio contorno
+   (`.gdf-zona-poly.sel`). */
+.gdf-mapa-real .leaflet-interactive:focus,
+.gdf-mapa-real .leaflet-interactive:focus-visible {
+  outline: none;
+}
+.gdf-zona-poly {
+  /* El relleno no puede ser `none` ni ir a opacidad 0: Leaflet detecta el clic
+     con `pointer-events: visiblePainted`, que exige que el relleno esté
+     pintado. Un 5 % se ve casi transparente y sigue recibiendo el clic. */
+  fill: var(--tinta);
+  fill-opacity: 0.05;
+  stroke: var(--borde);
+  stroke-opacity: 0.55;
+  cursor: pointer;
+  transition: fill-opacity 0.15s ease;
+}
+/* LA LOCALIDAD NO SE RESALTA AL PASAR EL RATON, y aquí eso significa no
+   escribir la regla. Tenía un `:hover` que la teñía de marca al 18 %, y el
+   problema es el tamaño: Suba son 100 km², así que "señalar dónde está el
+   cursor" encendía media pantalla. Lo que se resalta ahora es el sector que
+   hay debajo —`.gdf-barrio-hover`, unas cuadras— que además es exactamente lo
+   que el clic va a elegir. */
+/* Las seis sin un solo proyecto. Se pueden elegir igual —el modelo expande a
+   las vecinas por su grafo— pero se ven apagadas para que la elección sea
+   informada. El trazo va punteado porque, sobre un mapa a color con mucho
+   detalle propio, la opacidad sola no alcanza para distinguirlas del resto. */
+.gdf-zona-poly.sin-oferta {
+  fill-opacity: 0.02;
+  stroke-opacity: 0.35;
+  stroke-dasharray: 4 4;
+}
+/* La localidad elegida se marca SOLO con el contorno. Ni siquiera un relleno
+   coral al 10 %: una localidad ocupa la pantalla entera en cuanto el mapa se
+   acerca al barrio elegido, y ese 10 % se convierte ahí en la misma pantalla
+   roja que se quiso quitar. El relleno de color es del barrio, que es una
+   mancha pequeña, y de nada más. */
+.gdf-zona-poly.sel {
+  fill-opacity: 0.05;
+  stroke: var(--marca);
+  stroke-opacity: 0.95;
+  stroke-width: 2;
+}
+
+/* EL BARRIO BAJO EL CURSOR. Es el resaltado de hover del mapa, y va sobre el
+   sector, no sobre la localidad (ver arriba). Se distingue del barrio ELEGIDO
+   —`.gdf-barrio-poly`, que va relleno de coral— por ser solo contorno con un
+   velo mínimo: así, cuando el cursor pasa por encima de uno ya elegido, el
+   relleno de la selección se sigue viendo debajo y no parece que se hubiera
+   apagado. Un solo `<path>` reutilizado, ver `mostrarHover` en js/mapa.js. */
+.gdf-barrio-hover {
+  fill: var(--marca);
+  fill-opacity: 0.16;
+  stroke: var(--marca);
+  stroke-opacity: 0.95;
+  pointer-events: none;
+}
+
+/* EL BARRIO ELEGIDO: el único coral del mapa. Lo dibuja js/mapa.js como un
+   L.polygon aparte —uno solo, el elegido— en vez de tener los 1.230 barrios
+   como capa. */
+.gdf-barrio-poly {
+  fill: var(--marca);
+  fill-opacity: 0.55;
+  stroke: var(--sobre-marca);
+  stroke-opacity: 1;
+  /* Leaflet ya apaga los punteros de los paths que no son interactivos; queda
+     explícito porque de esto depende que el siguiente clic dentro del mismo
+     barrio atraviese el resaltado y llegue a la localidad de abajo. */
+  pointer-events: none;
+}
+
+.gdf-zona-tip {
+  background: var(--papel);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.gdf-zona-tip::before {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gdf-zona-poly {
+    transition: none;
+  }
+}
 .gdf-entorno-chips {
   display: flex;
   flex-wrap: wrap;
@@ -2351,6 +2617,10 @@ a.pt-flink:hover {
   background: var(--marca-tinte);
   color: var(--marca);
   border: 1px solid var(--marca-borde-suave);
+  /* Los chips viven dentro de un <input> visual (.gdf-zona-input-wrap): sin
+     esto, el `white-space` que hereda de ahi los partiria en dos lineas por
+     cada espacio del nombre ("Cedritos" quedaria "Cedri- tos" al envolver). */
+  white-space: nowrap;
 }
 .gdf-entorno-chip-x {
   background: none;
@@ -2360,6 +2630,51 @@ a.pt-flink:hover {
   line-height: 1;
   cursor: pointer;
   padding: 2px 4px;
+}
+
+/* El envoltorio: lleva el aspecto que antes tenía el <input> suelto (mismos
+   valores que `.gdf-input`, para que ningún otro buscador del quiz se vea
+   distinto a este). `flex-wrap` es lo que hace que, al no caber más chips en
+   la fila, se empiece una nueva en vez de desbordar. */
+.gdf-zona-input-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  background: var(--papel-2);
+  border: 1.5px solid var(--borde);
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  transition: border-color 0.15s;
+}
+.gdf-zona-input-wrap:focus-within {
+  border-color: var(--marca);
+}
+/* Los chips pasan a ser hijos DIRECTOS del envoltorio flex — ver la nota de
+   arriba en la cabecera de esta sección. */
+.gdf-zona-input-wrap #zonaChips {
+  display: contents;
+}
+/* El <input> de adentro pierde el aspecto de `.gdf-input` —fondo, borde,
+   radio, el margen inferior de 14px que dejaba un hueco vacío bajo el
+   envoltorio— porque ese aspecto ya lo lleva `.gdf-zona-input-wrap`. Solo
+   conserva la tipografía. `flex: 1 1 140px` es lo que lo deja crecer para
+   llenar el resto de la fila y encogerse a una línea propia cuando los chips
+   ya ocupan casi todo el ancho. */
+.gdf-zona-input-wrap .gdf-zona-input {
+  flex: 1 1 140px;
+  min-width: 90px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 4px 2px;
+  margin-bottom: 0;
+}
+.gdf-zona-input-wrap .gdf-zona-input:focus {
+  /* El foco lo señala el envoltorio entero (`:focus-within` arriba), no un
+     segundo borde propio del input adentro. */
+  border-color: transparent;
 }
 
 /* ============ RESULT ============ */
@@ -2530,8 +2845,9 @@ a.pt-flink:hover {
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
   animation: floatUp 0.5s ease-out both;
-  /* Toda la tarjeta es el control de selección (data-action en el div). */
-  cursor: pointer;
+  /* La tarjeta no se elige: sus botones de llamar y WhatsApp son lo que se
+     toca. Sin `cursor: pointer` en el contenedor, para no prometer un clic
+     que no hace nada. */
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
   display: flex;
   flex-direction: column;
@@ -2540,9 +2856,20 @@ a.pt-flink:hover {
   border-color: var(--marca);
   transform: translateY(-2px);
 }
-.gdf-project-card.chosen {
-  border: 2px solid #128c7e;
-  box-shadow: 0 6px 22px rgba(18, 140, 126, 0.2);
+/* MIENTRAS SE SCROLLEA, LA LISTA NO REACCIONA AL RATON. Es el arreglo del
+   "salta todo" al bajar por los resultados: el cursor se queda quieto y las
+   tarjetas pasan por debajo, así que cada una se enciende y se levanta 2px al
+   cruzarlo — seis saltitos por pantalla, cada uno con su transición de 0,15s
+   arrancando a mitad de camino. No es que el scroll vaya lento: es que la
+   lista se mueve sola mientras se mueve.
+
+   `pointer-events: none` sobre las tarjetas mata el `:hover` de raíz (no hay
+   forma en CSS de decir "hover solo si el ratón se movió"). La clase la pone y
+   la quita js/main.js con el propio evento de scroll, así que en cuanto la
+   lista se detiene el hover vuelve. De paso evita el toque accidental a mitad
+   de un scroll con inercia, que en móvil disparaba un botón sin querer. */
+.gdf-result.scrolleando .gdf-project-card {
+  pointer-events: none;
 }
 .gdf-project-card:nth-child(1) {
   animation-delay: 0.04s;
@@ -2561,29 +2888,6 @@ a.pt-flink:hover {
 }
 .gdf-project-card:nth-child(6) {
   animation-delay: 0.44s;
-}
-/* Marca de seleccionado, arriba a la izquierda de la foto. */
-.gdf-project-check {
-  position: absolute;
-  top: 10px;
-  left: 11px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: 800;
-  font-size: 15px;
-  transition: background 0.15s;
-}
-.gdf-project-card.chosen .gdf-project-check {
-  background: #128c7e;
-  border-color: #fff;
 }
 .gdf-project-header {
   height: 96px;
@@ -2618,12 +2922,76 @@ a.pt-flink:hover {
   font-size: 17px;
   color: var(--tinta);
 }
+/* EL PRECIO ES LO PRINCIPAL DE LA TARJETA, así que va antes que la ubicación
+   y con el peso visual más alto de todo el cuerpo — más grande que el nombre
+   del proyecto. "Desde" se queda chico y gris para no competir con el
+   número, que es lo que la persona busca primero. */
+.gdf-project-precio {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--tinta-suave);
+  margin-top: 8px;
+}
+.gdf-project-precio strong {
+  display: block;
+  font-family: 'Poppins', sans-serif;
+  /* 26px y no 27: el precio dejó de abreviarse a "$240,8M" y ahora se pinta
+     entero ("$240.800.000", ver `pesos()` en js/simulador.js). Son cinco
+     glifos más en una tarjeta cuya columna mide 260px, y los dígitos de
+     Poppins ExtraBold son anchos. Con esto el precio más largo del catálogo
+     cabe con aire de sobra y sigue siendo, de lejos, lo más grande del
+     cuerpo — el nombre del proyecto va en 17px. */
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--marca);
+  line-height: 1.15;
+  margin-top: 1px;
+}
+/* El badge de subsidio, aparte del precio y de las etiquetas de abajo: es
+   dinero que el usuario NO tiene que poner, así que tiene que saltar tanto
+   como el precio mismo, no ir mezclado entre habitaciones y baños. Va en
+   verde y con su propio fondo tenue —no el gris de las etiquetas— para que
+   se lea como una señal buena, no como un dato más. */
+.gdf-project-subsidio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  /* PASTILLA DE ESQUINAS SUAVES, NO REDONDA DEL TODO, y `flex-wrap` con tope
+     de ancho: el monto del subsidio también se pinta entero ("hasta
+     $52.527.150"), así que en la columna estrecha la etiqueta pasa a dos
+     líneas. Con `border-radius: 999px` una pastilla de dos líneas queda con
+     los lados en forma de óvalo y se lee como un globo; con 12px se lee igual
+     de bien con una línea o con dos. */
+  flex-wrap: wrap;
+  max-width: 100%;
+  border-radius: 12px;
+  background: rgba(79, 214, 191, 0.14);
+  border: 1px solid rgba(79, 214, 191, 0.4);
+  /* EL VERDE DEPENDE DE LA SUPERFICIE, por eso es un token y no un hex. Sobre
+     la consola negra de las cuatro constructoras tiene que ACLARARSE, y
+     #4fd6bf es ese valor; sobre la superficie clara de Machea el mismo verde
+     da 2,5 de contraste y hay que oscurecerlo. Lo elige js/tema.js con el
+     resto de la superficie (`--exito`). */
+  color: var(--exito);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.gdf-project-subsidio .monto {
+  color: var(--tinta-suave);
+  font-weight: 700;
+}
 .gdf-project-loc {
   font-size: 12px;
   color: var(--tinta-suave);
   font-weight: 600;
-  margin-top: 2px;
+  margin-top: 6px;
 }
+/* Habitaciones, baños y área: especificaciones, no lo primero que se lee. El
+   precio y el subsidio —lo que decide si el proyecto entra en el presupuesto—
+   ya se dijeron arriba. */
 .gdf-project-tags {
   display: flex;
   flex-wrap: wrap;
@@ -2637,15 +3005,6 @@ a.pt-flink:hover {
   border-radius: 8px;
   background: var(--papel-2);
   color: var(--tinta);
-}
-/* El chip de subsidio va en verde y no en el gris de los demás: es el único
-   que habla de plata que el usuario NO tiene que poner, así que tiene que
-   saltar entre área, habitaciones y baños. */
-.gdf-project-tag.subsidio {
-  background: var(--papel-2);
-  /* El verde de "apto para subsidio" tiene que ACLARARSE sobre fondo oscuro:
-     el #0f6f64 de la version clara daba 2,83 de contraste. */
-  color: #4fd6bf;
 }
 /* Zonas comunes del proyecto, con los íconos reales de la ficha. Las que
    coinciden con lo que el usuario pidió en la pregunta de entorno viven aquí
@@ -2823,8 +3182,43 @@ a.pt-flink:hover {
   border-radius: 0 8px 8px 0;
   padding: 8px 10px;
 }
-.gdf-project-continuar {
-  margin-top: 14px;
+/* Las dos salidas de cada tarjeta: llamar y WhatsApp, lado a lado justo
+   debajo de las especificaciones y desde el primer momento, sin marcar nada
+   antes. Sustituyen al paso de "elegir" la tarjeta y al "Continuar" de la
+   parrilla. Comparten alto y radio para leerse como un par; el de llamar
+   lleva la marca (es el camino principal, dispara a Manuela) y el de WhatsApp
+   el verde propio de WhatsApp, que es como la gente lo reconoce. */
+.gdf-project-acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+.gdf-project-acciones .gdf-project-llamar,
+.gdf-project-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+.gdf-project-whatsapp {
+  background: #25d366;
+  color: #fff;
+  border: 1.5px solid #25d366;
+  transition: filter 0.15s;
+}
+.gdf-project-whatsapp:hover {
+  filter: brightness(0.94);
 }
 .gdf-project-ficha {
   display: inline-block;
@@ -2839,8 +3233,7 @@ a.pt-flink:hover {
 }
 
 /* Recorrido virtual 360°: link real de la ficha (Matterport, Bolívar360...),
-   no algo montado por la app. Mismo peso visual que .gdf-sim-abrir pero en
-   azul de marca, para que no compita con el amarillo del CTA de dinero. */
+   no algo montado por la app. Va en azul de marca. */
 .gdf-tour360 {
   display: flex;
   align-items: center;
@@ -3252,9 +3645,11 @@ a.pt-flink:hover {
   border-top: 1px solid #edeff1;
 }
 
+/* Una sola métrica (el área privada): el área construida ya la dice la
+   pestaña de la tipología y el precio la cabecera de la tarjeta. */
 .gdf-tipo-metricas {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-top: 10px;
 }
@@ -3277,45 +3672,6 @@ a.pt-flink:hover {
   font-weight: 800;
   color: var(--tinta);
   margin-top: 2px;
-}
-
-/* El precio va aparte y con más peso: es el dato que más se busca y el que
-   alimenta el simulador de abajo. */
-.gdf-tipo-precio {
-  margin-top: 8px;
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  flex-wrap: wrap;
-  background: var(--marca-velo-claro);
-  border: 1px solid var(--marca-borde-suave);
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-.gdf-tipo-precio .rotulo {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #4a7fa5;
-}
-.gdf-tipo-precio .valor {
-  font-family: 'Poppins', sans-serif;
-  font-size: 19px;
-  font-weight: 800;
-  color: var(--marca);
-  line-height: 1;
-}
-.gdf-tipo-precio .entrega {
-  margin-left: auto;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--tinta-media);
-  background: var(--papel);
-  border: 1px solid var(--marca-borde-suave);
-  border-radius: 999px;
-  padding: 3px 9px;
-  white-space: nowrap;
 }
 
 .gdf-tipo-subtitulo {
@@ -3368,630 +3724,11 @@ a.pt-flink:hover {
   line-height: 1;
 }
 
-/* ============ SIMULADOR DE PLAN DE PAGOS ============ */
-/* El simulador ya no vive dentro de la tarjeta: acá queda solo el botón que
-   abre el overlay (ver más abajo). */
-
-.gdf-sim-abrir {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin-top: 14px;
-  padding: 12px 14px;
-  border: 1.5px solid var(--acento);
-  border-radius: 12px;
-  background: var(--acento-tinte-2);
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.14s;
-}
-.gdf-sim-abrir:hover {
-  background: var(--acento-tinte);
-  border-color: #e8bd00;
-}
-.gdf-sim-icon {
-  font-size: 17px;
-  flex-shrink: 0;
-}
-.gdf-sim-abrir-texto {
-  flex: 1;
-  font-family: 'Poppins', sans-serif;
-  font-size: 12.5px;
-  font-weight: 800;
-  color: var(--tinta);
-  line-height: 1.3;
-}
-.gdf-sim-abrir-texto em {
-  display: block;
-  font-style: normal;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--tinta-suave);
-  margin-top: 2px;
-}
-.gdf-sim-abrir-flecha {
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--marca);
-  flex-shrink: 0;
-}
-
-/* ---- Encabezado del overlay: recuerda qué se está simulando ---- */
-.gdf-sim-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid #eef0f2;
-}
-.gdf-sim-head-proyecto {
-  flex: 1;
-  min-width: 0;
-  text-align: right;
-}
-.gdf-sim-head-proyecto strong {
-  display: block;
-  font-family: 'Poppins', sans-serif;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--tinta);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.gdf-sim-head-proyecto span {
-  display: block;
-  font-size: 10.5px;
-  color: var(--tinta-suave);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.gdf-sim-head-paso {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--tinta-suave);
-  white-space: nowrap;
-}
-.gdf-sim-volver {
-  background: none;
-  border: none;
-  padding: 4px 6px;
-  margin-left: -6px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 11.5px;
-  font-weight: 800;
-  color: var(--marca);
-  cursor: pointer;
-  white-space: nowrap;
-  border-radius: 7px;
-}
-.gdf-sim-volver:hover {
-  background: var(--marca-tinte-2);
-}
-/* En el paso 2 el botón de cerrar entra en la fila del encabezado, así que
-   deja de flotar en la esquina como en el paso 1. */
-.gdf-sim-head .gdf-credito-cerrar {
-  position: static;
-  flex-shrink: 0;
-}
-
-/* ---- Paso 2: dos columnas, controles | recibo ---- */
-.gdf-sim-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: 20px;
-  align-items: start;
-}
-@media (max-width: 860px) {
-  .gdf-sim-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  /* En una sola columna el recibo va PRIMERO. Dejándolo en su orden natural
-     (después de los seis controles) se abría el simulador sin ver la cuota:
-     había que scrollear hasta abajo para encontrar el número que es toda la
-     razón de la pantalla. */
-  .gdf-sim-out {
-    order: -1;
-  }
-}
-/* El recibo se queda a la vista mientras se recorren los controles largos. */
-@media (min-width: 861px) {
-  .gdf-sim-out {
-    position: sticky;
-    top: 0;
-  }
-}
-
-.gdf-simc-campo {
-  margin-bottom: 14px;
-}
-.gdf-simc-campo label {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--tinta-suave);
-  margin-bottom: 6px;
-}
-.gdf-simc-valor {
-  font-family: 'Poppins', sans-serif;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--marca);
-}
-.gdf-simc-aviso {
-  margin-top: 6px;
-  font-size: 10px;
-  line-height: 1.4;
-  color: var(--tinta-tenue);
-}
-
-.gdf-simc-seg {
-  display: flex;
-  gap: 6px;
-}
-.gdf-simc-opt {
-  flex: 1;
-  border: 1.5px solid var(--borde);
-  background: var(--papel);
-  color: var(--tinta-media);
-  border-radius: 9px;
-  padding: 8px 4px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 11.5px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.12s;
-}
-.gdf-simc-opt:hover {
-  border-color: var(--marca);
-}
-.gdf-simc-opt.active {
-  background: var(--marca);
-  border-color: var(--marca);
-  color: #fff;
-}
-
-/* Los dos productos: el hipotecario es la base (no se apaga) y el
-   complementario es un interruptor que se enciende encima. */
-.gdf-simc-productos {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.gdf-simc-producto {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 9px 11px;
-  border: 1.5px solid var(--borde);
-  border-radius: 10px;
-  background: var(--papel);
-  cursor: pointer;
-  transition: all 0.14s;
-}
-.gdf-simc-producto.fijo {
-  cursor: default;
-  background: var(--marca-tinte-2);
-  border-color: var(--marca-borde-suave);
-}
-.gdf-simc-producto:not(.fijo):hover {
-  border-color: var(--marca);
-}
-.gdf-simc-producto.on {
-  border-color: var(--marca);
-  background: var(--marca-tinte-2);
-}
-.gdf-simc-producto strong {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--tinta);
-}
-.gdf-simc-producto em {
-  display: block;
-  font-style: normal;
-  font-size: 10px;
-  line-height: 1.35;
-  color: var(--tinta-suave);
-  margin-top: 3px;
-}
-.gdf-simc-switch {
-  width: 30px;
-  height: 17px;
-  border-radius: 9px;
-  background: var(--papel-2);
-  position: relative;
-  flex-shrink: 0;
-  transition: background 0.16s;
-}
-.gdf-simc-switch::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--papel);
-  transition: transform 0.16s;
-}
-.gdf-simc-producto.on .gdf-simc-switch {
-  background: var(--marca);
-}
-.gdf-simc-producto.on .gdf-simc-switch::after {
-  transform: translateX(13px);
-}
-
-.gdf-simc-slider {
-  width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--papel-2);
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-.gdf-simc-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--marca);
-  border: 3px solid #fff;
-  box-shadow: 0 1px 5px rgba(0, 103, 177, 0.4);
-  cursor: pointer;
-}
-.gdf-simc-slider::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: var(--marca);
-  border: 3px solid #fff;
-  box-shadow: 0 1px 5px rgba(0, 103, 177, 0.4);
-  cursor: pointer;
-}
-.gdf-simc-slider-rango {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  font-size: 9.5px;
-  color: var(--tinta-tenue);
-}
-
-.gdf-simc-input {
-  width: 100%;
-  border: 1.5px solid var(--borde);
-  border-radius: 9px;
-  padding: 9px 11px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--tinta);
-  background: var(--papel);
-}
-.gdf-simc-input:focus {
-  outline: none;
-  border-color: var(--marca);
-}
-
-/* ---- Columna derecha: el recibo ---- */
-.gdf-sim-cuota {
-  text-align: center;
-  background: linear-gradient(135deg, var(--marca), var(--marca-medio));
-  color: #fff;
-  border-radius: 12px;
-  padding: 15px 12px;
-}
-.gdf-sim-cuota .rotulo {
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  opacity: 0.85;
-}
-.gdf-sim-cuota .valor {
-  display: block;
-  font-family: 'Poppins', sans-serif;
-  font-size: 27px;
-  font-weight: 800;
-  line-height: 1.15;
-  margin: 3px 0 1px;
-}
-.gdf-sim-cuota .detalle {
-  display: block;
-  font-size: 10.5px;
-  opacity: 0.85;
-}
-/* La cuota en UVR es la de HOY y sube con la inflación: se dice en el
-   titular, no en la letra chica. */
-.gdf-sim-uvr {
-  display: block;
-  margin-top: 7px;
-  padding-top: 7px;
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
-  font-size: 9.5px;
-  line-height: 1.35;
-  opacity: 0.9;
-}
-
-/* El ahorro como plan mensual: la cifra seca ("reúne $12M") no le dice a
-   nadie si es alcanzable. */
-.gdf-sim-plan {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 9px;
-  padding: 9px 11px;
-  border-radius: 10px;
-  background: var(--acento-tinte-2);
-  border: 1px solid var(--acento);
-}
-.gdf-sim-plan .rotulo {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--sobre-acento);
-}
-.gdf-sim-plan strong {
-  font-family: 'Poppins', sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--tinta);
-}
-.gdf-sim-plan .detalle {
-  width: 100%;
-  font-size: 10px;
-  color: var(--sobre-acento);
-}
-
-.gdf-sim-filas {
-  margin-top: 10px;
-}
-.gdf-sim-fila {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 7px 0;
-  border-bottom: 1px dashed #edeff1;
-  font-size: 11.5px;
-}
-.gdf-sim-fila:last-child {
-  border-bottom: none;
-}
-.gdf-sim-fila span {
-  color: var(--tinta-suave);
-}
-.gdf-sim-fila span em {
-  display: block;
-  font-style: normal;
-  font-size: 9.5px;
-  color: var(--tinta-tenue);
-}
-.gdf-sim-fila strong {
-  color: var(--tinta);
-  font-weight: 800;
-  white-space: nowrap;
-  text-align: right;
-}
-.gdf-sim-fila.subsidio strong {
-  color: #128c7e;
-}
-/* Desglose del monto financiado en sus dos créditos: va indentado y en gris
-   para que se lea como detalle de la fila de arriba, no como otro concepto. */
-.gdf-sim-fila.sub {
-  padding: 4px 0 4px 10px;
-  font-size: 10.5px;
-  border-bottom: none;
-}
-.gdf-sim-fila.sub strong {
-  color: var(--tinta-suave);
-  font-weight: 700;
-}
-
-.gdf-sim-alerta {
-  margin-top: 9px;
-  padding: 9px 10px;
-  border-radius: 9px;
-  font-size: 11px;
-  line-height: 1.4;
-  background: var(--acento-tinte);
-  color: var(--sobre-acento);
-  border: 1px solid var(--acento);
-}
-.gdf-sim-alerta.ok {
-  background: var(--papel-2);
-  color: #0f6f64;
-  border-color: #a5ddd3;
-}
-.gdf-sim-alerta.info {
-  background: var(--marca-tinte-2);
-  color: #005a99;
-  border-color: var(--marca-borde-suave);
-}
-.gdf-sim-nota {
-  margin-top: 12px;
-  font-size: 9.5px;
-  line-height: 1.45;
-  color: var(--tinta-tenue);
-}
-
-/* ============ OVERLAY DEL SIMULADOR ============ */
-/* Único overlay flotante de la app. El fondo va DESENFOCADO, no oscurecido:
-   la idea es que se siga viendo la tarjeta del proyecto detrás (el contexto
-   de qué se está simulando) en vez de taparla con negro. */
-.gdf-credito-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  /* El z-index más alto de la app llega a 20 (el panel del buscador de
-     entorno); 100 lo deja por encima de todo sin competir con nada. */
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow-y: auto;
-}
-.gdf-credito-modal {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  max-height: 85vh;
-  overflow-y: auto;
-  background: var(--papel);
-  border-radius: 16px;
-  padding: 24px 20px 18px;
-  box-shadow: 0 20px 60px rgba(30, 34, 40, 0.22);
-}
-/* Paso 2: el simulador completo necesita el ancho de las dos columnas. */
-.gdf-credito-modal.ancho {
-  max-width: 880px;
-  max-height: 92vh;
-  padding: 20px 22px 18px;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .gdf-credito-modal {
-    animation: floatUp 0.25s ease-out;
-  }
-}
-.gdf-credito-modal h3 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--tinta);
-  margin: 0 26px 4px 0;
-}
-.gdf-credito-sub {
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--tinta-suave);
-  margin-bottom: 14px;
-}
-.gdf-credito-cerrar {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 50%;
-  background: var(--papel-2);
-  color: var(--tinta-media);
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-}
-.gdf-credito-cerrar:hover {
-  background: var(--papel-2);
-}
-.gdf-credito-opciones {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.gdf-credito-opcion {
-  position: relative;
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 13px 14px;
-  border: 1.5px solid var(--borde);
-  border-radius: 12px;
-  background: var(--papel);
-  cursor: pointer;
-  transition: all 0.14s;
-}
-.gdf-credito-opcion:hover {
-  border-color: var(--marca);
-  background: var(--papel-2);
-}
-.gdf-credito-opcion.recomendada {
-  border-color: var(--acento);
-  background: var(--acento-velo);
-}
-.gdf-credito-tag {
-  position: absolute;
-  top: -8px;
-  left: 12px;
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: var(--acento);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--tinta);
-}
-.gdf-credito-nombre {
-  display: block;
-  font-family: 'Poppins', sans-serif;
-  font-size: 13.5px;
-  font-weight: 800;
-  color: var(--tinta);
-}
-.gdf-credito-blurb {
-  display: block;
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--tinta-suave);
-  margin-top: 2px;
-}
-.gdf-credito-req {
-  display: block;
-  font-size: 10px;
-  font-weight: 700;
-  color: #b3541e;
-  margin-top: 2px;
-}
-.gdf-credito-cuota {
-  display: block;
-  margin-top: 7px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--marca);
-}
-.gdf-credito-cuota em {
-  font-style: normal;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--tinta-suave);
-  margin-left: 4px;
-}
-
-/* Barra de continuar de la pantalla de selección. Antes iba pegada abajo
-   (sticky) para tenerla siempre a mano, pero tapaba la última tarjeta y se
-   cruzaba con los desplegables de planos: ahora va en el flujo normal, al
-   final de la lista. */
 /* ============ PAGINACION DE LA SELECCION ============
    El modelo devuelve 18 proyectos y la pantalla los reparte en tres paginas de
-   seis. Va DEBAJO de la parrilla y encima del boton de continuar, que es el
-   orden en que se usan: miras las seis, cambias de pagina si no te convence
-   ninguna, y solo al final continuas. */
+   seis. Va DEBAJO de la parrilla: miras las seis, cambias de pagina si no te
+   convence ninguna, y la tarjeta que elijas trae sus propios botones de
+   contacto. */
 .gdf-paginacion {
   display: flex;
   align-items: center;
@@ -4043,12 +3780,6 @@ a.pt-flink:hover {
   width: 26px;
   background: var(--marca);
   box-shadow: none;
-}
-
-.gdf-seleccion-cta {
-  margin-top: 22px;
-  padding-top: 16px;
-  border-top: 1px solid #eef0f2;
 }
 
 /* ============ CONFIRMACIÓN (cierre del flujo) ============ */
@@ -5025,7 +4756,6 @@ a.pt-flink:hover {
     margin-right: auto;
   }
   .gdf-result > .gdf-projects,
-  .gdf-result > .gdf-seleccion-cta,
   .gdf-result > .gdf-debug {
     max-width: 1080px;
   }
@@ -5074,3 +4804,149 @@ a.pt-flink:hover {
   color: var(--marca, #0067b1);
 }
 
+
+/* ============================================================
+   MACHEA MOTION SYSTEM
+   .claude/skills/machea-motion-system
+   Solo se activa con la marca Machea: la clase `gdf-con-senal` la pone
+   senal.js al montar, y no monta para las cuatro constructoras revendidas,
+   que conservan su identidad en negro y naranja.
+   ============================================================ */
+
+/* --- Capa 1: Atmosphere (§6) ------------------------------------------
+   Dos gradientes radiales muy suaves sobre el navy. Estáticos: pintarlos en
+   el canvas sería gastar un frame por algo que no se mueve. Los porcentajes
+   y las opacidades son los de la skill. */
+.gdf-senal-atmosfera {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255, 95, 90, 0.12), transparent 35%),
+    radial-gradient(circle at 80% 70%, rgba(255, 95, 90, 0.07), transparent 30%),
+    var(--fondo);
+}
+
+/* --- Capa 2 y 3: Network + Signal (§6) --- */
+.gdf-senal {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* El contenido va POR ENCIMA de las dos capas. Sin este z-index el shell,
+   que no está posicionado, quedaría por debajo del canvas. */
+.gdf-con-senal #root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Los paneles se vuelven translúcidos para que la red se vea DETRAS del
+   formulario, que es lo que pide §6. No transparentes del todo: el texto
+   necesita un suelo o pierde contraste contra las líneas. */
+.gdf-con-senal .gdf-shell,
+.gdf-con-senal .gdf-escarapela,
+.gdf-con-senal .gdf-quiz,
+.gdf-con-senal .gdf-result,
+.gdf-con-senal .gdf-confirmacion {
+  background: transparent;
+}
+/* SIN VELO SOBRE TODA LA PANTALLA. El primer intento puso un `color-mix` al
+   72 % con blur sobre `.gdf-escarapela` y `.gdf-quiz`, y como esos elementos
+   ocupan la columna entera, la red quedaba tapada: se veía el navy y poco
+   más. La skill quiere lo contrario — el formulario flota SOBRE la señal
+   (§6, §19: "motion surrounds the form"). El contraste lo da el texto, que
+   sobre navy va en `--tinta` casi blanco, no un velo. */
+
+/* LA ESCENA NO SE TOCA, y aquí eso significa literalmente no escribir nada.
+   `.gdf-scene` ya trae `background: var(--fondo)` opaco con su cuadrícula, así
+   que la red no se cuela por detrás y no hace falta ninguna regla.
+   Un primer intento le puso `--losa-fondo` "para taparla" y el resultado fue
+   la MESA entera clara: CLAUDE.md lo dice al revés —"la mesa va oscura y la
+   lámina va clara"— porque las piezas se pintan con `mix-blend-mode: multiply`
+   y necesitan la losa clara, no el fondo. */
+
+/* --- Estado B: Focus (§5) --------------------------------------------
+   El borde toma coral y aparece un glow MUY pequeño. Lo que no puede pasar
+   —y es la regla explícita de la skill— es que el input "salte": por eso el
+   realce va en `box-shadow` y en el color del borde, nunca en `border-width`
+   ni en `padding`, que moverían el layout. */
+.gdf-con-senal .gdf-input {
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+.gdf-con-senal .gdf-input:focus {
+  border-color: var(--marca);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--marca) 18%, transparent);
+}
+
+/* Un campo ya relleno se marca en tenue: es el "check minimalista" de §5-D
+   sin añadir un icono que empuje el texto. `:not(:placeholder-shown)` lo
+   resuelve en CSS puro, sin tocar el JS del formulario. */
+.gdf-con-senal .gdf-input:not(:placeholder-shown):not(:focus) {
+  border-color: color-mix(in srgb, var(--marca) 42%, var(--borde));
+}
+
+/* --- Estado E: Submit — el sweep del CTA (§11) ------------------------
+   Una luz coral cruza el botón al pasar por encima. Va con `transform` sobre
+   un pseudo-elemento, no animando `background-position`, que obliga a
+   repintar el fondo entero en cada frame (§16). */
+.gdf-con-senal .gdf-btn-primary.enabled {
+  position: relative;
+  overflow: hidden;
+}
+.gdf-con-senal .gdf-btn-primary.enabled::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transform: translateX(0);
+  pointer-events: none;
+}
+.gdf-con-senal .gdf-btn-primary.enabled:hover::after {
+  animation: ctaSweep 0.75s ease-out;
+}
+@keyframes ctaSweep {
+  from { transform: translateX(0); }
+  to { transform: translateX(360%); }
+}
+
+/* --- Los nodos del progreso (§8) --------------------------------------
+   "El progreso debe representar estado, no simplemente una barra". La barra
+   se queda —es el dato real de encaje con el catálogo— y encima se le pone
+   un pulso coral que la recorre mientras avanza, para que se lea como una
+   señal viajando y no como un relleno. */
+.gdf-con-senal .gdf-progress-fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 22px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75));
+  border-radius: inherit;
+}
+
+/* --- §15: Reduced motion ---------------------------------------------
+   El movimiento se va; la composición se queda. La red sigue pintada (quieta,
+   ver senal.js) y los colores de foco siguen funcionando, que es feedback y
+   no decoración. */
+@media (prefers-reduced-motion: reduce) {
+  .gdf-con-senal .gdf-btn-primary.enabled:hover::after {
+    animation: none;
+  }
+  .gdf-con-senal .gdf-progress-fill::before {
+    display: none;
+  }
+}

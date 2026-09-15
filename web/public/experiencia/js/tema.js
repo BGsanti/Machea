@@ -58,6 +58,11 @@
    * dentro, en medio de esa landing, se ve como una app distinta pegada con
    * cinta, no como parte del mismo producto.
    *
+   * SE PROBO EN NAVY OSCURO Y SE VOLVIO A CLARO, a peticion. Queda anotado
+   * para no repetir el viaje: el ADN del Machea Motion System pide dark navy
+   * con el coral como color de señal, y en pantalla la app se separaba de su
+   * propia landing.
+   *
    * `fondo`/`papel`/`papel2`/`borde` se fijan ANTES de derivar() para que
    * haciaFondo() (mezcla contra --fondo) mezcle contra ESTE fondo y no
    * contra el negro de styles.css — así los tintes y velos de marca salen
@@ -75,6 +80,10 @@
     tintaMedia: '#676f7b',
     tintaSuave: '#95999f',
     tintaTenue: '#b6b6b9',
+    // El verde del badge de subsidio. El `:root` trae el aclarado para la
+    // consola negra (#4fd6bf); sobre blanco ese mismo verde da 2,5 de
+    // contraste, así que aquí va la versión oscura.
+    exito: '#0f6f64',
   };
 
   function aRgb(hex) {
@@ -267,6 +276,7 @@
       tokens['--tinta-media'] = SUPERFICIE_MACHEA.tintaMedia;
       tokens['--tinta-suave'] = SUPERFICIE_MACHEA.tintaSuave;
       tokens['--tinta-tenue'] = SUPERFICIE_MACHEA.tintaTenue;
+      tokens['--exito'] = SUPERFICIE_MACHEA.exito;
     }
 
     // Los tokens FIJADOS a mano por la marca ganan sobre los derivados. Es lo
