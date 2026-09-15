@@ -244,7 +244,7 @@ def validar():
     historial que salga de ahí contamina el componente colaborativo sin que
     nada falle de forma visible.
     """
-    from catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES
+    from Model.catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES
 
     errores = []
     if len(ARQUETIPOS) != 10:

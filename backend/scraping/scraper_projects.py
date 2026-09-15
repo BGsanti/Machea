@@ -54,7 +54,14 @@ from urllib.parse import unquote, urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
-from catalogos import (
+# Ejecutable por ruta (`python scraping/scraper_projects.py`) o como módulo
+# (`python -m scraping.scraper_projects`): en el primer caso Python pone en el path esta
+# carpeta y no `backend/`, así que el paquete `Model` no se encontraría.
+if __package__ in (None, ""):
+    import sys
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from Model.catalogos import (
     LOCALIDADES_BOGOTA,
     ZONAS_COMUNES,
     codigo_tipo_vivienda,
@@ -65,6 +72,15 @@ from catalogos import (
     normalizar_texto,
 )
 
+# El barrio se resuelve DESPUÉS de la localidad y nunca la contradice: el
+# grafo de barrios (Model/grafo_barrios.py) afina la posición dentro de la
+# localidad ya asignada. Ver `asignar_barrios`.
+from Model.grafo_barrios import (
+    barrio_desde_coordenadas,
+    barrio_desde_direccion,
+    hay_grafo_barrios,
+)
+
 try:  # el aviso de TLS sin verificar se emite una sola vez; ver `_get`
     import urllib3
 
@@ -72,11 +88,16 @@ try:  # el aviso de TLS sin verificar se emite una sola vez; ver `_get`
 except Exception:  # pragma: no cover - urllib3 viene con requests
     urllib3 = None
 
-DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
-RUTA_SALIDA = os.path.join(DIRECTORIO, "proyectos_bogota.json")
-DIR_IMAGENES = os.path.join(DIRECTORIO, "imagenes_proyectos")
-DIR_DATOS = os.path.join(DIRECTORIO, "datos")
-RUTA_LOCALIDADES_GEO = os.path.join(DIR_DATOS, "localidades_bogota.json")
+# El catálogo y los límites oficiales son datos de entrada del modelo, así que
+# viven en `Model/data_projects/`. Las imágenes NO: son binarios pesados que
+# sirve el front, y por eso van a sus recursos, con el id del proyecto como
+# nombre de carpeta. Todo eso lo declara `Model/rutas.py`.
+from Model.rutas import (
+    DIR_DATA_PROJECTS as DIR_DATOS,
+    DIR_IMAGENES,
+    RUTA_CATALOGO as RUTA_SALIDA,
+    RUTA_LOCALIDADES_GEO,
+)
 
 # Límites oficiales de las 20 localidades (Datos Abiertos Bogotá). Se usan solo
 # como verificación cuando la fuente publica coordenadas; ver asignar_localidades.
@@ -1823,6 +1844,64 @@ def _reintentar_sin_direccion(crudos):
             print(f"  [reintento] recuperado: {registro['nombre_proyecto']}")
 
 
+# ---------------------------------------------------------------------------
+# E.2 Resolución del barrio (sector catastral)
+#
+# La localidad decide la ADMISIÓN (el BFS de primer_filtro); el barrio decide
+# qué tan cerca queda de verdad. Por eso se resuelve después y subordinado:
+# un barrio que contradiga la localidad ya asignada no se acepta.
+#
+# La mayoría de las direcciones del catálogo son de malla vial ("Calle 235 #
+# 52-50") y no nombran barrio, así que la señal principal aquí es la
+# COORDENADA —al revés que en la localidad—, con el mismo cuidado: el pin de
+# la sala de ventas se descarta si cae fuera de la localidad del proyecto.
+# ---------------------------------------------------------------------------
+def asignar_barrios(proyectos):
+    """Agrega `barrio_id` / `barrio_nombre` a cada proyecto. No muta la entrada.
+
+    Orden de las señales, de más a menos confiable:
+        1. la dirección nombra un barrio del grafo dentro de su localidad  (alta)
+        2. la coordenada cae en el polígono de un sector de su localidad    (alta)
+        3. la coordenada queda a < 1,5 km del centroide de un sector suyo   (media)
+        4. la dirección nombra un barrio de una localidad vecina           (media)
+        5. nada de lo anterior -> null; el modelo usa solo la localidad
+
+    Sin `barrios_bogota.json` (ver Model/grafo_barrios.py) todos salen en
+    null y el recomendador funciona igual que en la v0.3.
+    """
+    resueltos = []
+    for proyecto in proyectos:
+        copia = dict(proyecto)
+        localidad = copia.get("Localidad")
+        veredicto = {"barrio": None, "nombre": None, "confianza": None,
+                     "evidencia": "sin grafo de barrios" if not hay_grafo_barrios() else None}
+        if hay_grafo_barrios() and localidad is not None:
+            direccion = _primer_valor(copia, _LLAVES_DIRECCION)
+            por_nombre = barrio_desde_direccion(direccion, localidad)
+            if por_nombre["barrio"] and por_nombre["confianza"] == "alta":
+                veredicto = por_nombre
+            else:
+                lat, lon = _primer_valor(copia, _LLAVES_LAT), _primer_valor(copia, _LLAVES_LON)
+                por_geo = {"barrio": None}
+                try:
+                    if lat is not None and lon is not None:
+                        por_geo = barrio_desde_coordenadas(float(lat), float(lon), localidad)
+                except (TypeError, ValueError):
+                    pass
+                if por_geo["barrio"]:
+                    veredicto = por_geo
+                elif por_nombre["barrio"]:
+                    veredicto = por_nombre
+                else:
+                    veredicto = dict(por_nombre, evidencia="ni la direccion ni la coordenada ubican un sector")
+        copia["barrio_id"] = veredicto["barrio"]
+        copia["barrio_nombre"] = veredicto["nombre"]
+        copia["_barrio_confianza"] = veredicto["confianza"]
+        copia["_barrio_evidencia"] = veredicto["evidencia"]
+        resueltos.append(copia)
+    return resueltos
+
+
 def construir_catalogo(fuentes=None, usar_coordenadas=True):
     """Corre los scrapers pedidos, asigna localidad y numera los proyectos.
 
@@ -1878,6 +1957,7 @@ def construir_catalogo(fuentes=None, usar_coordenadas=True):
         catalogo.append(proyecto)
 
     catalogo, fusiones = fusionar_duplicados(catalogo)
+    catalogo = asignar_barrios(catalogo)
 
     # Orden estable: por constructora y nombre, para que dos corridas seguidas
     # produzcan los mismos ids mientras el catálogo publicado no cambie.
@@ -2018,7 +2098,14 @@ def main(argv=None):
         "--sin-coordenadas", action="store_true",
         help="resolver la localidad solo con la dirección, sin los límites oficiales",
     )
+    parser.add_argument(
+        "--solo-barrios", action="store_true",
+        help="no scrapear: releer el catálogo ya guardado y (re)asignar el barrio a cada proyecto",
+    )
     args = parser.parse_args(argv)
+
+    if args.solo_barrios:
+        return _reasignar_barrios(args.salida)
 
     catalogo, descartados, fusiones = construir_catalogo(
         fuentes=args.fuente, usar_coordenadas=not args.sin_coordenadas
@@ -2050,6 +2137,33 @@ def main(argv=None):
         descargar_imagenes(catalogo, rehacer=args.rehacer_imagenes)
 
     _resumen(catalogo, descartados, fusiones)
+    return 0
+
+
+def _reasignar_barrios(ruta):
+    """Vuelve a resolver el barrio sobre el catálogo en disco, sin scrapear.
+
+    Es lo que hay que correr cuando cambia el grafo de barrios y no el
+    catálogo: no toca ids, localidades ni imágenes.
+    """
+    with open(ruta, "r", encoding="utf-8") as archivo:
+        salida = json.load(archivo)
+    salida["proyectos"] = asignar_barrios(salida["proyectos"])
+    salida.setdefault("meta", {})["barrios_asignados_en"] = (
+        datetime.now(timezone.utc).isoformat(timespec="seconds")
+    )
+    with open(ruta, "w", encoding="utf-8") as archivo:
+        json.dump(salida, archivo, ensure_ascii=False, indent=2)
+
+    por_confianza = {}
+    for proyecto in salida["proyectos"]:
+        clave = proyecto.get("_barrio_confianza") or "sin barrio"
+        por_confianza[clave] = por_confianza.get(clave, 0) + 1
+    print(f"[barrios] {len(salida['proyectos'])} proyectos -> {ruta}")
+    print(f"[barrios] por confianza: {por_confianza}")
+    for proyecto in salida["proyectos"]:
+        print(f"  {proyecto['id_proyecto']:>3} {proyecto['localidad_nombre']:<18} "
+              f"{(proyecto.get('barrio_nombre') or '-'):<28} {proyecto.get('_barrio_evidencia')}")
     return 0
 
 

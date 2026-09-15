@@ -35,8 +35,8 @@ import random
 from collections import Counter
 from datetime import date, timedelta
 
-from catalogos import ZONAS_COMUNES, nombre_localidad, nombre_tipo_vivienda
-from modelo import (
+from Model.catalogos import ZONAS_COMUNES, nombre_localidad, nombre_tipo_vivienda
+from Model.modelo import (
     DISTANCIA_MAXIMA,
     PESOS_SCORE,
     RUTA_HISTORIAL,
@@ -47,8 +47,7 @@ from modelo import (
     primer_filtro,
 )
 
-DIRECTORIO = os.path.dirname(os.path.abspath(__file__))
-RUTA_CLIENTES = os.path.join(DIRECTORIO, "simulacion", "clientes_simulados.json")
+from Model.rutas import RUTA_CLIENTES
 INTERACCIONES_POR_CLIENTE = 8
 
 N_REGISTROS = 4000

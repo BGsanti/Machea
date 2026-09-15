@@ -42,14 +42,17 @@ Ninguno es obligatorio, pero **tres de ellos cambian el resultado**:
 | Campo | Valores | Qué cambia si se llena |
 |---|---|---|
 | `zonas_comunes` | lista de strings del vocabulario de 25 (§5) | **Mucho.** Es el 20 % del score y además parte del filtro: sin esto, todas las amenidades cuentan igual y el ranking pierde precisión. |
+| `barrio` | nombre o código de sector catastral, de `GET /api/barrios?localidad=N` | **La cercanía deja de ser "misma localidad o no".** El motor mide en kilómetros, por el grafo de barrios, cuánto le queda cada proyecto y lo cuenta en el score. Sin este dato, dos proyectos de Suba a 8 km uno del otro le quedan "igual de cerca". Si contradice a `Localidad`, la respuesta es un error 400. Ver §4.1. |
 | `afiliado` | `0` no · `1` sí | **Bastante, si busca VIS.** Un afiliado a caja accede al subsidio, así que el ingreso que le exige cada proyecto baja y se le abren opciones que sin subsidio no podría pagar. |
 | `piso` | `0` bajo · `1` medio · `3` alto · `4` sin preferencia | **Nada, hoy.** Se guarda y viaja a la respuesta, pero ninguna constructora publica el piso por unidad, así que no filtra. Si no viene, se asume `4`. |
 | `nombres`, `apellidos` | string | Solo para saludar y para el lead. |
 | `correo` | string | Solo para el lead. |
 | `telefono` | entero | Solo para el lead. |
 
-**Recomendación:** pedir las 6 obligatorias + `zonas_comunes` + `afiliado`. Son
-8 preguntas y con eso el modelo trabaja al máximo de lo que hoy sabe hacer.
+**Recomendación:** pedir las 6 obligatorias + `zonas_comunes` + `afiliado` +
+`barrio`. Son 9 preguntas y con eso el modelo trabaja al máximo de lo que hoy
+sabe hacer. El barrio se pide como un desplegable **dependiente** de la
+localidad, llenado con `GET /api/barrios?localidad=N`.
 Los datos de contacto pueden ir en un segundo paso, después de mostrar los
 resultados.
 
@@ -70,6 +73,7 @@ Formulario completo, las 15 llaves:
   "personas_a_cargo": 3,
   "edad": 34,
   "Localidad": 9,
+  "barrio": "Modelia",
   "numero_habitaciones": 3,
   "piso": 1,
   "zonas_comunes": ["Lobby", "Piscina", "Zona BBQ", "Zona kids", "Coworking", "Gimnasio"]
@@ -107,7 +111,14 @@ JSON de usuario inválido:
 ```
 
 Una zona común que no esté en el vocabulario **no rompe nada**: se ignora para
-el cálculo y se reporta aparte, así que el front puede avisar sin bloquear.
+el cálculo y se reporta aparte, así que el front puede avisar sin bloquear. Lo
+mismo un `barrio` que no exista en el grafo: viaja en
+`usuario.busqueda.barrio_no_reconocido` y el score usa solo la localidad. Lo
+que **sí** es error es un barrio que existe pero queda en otra localidad:
+
+```
+  - barrio 'Cedritos' (Cedritos) queda en Usaquén, no en Suba (Localidad=11)
+```
 
 ## 4. Localidades (`Localidad`)
 
@@ -123,6 +134,21 @@ el cálculo y se reporta aparte, así que el front puede avisar sin bloquear.
 usuario pide una sin oferta, el modelo expande la búsqueda a las localidades
 vecinas siguiendo un grafo de colindancia y le devuelve resultados igual, con
 la distancia descontada del score. Nunca devuelve una lista vacía.
+
+### 4.1 Barrio (`barrio`, opcional)
+
+```
+GET /api/barrios?localidad=11
+-> {"localidad": 11, "disponible": true,
+    "barrios": [{"id": "009218", "nombre": "Almirante Colon"}, ...]}
+```
+
+Son los **sectores catastrales** oficiales de la localidad (1.164 en toda la
+ciudad; Suba tiene 128). Se manda el `id` o el `nombre`, da igual. Con él el
+motor calcula a cuántos kilómetros queda cada proyecto —por el grafo de
+vecindad de barrios, no en línea recta— y cada apartamento de la respuesta
+trae `distancia_km`. Si `disponible` viene en `false`, el backend corre sin
+grafo de barrios: se omite el campo y todo sigue funcionando.
 
 ## 5. Zonas comunes (`zonas_comunes`)
 
@@ -174,6 +200,9 @@ También se acepta un solo string con los nombres separados por comas
       "nombre_proyecto": "La Unión I de la Marlene",
       "tipo_vivienda": "VIS",
       "localidad": "Bosa",
+      "barrio": "Campo Verde",
+      "distancia_km": 4.3,
+      "distancia_km_estimada": false,
       "direccion": "Bosa, Bogotá. Cra. 95 A #90-42 Sur",
       "precio_desde_cop": 231700000.0,
       "area_construida_m2": 48.0,
@@ -206,6 +235,7 @@ También se acepta un solo string con los nombres separados por comas
 | `score` | El valor crudo del modelo (0–1). Para depurar, **no para mostrar**. |
 | `zonas_en_comun` | Las amenidades que el usuario pidió Y el proyecto tiene. Ideal para resaltarlas. |
 | `cumple_habitaciones` | Si es `false`, el proyecto entró relajando el requisito: conviene avisarlo. |
+| `barrio`, `distancia_km` | El sector catastral del proyecto (`null` si no se pudo ubicar) y, **solo si el usuario dio `barrio`**, a cuántos km le queda ("a 4,3 km de tu barrio"). Si `distancia_km_estimada` es `true` el proyecto no tiene barrio y el número es el típico de su salto de localidad: mostrar "aprox." o no mostrarlo. Sin barrio del usuario, `distancia_km` viene en `null`. |
 | `fichas_alternas` | Si trae URLs, la misma obra la publican dos constructoras con **precios distintos**. Vale la pena ofrecer las dos. |
 | `datos_no_publicados` | Lista como `["habitaciones"]`. La constructora no publica ese dato: mostrar "no informado", **no un cero**. |
 | `motor` | `contenido` o `colaborativo+contenido`. Diagnóstico interno. |
