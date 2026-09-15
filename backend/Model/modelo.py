@@ -200,6 +200,38 @@ PESOS_SCORE = {"modelo": 0.50, "esfuerzo": 0.25, "zonas": 0.17, "localidad": 0.0
 # base. Subir a 0,16 acerca un 10% pero empieza a costar recall.
 RADIO_CERCANIA_KM = 12.0
 
+# Lo que puntúa un proyecto que está JUSTO en el borde del radio, y con ello
+# el tamaño de la cola que hay más allá.
+#
+# EL PROBLEMA QUE RESUELVE. El decaimiento era `max(0, 1 - km/12)`, que se
+# queda pegado en 0 a partir de los 12 km. Medido sobre el propio grafo, el
+# 52% de los pares de sectores urbanos supera esa distancia (la mediana de
+# todos los pares es 12,43 km), así que más de la mitad del mapa puntuaba
+# exactamente igual: cero.
+#
+# Dentro de una misma localidad eso da igual —el p90 es 8,1 km y casi nada
+# satura—, pero se vuelve grave justo en el caso para el que existe la
+# expansión por el grafo: el usuario de una localidad SIN oferta. Suba
+# concentra 31 de los 96 proyectos, y desde las cuatro localidades sin oferta
+# queda fuera del radio en todas:
+#
+#      Antonio Nariño -> Suba 12,7 km      Rafael Uribe   -> Suba 13,2 km
+#      Tunjuelito     -> Suba 15,7 km      Ciudad Bolívar -> Suba 21,8 km
+#
+# Con el corte en 12, esos 31 proyectos empataban a 0 y la cercanía dejaba de
+# ordenar precisamente donde más falta hace. Con la cola, 13,2 km puntúa
+# 0,073 y 21,8 km puntúa 0,044: sigue habiendo un orden.
+#
+# POR QUÉ 0,08 Y NO UNA CURVA CUALQUIERA. La tabla de calibración de arriba
+# (r=12, w=0,12) se midió con la recta, y el rango 0-12 km es donde cae la
+# enorme mayoría de los candidatos reales. Así que la recta se conserva ahí y
+# solo se comprime un 8% para dejarle sitio a la cola: a 6 km se pasa de 0,50
+# a 0,54, una diferencia que el peso de 0,12 vuelve despreciable. Una curva
+# como `1/(1+km/6)` habría arreglado la saturación igual, pero aplastando el
+# tramo cercano (0,67 a 3 km en vez de 0,81) y dejando la calibración sin
+# valor. El objetivo era quitar el suelo, no volver a calibrar.
+FRACCION_BORDE_CERCANIA = 0.08
+
 # Peso de `localidad` cuando el usuario SÍ dio barrio. Sin barrio la cercanía
 # es un dato grueso (¿misma localidad o vecina?) y pesa lo de siempre, 0,08,
 # para que un formulario sin barrio dé exactamente lo de la v0.3 y las tablas
@@ -558,14 +590,24 @@ def pesos_score(proyectos_preseleccionados):
 def score_cercania(proyecto):
     """Afinidad [0,1] por cercanía geográfica.
 
-    Con kilómetros (el usuario dio barrio): decae linealmente hasta 0 en
-    `RADIO_CERCANIA_KM`. Sin ellos: la fórmula por saltos de localidad de la
-    v0.3, `1 - 0.25 * saltos`, para que un formulario sin barrio dé el mismo
-    resultado de siempre.
+    Con kilómetros (el usuario dio barrio): decae linealmente dentro de
+    `RADIO_CERCANIA_KM` y sigue decayendo fuera, sin llegar nunca a 0 (ver
+    `FRACCION_BORDE_CERCANIA`). Sin ellos: la fórmula por saltos de localidad
+    de la v0.3, `1 - 0.25 * saltos`, para que un formulario sin barrio dé el
+    mismo resultado de siempre.
     """
     km = proyecto.get("_distancia_km")
     if km is not None:
-        return max(0.0, 1.0 - float(km) / RADIO_CERCANIA_KM)
+        km = max(0.0, float(km))
+        if km <= RADIO_CERCANIA_KM:
+            # Tramo calibrado: recta de 1,0 al borde, igual que antes salvo
+            # por el 8% que se reserva para la cola.
+            caida = (km / RADIO_CERCANIA_KM) * (1.0 - FRACCION_BORDE_CERCANIA)
+            return 1.0 - caida
+        # Fuera del radio: hipérbola que vale exactamente
+        # FRACCION_BORDE_CERCANIA en el borde (la función es continua) y sigue
+        # bajando. Nunca llega a 0, así que nunca deja de ordenar.
+        return FRACCION_BORDE_CERCANIA * RADIO_CERCANIA_KM / km
     return max(0.0, 1.0 - 0.25 * proyecto.get("_distancia_localidad", 0))
 
 
