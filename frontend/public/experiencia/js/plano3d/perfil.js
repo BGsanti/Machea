@@ -68,6 +68,13 @@
       // Todo lo que no diga 'No VIS' es VIS: el catalogo solo tiene esos dos.
       vis: answers.tipo !== 'No VIS',
       nAlcobas: n,
+      // Antes de responder `habitaciones`, `n` es una ESTIMA que puede no
+      // coincidir con lo que se responda despues. Cualquier regla que dependa
+      // de un umbral de `n` (como cuantos ambientes entran en el programa) debe
+      // mirar esta bandera primero: si no, la estima de un paso temprano puede
+      // activar una regla pensada para la respuesta real y mover el plano sin
+      // que el usuario haya contestado nada nuevo.
+      nAlcobasResuelto: contestadas >= ETAPAS.alcobas && !!answers.habitaciones,
       // Una alcoba: un solo bano, privado. Dos o mas: social + principal.
       nBanos: n >= 2 ? 2 : 1,
       // El ambiente flexible es estudio para los mas jovenes y sala de estar

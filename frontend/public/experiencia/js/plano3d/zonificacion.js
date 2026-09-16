@@ -28,7 +28,19 @@
 
     if (hasta >= E.sala) soc.push({ id: 'sala', nombre: 'Sala', area: A(PROGRAMA.sala), zona: 'social' });
     if (hasta >= E.comedor) soc.push({ id: 'comedor', nombre: 'Comedor', area: A(PROGRAMA.comedor), zona: 'social' });
-    if (hasta >= E.flexible) {
+    /* Con 3 alcobas ya no queda programa para un cuarto flexible: los
+       catalogos VIS de 3 alcobas dan 40-56 m2, y agregarlo aqui siempre
+       (sin mirar cuantas alcobas hay) inflaba esos planos a 65-76 m2. Con 1
+       o 2 alcobas el area libre lo admite bien.
+
+       Ojo: se mira `nAlcobasResuelto`, no solo `n < 3`. Antes de responder
+       `habitaciones`, `n` es una ESTIMA (`sugeridaAlcobas`) que para hogares
+       de 4+ personas ya vale 3 desde el paso 3. Condicionar solo en `n`
+       aplicaba este recorte tambien ahi, encogia el ancho social de golpe y
+       el mueble de ropas quedaba tapando su puerta en 90 de 1008 corridas —
+       ningun usuario alcanzo a responder nada nuevo para que el plano se
+       hubiera movido asi. */
+    if (hasta >= E.flexible && !(n >= 3 && perfil.nAlcobasResuelto)) {
       soc.push({
         id: 'flexible',
         nombre: perfil.esJoven ? 'Estudio' : 'Sala de estar',
@@ -103,7 +115,18 @@
         dMinPri = Math.max(sumaFondoMin(p.A), sumaFondoMin(p.B));
       }
     }
-    var dMin = Math.max(4.4, sumaFondoMin(prog.soc), sumaFondoMin(prog.hum), dMinPri);
+    /* La humeda (y, con dos columnas, la columna A de privada) NO reciben el
+       fondo D completo: `zonificar` les resta `ramal` para el vestibulo antes
+       de apilarlas (`D - ramal`, mas abajo). Sin sumarlo aqui, `dMin` se queda
+       corto y `apilarMin` fija cada cuarto a su minimo pero el `D` que le
+       toca ya no alcanza para todos: el rescale final (linea ~155) los
+       encoge a todos por igual por debajo de su propio minimo. Asi fue como
+       `ropas` termino en 1.10 m de fondo con `fondoMin` en 1.45 — el mueble
+       ya no tenia donde no tapar la puerta. */
+    var ramal0 = wCorr > 0 ? Math.min(1.25, wCorr + 0.2) : 0;
+    var dMin = Math.max(
+      4.4, sumaFondoMin(prog.soc), sumaFondoMin(prog.hum) + ramal0, dMinPri + ramal0
+    );
 
     var mejor = null;
     for (var D = dMin; D <= 15; D += 0.05) {

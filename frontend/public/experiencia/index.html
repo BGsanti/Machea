@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=94" />
+    <link rel="stylesheet" href="css/styles.css?v=95" />
   </head>
   <body>
     <div id="root"></div>
@@ -57,43 +57,43 @@
         // Antes eran cuatro: habia un `portada.js` con el clon de la portada de
         // Colsubsidio. La app ya no tiene portada — entra directa al splash.
         ['marca', 'proyectos', 'planos'].forEach(function (f) {
-          document.write('<scr' + 'ipt src="tenants/' + slug + '/' + f + '.js?v=94"></scr' + 'ipt>');
+          document.write('<scr' + 'ipt src="tenants/' + slug + '/' + f + '.js?v=95"></scr' + 'ipt>');
         });
       })();
     </script>
     <!-- traduce la paleta de la marca a las custom properties del :root -->
-    <script src="js/tema.js?v=94"></script>
-    <script src="js/config.js?v=94"></script>
-    <script src="js/data.js?v=94"></script>
-    <script src="js/matching.js?v=94"></script>
+    <script src="js/tema.js?v=95"></script>
+    <script src="js/config.js?v=95"></script>
+    <script src="js/data.js?v=95"></script>
+    <script src="js/matching.js?v=95"></script>
     <!-- el plano que arma el quiz: cortes generados por tools/analizar_planos.py,
          normalización de espacios, sorteo del apartamento y cuánto se ve ya -->
-    <script src="js/espacios.js?v=94"></script>
-    <script src="js/planta.js?v=94"></script>
-    <script src="js/scene.js?v=94"></script>
-    <script src="js/recommender.js?v=94"></script>
-    <script src="js/qualification.js?v=94"></script>
-    <script src="js/simulador.js?v=94"></script>
+    <script src="js/espacios.js?v=95"></script>
+    <script src="js/planta.js?v=95"></script>
+    <script src="js/scene.js?v=95"></script>
+    <script src="js/recommender.js?v=95"></script>
+    <script src="js/qualification.js?v=95"></script>
+    <script src="js/simulador.js?v=95"></script>
     <!-- Paso 2 del contrato: dispara la llamada de Manuela vía api.py -->
-    <script src="js/llamada.js?v=94"></script>
+    <script src="js/llamada.js?v=95"></script>
     <!-- el contrato del modelo de recomendacion (Machea) -->
-    <script src="js/iconos.js?v=94"></script>
-    <script src="js/machea.js?v=94"></script>
-    <script src="js/templates.js?v=94"></script>
-    <script src="js/state.js?v=94"></script>
+    <script src="js/iconos.js?v=95"></script>
+    <script src="js/machea.js?v=95"></script>
+    <script src="js/templates.js?v=95"></script>
+    <script src="js/state.js?v=95"></script>
     <!-- plano 3D. El bundle de three va aparte porque la app no tiene bundler,
          y TODOS estos van despues del document.write de arriba: moverlo o
          ponerle defer borra el documento entero. -->
-    <script src="vendor/gdf-three.bundle.js?v=94"></script>
-    <script src="js/plano3d/perfil.js?v=94"></script>
-    <script src="js/plano3d/zonificacion.js?v=94"></script>
-    <script src="js/plano3d/muros.js?v=94"></script>
-    <script src="js/plano3d/floorplan.js?v=94"></script>
-    <script src="js/plano3d/materiales.js?v=94"></script>
-    <script src="js/plano3d/geometria.js?v=94"></script>
-    <script src="js/plano3d/muebles.js?v=94"></script>
-    <script src="js/plano3d/escena.js?v=94"></script>
-    <script src="js/plano3d/index.js?v=94"></script>
-    <script src="js/main.js?v=94"></script>
+    <script src="vendor/gdf-three.bundle.js?v=95"></script>
+    <script src="js/plano3d/perfil.js?v=95"></script>
+    <script src="js/plano3d/zonificacion.js?v=95"></script>
+    <script src="js/plano3d/muros.js?v=95"></script>
+    <script src="js/plano3d/floorplan.js?v=95"></script>
+    <script src="js/plano3d/materiales.js?v=95"></script>
+    <script src="js/plano3d/geometria.js?v=95"></script>
+    <script src="js/plano3d/muebles.js?v=95"></script>
+    <script src="js/plano3d/escena.js?v=95"></script>
+    <script src="js/plano3d/index.js?v=95"></script>
+    <script src="js/main.js?v=95"></script>
   </body>
 </html>
