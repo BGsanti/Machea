@@ -272,7 +272,30 @@
        desde que aparecen las alcobas: si no, cocina y ropas quedan sin acceso
        durante varios pasos. */
     var corrs = perfil.paso >= E.cocina ? corredores : [];
-    corrs.forEach(function (c) { rects.push(c); });
+
+    /* El corredor se dibuja RECORTADO a la huella ya construida. A tamano final
+       desde el paso 3 sirve alcobas que aun no existen, y el piso sobrante se
+       lee como un vacio gris tan grande como la vivienda. Recortarlo no mueve
+       nada: el tramo que ya estaba sigue donde estaba y el resto se suma
+       despues. Lo que NO se recorta es `corredores`: de ahi salen los lados de
+       puerta, que tienen que decidirse contra el plano completo. */
+    if (corrs.length && rects.length) {
+      var hx0 = Infinity, hx1 = -Infinity, hz0 = Infinity, hz1 = -Infinity;
+      rects.forEach(function (r) {
+        hx0 = Math.min(hx0, r.rect.x); hx1 = Math.max(hx1, r.rect.x + r.rect.w);
+        hz0 = Math.min(hz0, r.rect.z); hz1 = Math.max(hz1, r.rect.z + r.rect.d);
+      });
+      corrs.forEach(function (c) {
+        var q = c.rect;
+        var x0 = Math.max(q.x, hx0), x1 = Math.min(q.x + q.w, hx1);
+        var z0 = Math.max(q.z, hz0), z1 = Math.min(q.z + q.d, hz1);
+        if (x1 - x0 < 0.3 || z1 - z0 < 0.3) return;   // no queda tramo util
+        rects.push({
+          id: c.id, nombre: c.nombre, zona: c.zona,
+          rect: { x: x0, z: z0, w: x1 - x0, d: z1 - z0 }
+        });
+      });
+    }
 
     /* Las puertas se deciden contra el plano COMPLETO, no contra lo revelado:
        si no, se moverian a medida que el apartamento se llena. */

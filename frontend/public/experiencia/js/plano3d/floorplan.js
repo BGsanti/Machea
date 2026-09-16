@@ -62,18 +62,35 @@
     var horizontal = w >= d;
 
     switch (true) {
-      case r.id === 'sala':
+      case r.id === 'sala': {
+        var areaSala = w * d;
         poner('rug', P(0.5, 0.5), [w * 0.6, d * 0.5]);
         poner('sofa', P(0.5, 0.18), [Math.min(2.1, w * 0.7), 0.85]);
         poner('table', P(0.5, 0.52), [Math.min(1.0, w * 0.35), 0.6]);
+
+        /* La sala es el ambiente mas grande y con tres piezas quedaba medio
+           vacia frente a las alcobas, que estan justas. Lo que se agrega depende
+           del area, no de un numero fijo: en un VIS apretado sobrecargarla seria
+           peor que dejarla sobria. */
+        var ladoTV = ladoLibre(['s', 'n', 'e', 'o'], vetados);
+        poner('console', P(CONTRA[ladoTV][0], CONTRA[ladoTV][1]),
+          ladoTV === 'n' || ladoTV === 's'
+            ? [Math.min(1.5, w * 0.4), 0.35]
+            : [0.35, Math.min(1.5, d * 0.4)]);
+        if (areaSala > 8.5) poner('chair', P(0.15, 0.68), [0.6, 0.6], -45);
+        if (areaSala > 9.8) poner('plant', P(0.89, 0.13), [0.34, 0.34]);
+
         // Los extras salen del tramo de ingresos: es lo unico que esa pregunta
         // mueve en la escena.
         if (perfil.extrasSala.indexOf('mesaAuxiliar') >= 0) poner('table', P(0.12, 0.2), [0.45, 0.45]);
         if (perfil.extrasSala.indexOf('bar') >= 0) poner('counter', P(0.85, 0.75), [Math.min(1.3, w * 0.4), 0.5], 0);
         if (perfil.extrasSala.indexOf('piano') >= 0) poner('counter', P(0.2, 0.8), [1.4, 0.7], 0);
         break;
+      }
 
       case r.id === 'comedor':
+        // Un comedor amplio admite alfombra bajo la mesa; uno justo, no.
+        if (w * d > 9) poner('rug', P(0.5, 0.5), [w * 0.75, d * 0.7]);
         poner('table', P(0.5, 0.5), [Math.min(1.5, w * 0.6), Math.min(0.95, d * 0.5)]);
         poner('chair', P(0.28, 0.5), [0.45, 0.45], 90);
         poner('chair', P(0.72, 0.5), [0.45, 0.45], -90);
@@ -137,6 +154,13 @@
           vertical
             ? [Math.min(0.6, w * 0.22), Math.min(1.8, d * 0.6)]
             : [Math.min(1.8, w * 0.6), Math.min(0.6, d * 0.22)]);
+        /* Una cama, un closet y (a veces) un tapete dejaban la alcoba principal
+           —el ambiente mas grande del plano, hasta 12 m2— mas vacia que la sala.
+           La mesa de noche va del lado de la cabecera que el closet no ocupo. */
+        poner('table', P(vertical && lado === 'e' ? 0.17 : 0.83, 0.16), [0.4, 0.4]);
+        var areaAlc = w * d;
+        if (principal && areaAlc > 9) poner('table', P(vertical && lado === 'e' ? 0.83 : 0.17, 0.16), [0.4, 0.4]);
+        if (areaAlc > 10.5) poner('plant', P(0.84, 0.86), [0.32, 0.32]);
         if (principal) poner('rug', P(0.45, 0.85), [w * 0.5, d * 0.18]);
         break;
     }

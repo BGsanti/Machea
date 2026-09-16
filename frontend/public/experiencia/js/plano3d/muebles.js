@@ -115,6 +115,18 @@
         g.add(caja(0.03, hm, d, M.vidrio, w / 2, 0.05 + hm / 2, 0, false));
         return g;
       },
+      /* Mueble de TV. Reusar `meson` para esto se veia mal: un bloque de 0.88 m
+         de alto y metro y medio de largo domina la sala entera. Una consola baja
+         con el panel encima ocupa el muro sin robarse el cuadro. */
+      consola: function (w, d) {
+        var g = new THREE.Group();
+        g.add(caja(w, 0.4, d, M.marco, 0, 0.2, 0));
+        var esX = w >= d;
+        var pw = esX ? w * 0.7 : 0.04;
+        var pd = esX ? 0.04 : d * 0.7;
+        g.add(caja(pw, 0.5, pd, M.electro, 0, 0.67, 0));
+        return g;
+      },
       tapete: function (w, d) {
         var g = new THREE.Group();
         var m = caja(w, 0.024, d, M.tapete, 0, 0.012, 0, false);
@@ -146,7 +158,7 @@
     bed: 'cama', sofa: 'sofa', table: 'mesa', chair: 'silla', counter: 'meson',
     stove: 'estufa', fridge: 'nevera', wardrobe: 'closet', desk: 'escritorio',
     toilet: 'inodoro', sink: 'lavamanos', shower: 'ducha', rug: 'tapete',
-    plant: 'planta'
+    plant: 'planta', console: 'consola'
   };
 
   var cache = null, cacheTecho = null;
