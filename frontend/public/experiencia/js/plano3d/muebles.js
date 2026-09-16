@@ -17,7 +17,12 @@
     return m;
   }
 
-  function piezas(M) {
+  /* Las piezas altas se topan contra el muro. No es cosmetico: los muros son de
+     casa de munecas (1.3 m), y un closet de 2 m asoma por encima como si
+     atravesara el techo. Se derivan del muro en vez de ser fijas, asi que
+     cambiar `alturaMuro` no vuelve a romperlas. */
+  function piezas(M, techo) {
+    var tope = function (h) { return Math.min(h, techo); };
     return {
       cama: function (w, d) {
         var g = new THREE.Group();
@@ -72,12 +77,14 @@
       },
       nevera: function (w, d) {
         var g = new THREE.Group();
-        g.add(caja(w, 1.8, d, M.electro, 0, 0.9, 0));
+        var h = tope(1.8);
+        g.add(caja(w, h, d, M.electro, 0, h / 2, 0));
         return g;
       },
       closet: function (w, d) {
         var g = new THREE.Group();
-        g.add(caja(w, 2, d, M.marco, 0, 1, 0));
+        var h = tope(2);
+        g.add(caja(w, h, d, M.marco, 0, h / 2, 0));
         return g;
       },
       escritorio: function (w, d) {
@@ -103,8 +110,9 @@
         var g = new THREE.Group();
         g.add(caja(w, 0.08, d, M.porcelana, 0, 0.04, 0, false));
         // Mamparas: sin sombra, o el vidrio proyecta una mancha opaca.
-        g.add(caja(w, 2, 0.03, M.vidrio, 0, 1.05, d / 2, false));
-        g.add(caja(0.03, 2, d, M.vidrio, w / 2, 1.05, 0, false));
+        var hm = tope(2);
+        g.add(caja(w, hm, 0.03, M.vidrio, 0, 0.05 + hm / 2, d / 2, false));
+        g.add(caja(0.03, hm, d, M.vidrio, w / 2, 0.05 + hm / 2, 0, false));
         return g;
       },
       tapete: function (w, d) {
@@ -141,12 +149,16 @@
     plant: 'planta'
   };
 
-  var cache = null;
+  var cache = null, cacheTecho = null;
 
   /* Una pieza a la vez, no la habitacion entera: la escena diferencia plano
      contra plano y necesita poder quedarse con un mueble que no cambio. */
-  function mueble(item, scale) {
-    if (!cache) cache = piezas(window.GDF3D.materiales());
+  function mueble(item, scale, techo) {
+    var t = techo || 2.2;
+    if (!cache || cacheTecho !== t) {
+      cache = piezas(window.GDF3D.materiales(), t);
+      cacheTecho = t;
+    }
     var hacer = cache[NOMBRES[item.kind]];
     if (!hacer) return null;
 

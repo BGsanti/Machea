@@ -274,8 +274,11 @@
       });
 
       // Mobiliario.
+      /* El tope para los muebles altos sale del muro mas bajo: un closet que
+         asoma por encima de la pared se lee como si atravesara el techo. */
+      var techo = Math.min.apply(null, plan.walls.map(function (w) { return w.height; })) * 0.92;
       (plan.furniture || []).forEach(function (item) {
-        var g = G.mueble(item, plan.scale);
+        var g = G.mueble(item, plan.scale, techo);
         if (!g) return;
         var cont = new THREE.Group();
         cont.add(g);
