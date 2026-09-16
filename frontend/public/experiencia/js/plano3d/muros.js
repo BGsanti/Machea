@@ -141,6 +141,10 @@
       var paredEnt = perim[ladoEnt || 's'];
       openings.push({
         id: 'd-entrada', wallId: paredEnt.id, type: 'door',
+        /* La UNICA con hoja. Las interiores quedan como vanos abiertos: una
+           decena de hojas batiendo a 72 grados se cruzan entre si y ensucian
+           mas de lo que aportan, sobre todo en un panel pequeno. */
+        hoja: true,
         offset: 0.5, width: o.anchoPuerta,
         /* Hacia el centro de la planta. Fijarlo a mano dejaba la hoja girando
            hacia afuera, colgada en el aire fuera del edificio. */

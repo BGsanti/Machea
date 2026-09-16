@@ -261,6 +261,8 @@
 
       var ABRE = THREE.MathUtils.degToRad(72);
       G.ubicarAberturas(plan, 'door').forEach(function (p) {
+        // Los vanos interiores quedan abiertos: solo la entrada lleva hoja.
+        if (!p.opening.hoja) return;
         var g = new THREE.Group();
         g.add(hojaPuerta(p, M, ABRE));
         out.push({
@@ -359,6 +361,20 @@
       baseNodo.position.set(caja.center[0], -GROSOR_BASE / 2 - HUNDIR_BASE, caja.center[2]);
       baseNodo.receiveShadow = true;
       raiz.add(baseNodo);
+
+      /* Losa de obra sobre TODA la huella. El cascaron se dimensiona para el
+         programa completo desde la primera respuesta, pero los ambientes
+         aparecen de a poco: sin esto queda un vacio gris enorme dentro de los
+         muros y se lee como que el piso no cargo. Va apenas debajo del nivel de
+         los pisos de ambiente, que se van montando encima. */
+      var obra = new THREE.Mesh(
+        new THREE.BoxGeometry(caja.halfExtents[0] * 2, 0.02, caja.halfExtents[2] * 2), M.obra
+      );
+      // Hija de la losa del lote, asi que se va con ella al cambiar de plano.
+      // Su Y es relativa: queda justo debajo del nivel de los pisos de ambiente.
+      obra.position.set(0, GROSOR_BASE / 2 + HUNDIR_BASE - 0.015, 0);
+      obra.receiveShadow = true;
+      baseNodo.add(obra);
 
       var nuevas = piezasDe(plan);
       var vistas = {};
