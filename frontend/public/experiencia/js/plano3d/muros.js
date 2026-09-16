@@ -9,20 +9,22 @@
   'use strict';
 
   var POR_DEFECTO = {
-    // 2.2 m es lo que quedo afinado en el prototipo: por debajo las ventanas
-    // asoman por encima del muro. La maqueta de agosto usaba 1.1 m a proposito,
-    // para poder mirar dentro desde arriba — vale reconsiderarlo en un panel de
-    // 250 px, donde muros altos tapan el interior.
-    alturaMuro: 2.2,
-    alturaCascara: 2.2,
+    /* Muros de casa de munecas, no de obra. A 2.2 m —la altura real— desde
+       cualquier angulo util los muros tapan el interior y no se lee la planta,
+       que es justo para lo que sirve este panel. Se sacrifica realismo
+       arquitectonico a proposito; es la misma decision que tomo la maqueta de
+       agosto, que usaba 1.1 m. Subirlo vuelve a cerrar la vista. */
+    alturaMuro: 1.3,
+    alturaCascara: 1.45,
     grosorCascara: 0.25,
     grosorTabique: 0.12,
     anchoPuerta: 0.9,
     // El vano nunca deja menos de esto de muro a cada lado.
     holguraPuerta: 0.85,
     anchoVentana: 1.4,
-    alfeizar: 0.85,
-    altoVentana: 1.1
+    // Proporcionados al muro bajo: con alfeizar de 0.85 no quedaria ventana.
+    alfeizar: 0.45,
+    altoVentana: 0.65
   };
 
   var EPS = 0.04;   // tolerancia de contacto entre bordes, en metros
@@ -92,6 +94,11 @@
       return walls[walls.length - 1];
     }
 
+    var bloqueados = {};
+    function bloquear(id, lado) {
+      (bloqueados[id] = bloqueados[id] || []).push(lado);
+    }
+
     /* --- Cascara perimetral --- */
     var hw = pl.w / 2, hd = pl.d / 2;
     var perim = {
@@ -138,13 +145,18 @@
       var ladoEnt = ladoHaciaCirculacion(
         { x: -hw, z: -hd, w: pl.w, d: pl.d }, [acceso], ['n', 's', 'o', 'e']
       );
-      var paredEnt = perim[ladoEnt || 's'];
+      var ladoE = ladoEnt || 's';
+      var paredEnt = perim[ladoE];
+      zon.rects.forEach(function (r) {
+        if (enPerimetro(lados(r.rect)[ladoE], pl)) bloquear(r.id, ladoE);
+      });
       openings.push({
         id: 'd-entrada', wallId: paredEnt.id, type: 'door',
         /* La UNICA con hoja. Las interiores quedan como vanos abiertos: una
            decena de hojas batiendo a 72 grados se cruzan entre si y ensucian
            mas de lo que aportan, sobre todo en un panel pequeno. */
         hoja: true,
+        height: o.alturaCascara * 0.85,
         offset: 0.5, width: o.anchoPuerta,
         /* Hacia el centro de la planta. Fijarlo a mano dejaba la hoja girando
            hacia afuera, colgada en el aire fuera del edificio. */
@@ -206,6 +218,7 @@
         candidatos.push({ horiz: horiz, fija: fija, a: Math.min(p0, p1), b: Math.max(p0, p1) });
 
         if (k !== ladoPuerta) return;
+        bloquear(r.id, k);
         puertas.push({
           horiz: horiz, fija: fija, centro: (p0 + p1) / 2,
           ancho: Math.min(o.anchoPuerta, largo(seg) - o.holguraPuerta),
@@ -255,11 +268,17 @@
       if (L <= 0) return;
       openings.push({
         id: 'd' + (++nOp), wallId: f.id, type: 'door', ambiente: p.ambiente,
+        /* Vano de altura completa: en un muro de 1.3 m no cabe un dintel sobre
+           una puerta de 2.05, y el paso se lee mejor abierto de arriba abajo. */
+        height: o.alturaMuro,
         offset: (p.centro - f.a) / L, width: p.ancho, swing: p.swing
       });
     });
 
-    return { walls: walls, openings: openings };
+    /* `ladosBloqueados` lo necesita el amoblado: un mueble pegado a un muro con
+       vano queda plantado en el paso. Incluye la entrada, que va en el perimetro
+       y afecta a cualquier ambiente que de contra ese muro. */
+    return { walls: walls, openings: openings, ladosBloqueados: bloqueados };
   }
 
   window.GDF3D = window.GDF3D || {};
