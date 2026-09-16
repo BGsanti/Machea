@@ -59,6 +59,7 @@
     }
     lastScreen = state.screen;
     attachInputListeners();
+    if (window.GDF3D) window.GDF3D.actualizar(state, derived);
   }
 
   // Los inputs de nombre/apellido/correo/teléfono son "no controlados":
@@ -528,6 +529,7 @@
    *   - la que sobra      -> se la lleva la grúa (.saliendo) y queda el hueco
    */
   function updatePlantaDOM(derived) {
+    if (window.GDF3D) window.GDF3D.actualizar(state, derived);
     var losa = root.querySelector('.gdf-losa');
     if (!losa) return;
 

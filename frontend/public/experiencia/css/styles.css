@@ -5074,3 +5074,11 @@ a.pt-flink:hover {
   color: var(--marca, #0067b1);
 }
 
+
+/* --- plano 3D ---------------------------------------------------------
+   Con el lienzo de WebGL montado, el plano de recortes sobra. No se borra: si
+   no hay WebGL o el equipo es lento, `js/plano3d/index.js` nunca pone esta
+   clase y el 2D sigue siendo el camino. */
+.gdf-scene.con-plano3d .gdf-losa,
+.gdf-scene.con-plano3d .gdf-lote,
+.gdf-scene.con-plano3d .gdf-halo { display: none; }

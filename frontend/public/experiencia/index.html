@@ -81,6 +81,19 @@
     <script src="js/machea.js?v=92"></script>
     <script src="js/templates.js?v=92"></script>
     <script src="js/state.js?v=92"></script>
+    <!-- plano 3D. El bundle de three va aparte porque la app no tiene bundler,
+         y TODOS estos van despues del document.write de arriba: moverlo o
+         ponerle defer borra el documento entero. -->
+    <script src="vendor/gdf-three.bundle.js?v=93"></script>
+    <script src="js/plano3d/perfil.js?v=93"></script>
+    <script src="js/plano3d/zonificacion.js?v=93"></script>
+    <script src="js/plano3d/muros.js?v=93"></script>
+    <script src="js/plano3d/floorplan.js?v=93"></script>
+    <script src="js/plano3d/materiales.js?v=93"></script>
+    <script src="js/plano3d/geometria.js?v=93"></script>
+    <script src="js/plano3d/muebles.js?v=93"></script>
+    <script src="js/plano3d/escena.js?v=93"></script>
+    <script src="js/plano3d/index.js?v=93"></script>
     <script src="js/main.js?v=92"></script>
   </body>
 </html>
