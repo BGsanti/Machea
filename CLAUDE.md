@@ -5,9 +5,10 @@ un usuario y devuelve los 18 proyectos más compatibles (`TOP_N`), cada uno
 con un porcentaje de compatibilidad listo para mostrar.
 
 El repo está partido en dos: **`backend/`** —el motor (`Model/`), la capa HTTP
-(`api/`, FastAPI) y el scraper— y **`frontend/`**, la landing de GO FEST
-(React + Vite) que consume el motor en vivo y puede disparar la llamada de
-Manuela. Ver §1 para el mapa completo.
+(`api/`, FastAPI) y el scraper— y **`frontend/`**, que en esta copia es **solo
+el formulario**: la experiencia de 7 preguntas de `public/experiencia/`
+servida a pantalla completa. La landing de GO FEST que la envolvía se borró
+(§8). Ver §1 para el mapa completo.
 
 **Novedad de la v0.4: la cercanía se mide en kilómetros.** El grafo de 20
 localidades se queda para decidir *quién entra* (§3.3), pero encima hay ahora
@@ -26,7 +27,7 @@ usuario de la localidad que pidió (§4.5). El Top 3 sale un 20 % más barato.
 
 Este documento describe el contrato de datos, los dos grafos de proximidad
 —localidades y barrios—, la resolución de localidad y barrio por dirección y
-coordenada, la API y la landing.
+coordenada, la API y el formulario.
 Para correr el proyecto, ver [README.md](README.md); para el formulario
 mínimo que espera el modelo, [CONTRATO_FRONT.md](CONTRATO_FRONT.md).
 
@@ -35,7 +36,7 @@ mínimo que espera el modelo, [CONTRATO_FRONT.md](CONTRATO_FRONT.md).
 ## 1. Arquitectura en una página
 
 El repo está partido en dos mitades que no se pisan: **`backend/`** (el motor y
-lo que lo expone) y **`frontend/`** (la landing y lo que se le sirve al
+lo que lo expone) y **`frontend/`** (el formulario y lo que se le sirve al
 navegador). Dentro del backend, todo lo que *decide* vive en **`Model/`**.
 
 ```
@@ -71,7 +72,7 @@ Machea/
 │   ├── dapta/                      catálogo compacto para el prompt de Manuela
 │   └── salidas/                    resultado de UNA consulta. En .gitignore.
 └── frontend/
-    ├── src/                        la landing: React 19 + Vite + Tailwind v4 (§8)
+    ├── index.html                  cascaron de una pagina: monta la experiencia (§8)
     └── public/
         ├── recursos/imagenes_proyectos/<id_proyecto>/   las fotos (§1.3)
         └── experiencia/            el quiz embebido, bundle estático autocontenido
@@ -123,12 +124,12 @@ Machea/
 Y la capa que lo expone al mundo:
 
 ```
-   frontend/ (React + Vite)                  backend/api/app.py (FastAPI, :8000)
-   ------------------------                  -----------------------------------
-   LiveDemo.tsx  --- POST /api/recomendar -->  recomendar() + respuesta_json()
-   Navbar/Hero   --- GET  /api/catalogos  -->  Model/catalogos.py (ids canónicos)
-   (formulario)  --- GET  /api/barrios    -->  Model/grafo_barrios.py (barrios de una localidad)
-   LiveDemo.tsx  --- POST /api/llamar     -->  payload de 19 campos
+   frontend/ (el formulario)                 backend/api/app.py (FastAPI, :8000)
+   -------------------------                 -----------------------------------
+   experiencia/  --- POST /api/recomendar -->  recomendar() + respuesta_json()
+   (el quiz)     --- GET  /api/catalogos  -->  Model/catalogos.py (ids canónicos)
+                 --- GET  /api/barrios    -->  Model/grafo_barrios.py (barrios de una localidad)
+                 --- POST /api/llamar     -->  payload de 19 campos
                                                         |
                                                         v
                                           DAPTA_FLOW_WEBHOOK_URL
@@ -147,7 +148,7 @@ Y la capa que lo expone al mundo:
 | `main.py` | Lanzador de consola. Delgado: delega en `Model/pipeline.py`. |
 | `api/app.py` | Wrapper HTTP (FastAPI) sobre `recomendar()`. Endpoints + el disparo a Dapta (§5.2). |
 | `scraping/scraper_projects.py` | Construye el catálogo desde 4 constructoras, asigna localidad y baja imágenes. |
-| `frontend/` | La landing de GO FEST: React 19 + Vite + Tailwind v4 (§8). |
+| `frontend/` | El formulario: el bundle de `public/experiencia/` servido por Vite (§8). |
 | `Model/simulacion/generar_historial.py` | Convierte los clientes simulados en el historial de interacciones. |
 | `Model/simulacion/arquetipos.py` | Los 10 arquetipos de comprador. |
 | `Model/simulacion/generar_clientes.py` | 100 variaciones por arquetipo → 1.000 clientes. |
@@ -976,7 +977,7 @@ candado solo para poder medir el efecto.
 #### La calibración de `COTA_MINIMA_COP`
 
 `Model/simulacion/calibrar_cota.py`. Medido sobre 300 clientes de prueba no
-vistos, con el precio medio del **Top 3** —que es lo que la landing muestra—:
+vistos, con el precio medio del **Top 3** —lo primero que ve el usuario—:
 
 | cota | recall@18 | pos. media | precio Top 3 | ahorro | años Top 3 |
 |---:|---:|---:|---:|---:|---:|
@@ -1281,7 +1282,7 @@ rompen nada: viajan en `usuario_info_contacto_v1["zonas_comunes_no_reconocidas"]
 ### 5.2 Por HTTP: `api/app.py`
 
 `backend/api/app.py` es un wrapper **delgado** de FastAPI sobre `recomendar()`.
-Es lo que consume la landing (§8). No tiene lógica de recomendación propia:
+Es lo que consume la experiencia (§8). No tiene lógica de recomendación propia:
 valida con Pydantic, llama al pipeline y devuelve `respuesta_json()`.
 
 ```bash
@@ -1335,8 +1336,8 @@ la agente de voz que corre en un flow de Dapta (Flow Studio).
   único sitio donde hay que tocarla si el flow cambia de campos.
 - **La URL del webhook sale de `DAPTA_FLOW_WEBHOOK_URL`, nunca hardcodeada.**
   Sin esa variable el endpoint responde `status: "mock_enqueued"` con el
-  payload que *habría* enviado: se puede probar la landing entera, incluido el
-  botón de llamar, sin llamarle a nadie.
+  payload que *habría* enviado: se puede probar el recorrido entero, incluido
+  el botón de llamar, sin llamarle a nadie.
 
 ```bash
 export DAPTA_FLOW_WEBHOOK_URL="https://..."   # antes de levantar uvicorn
@@ -1578,112 +1579,154 @@ en 0,50 son lo que evita que sean muchos más.
 
 ---
 
-## 8. La landing (`frontend/`)
+## 8. El formulario (`frontend/`)
 
-La landing de **GO FEST**: vende Machea a inmobiliarias y, en la misma página,
-deja probar el motor de verdad contra el catálogo de 96 proyectos.
+**Aquí hubo una landing y ahora solo está el formulario.** Esta copia del repo
+existe para mostrar la experiencia y nada más: se borró `src/` entero —React
+19, Tailwind v4, Framer Motion, y con ellos `Navbar · Hero · Marquee ·
+Benefits · LiveDemo · Credibility · FlowDiagram · FAQ · Offer · Footer`, más
+`lib/api.ts`, `lib/catalogos.ts`, `lib/content.ts` y `lib/offerConfig.ts`—.
 
-**Stack:** React 19 · Vite 8 · TypeScript · **Tailwind v4** · Framer Motion ·
-lucide-react · oxlint. Sin router: es una sola página con anclas.
+Lo que queda son **dos piezas**: `index.html`, un cascarón de una sola página,
+y `public/experiencia/`, el bundle del quiz, que **no se tocó** (§8.3). Es el
+mismo que servía el modal de la landing: el formulario, tal cual estaba.
+
+**Stack:** Vite 8, y nada más. No hay build de TypeScript (`npm run build` ya
+no corre `tsc -b`, porque no queda código que compilar), ni oxlint, ni React.
+El bundle es JS vanilla que Vite sirve desde `public/` sin pasarlo por el
+pipeline.
 
 ### 8.1 Correr las dos mitades
 
 ```bash
 cd backend && uvicorn api.app:app --port 8000   # terminal 1
-cd frontend && npm install && npm run dev       # terminal 2, landing en :5173
+cd frontend && npm install && npm run dev       # terminal 2, el quiz en :5173
 ```
 
 `vite.config.ts` usa `strictPort: true` en 5173 (respeta `PORT` si está): si
 el puerto está ocupado **falla en vez de moverse solo**, para que la URL del
-stand sea siempre la misma. `npm run build` corre `tsc -b` antes de compilar,
-así que un error de tipos rompe el build; `npm run lint` es oxlint, no ESLint.
+stand sea siempre la misma.
 
-### 8.2 Estructura
+La copia publicada del bundle va con `SIN_BACKEND: true` en `js/config.js`, así
+que el quiz calcula su Top 6 con el motor de reglas de `matching.js` y **no
+llama al modelo**. Para probarlo contra `recomendar()` de verdad hay que
+apagar ese flag y levantar el servicio que espera `MACHEA_BASE`.
+
+### 8.2 `index.html` — el cascarón
+
+Son ~20 líneas: un `<iframe>` a pantalla completa con
 
 ```
-frontend/src/
-├── App.tsx            el orden de las secciones de la página, y nada más
-├── index.css          @theme de Tailwind v4: la paleta y las animaciones
-├── components/
-│   ├── Navbar · Hero · Marquee · Demos · LiveDemo · Credibility
-│   ├── FAQ · Offer · Footer                    las secciones
-│   ├── Reveal.tsx     Reveal / StaggerGroup / StaggerItem — las animaciones
-│   ├── AnimatedWords · CountUp · GrainOverlay · ScrollProgress · Logo
-│   └── LeadMockup.tsx la ficha que "recibe el asesor"
-└── lib/
-    ├── api.ts         el cliente HTTP de api.py (§5.2) y sus tipos
-    ├── catalogos.ts   espejo de catalogos.py para el formulario
-    ├── content.ts     las 5 demos y los 3 pasos — texto, no maquetación
-    └── offerConfig.ts la oferta comercial, en un solo objeto editable
+/experiencia/index.html?marca=machea
 ```
 
-**Las animaciones de scroll no se escriben a mano.** Se envuelve con
-`<Reveal>` (fade + subida, una sola vez) o con `<StaggerGroup>` +
-`<StaggerItem>` cuando una lista debe entrar en cascada en vez de como un
-bloque. Añadir `whileInView` suelto a un componente nuevo rompe la
-consistencia del ritmo de la página.
+y tres decisiones que conviene no deshacer sin querer:
 
-### 8.3 El diseño vive en `index.css`
+- **`?marca=machea` no es opcional.** El bundle es multi-tenant y sin ese
+  parámetro cae en `constructora-bolivar`, que filtra el catálogo a una sola
+  constructora. `machea` es el tenant neutro: puntúa sobre los 96 y salen las
+  cuatro marcas juntas.
+- **Se nombra `index.html`, no el directorio.** `/experiencia/` funciona
+  publicado, pero en `npm run dev` Vite trata una ruta sin extensión como
+  navegación y devuelve el cascarón: el iframe cargaría esa misma página
+  dentro de sí misma, con 200 y sin un solo error en consola.
+- **Ya no va `embed=1`.** Hacía dos cosas: saltarse el splash de bienvenida
+  y mover la escena de la casa a la derecha, que era lo que le convenía al
+  modal. Lo primero ya no hace falta —**el splash se borró** del bundle
+  (§8.3)— y lo segundo nunca se quiso aquí.
 
-Tailwind v4: **no hay `tailwind.config.js`**. La paleta se declara en el
-bloque `@theme` de `index.css` y Tailwind genera las utilidades a partir de
-ahí, así que `--color-coral` es lo que habilita `bg-coral`, `text-coral`,
-`border-coral/40`…
+**Por qué sigue siendo un iframe y no el bundle servido en la raíz.** El
+arranque del quiz inyecta los archivos del tenant con `document.write` **en el
+punto del parser**; bajo `defer`, dentro de un `DOMContentLoaded` o pasado por
+el build de Vite, borra el documento entero. El iframe lo deja intacto —
+aislamiento de parser y de CSS sin reescribir una línea— y mantiene la URL de
+la demo en `/`.
 
-| Token | Valor | Papel |
+**La paleta ya no vive en ningún `@theme`.** Con Tailwind se fue
+`src/index.css`, que era donde estaban los tokens de marca. Los valores quedan
+anotados en un comentario de `index.html`, porque `js/tema.js` del bundle los
+duplica a mano (§8.3) y hay que tener contra qué compararlos: coral `#ff6259`,
+navy `#2d3b4e`, beige `#fdf6f0`, emerald `#2dd4a7`, titulares Sora, cuerpo
+Manrope.
+
+### 8.3 `public/experiencia/` — el quiz, vestido de Machea
+
+El bundle trae su propio sistema visual, gobernado por **tokens en el `:root`
+de `css/styles.css`** que reescribe `js/tema.js` según el tenant. Los valores
+por defecto son los de la **consola negra** de las cuatro constructoras; el
+tenant `machea` es el único que los cambia: es la identidad de Machea, la que
+tenía la landing que envolvía a este quiz y hoy es la única que queda.
+
+| | Las cuatro constructoras | Machea |
 |---|---|---|
-| `--color-coral` | `#ff6259` | Acento y CTA. |
-| `--color-navy` | `#2d3b4e` | Texto y fondos oscuros. |
-| `--color-beige` | `#fdf6f0` | Fondo de la página. |
-| `--color-emerald` | `#2dd4a7` | Señal de éxito: match, compatibilidad, llamada. |
-| `--font-heading` | Sora | Titulares. El resto es Manrope. |
+| Superficie | `--fondo #0a0b0d` (consola) | `#fdf6f0` beige, papel blanco |
+| Primario | `#ff7a18` naranja estándar | `#FF6259` coral |
+| Titulares | Poppins | **Sora** |
+| Radios | 12 · 14 · 16 px | **16 · 18 · 24 px**, CTA en pastilla |
+| CTA | `--acento`, su segundo color | **coral**, el primario de Machea |
+| Sombras | duras, para fondo negro | `--shadow-soft` / `--shadow-coral` |
 
-Ahí mismo viven las texturas de marca (`dawn-sky`, `star-field`,
-`dot-field-a/b/c`, `signal-streak`) y sus keyframes. Un color nuevo se agrega
-al `@theme`, **no** como hex suelto en una clase.
+El CTA es el único cambio con una razón que no es de estilo: el verde es el
+color de que **algo encaja** —compatibilidad, match, llamada— y gastarlo en
+"Continuar" le quitaba ese significado justo donde hace falta, en las
+tarjetas de resultado.
 
-### 8.4 El texto está fuera de la maquetación
+Las dos piezas que lo deciden viven en `js/tema.js`: **`SUPERFICIE_MACHEA`**
+(fondo, papel, borde, tinta) y **`SISTEMA_MACHEA`** (fuente, radios, sombras,
+CTA). Los valores están escritos a mano: el bundle **no compila con Vite**
+—vive en `public/` y se sirve tal cual— así que no hay forma de importarlos.
+Su referencia era el `@theme` de `frontend/src/index.css`, que se fue con la
+landing; hoy está en el comentario de `frontend/index.html` (§8.2), que existe
+justamente para eso.
 
-Tres archivos de `lib/` existen para poder cambiar el contenido sin tocar JSX:
+Lo que no cabe en un token —una versalita, un interletrado— va en el bloque
+`[data-marca='machea']` al final de `styles.css`. El atributo lo pone
+`tema.js`, que es quien sabe de qué marca se trata; **no** se usa la clase
+`.gdf-con-senal`, que significa "hay fondo animado detrás" y la pone
+`senal.js`.
 
-- **`content.ts`** — las 5 demos y los 3 pasos. Cada demo lleva un `match`
-  opcional que es **salida real de `recomendar()`** sobre el catálogo, no
-  texto de relleno: si el catálogo cambia de precios o de proyectos, esos
-  bloques quedan desactualizados y hay que volver a correrlos.
-- **`offerConfig.ts`** — el stack de valor, la garantía y el CTA. Tiene
-  marcadores `[CONFIRMAR CON EQUIPO]` y un `contactEmail` con `TODO`: son
-  cifras y datos que el equipo todavía no cerró, y están así **a propósito**
-  para no publicar números inventados.
-- **`catalogos.ts`** — ver §8.5.
+**Se entra rellenando los datos: el splash se borró.** Era la pantalla de
+bienvenida —la casita ilustrada, "Encuentra tu próximo hogar", el botón
+"¡Construir mi casa!"— y `createInitial()` en `js/state.js` arranca ahora en
+`escarapela`, la del carné de constructor. Dentro de la landing esa pantalla
+ya era una segunda puerta, y por eso el modal la saltaba con `embed=1`; sin
+landing delante pasó a ser la única puerta, que es peor: tres frases entre el
+usuario y el formulario.
 
-### 8.5 `LiveDemo` — el formulario contra el motor real
+Se fue con lo que colgaba de ella: la acción `goSplash`, el "← Atrás" de la
+escarapela —que llevaba a una pantalla que ya no existe— y el caso del
+`switch` de `renderApp`, cuyo `default` cae ahora en la escarapela. Lo que
+**no** se borró son sus textos (`splashTitulo`, `splashLead`, `splashQuote`,
+`splashCta` en el manifiesto de cada tenant), su CSS (`.gdf-hero*`) ni las dos
+funciones que solo ella llamaba (`houseIllustration`, `logoHtml`): son datos y
+piezas de marca, quietas no estorban, y son exactamente lo que haría falta si
+la entrada vuelve.
 
-Es el componente que conecta las dos mitades del repo, y el más delicado:
+**La pregunta de ubicación tiene un solo buscador.** Hubo dos pestañas
+—"Conozco el barrio" y "Sé un lugar cerca"— y se quitaron: obligaban a
+clasificarse antes de escribir. Hoy se escribe y ya, y los resultados bajan en
+**una lista con dos encabezados**, de tres capas (`renderZonaSugerencias` en
+`js/main.js`):
 
-- Arma el payload del **contrato mínimo** (§2.1) y solo agrega `afiliado` y
-  `zonas_comunes` si el usuario los tocó — mismo criterio que el
-  `exclude_none` de `api/app.py`. Muestra el **Top 3**, no los 18 que devuelve
-  `recomendar()`: la lista completa no cabe en la pantalla del stand.
-- **Comprueba que la API esté viva al primer foco o clic** (`checkApi` →
-  `GET /api/catalogos`), para que el primer error que vea alguien no sea uno
-  de red a mitad del formulario.
-- **`lib/catalogos.ts` es un espejo deliberado de `Model/catalogos.py`.** Está
-  duplicado para que el formulario tenga las etiquetas sin depender de la red.
-  Las 20 localidades están completas; las zonas comunes son un **subconjunto
-  curado de 10** de las 25, para que el form quepa en una pantalla. Los
-  nombres tienen que coincidir **carácter por carácter** con
-  `catalogos.ZONAS_COMUNES` (tildes incluidas: "Salón social", "Zona de
-  lavandería") o el modelo los recibe como no reconocidos y los ignora en
-  silencio (invariante 6, §9).
-- El botón de llamar reenvía el `Apartamento` **completo** que devolvió la
-  API, no una versión recortada, porque `POST /api/llamar` arma el payload de
-  Dapta a partir de él.
-- **`API_BASE` está fijo en `http://localhost:8000`** (`lib/api.ts`). Es una
-  demo local; sacarla del portátil implica moverlo a una variable de entorno
-  de Vite y cerrar el CORS de `api/app.py`.
+| Capa | Fuente | Cuándo |
+|---|---|---|
+| Barrios y localidades | `GDF_BARRIOS`, 1.258 entradas | local, desde la 1.ª letra |
+| Lugares | `GDF_LUGARES`, sitios de OSM ya resueltos a `{loc, bi}` | local, desde la 2.ª |
+| Lugares (cola larga) | Photon (`photon.komoot.io`) | en vivo, con debounce de 300 ms |
 
-Nota: `frontend/README.md` sigue siendo el del template de Vite. La documentación
-real de la landing es esta sección.
+Photon y no Nominatim porque Nominatim **prohíbe** el uso tipo autocompletar
+en su política. Si no hay red, las dos capas locales ya están en pantalla y no
+se muestra ningún error. Todo resultado en vivo se resuelve a su localidad con
+`mapa.zonaEnPunto` **antes** de pintarse, así que lo que cae fuera de las 20
+localidades (Chía, Soacha) nunca se ofrece. El barrio sigue sin filtrar
+(invariante 12): un lugar solo cambia lo que dice el chip ("Cerca de
+Unicentro"), no lo que viaja al modelo.
+
+**Hay dos copias del bundle y hay que tocar las dos.** `experiencia/` en la
+raíz es la fuente de trabajo (sin versionar) y `frontend/public/experiencia/`
+es la que se sirve y se versiona. Fuera de `js/config.js` —que en la publicada
+fuerza `SIN_BACKEND: true`— son idénticas, y dejarlas divergir es la versión
+de este bundle del invariante 1.
 
 ---
 
@@ -1706,11 +1749,12 @@ real de la landing es esta sección.
    los dos; ahora desfasarlos es imposible. Lo que **sí** hay que revisar cada
    año, además del SMMLV, son las tasas y plazos de `PARAMETROS_CREDITO`
    (§4.1): son datos de mercado y se mueven.
-6. **`frontend/src/lib/catalogos.ts` es un espejo, no una fuente.** Duplica
-   los ids de `Model/catalogos.py` a propósito, y por eso hereda el invariante
-   1: si se desincroniza, el front manda ids que apuntan a otra localidad o
-   zonas que el modelo descarta **sin error visible**. `GET /api/catalogos`
-   sirve la versión buena y es la vía para verificarlo.
+6. **Todo espejo de `Model/catalogos.py` en el front hereda el invariante 1.**
+   `frontend/src/lib/catalogos.ts` ya no existe —se fue con la landing (§8)—,
+   pero el bundle de `public/experiencia/` sigue trayendo los suyos: si se
+   desincronizan, el front manda ids que apuntan a otra localidad o zonas que
+   el modelo descarta **sin error visible**. `GET /api/catalogos` sirve la
+   versión buena y es la vía para verificarlo.
 7. **`DAPTA_FLOW_WEBHOOK_URL` nunca se hardcodea.** Sin la variable el
    endpoint responde en modo mock, que es el comportamiento correcto en
    desarrollo — no un fallo que haya que "arreglar" poniendo la URL en el

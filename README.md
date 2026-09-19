@@ -17,15 +17,17 @@ Bogotá: **Amarilo, Cusezar, Constructora Bolívar y Colsubsidio**.
 > Detalle técnico del contrato de datos, de los grafos de localidades y de
 > barrios, y del modelo: **[CLAUDE.md](CLAUDE.md)**.
 
-> **El front ya está conectado.** La landing de GO FEST vive en
-> **[frontend/](frontend/)** (React + Vite + Framer Motion) y consume el
-> modelo a través de **[backend/api/app.py](backend/api/app.py)**, un wrapper
-> de FastAPI sobre `recomendar()`.
+> **El front ya está conectado.** En esta copia el front es **solo el
+> formulario**: la experiencia de 7 preguntas que vive en
+> **[frontend/public/experiencia/](frontend/public/experiencia/)**, servida a
+> pantalla completa por Vite (la landing de GO FEST que la envolvía se borró).
+> Consume el modelo a través de **[backend/api/app.py](backend/api/app.py)**,
+> un wrapper de FastAPI sobre `recomendar()`.
 > Correr los dos a la vez:
 >
 > ```bash
 > cd backend && uvicorn api.app:app --port 8000   # backend
-> cd frontend && npm install && npm run dev       # landing, en otra terminal
+> cd frontend && npm install && npm run dev       # el quiz, en otra terminal
 > ```
 >
 > `api/app.py` también expone `POST /api/llamar`, que arma el payload de 19
@@ -271,12 +273,12 @@ Machea/
 │   ├── dapta/                  catálogo compacto para el prompt de Manuela
 │   └── salidas/                resultado de UNA consulta (en .gitignore)
 ├── frontend/
-│   ├── src/                    la landing: React 19 + Vite + Tailwind v4
+│   ├── index.html              cascarón de una página: monta la experiencia
 │   └── public/
 │       ├── recursos/imagenes_proyectos/
 │       │   ├── 1/  01.webp 02.jpg ...        el id_proyecto ES el nombre
 │       │   └── 2/  ...                        de la carpeta
-│       └── experiencia/        el quiz embebido (bundle estático)
+│       └── experiencia/        EL FORMULARIO: el quiz (bundle estático)
 ├── render.yaml
 ├── CLAUDE.md                   guía técnica
 └── README.md
