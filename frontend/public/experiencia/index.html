@@ -6,8 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Encuentra tu próximo hogar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <!-- SORA ES LA DE MACHEA y Poppins la de las cuatro constructoras: los
+         titulares salen de `--fuente-titulos`, que js/tema.js cambia segun el
+         tenant (ver SUPERFICIE_MACHEA). Se piden las dos en la MISMA peticion
+         porque el <link> se resuelve antes de saber que marca se cargo — el
+         tenant entra por `document.write` mas abajo— y una segunda hoja de
+         estilos descubierta a mitad del arranque es un parpadeo de fuente
+         garantizado. Sora pesa ~15 KB en woff2 y llega en paralelo. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Poppins:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <!-- Leaflet, para el mapa real de la primera pregunta (ver js/mapa.js).

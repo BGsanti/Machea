@@ -75,7 +75,11 @@
     fondo: '#fdf6f0',
     papel: '#ffffff',
     papel2: '#f5efe9',
-    borde: '#dedad8',
+    // El `border-navy/10` con el que la landing dibuja cada tarjeta. Era un
+    // gris cálido (#dedad8) y sobre el beige tiraba a sepia; el navy
+    // translúcido es el mismo tono del texto, más apagado, que es lo que
+    // hace que el borde desaparezca de la lectura en vez de competir.
+    borde: 'rgba(45, 59, 78, 0.12)',
     tinta: '#2d3b4e',
     tintaMedia: '#676f7b',
     tintaSuave: '#95999f',
@@ -84,6 +88,52 @@
     // consola negra (#4fd6bf); sobre blanco ese mismo verde da 2,5 de
     // contraste, así que aquí va la versión oscura.
     exito: '#0f6f64',
+  };
+
+  /**
+   * EL SISTEMA DE LA LANDING, y solo para Machea.
+   *
+   * SUPERFICIE_MACHEA aclaró el fondo; esto alinea lo que quedaba: la
+   * tipografía de los titulares y la geometría. Son los mismos valores que
+   * declara el `@theme` de frontend/src/index.css, escritos aquí a mano.
+   *
+   * SE DUPLICAN A PROPÓSITO, igual que la paleta de tenants/machea/marca.js.
+   * Este bundle no compila con el proyecto de Vite —es estático, vive en
+   * public/ y se sirve tal cual— así que no hay forma de importar los tokens
+   * de Tailwind. Lo que sí hay es un sitio donde desincronizarse se ve solo:
+   * el quiz se abre DENTRO de la landing, en un iframe (ver LiveDemo.tsx), y
+   * las dos superficies quedan una al lado de la otra en la misma pantalla.
+   *
+   * LO QUE CAMBIA, Y POR QUÉ:
+   *   - SORA en los titulares. Era la única diferencia tipográfica que
+   *     quedaba con la landing; Manrope ya era el cuerpo en las dos.
+   *   - RADIOS MÁS GRANDES. La landing redondea a 24-32px lo que la consola
+   *     redondea a 12-16. Es lo que más separa las dos superficies a primera
+   *     vista, por encima del color.
+   *   - EL CTA EN PASTILLA Y EN CORAL. En la landing el botón de acción es
+   *     `rounded-full bg-coral`. El verde de aquí es el color de que algo
+   *     encaja —compatibilidad, match, llamada— y gastarlo en 'Continuar' le
+   *     quitaba ese significado justo donde hace falta, en los resultados.
+   *   - SOMBRAS CON OFFSET NEGATIVO. Las de la consola son sombras duras
+   *     pensadas para fondo negro; las de la landing (--shadow-soft,
+   *     --shadow-coral) se abren hacia afuera y tiñen de navy, no de negro.
+   */
+  var SISTEMA_MACHEA = {
+    '--fuente-titulos': "'Sora', 'Poppins', sans-serif",
+    '--radio-campo': '16px',
+    '--radio-boton': '18px',
+    '--radio-cta': '999px',
+    '--radio-tarjeta': '24px',
+    '--radio-panel': '28px',
+    // El CTA toma el primario (coral), no el acento (verde).
+    '--cta-fondo': 'var(--marca)',
+    // --shadow-soft de index.css, literal.
+    '--sombra-tarjeta': '0 10px 40px -10px rgba(45, 59, 78, 0.1)',
+    // El desplegable FLOTA sobre el panel y tiene que despegarse más que una
+    // tarjeta apoyada: la misma familia, con más profundidad.
+    '--sombra-flotante': '0 18px 44px -14px rgba(45, 59, 78, 0.22)',
+    // --shadow-coral de index.css, literal.
+    '--sombra-cta': '0 14px 34px -12px rgba(255, 98, 89, 0.55)',
   };
 
   function aRgb(hex) {
@@ -254,12 +304,27 @@
     // tintes y velos, así que tiene que ver el fondo nuevo, no el negro que
     // trae styles.css por defecto. Las cuatro constructoras no pasan por
     // aquí y se quedan con la consola negra de siempre.
+    // EL SLUG, EN EL <html>. Casi todo lo que distingue a una marca se puede
+    // decir con un token, y por eso esta línea no existía. Lo que no se puede
+    // son las decisiones tipográficas que no son un color ni una medida —una
+    // versalita, un interletrado— y que el sistema de la landing sí trae. Van
+    // en `[data-marca='machea']` al final de styles.css, que es el único sitio
+    // del archivo donde una regla mira de qué marca se trata.
+    raiz.setAttribute('data-marca', M.slug || '');
+
     if (esMachea) {
       raiz.style.setProperty('--fondo', SUPERFICIE_MACHEA.fondo);
       raiz.style.setProperty('--papel', SUPERFICIE_MACHEA.papel);
       raiz.style.setProperty('--papel-2', SUPERFICIE_MACHEA.papel2);
       raiz.style.setProperty('--borde', SUPERFICIE_MACHEA.borde);
       raiz.style.colorScheme = 'light';
+      // La geometría y los titulares se fijan aquí, al lado de la superficie:
+      // no se derivan de ningún color, así que derivar() no tiene nada que
+      // decir sobre ellos. Las cuatro constructoras no pasan por aquí y se
+      // quedan con los valores de consola del `:root`.
+      Object.keys(SISTEMA_MACHEA).forEach(function (k) {
+        raiz.style.setProperty(k, SISTEMA_MACHEA[k]);
+      });
     } else {
       raiz.style.colorScheme = 'dark';
     }
@@ -295,21 +360,35 @@
     // caia en claro sobre claro. Se fija un oscuro de verdad.
     tokens['--sobre-marca'] = contraste(base.primario, '#ffffff') >= 4.5 ? '#ffffff' : '#1b1c1f';
 
-    // TEXTO DEL CTA PRINCIPAL, que va sobre el acento.
+    // TEXTO DEL CTA PRINCIPAL.
     //
+    // SE MIDE CONTRA EL FONDO QUE EL BOTON VA A TENER, no contra el acento a
+    // secas. Eran lo mismo mientras `--cta-fondo` valia `var(--acento)` para
+    // todos; desde que Machea lo pone en coral, calcular contra el verde daria
+    // un color elegido para un fondo que ese boton no tiene. Es el tipo de
+    // desfase que no falla: solo deja un texto peor contrastado de lo que la
+    // cuenta creia.
+    var fondoCta = esMachea ? base.primario : base.acento;
+
     // Se decide POR CONTRASTE y no por gusto. Colsubsidio pone ahi un gris
     // neutro, que funciona porque su amarillo es clarisimo; con el verde de
     // otra marca ese mismo gris queda ilegible. Se prueba el gris de la marca
-    // y, si no llega a 4.5:1, se cambia a blanco o negro — el que gane.
+    // y, si no llega a 4.5:1, se cambia a blanco o al oscuro de la tinta — el
+    // que gane.
     //
     // Para Colsubsidio el gris da 5.0:1 y se elige, o sea que el CTA conserva
-    // exactamente el color de hoy.
+    // exactamente el color de hoy. Sobre el coral de Machea el gris no llega,
+    // y entre los dos candidatos gana el navy (3,9:1 contra 2,9:1 del blanco).
+    // Es UNA DIFERENCIA DELIBERADA CON LA LANDING, que pone texto blanco sobre
+    // coral: ahi son 2,9:1, justo por debajo del 3,0 que pide AA para texto
+    // grande. El boton se lee mejor asi, y el navy es el color de texto del
+    // resto de la marca de todos modos.
     var grisTexto = tokens['--tinta-media'];
-    if (contraste(grisTexto, base.acento) >= 4.5) {
+    if (contraste(grisTexto, fondoCta) >= 4.5) {
       tokens['--texto-cta'] = grisTexto;
     } else {
       tokens['--texto-cta'] =
-        contraste('#ffffff', base.acento) >= contraste(tokens['--tinta'], base.acento)
+        contraste('#ffffff', fondoCta) >= contraste(tokens['--tinta'], fondoCta)
           ? '#ffffff'
           : tokens['--tinta'];
     }
