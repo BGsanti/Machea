@@ -249,7 +249,13 @@
    */
   function urlDeRecomendar() {
     var c = constructoraDelTenant();
-    return base() + '/recomendar' + (c ? '?constructora=' + encodeURIComponent(c) : '');
+    // VA CON `/api`. `MACHEA_BASE` en producción apunta al backend real
+    // (backend/api/app.py, desplegado en Render por render.yaml), y ese
+    // expone `/api/recomendar` — no `/recomendar`, que es la ruta de
+    // integracion/servicio_machea.py, un wrapper local que nunca se
+    // desplegó. Antes de este arreglo, cualquier intento de conectar el
+    // formulario publicado al backend real chocaba con un 404 silencioso.
+    return base() + '/api/recomendar' + (c ? '?constructora=' + encodeURIComponent(c) : '');
   }
 
   /**
