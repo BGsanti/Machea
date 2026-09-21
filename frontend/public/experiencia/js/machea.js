@@ -202,11 +202,19 @@
       // el contrato en §1, y es de los errores que no dan mensaje claro: llega
       // como dato inválido, no como campo ausente.
       //
-      // Va como LISTA porque se pueden pedir varias zonas. El contrato admite
-      // las dos formas —un entero suelto sigue valiendo— pero mandar siempre
-      // la lista evita tener dos caminos que probar; con una sola zona es una
-      // lista de un elemento.
-      Localidad: localidadIds(a),
+      // VA COMO ENTERO, no como lista. El contrato pide un entero 1..20, e
+      // `indice_localidad()` (Model/catalogos.py) acepta int, float o texto,
+      // nunca una lista — con `[7]` el modelo real responde 422:
+      // "Localidad: Input should be a valid integer" (input: [7]).
+      //
+      // El fallo estaba oculto porque SIN_BACKEND:true evitaba llegar al
+      // modelo, y se volvió a colar aquí al restaurar este archivo desde un
+      // commit anterior al primer arreglo. Verificado esta vez contra el
+      // backend real en Render, no solo localmente.
+      //
+      // Si se eligen varias zonas se manda LA PRIMERA: el contrato admite
+      // una sola.
+      Localidad: localidadIds(a)[0] || null,
       numero_habitaciones: a.habitaciones === '3+' ? 3 : parseInt(a.habitaciones || '1', 10),
       piso: 4,
       zonas_comunes: zonasComunesDe(a),
