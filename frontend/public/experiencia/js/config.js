@@ -13,7 +13,16 @@ window.GDF_CONFIG = {
   // Bogotá) con sus fotos. No es el modelo —son reglas— y lo dice en el campo
   // `motor` de cada respuesta, que sale por consola:
   //   python integracion/fake_machea.py     -> escucha en el mismo puerto
-  MACHEA_BASE: 'http://localhost:8100',
+  //
+  // SE RESUELVE SOLO SEGÚN DÓNDE CORRA, igual que DAPTA_LLAMADA_BASE más
+  // abajo: en localhost (npm run dev) sigue apuntando al servicio local de
+  // siempre, y publicado (Vercel) apunta al backend real en Render. Escrito
+  // así, no hay que volver a tocar este archivo para pasar de local a
+  // producción ni al revés.
+  MACHEA_BASE:
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+      ? 'http://localhost:8100'
+      : 'https://machea.onrender.com',
 
   // De dónde salen los proyectos recomendados (ver js/recommender.js):
   //   'machea' -> las 7 respuestas viajan al modelo, que devuelve el Top 6 con
@@ -23,11 +32,14 @@ window.GDF_CONFIG = {
   //               siempre como aproximado para no engañar a nadie.
   RECOMMENDER: 'machea',
 
-  // MODO DEMO SIN RED. En true la app no llama al modelo en ningún momento y
-  // las recomendaciones salen del motor local. Existe para la versión de UN
-  // SOLO ARCHIVO (tools/empaquetar_demo.py), pensada para compartir por link:
-  // ahí la política de seguridad del visor bloquea cualquier petición externa.
-  SIN_BACKEND: true,
+  // MODO DEMO SIN RED, apagado: publicado (Vercel) SÍ llama al modelo real
+  // en Render — ver MACHEA_BASE arriba. El servicio gratuito de Render se
+  // duerme tras un rato sin uso: la primera visita del día puede tardar
+  // 30–60 segundos en responder mientras despierta. No es un error, es la
+  // condición del plan gratuito; el motor local de respaldo (RECOMMENDER
+  // 'local') sigue existiendo como red de seguridad si el servicio no
+  // responde en absoluto, no como modo por defecto.
+  SIN_BACKEND: false,
 
   // El backend de Machea (api.py, ver el repo de la landing), NO el mismo
   // servicio que MACHEA_BASE. Este SÍ corre siempre, incluso con
