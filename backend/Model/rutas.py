@@ -21,6 +21,9 @@ Convención:
                            los binarios pesados, del lado del front, que es
                            quien los sirve. El id del proyecto **es** el
                            nombre de la carpeta.
+    features/<feature>/    capacidades que no deciden recomendaciones. Sus
+                           salidas se acumulan (una carpeta por empresa en
+                           scrap_identity), no se pisan en cada llamada.
 """
 
 from __future__ import annotations
@@ -35,6 +38,16 @@ DIR_RAIZ = os.path.dirname(DIR_BACKEND)
 DIR_DATA_PROJECTS = os.path.join(DIR_MODEL, "data_projects")
 DIR_SIMULACION = os.path.join(DIR_MODEL, "simulacion")
 DIR_SALIDAS = os.path.join(DIR_BACKEND, "salidas")
+
+# `features/` son capacidades que NO deciden recomendaciones y por eso viven
+# fuera de `Model/`. Sus rutas se declaran igual aquí: el invariante 9 es del
+# backend entero, no solo del modelo, y una feature que calcule su propia
+# carpeta es la misma clase de desfase silencioso que se vino a evitar.
+DIR_FEATURES = os.path.join(DIR_BACKEND, "features")
+# Identidad visual de una empresa (features/scrap_identity): una carpeta por
+# empresa, nombrada con ella, con su paleta y su logo. Mismo contrato que
+# `imagenes_proyectos/<id_proyecto>/`: el nombre de la carpeta **es** la llave.
+DIR_IDENTIDADES = os.path.join(DIR_FEATURES, "scrap_identity", "identidades")
 
 # El front es quien sirve las imágenes, así que viven en sus recursos.
 DIR_FRONTEND = os.path.join(DIR_RAIZ, "frontend")

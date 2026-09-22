@@ -69,6 +69,10 @@ Machea/
 │   │       └── calibrar_barrios.py calibra RADIO_CERCANIA_KM y el peso (§3.5)
 │   ├── api/app.py                  capa HTTP (FastAPI). No decide nada (invariante 8).
 │   ├── scraping/scraper_projects.py construye el catálogo desde 4 constructoras
+│   ├── features/                   capacidades que NO deciden recomendaciones (§10)
+│   │   └── scrap_identity/         paleta y logo de una empresa por su URL
+│   │       ├── scrap.py            extraer_colores(url)
+│   │       └── identidades/<Empresa>/  paleta_<Empresa>.json + <Empresa>.svg
 │   ├── dapta/                      catálogo compacto para el prompt de Manuela
 │   └── salidas/                    resultado de UNA consulta. En .gitignore.
 └── frontend/
@@ -148,6 +152,7 @@ Y la capa que lo expone al mundo:
 | `main.py` | Lanzador de consola. Delgado: delega en `Model/pipeline.py`. |
 | `api/app.py` | Wrapper HTTP (FastAPI) sobre `recomendar()`. Endpoints + el disparo a Dapta (§5.2). |
 | `scraping/scraper_projects.py` | Construye el catálogo desde 4 constructoras, asigna localidad y baja imágenes. |
+| `features/scrap_identity/scrap.py` | `extraer_colores(url)`: la paleta y el logo de una empresa, desde su sitio web (§10). No toca el modelo. |
 | `frontend/` | El formulario: el bundle de `public/experiencia/` servido por Vite (§8). |
 | `Model/simulacion/generar_historial.py` | Convierte los clientes simulados en el historial de interacciones. |
 | `Model/simulacion/arquetipos.py` | Los 10 arquetipos de comprador. |
@@ -1790,3 +1795,95 @@ de este bundle del invariante 1.
     a mano es la versión de barrios del invariante 1: nada falla, solo se
     mide otra cosa. Después de recompilarlo hay que reasignar los barrios del
     catálogo (`--solo-barrios`) y volver a correr `prep.py`.
+
+14. **El logo de una empresa se guarda en un solo formato, y es SVG.**
+    `features/scrap_identity` escribe siempre `<Empresa>.svg` (§10): el front
+    compone la ruta desde el nombre de la carpeta y no puede andar probando
+    dos extensiones. Un logo que ya viene en vector se guarda tal cual; uno
+    ráster se envuelve, y el JSON lo dice (`vectorial: false`). Cambiar el
+    formato a PNG obliga a rasterizar SVG, que pide una librería nativa de
+    Cairo que en Windows no está — y sin ella el ranking se cae hasta el
+    `og:image` y guarda la foto de un proyecto como si fuera el logo.
+
+---
+
+## 10. `features/` — capacidades fuera del modelo
+
+`backend/features/` es donde van las piezas que acompañan al producto **sin
+decidir qué se recomienda**. Todo lo que ordena, filtra o puntúa proyectos
+sigue viviendo en `Model/` (invariante 8); una feature puede leer de ahí, pero
+nada de `Model/` depende de una feature. Sus rutas de salida las declara
+`Model/rutas.py` como las demás (invariante 9).
+
+### 10.1 `scrap_identity` — la identidad visual de una inmobiliaria
+
+Recibe la URL que la empresa escribe en el formulario y devuelve —y guarda— su
+paleta y su logo, para vestir la experiencia con su marca:
+
+```python
+from features.scrap_identity import extraer_colores
+identidad = extraer_colores("https://www.constructorabolivar.com/")
+identidad["primario"]          # '#fed141'
+identidad["logo"]["archivo"]   # 'Constructora_Bolivar.svg'
+```
+
+```
+features/scrap_identity/identidades/Constructora_Bolivar/
+    paleta_Constructora_Bolivar.json
+    Constructora_Bolivar.svg
+```
+
+Mismo contrato que `imagenes_proyectos/<id_proyecto>/`: **el nombre de la
+carpeta es la llave**, así que se pasa del nombre de la empresa a sus archivos
+sin ninguna tabla intermedia.
+
+**De dónde salen los colores.** Del CSS, que es donde la marca declara su
+paleta: el `theme-color`, las variables (`--color-primario: …`), los `<style>`
+y `style=""` de la página, las hojas enlazadas (hasta 8, las del propio
+dominio primero) y el propio logo. Se entienden `#rgb`, `#rrggbbaa`, `rgb()`,
+`hsl()`, `hwb()`, `oklch()`/`oklab()`, `color(srgb …)` y los nombres CSS
+comunes, todos normalizados a `#rrggbb`. **`oklch` no es un lujo**: es lo que
+emite Tailwind v4, y sin esa conversión un sitio moderno sale con la paleta
+vacía.
+
+**El orden pondera la fuente, y el JSON publica los dos números.** Se cuenta
+cada aparición, pero un reset declara `#fff` doscientas veces y el
+`theme-color` de la marca una sola: por cuenta pelada el blanco iría primero y
+el color de la empresa último. Cada aparición suma según dónde apareció
+(`theme_color` 20 · `variable_css` 6 · `estilo_html` 2 · `hoja_css` 1 · el
+logo 60 × la fracción que ocupa), y el JSON trae `apariciones` **y** `peso`
+para poder auditarlo. `--por-apariciones` ordena por la cuenta cruda.
+
+**El logo manda sobre el CSS para `primario`/`secundario`/`acento`**, y eso
+salió de medir las cuatro constructoras del catálogo:
+
+| | por CSS | por logo | la marca de verdad |
+|---|---|---|---|
+| Amarilo | `#ffc900` | `#ffc900` | amarillo |
+| Cusezar | `#fb010b` | `#fb010b` | rojo |
+| Constructora Bolívar | `#0d6efd` ❌ | `#fed141` + `#00843d` | amarillo y verde |
+| Colsubsidio | `#0d6efd` ❌ | `#0067b1` + `#ffd000` | azul y amarillo |
+
+En dos de los cuatro sitios la hoja está dominada por las variables por
+defecto de **Bootstrap**, y el color más pesado del CSS resultaba ser el azul
+`#0d6efd` de la plantilla. Un sitio mete en su CSS el color de cada plugin que
+instala; en su logo, no. `fuentes.frameworks` reporta la plantilla reconocida
+—no la descarta— porque es la explicación de por qué una paleta sale genérica.
+Dos guardas evitan que el logo mande de más: un color que pinta menos del 4 %
+del logo es un detalle, y uno con luminosidad sobre 0,80 no encabeza nada
+(un pastel no aguanta texto encima).
+
+**Todo lo dudoso queda marcado, no escondido**, igual que en el catálogo:
+`_empresa_confianza`/`_empresa_evidencia` dicen qué dato dio el nombre —
+`og:site_name`, el JSON-LD de la organización, el `<title>` o, en el peor
+caso, el dominio— y `logo._confianza`/`_evidencia`/`_descartados` dicen cuál
+de los candidatos ganó y por qué fallaron los otros.
+
+**Lo que no hace.** No ejecuta JavaScript: en un sitio que pinta la cabecera
+desde React el `<img>` del logo no está en el HTML y se cae al favicon, con
+`logo._confianza: "baja"`. Y **no está conectado al front**: no hay endpoint en
+`api/app.py` todavía; `extraer_colores(url, guardar=False)` devuelve el dict
+sin escribir en disco, que es lo que necesitará ese endpoint cuando se haga.
+
+Detalle completo en
+[features/scrap_identity/README.md](backend/features/scrap_identity/README.md).

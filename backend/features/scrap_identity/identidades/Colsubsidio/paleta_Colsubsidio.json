@@ -1,0 +1,255 @@
+{
+  "empresa": "Colsubsidio",
+  "carpeta": "Colsubsidio",
+  "url": "https://www.colsubsidio.com/vivienda",
+  "url_final": "https://www.colsubsidio.com/vivienda",
+  "dominio": "www.colsubsidio.com",
+  "extraido_en": "2026-09-22T18:19:31+00:00",
+  "_empresa_confianza": "alta",
+  "_empresa_evidencia": "og:site_name",
+  "paleta": [
+    {
+      "hex": "#000000",
+      "apariciones": 213,
+      "peso": 583.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.0,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ffffff",
+      "apariciones": 140,
+      "peso": 431.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 1.0,
+      "fuentes": [
+        "estilo_html",
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#0d6efd",
+      "apariciones": 39,
+      "peso": 174.0,
+      "rol": "marca",
+      "tono": 215.8,
+      "saturacion": 0.984,
+      "luminosidad": 0.522,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#212529",
+      "apariciones": 20,
+      "peso": 120.0,
+      "rol": "neutro",
+      "tono": 210.0,
+      "saturacion": 0.108,
+      "luminosidad": 0.145,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#6c757d",
+      "apariciones": 24,
+      "peso": 109.0,
+      "rol": "neutro",
+      "tono": 208.2,
+      "saturacion": 0.073,
+      "luminosidad": 0.457,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#f8f9fa",
+      "apariciones": 23,
+      "peso": 108.0,
+      "rol": "neutro",
+      "tono": 210.0,
+      "saturacion": 0.167,
+      "luminosidad": 0.976,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#dc3545",
+      "apariciones": 24,
+      "peso": 104.0,
+      "rol": "marca",
+      "tono": 354.3,
+      "saturacion": 0.705,
+      "luminosidad": 0.535,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#198754",
+      "apariciones": 16,
+      "peso": 96.0,
+      "rol": "marca",
+      "tono": 152.2,
+      "saturacion": 0.688,
+      "luminosidad": 0.314,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#0067b1",
+      "apariciones": 31,
+      "peso": 93.2,
+      "rol": "marca",
+      "tono": 205.1,
+      "saturacion": 1.0,
+      "luminosidad": 0.347,
+      "fuentes": [
+        "hoja_css",
+        "logo",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#0dcaf0",
+      "apariciones": 14,
+      "peso": 84.0,
+      "rol": "marca",
+      "tono": 190.0,
+      "saturacion": 0.897,
+      "luminosidad": 0.496,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ffc107",
+      "apariciones": 14,
+      "peso": 84.0,
+      "rol": "marca",
+      "tono": 45.0,
+      "saturacion": 1.0,
+      "luminosidad": 0.514,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#333333",
+      "apariciones": 56,
+      "peso": 67.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.2,
+      "fuentes": [
+        "estilo_html",
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ffd000",
+      "apariciones": 8,
+      "peso": 15.8,
+      "rol": "marca",
+      "tono": 48.9,
+      "saturacion": 1.0,
+      "luminosidad": 0.5,
+      "fuentes": [
+        "hoja_css",
+        "logo",
+        "variable_css"
+      ]
+    }
+  ],
+  "marca": [
+    "#0d6efd",
+    "#dc3545",
+    "#198754",
+    "#0067b1",
+    "#0dcaf0",
+    "#ffc107",
+    "#ffd000"
+  ],
+  "neutros": [
+    "#000000",
+    "#ffffff",
+    "#212529",
+    "#6c757d",
+    "#f8f9fa",
+    "#333333"
+  ],
+  "primario": "#0067b1",
+  "secundario": "#ffd000",
+  "acento": "#dc3545",
+  "fondo": "#ffffff",
+  "texto": "#000000",
+  "theme_color": null,
+  "logo": {
+    "archivo": "Colsubsidio.svg",
+    "origen": "https://www.colsubsidio.com/assets/icons/logo-colsubsidio.svg",
+    "fondo_recomendado": "claro",
+    "colores": [
+      {
+        "hex": "#0067b1",
+        "fraccion": 0.953
+      },
+      {
+        "hex": "#ffd000",
+        "fraccion": 0.047
+      }
+    ],
+    "_confianza": "alta",
+    "_evidencia": "<img> con pista de logo en la cabecera que nombra a la empresa",
+    "_descartados": [],
+    "formato_origen": "svg",
+    "vectorial": true,
+    "ancho": 181.0,
+    "alto": 36.0,
+    "bytes": 7935
+  },
+  "fuentes": {
+    "hojas_css": [
+      "https://www.colsubsidio.com/_next/static/css/fb0ff97ead0d6f87.css",
+      "https://www.colsubsidio.com/_next/static/css/65aa3619a1925c9d.css",
+      "https://www.colsubsidio.com/_next/static/css/599262b9550f3293.css",
+      "https://www.colsubsidio.com/_next/static/css/395a9240c1a0ddba.css",
+      "https://www.colsubsidio.com/_next/static/css/238981526e2e230c.css",
+      "https://www.colsubsidio.com/_next/static/css/184a93f39451ea21.css",
+      "https://www.colsubsidio.com/_next/static/css/da46f2ef6809704a.css"
+    ],
+    "hojas_omitidas": [
+      "https://www.colsubsidio.com/_next/static/css/ef46db3751d8e999.css"
+    ],
+    "colores_leidos": 1093,
+    "colores_distintos": 219,
+    "orden": "peso",
+    "pesos": {
+      "theme_color": 20,
+      "variable_css": 6,
+      "estilo_html": 2,
+      "svg_html": 2,
+      "hoja_css": 1,
+      "logo": 60
+    },
+    "frameworks": [
+      "bootstrap"
+    ]
+  }
+}

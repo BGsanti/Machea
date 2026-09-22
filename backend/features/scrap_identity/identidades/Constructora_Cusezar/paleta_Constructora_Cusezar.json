@@ -1,0 +1,236 @@
+{
+  "empresa": "Constructora Cusezar",
+  "carpeta": "Constructora_Cusezar",
+  "url": "https://www.cusezar.com/",
+  "url_final": "https://cusezar.com/",
+  "dominio": "cusezar.com",
+  "extraido_en": "2026-09-22T18:19:29+00:00",
+  "_empresa_confianza": "alta",
+  "_empresa_evidencia": "og:site_name",
+  "paleta": [
+    {
+      "hex": "#ffffff",
+      "apariciones": 34,
+      "peso": 141.38,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 1.0,
+      "fuentes": [
+        "estilo_html",
+        "hoja_css",
+        "logo",
+        "svg_html",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#000000",
+      "apariciones": 35,
+      "peso": 111.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.0,
+      "fuentes": [
+        "estilo_html",
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#fb010b",
+      "apariciones": 9,
+      "peso": 20.0,
+      "rol": "marca",
+      "tono": 357.6,
+      "saturacion": 0.992,
+      "luminosidad": 0.494,
+      "fuentes": [
+        "estilo_html",
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ff6900",
+      "apariciones": 3,
+      "peso": 18.0,
+      "rol": "marca",
+      "tono": 24.7,
+      "saturacion": 1.0,
+      "luminosidad": 0.5,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ff0000",
+      "apariciones": 7,
+      "peso": 14.0,
+      "rol": "marca",
+      "tono": 0.0,
+      "saturacion": 1.0,
+      "luminosidad": 0.5,
+      "fuentes": [
+        "estilo_html",
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#0693e3",
+      "apariciones": 3,
+      "peso": 14.0,
+      "rol": "marca",
+      "tono": 201.7,
+      "saturacion": 0.948,
+      "luminosidad": 0.457,
+      "fuentes": [
+        "estilo_html",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#3b82f6",
+      "apariciones": 2,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 217.2,
+      "saturacion": 0.912,
+      "luminosidad": 0.598,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#9b51e0",
+      "apariciones": 2,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 271.0,
+      "saturacion": 0.698,
+      "luminosidad": 0.598,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#cf2e2e",
+      "apariciones": 2,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 0.0,
+      "saturacion": 0.636,
+      "luminosidad": 0.496,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#f1971c",
+      "apariciones": 2,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 34.6,
+      "saturacion": 0.884,
+      "luminosidad": 0.527,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#f4000d",
+      "apariciones": 2,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 356.8,
+      "saturacion": 1.0,
+      "luminosidad": 0.478,
+      "fuentes": [
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#fcb900",
+      "apariciones": 2,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 44.0,
+      "saturacion": 1.0,
+      "luminosidad": 0.494,
+      "fuentes": [
+        "variable_css"
+      ]
+    }
+  ],
+  "marca": [
+    "#fb010b",
+    "#ff6900",
+    "#ff0000",
+    "#0693e3",
+    "#3b82f6",
+    "#9b51e0",
+    "#cf2e2e",
+    "#f1971c",
+    "#f4000d",
+    "#fcb900"
+  ],
+  "neutros": [
+    "#ffffff",
+    "#000000"
+  ],
+  "primario": "#fb010b",
+  "secundario": "#ff6900",
+  "acento": "#0693e3",
+  "fondo": "#ffffff",
+  "texto": "#000000",
+  "theme_color": null,
+  "logo": {
+    "archivo": "Constructora_Cusezar.svg",
+    "origen": "https://cusezar.com/wp-content/uploads/2022/12/logo-cusezar.svg",
+    "fondo_recomendado": "oscuro",
+    "colores": [
+      {
+        "hex": "#ffffff",
+        "fraccion": 0.973
+      },
+      {
+        "hex": "#fff39d",
+        "fraccion": 0.027
+      }
+    ],
+    "_confianza": "alta",
+    "_evidencia": "<img> con pista de logo en la cabecera que nombra a la empresa",
+    "_descartados": [],
+    "formato_origen": "svg",
+    "vectorial": true,
+    "ancho": 378.97,
+    "alto": 59.94,
+    "bytes": 2811
+  },
+  "fuentes": {
+    "hojas_css": [
+      "https://cusezar.com/wp-content/cache/wpfc-minified/qwp0m4ec/e807l.css",
+      "https://cusezar.com/wp-content/cache/wpfc-minified/1zaw0sme/e807l.css",
+      "https://cusezar.com/wp-content/cache/wpfc-minified/2m6kly4n/e807l.css",
+      "https://cusezar.com/wp-content/cache/wpfc-minified/d7ykpv1a/e808s.css",
+      "https://cusezar.com/wp-content/cache/wpfc-minified/dig2ipyu/e808s.css",
+      "https://cusezar.com/wp-content/cache/wpfc-minified/que6p042/e808s.css",
+      "https://cusezar.com/wp-content/cache/wpfc-minified/87x8zzhy/e807l.css"
+    ],
+    "hojas_omitidas": [],
+    "colores_leidos": 206,
+    "colores_distintos": 88,
+    "orden": "peso",
+    "pesos": {
+      "theme_color": 20,
+      "variable_css": 6,
+      "estilo_html": 2,
+      "svg_html": 2,
+      "hoja_css": 1,
+      "logo": 60
+    },
+    "frameworks": []
+  }
+}

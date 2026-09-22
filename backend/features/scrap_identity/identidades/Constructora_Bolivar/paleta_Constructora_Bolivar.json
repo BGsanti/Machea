@@ -1,0 +1,262 @@
+{
+  "empresa": "Constructora Bolívar",
+  "carpeta": "Constructora_Bolivar",
+  "url": "https://www.constructorabolivar.com/",
+  "url_final": "https://www.constructorabolivar.com/",
+  "dominio": "www.constructorabolivar.com",
+  "extraido_en": "2026-09-22T18:19:30+00:00",
+  "_empresa_confianza": "media",
+  "_empresa_evidencia": "<title>",
+  "paleta": [
+    {
+      "hex": "#000000",
+      "apariciones": 111,
+      "peso": 531.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.0,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ffffff",
+      "apariciones": 160,
+      "peso": 505.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 1.0,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#6c757d",
+      "apariciones": 59,
+      "peso": 174.0,
+      "rol": "neutro",
+      "tono": 208.2,
+      "saturacion": 0.073,
+      "luminosidad": 0.457,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#0d6efd",
+      "apariciones": 38,
+      "peso": 163.0,
+      "rol": "marca",
+      "tono": 215.8,
+      "saturacion": 0.984,
+      "luminosidad": 0.522,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#212529",
+      "apariciones": 33,
+      "peso": 153.0,
+      "rol": "neutro",
+      "tono": 210.0,
+      "saturacion": 0.108,
+      "luminosidad": 0.145,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#198754",
+      "apariciones": 27,
+      "peso": 97.0,
+      "rol": "marca",
+      "tono": 152.2,
+      "saturacion": 0.688,
+      "luminosidad": 0.314,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#dc3545",
+      "apariciones": 27,
+      "peso": 97.0,
+      "rol": "marca",
+      "tono": 354.3,
+      "saturacion": 0.705,
+      "luminosidad": 0.535,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#f8f9fa",
+      "apariciones": 17,
+      "peso": 97.0,
+      "rol": "neutro",
+      "tono": 210.0,
+      "saturacion": 0.167,
+      "luminosidad": 0.976,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#0dcaf0",
+      "apariciones": 15,
+      "peso": 85.0,
+      "rol": "marca",
+      "tono": 190.0,
+      "saturacion": 0.897,
+      "luminosidad": 0.496,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ffc107",
+      "apariciones": 15,
+      "peso": 85.0,
+      "rol": "marca",
+      "tono": 45.0,
+      "saturacion": 1.0,
+      "luminosidad": 0.514,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#dee2e6",
+      "apariciones": 13,
+      "peso": 68.0,
+      "rol": "neutro",
+      "tono": 210.0,
+      "saturacion": 0.138,
+      "luminosidad": 0.886,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#095636",
+      "apariciones": 65,
+      "peso": 65.0,
+      "rol": "marca",
+      "tono": 155.1,
+      "saturacion": 0.811,
+      "luminosidad": 0.186,
+      "fuentes": [
+        "hoja_css"
+      ]
+    },
+    {
+      "hex": "#fed141",
+      "apariciones": 3,
+      "peso": 52.03,
+      "rol": "marca",
+      "tono": 45.7,
+      "saturacion": 0.99,
+      "luminosidad": 0.625,
+      "fuentes": [
+        "hoja_css",
+        "logo"
+      ]
+    },
+    {
+      "hex": "#00843d",
+      "apariciones": 11,
+      "peso": 22.86,
+      "rol": "marca",
+      "tono": 147.7,
+      "saturacion": 1.0,
+      "luminosidad": 0.259,
+      "fuentes": [
+        "estilo_html",
+        "hoja_css",
+        "logo"
+      ]
+    }
+  ],
+  "marca": [
+    "#0d6efd",
+    "#198754",
+    "#dc3545",
+    "#0dcaf0",
+    "#ffc107",
+    "#095636",
+    "#fed141",
+    "#00843d"
+  ],
+  "neutros": [
+    "#000000",
+    "#ffffff",
+    "#6c757d",
+    "#212529",
+    "#f8f9fa",
+    "#dee2e6"
+  ],
+  "primario": "#fed141",
+  "secundario": "#00843d",
+  "acento": "#0d6efd",
+  "fondo": "#ffffff",
+  "texto": "#000000",
+  "theme_color": null,
+  "logo": {
+    "archivo": "Constructora_Bolivar.svg",
+    "origen": "https://www.constructorabolivar.com/themes/custom/constructorabolivar/assets/header/logo-constructora-bolivar.svg",
+    "fondo_recomendado": "claro",
+    "colores": [
+      {
+        "hex": "#fed141",
+        "fraccion": 0.817
+      },
+      {
+        "hex": "#00843d",
+        "fraccion": 0.181
+      }
+    ],
+    "_confianza": "alta",
+    "_evidencia": "<img> con pista de logo en la cabecera que nombra a la empresa",
+    "_descartados": [],
+    "formato_origen": "svg",
+    "vectorial": true,
+    "ancho": 90.0,
+    "alto": 113.0,
+    "bytes": 27680
+  },
+  "fuentes": {
+    "hojas_css": [
+      "https://www.constructorabolivar.com/sites/default/files/css/css_gOg3qmm_3PSDIJs0Ghd0K6wu6txgLGm6jCCP43UxlBY.css?delta=0&language=es&theme=constructorabolivar&include=eJwrriwuSc3VT0osTtVJzs8rLikqTS7JL0pMys_JLEss0k_Kzy8BCiYWmGKVTs_JT0rMwSOlm5GfmwoAHxwojg",
+      "https://www.constructorabolivar.com/sites/default/files/css/css_F_mDmFG6TvFtwnv2f6KvNRW4giuufcRZm_N6gGmebSY.css?delta=1&language=es&theme=constructorabolivar&include=eJwrriwuSc3VT0osTtVJzs8rLikqTS7JL0pMys_JLEss0k_Kzy8BCiYWmGKVTs_JT0rMwSOlm5GfmwoAHxwojg"
+    ],
+    "hojas_omitidas": [],
+    "colores_leidos": 972,
+    "colores_distintos": 165,
+    "orden": "peso",
+    "pesos": {
+      "theme_color": 20,
+      "variable_css": 6,
+      "estilo_html": 2,
+      "svg_html": 2,
+      "hoja_css": 1,
+      "logo": 60
+    },
+    "frameworks": [
+      "bootstrap"
+    ]
+  }
+}

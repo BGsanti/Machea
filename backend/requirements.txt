@@ -4,6 +4,10 @@ requests>=2.31
 beautifulsoup4>=4.12
 lxml>=5.0
 
+# features/scrap_identity: normaliza a PNG el logo que no viene en vector
+# (jpg, webp, ico) antes de envolverlo en el SVG que se guarda.
+Pillow>=10.0
+
 # Capa HTTP para la landing (api.py)
 fastapi>=0.115
 uvicorn[standard]>=0.32

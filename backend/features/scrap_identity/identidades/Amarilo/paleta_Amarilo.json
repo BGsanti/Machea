@@ -1,0 +1,229 @@
+{
+  "empresa": "Amarilo",
+  "carpeta": "Amarilo",
+  "url": "https://www.amarilo.com.co/",
+  "url_final": "https://amarilo.com.co/",
+  "dominio": "amarilo.com.co",
+  "extraido_en": "2026-09-22T18:19:26+00:00",
+  "_empresa_confianza": "media",
+  "_empresa_evidencia": "<title>",
+  "paleta": [
+    {
+      "hex": "#ffc900",
+      "apariciones": 184,
+      "peso": 190.09,
+      "rol": "marca",
+      "tono": 47.3,
+      "saturacion": 1.0,
+      "luminosidad": 0.5,
+      "fuentes": [
+        "hoja_css",
+        "logo"
+      ]
+    },
+    {
+      "hex": "#160b29",
+      "apariciones": 173,
+      "peso": 178.0,
+      "rol": "marca",
+      "tono": 262.0,
+      "saturacion": 0.577,
+      "luminosidad": 0.102,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#000000",
+      "apariciones": 150,
+      "peso": 155.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.0,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#ffffff",
+      "apariciones": 79,
+      "peso": 137.91,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 1.0,
+      "fuentes": [
+        "hoja_css",
+        "logo",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#fefefe",
+      "apariciones": 125,
+      "peso": 130.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.996,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#f0f0f1",
+      "apariciones": 61,
+      "peso": 66.0,
+      "rol": "neutro",
+      "tono": 240.0,
+      "saturacion": 0.034,
+      "luminosidad": 0.943,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#d9d9d9",
+      "apariciones": 39,
+      "peso": 44.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.851,
+      "fuentes": [
+        "hoja_css",
+        "variable_css"
+      ]
+    },
+    {
+      "hex": "#cc4b37",
+      "apariciones": 15,
+      "peso": 15.0,
+      "rol": "marca",
+      "tono": 8.1,
+      "saturacion": 0.594,
+      "luminosidad": 0.508,
+      "fuentes": [
+        "hoja_css"
+      ]
+    },
+    {
+      "hex": "#1d1d1d",
+      "apariciones": 12,
+      "peso": 12.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.114,
+      "fuentes": [
+        "hoja_css"
+      ]
+    },
+    {
+      "hex": "#3adb76",
+      "apariciones": 12,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 142.4,
+      "saturacion": 0.691,
+      "luminosidad": 0.543,
+      "fuentes": [
+        "hoja_css"
+      ]
+    },
+    {
+      "hex": "#767676",
+      "apariciones": 12,
+      "peso": 12.0,
+      "rol": "neutro",
+      "tono": 0.0,
+      "saturacion": 0.0,
+      "luminosidad": 0.463,
+      "fuentes": [
+        "hoja_css"
+      ]
+    },
+    {
+      "hex": "#806500",
+      "apariciones": 12,
+      "peso": 12.0,
+      "rol": "marca",
+      "tono": 47.3,
+      "saturacion": 1.0,
+      "luminosidad": 0.251,
+      "fuentes": [
+        "hoja_css"
+      ]
+    }
+  ],
+  "marca": [
+    "#ffc900",
+    "#160b29",
+    "#cc4b37",
+    "#3adb76",
+    "#806500"
+  ],
+  "neutros": [
+    "#000000",
+    "#ffffff",
+    "#fefefe",
+    "#f0f0f1",
+    "#d9d9d9",
+    "#1d1d1d",
+    "#767676"
+  ],
+  "primario": "#ffc900",
+  "secundario": "#160b29",
+  "acento": "#cc4b37",
+  "fondo": "#ffffff",
+  "texto": "#160b29",
+  "theme_color": null,
+  "logo": {
+    "archivo": "Amarilo.svg",
+    "origen": "https://amarilo.com.co/images/logo-white.svg",
+    "fondo_recomendado": "oscuro",
+    "colores": [
+      {
+        "hex": "#ffffff",
+        "fraccion": 0.898
+      },
+      {
+        "hex": "#ffc900",
+        "fraccion": 0.102
+      }
+    ],
+    "_confianza": "alta",
+    "_evidencia": "<img> con pista de logo en la cabecera que nombra a la empresa",
+    "_descartados": [],
+    "formato_origen": "svg",
+    "vectorial": true,
+    "ancho": 70.0,
+    "alto": 64.0,
+    "bytes": 1901
+  },
+  "fuentes": {
+    "hojas_css": [
+      "https://amarilo.com.co/_next/static/css/705671c77546f8ec.css",
+      "https://amarilo.com.co/_next/static/css/4df78f2cd73d6b26.css",
+      "https://amarilo.com.co/_next/static/css/09a6c8321e7bfbc2.css"
+    ],
+    "hojas_omitidas": [],
+    "colores_leidos": 1057,
+    "colores_distintos": 103,
+    "orden": "peso",
+    "pesos": {
+      "theme_color": 20,
+      "variable_css": 6,
+      "estilo_html": 2,
+      "svg_html": 2,
+      "hoja_css": 1,
+      "logo": 60
+    },
+    "frameworks": []
+  }
+}
