@@ -113,9 +113,14 @@
       // Losa de obra: el piso que existe antes de que el ambiente tenga acabado.
       obra: mat('#cdc8c0', 0.9),
       marco: mat('#8a6a4a', 0.6),
-      tela: mat('#d8d3c8', 0.95),
-      telaAcento: mat('#b9c6cc', 0.95),
-      linoAzul: mat('#c3d3de', 0.95),
+      // Antes casi sin color (#d8d3c8/#b9c6cc): a la distancia de camara del
+      // panel se leia como una casa de muestra sin amoblar. Terracota y verde
+      // azulado son el mismo nivel de saturacion que la madera del piso, asi
+      // que compiten con ella en vez de apagarse al lado.
+      tela: mat('#c1734a', 0.85),
+      telaAcento: mat('#3f7a78', 0.85),
+      cojinAcento: mat('#d99a3a', 0.8),
+      linoAzul: mat('#7fa6c2', 0.9),
       linoBlanco: mat('#eceae4', 0.95),
       meson: mat('#e8e6e0', 0.4),
       electro: mat('#5c5f63', 0.35, 0.6),
@@ -124,8 +129,8 @@
         color: '#cfe0e6', roughness: 0.05, metalness: 0,
         transparent: true, opacity: 0.28
       }),
-      tapete: mat('#c9c2b6', 1),
-      follaje: mat('#5f7a54', 0.9),
+      tapete: mat('#a8552f', 0.95),
+      follaje: mat('#4d7a3f', 0.9),
       // Entorno de la pregunta de amenidades: se ven solo en el deszoom, a
       // buena distancia de camara, asi que no hace falta la sutileza de los
       // acabados interiores.

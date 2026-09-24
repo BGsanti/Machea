@@ -34,6 +34,12 @@
         g.add(caja(w, 0.26, d - almohada, M.linoBlanco, 0, 0.41, almohada / 2));
         g.add(caja(w * 0.88, 0.14, almohada, M.linoAzul, 0, 0.47, -d / 2 + almohada / 2));
         g.add(caja(w, 0.9, 0.06, M.marco, 0, 0.45, -d / 2 - 0.03));
+        // Cojin de acento: sin el, la cama es puro lino/madera y no hay
+        // ningun punto de color con el que el ojo se quede.
+        if (w > 0.9) {
+          var cw = Math.min(0.32, w * 0.22);
+          g.add(caja(cw, 0.1, cw, M.cojinAcento, -w / 2 + cw * 0.7, 0.48, -d / 2 + almohada * 0.7));
+        }
         return g;
       },
       sofa: function (w, d) {
@@ -43,6 +49,15 @@
         g.add(caja(w, 0.4, 0.3, M.tela, 0, 0.5, -d / 2 + 0.15));
         g.add(caja(brazo, 0.3, d, M.tela, -w / 2 + brazo / 2, 0.5, 0));
         g.add(caja(brazo, 0.3, d, M.tela, w / 2 - brazo / 2, 0.5, 0));
+        // Dos cojines de acento contra el respaldo: es lo que corta la
+        // franja de tela lisa mas grande de toda la escena.
+        var cj = Math.min(0.26, d * 0.4);
+        [-1, 1].forEach(function (lado) {
+          g.add(caja(
+            cj, cj * 0.85, cj, M.cojinAcento,
+            lado * Math.min(w * 0.28, w / 2 - brazo - cj * 0.6), 0.48, -d / 2 + 0.28
+          ));
+        });
         return g;
       },
       mesa: function (w, d) {
