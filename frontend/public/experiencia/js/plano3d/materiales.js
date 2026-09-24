@@ -126,6 +126,12 @@
       }),
       tapete: mat('#c9c2b6', 1),
       follaje: mat('#5f7a54', 0.9),
+      // Entorno de la pregunta de amenidades: se ven solo en el deszoom, a
+      // buena distancia de camara, asi que no hace falta la sutileza de los
+      // acabados interiores.
+      asfalto: mat('#55585c', 0.95),
+      marcaVial: mat('#d8d5cc', 0.5),
+      tronco: mat('#6b4a2a', 0.85),
       // Madera clara: una hoja casi blanca no se distingue del muro donde va.
       puerta: mat('#d9bd97', 0.65),
       // Mas claro que los muros, para que el marco se lea como pieza aparte.

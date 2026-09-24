@@ -171,9 +171,22 @@
       xs.push(w.start[0] * plan.scale, w.end[0] * plan.scale);
       zs.push(w.start[1] * plan.scale, w.end[1] * plan.scale);
     });
-    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
-    var minZ = Math.min.apply(null, zs), maxZ = Math.max.apply(null, zs);
-    var alto = Math.max.apply(null, plan.walls.map(function (w) { return w.height; }));
+
+    var minX, maxX, minZ, maxZ, alto;
+    if (xs.length) {
+      minX = Math.min.apply(null, xs); maxX = Math.max.apply(null, xs);
+      minZ = Math.min.apply(null, zs); maxZ = Math.max.apply(null, zs);
+      alto = Math.max.apply(null, plan.walls.map(function (w) { return w.height; }));
+    } else {
+      /* Sin muros todavia (nada respondido aun): la losa del lote debe verse
+         desde antes de la primera pregunta, no solo cuando aparece el primer
+         ambiente. `plan.meta.ancho/fondo` ya trae la huella completa del
+         programa (zonificar la calcula sin mirar el paso), asi que se usa esa
+         para encuadrar un lote plano en vez de devolver una caja vacia. */
+      var w2 = (plan.meta && plan.meta.ancho) || 6, d2 = (plan.meta && plan.meta.fondo) || 6;
+      minX = -w2 / 2; maxX = w2 / 2; minZ = -d2 / 2; maxZ = d2 / 2;
+      alto = 0.01;
+    }
 
     return {
       center: [(minX + maxX) / 2, alto / 2, (minZ + maxZ) / 2],

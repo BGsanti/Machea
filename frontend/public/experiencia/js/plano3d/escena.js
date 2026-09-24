@@ -26,16 +26,25 @@
   var ENTRADA = 0.7;        // lo que tarda una pieza en llegar a su sitio
   var SALIDA = 0.3;         // igual que `retirarPieza` de la anfitriona
   var DESFASE = 0.9;        // reparto total del escalonado entre las piezas
-  var SEPARACION = 1.1;     // desde que distancia entra, en metros
-  var ELEVA = 0.8;
+  var ALTURA_CAIDA = 5;     // desde que altura cae una pieza, en metros
 
   function suave(t) { return 1 - Math.pow(1 - t, 3); }
   function n2(v) { return (Math.round(v * 100) / 100).toFixed(2); }
 
+  // Tope de la vista cenital, no 90 exactos: en 90 la dirección de cámara
+  // queda vertical y `derecha = frente × arriba` da un vector nulo (gimbal
+  // lock) que `encuadrar()` no puede normalizar.
+  var ELEVACION_CENITAL = 89.5;
+
+  // Cuanto se aleja la camara durante la previsualizacion del entorno
+  // (pregunta de amenidades): multiplica la distancia normal de encuadre, asi
+  // que revela un anillo alrededor del lote sin depender de su tamano.
+  var ZOOM_ENTORNO = 0.85;
+
   function crearEscena(opciones) {
     var o = opciones || {};
-    var ELEVACION = THREE.MathUtils.degToRad(o.elevacion || ELEVACION_DEF);
-    var AZIMUT = THREE.MathUtils.degToRad(o.azimut === undefined ? AZIMUT_DEF : o.azimut);
+    var elevacionGrados = o.elevacion || ELEVACION_DEF;
+    var azimutGrados = o.azimut === undefined ? AZIMUT_DEF : o.azimut;
     var animar = o.animar !== false;
 
     var renderer = new THREE.WebGLRenderer({ antialias: o.antialias !== false, alpha: true });
@@ -80,7 +89,13 @@
     var contenedor = null, ro = null, pendiente = false, vivo = true;
     var planActual = null, caja = null, esquinasCaja = null, edad = 1, ultimo = 0;
     var nodos = {};          // clave -> {grupo, anim}
-    var baseNodo = null;
+    var baseNodo = null, entornoNodo = null;
+
+    // Animacion puntual de cierre: sube la camara a vista cenital una sola vez.
+    var vistaFinal = null;
+    // Animacion puntual de la pregunta de entorno: deszoom para revelar
+    // carreteras y arboles, y vuelta al encuadre normal.
+    var previaEntorno = null, factorEntorno = 0;
 
     /* ---------- bucle ---------- */
 
@@ -102,9 +117,86 @@
          calculado contra eso deja la vivienda descentrada y recortada. */
       if (edad < 0.6) { edad += dt; encuadrar(); sigue = true; }
       if (avanzar(dt)) sigue = true;
+      if (avanzarVistaFinal(dt)) sigue = true;
+      if (avanzarPreviaEntorno(dt)) sigue = true;
 
       renderer.render(scene, camera);
       if (sigue) pedirCuadro();
+    }
+
+    // Sube la camara a vista cenital una sola vez y avisa al terminar. `dt` en
+    // vez de leer el reloj de nuevo: mismo paso que ya calculo `cuadro`.
+    function avanzarVistaFinal(dt) {
+      if (!vistaFinal) return false;
+      vistaFinal.t += dt;
+      var p = Math.min(1, vistaFinal.t / vistaFinal.dur);
+      elevacionGrados = vistaFinal.desde + (vistaFinal.hasta - vistaFinal.desde) * suave(p);
+      encuadrar();
+      if (p >= 1) {
+        var cb = vistaFinal.cb;
+        vistaFinal = null;
+        if (cb) cb();
+        return false;
+      }
+      return true;
+    }
+
+    // Deszoom puntual de la pregunta de entorno: mitad afuera, mitad de vuelta.
+    // `factorEntorno` (0..1) lo lee `encuadrar()` para estirar la distancia ya
+    // calculada, asi que no duplica la logica de encuadre.
+    function avanzarPreviaEntorno(dt) {
+      if (!previaEntorno) return false;
+      previaEntorno.t += dt;
+      var mitad = previaEntorno.dur / 2;
+      var t = previaEntorno.t;
+      factorEntorno = t < mitad ? suave(t / mitad) : suave(1 - (t - mitad) / mitad);
+      encuadrar();
+      if (t >= previaEntorno.dur) {
+        previaEntorno = null;
+        factorEntorno = 0;
+        encuadrar();
+        // Solo se ve MIENTRAS dura el deszoom: el resto del formulario no debe
+        // asomar carreteras ni arboles por los bordes del encuadre normal.
+        if (entornoNodo) entornoNodo.visible = false;
+        return false;
+      }
+      return true;
+    }
+
+    // Lanza la previsualizacion; no relanza si ya esta en curso (la anfitriona
+    // la dispara una vez por cada vez que se ATERRIZA en la pregunta, y
+    // repintados intermedios —marcar un chip— no deben reiniciarla).
+    function previsualizarEntorno(duracionMs) {
+      if (previaEntorno) return;
+      if (entornoNodo) entornoNodo.visible = true;
+      // `dt` (en `avanzar*`) esta en SEGUNDOS; la anfitriona pide la duracion
+      // en ms, que es lo natural para un setTimeout/temporizador de UI.
+      previaEntorno = { t: 0, dur: (duracionMs || 3000) / 1000 };
+      pedirCuadro();
+    }
+
+    // Sube la camara a vista cenital una sola vez; `cb` avisa cuando termina
+    // (la anfitriona lo usa para recien ahi saltar a la pantalla de resultados).
+    function finalizarVistaSuperior(duracionMs, cb) {
+      vistaFinal = {
+        t: 0, dur: (duracionMs || 900) / 1000,
+        desde: elevacionGrados, hasta: ELEVACION_CENITAL, cb: cb
+      };
+      pedirCuadro();
+    }
+
+    // Vuelve la camara al reposo de siempre. Hace falta porque `elevacionGrados`
+    // es estado de MODULO: sin este reset, "Empezar de nuevo" heredaria la
+    // vista cenital del intento anterior.
+    function resetCamara() {
+      vistaFinal = null;
+      previaEntorno = null;
+      factorEntorno = 0;
+      elevacionGrados = o.elevacion || ELEVACION_DEF;
+      azimutGrados = o.azimut === undefined ? AZIMUT_DEF : o.azimut;
+      if (entornoNodo) entornoNodo.visible = false;
+      if (caja) encuadrar();
+      pedirCuadro();
     }
 
     function avanzar(dt) {
@@ -116,9 +208,9 @@
         var p = Math.min(1, Math.max(0, (a.t - a.retraso) / a.dur));
         if (a.t < a.retraso) { activo = true; return; }
 
-        var k = a.saliendo ? 1 - suave(p) : suave(p);
-        var resto = 1 - k;
-        n.grupo.position.set(a.dx * SEPARACION * resto, ELEVA * resto, a.dz * SEPARACION * resto);
+        // Entra CAYENDO (acelera, como gravedad) y sale SUBIENDO (frena).
+        var altura = a.saliendo ? suave(p) : 1 - p * p;
+        n.grupo.position.set(0, ALTURA_CAIDA * altura, 0);
         n.grupo.visible = true;
 
         if (p >= 1) {
@@ -157,6 +249,8 @@
        muros en pantalla y la vivienda se sale del cuadro. */
     function encuadrar() {
       if (!caja) return;
+      var ELEVACION = THREE.MathUtils.degToRad(elevacionGrados);
+      var AZIMUT = THREE.MathUtils.degToRad(azimutGrados);
       objetivo.set(caja.center[0], caja.center[1], caja.center[2]);
       dir.set(
         Math.cos(ELEVACION) * Math.sin(AZIMUT),
@@ -177,6 +271,10 @@
         var v = Math.abs(esquina.dot(arriba)) / tanV;
         dist = Math.max(dist, a + Math.max(h, v) * MARGEN);
       }
+      // Deszoom de la previa de entorno: estira la distancia YA ajustada al
+      // plano, no reemplaza el calculo — así el punto de mira sigue siendo el
+      // centro de la casa en vez de saltar al centro del anillo de carreteras.
+      dist *= 1 + factorEntorno * ZOOM_ENTORNO;
       camera.position.copy(objetivo).addScaledVector(dir, dist);
       camera.lookAt(objetivo);
     }
@@ -344,6 +442,88 @@
       return g;
     }
 
+    /* ---------- entorno (carreteras y arboles) ----------
+       Paisaje fijo alrededor del lote: un anillo de calle a una distancia
+       proporcional a la casa, con arboles en la franja de pasto entre el lote
+       y la calle. Deliberadamente fuera del encuadre normal (`MARGEN` en
+       `encuadrar` solo ajusta a la caja de la casa) — es lo que revela el
+       deszoom de la pregunta de entorno. */
+
+    var OFFSET_VIA = 2.2, ANCHO_VIA = 1.6;
+
+    // Determinista, no Math.random(): si el arbolado cambiara en cada
+    // repintado (cada tecla del buscador de amenidades) se leeria como que la
+    // escena tiembla en vez de como paisaje quieto.
+    function pseudoAleatorio(i, sal) {
+      var n = Math.sin(i * 12.9898 + sal * 78.233) * 43758.5453;
+      return n - Math.floor(n);
+    }
+
+    function construirEntorno(caja, M) {
+      var g = new THREE.Group();
+      var hx = caja.halfExtents[0], hz = caja.halfExtents[2];
+      var innerX = hx + OFFSET_VIA, innerZ = hz + OFFSET_VIA;
+      var outerX = innerX + ANCHO_VIA, outerZ = innerZ + ANCHO_VIA;
+      var Y_VIA = -HUNDIR_BASE + 0.001; // apenas sobre la losa, sin z-fighting
+
+      // Anillo de calle: norte/sur cubren el ancho completo; este/oeste
+      // cubren el largo completo para tapar las esquinas del marco.
+      [-1, 1].forEach(function (signo) {
+        var ns = new THREE.Mesh(new THREE.BoxGeometry(outerX * 2, 0.02, ANCHO_VIA), M.asfalto);
+        ns.position.set(caja.center[0], Y_VIA, caja.center[2] + signo * (innerZ + ANCHO_VIA / 2));
+        ns.receiveShadow = true;
+        g.add(ns);
+
+        var eo = new THREE.Mesh(new THREE.BoxGeometry(ANCHO_VIA, 0.02, outerZ * 2), M.asfalto);
+        eo.position.set(caja.center[0] + signo * (innerX + ANCHO_VIA / 2), Y_VIA, caja.center[2]);
+        eo.receiveShadow = true;
+        g.add(eo);
+
+        // Franja central, mas clara: sin ella la calle se lee como un charco
+        // gris uniforme a la distancia de camara final.
+        var linNS = new THREE.Mesh(new THREE.BoxGeometry(outerX * 1.9, 0.021, 0.06), M.marcaVial);
+        linNS.position.set(caja.center[0], Y_VIA, caja.center[2] + signo * (innerZ + ANCHO_VIA / 2));
+        g.add(linNS);
+        var linEO = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.021, outerZ * 1.9), M.marcaVial);
+        linEO.position.set(caja.center[0] + signo * (innerX + ANCHO_VIA / 2), Y_VIA, caja.center[2]);
+        g.add(linEO);
+      });
+
+      // Arboles repartidos en la franja de pasto entre el lote y la calle,
+      // uno por lado en vez de un anillo continuo: a la distancia final del
+      // deszoom un puñado se lee mejor que una fila apretada.
+      var perimetro = 2 * (hx + hz);
+      var nArboles = Math.max(6, Math.round(perimetro / 2.2));
+      for (var i = 0; i < nArboles; i++) {
+        var t = i / nArboles;
+        var jitter = (pseudoAleatorio(i, 3.1) - 0.5) * 0.6;
+        var lado = Math.floor(t * 4);
+        var frac = t * 4 - lado + jitter * 0.2;
+        var radioX = hx + OFFSET_VIA * (0.35 + pseudoAleatorio(i, 7.7) * 0.3);
+        var radioZ = hz + OFFSET_VIA * (0.35 + pseudoAleatorio(i, 5.3) * 0.3);
+        var x, z;
+        if (lado === 0) { x = -radioX + frac * radioX * 2; z = -radioZ; }
+        else if (lado === 1) { x = radioX; z = -radioZ + frac * radioZ * 2; }
+        else if (lado === 2) { x = radioX - frac * radioX * 2; z = radioZ; }
+        else { x = -radioX; z = radioZ - frac * radioZ * 2; }
+
+        var alto = 0.9 + pseudoAleatorio(i, 9.1) * 0.5;
+        var arbol = new THREE.Group();
+        var tronco = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, alto, 6), M.tronco);
+        tronco.position.y = alto / 2;
+        tronco.castShadow = true;
+        arbol.add(tronco);
+        var copa = new THREE.Mesh(new THREE.ConeGeometry(0.38 + pseudoAleatorio(i, 2.2) * 0.14, 0.75, 7), M.follaje);
+        copa.position.y = alto + 0.32;
+        copa.castShadow = true;
+        arbol.add(copa);
+        arbol.position.set(caja.center[0] + x, 0, caja.center[2] + z);
+        g.add(arbol);
+      }
+
+      return g;
+    }
+
     /* ---------- aplicar un plano ---------- */
 
     function aplicarPlan(plan, opts) {
@@ -379,6 +559,18 @@
       obra.receiveShadow = true;
       baseNodo.add(obra);
 
+      // El entorno (carreteras + arboles) tampoco se anima: es paisaje fijo
+      // alrededor del lote, fuera del encuadre normal (solo se ve durante el
+      // deszoom de `previsualizarEntorno`). Se reconstruye con cada plano
+      // porque su tamano depende de `caja`.
+      // Oculto salvo durante el deszoom (ver `previsualizarEntorno`): a la
+      // distancia de camara normal no deberia asomar ni un pedazo de calle.
+      var entornoVisible = !!previaEntorno;
+      if (entornoNodo) soltar(entornoNodo);
+      entornoNodo = construirEntorno(caja, M);
+      entornoNodo.visible = entornoVisible;
+      raiz.add(entornoNodo);
+
       var nuevas = piezasDe(plan);
       var vistas = {};
       var entrantes = [];
@@ -393,10 +585,7 @@
              venir rapido por el formulario: sin esto la escena se vacia. */
           if (previo.anim && previo.anim.saliendo) {
             if (conAnim) {
-              var dv = direccion(previo.centro);
-              previo.anim = {
-                t: 0, retraso: 0, dur: ENTRADA, saliendo: false, dx: dv[0], dz: dv[1]
-              };
+              previo.anim = { t: 0, retraso: 0, dur: ENTRADA, saliendo: false };
             } else {
               previo.anim = null;
               previo.grupo.position.set(0, 0, 0);
@@ -416,10 +605,7 @@
         if (vistas[clave] || (nodos[clave].anim && nodos[clave].anim.saliendo)) return;
         var n = nodos[clave];
         if (!conAnim) { soltar(n.grupo); delete nodos[clave]; return; }
-        n.anim = {
-          t: 0, retraso: 0, dur: SALIDA, saliendo: true,
-          dx: direccion(n.centro)[0], dz: direccion(n.centro)[1]
-        };
+        n.anim = { t: 0, retraso: 0, dur: SALIDA, saliendo: true };
       });
 
       if (conAnim && entrantes.length) {
@@ -432,28 +618,21 @@
           if (porAmbiente[k] === undefined) porAmbiente[k] = orden++;
         });
         entrantes.forEach(function (pieza) {
-          var d = direccion(pieza.centro);
           var n = nodos[pieza.clave];
           n.anim = {
             t: 0, retraso: porAmbiente[pieza.ambiente || '_'] * paso, dur: ENTRADA,
-            saliendo: false, dx: d[0], dz: d[1]
+            saliendo: false
           };
-          pieza.grupo.position.set(d[0] * SEPARACION, ELEVA, d[1] * SEPARACION);
+          // Oculta hasta que le toca: a 5 m de altura, esperando su turno
+          // flotaria a la vista.
+          pieza.grupo.visible = false;
+          pieza.grupo.position.set(0, ALTURA_CAIDA, 0);
         });
       }
 
       edad = 0;
       encuadrar();
       pedirCuadro();
-    }
-
-    // Direccion desde el centro del plano hacia la pieza: es por donde entra y
-    // por donde se va.
-    function direccion(centro) {
-      if (!centro || !caja) return [0, 0];
-      var dx = centro[0] - caja.center[0], dz = centro[1] - caja.center[2];
-      var l = Math.hypot(dx, dz) || 1;
-      return [dx / l, dz / l];
     }
 
     /* ---------- montaje ---------- */
@@ -477,6 +656,7 @@
       if (ro) ro.disconnect();
       Object.keys(nodos).forEach(function (c) { soltar(nodos[c].grupo); delete nodos[c]; });
       if (baseNodo) soltar(baseNodo);
+      if (entornoNodo) soltar(entornoNodo);
       renderer.dispose();
       if (lienzo.parentNode) lienzo.parentNode.removeChild(lienzo);
     }
@@ -484,6 +664,8 @@
     return {
       montar: montar, aplicarPlan: aplicarPlan, encuadrar: encuadrar,
       pedirCuadro: pedirCuadro, dispose: dispose,
+      previsualizarEntorno: previsualizarEntorno, finalizarVistaSuperior: finalizarVistaSuperior,
+      resetCamara: resetCamara,
       canvas: lienzo, renderer: renderer, scene: scene, camera: camera,
       plan: function () { return planActual; },
       piezas: function () { return Object.keys(nodos).length; }
