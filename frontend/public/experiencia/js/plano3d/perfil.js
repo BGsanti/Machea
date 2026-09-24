@@ -22,7 +22,13 @@
     bano: 4,        // habitaciones
     alcoba1: 4,
     alcobas: 4,
-    flexible: 7     // edad
+    /* Antes en 7 (edad), la ultima pregunta: su area ya estaba reservada en el
+       programa completo desde la primera respuesta (asi los muros no bailan),
+       pero sin nadie construyendo ahi se veia como losa cruda pegada a la
+       cocina durante media encuesta. Se adelanta junto al resto de la zona
+       social: `esJoven` ya tiene un default (< 35 anios) para nombrarla antes
+       de saber la edad real, igual que hace con el mobiliario. */
+    flexible: 2     // ingresos, junto con sala/comedor
   };
 
   /* Nivel de ingresos -> muebles extra en la sala. Es un agregado nuestro: en
