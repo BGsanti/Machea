@@ -5,10 +5,10 @@ un usuario y devuelve los 18 proyectos más compatibles (`TOP_N`), cada uno
 con un porcentaje de compatibilidad listo para mostrar.
 
 El repo está partido en dos: **`backend/`** —el motor (`Model/`), la capa HTTP
-(`api/`, FastAPI) y el scraper— y **`frontend/`**, que en esta copia es **solo
-el formulario**: la experiencia de 7 preguntas de `public/experiencia/`
-servida a pantalla completa. La landing de GO FEST que la envolvía se borró
-(§8). Ver §1 para el mapa completo.
+(`api/`, FastAPI) y el scraper— y **`frontend/`**, la landing de GO FEST
+(React) con el formulario de 7 preguntas de `public/experiencia/` embebido
+por iframe en su modal "Pruébalo tú mismo" (§8). Ver §1 para el mapa
+completo.
 
 **Novedad de la v0.4: la cercanía se mide en kilómetros.** El grafo de 20
 localidades se queda para decidir *quién entra* (§3.3), pero encima hay ahora
@@ -1584,28 +1584,29 @@ en 0,50 son lo que evita que sean muchos más.
 
 ---
 
-## 8. El formulario (`frontend/`)
+## 8. La landing y el formulario (`frontend/`)
 
-**Aquí hubo una landing y ahora solo está el formulario.** Esta copia del repo
-existe para mostrar la experiencia y nada más: se borró `src/` entero —React
-19, Tailwind v4, Framer Motion, y con ellos `Navbar · Hero · Marquee ·
-Benefits · LiveDemo · Credibility · FlowDiagram · FAQ · Offer · Footer`, más
-`lib/api.ts`, `lib/catalogos.ts`, `lib/content.ts` y `lib/offerConfig.ts`—.
+**Hubo una landing, se borró para mostrar solo la experiencia, y volvió.**
+Entre medias existió una copia de este repo con `src/` entero fuera —React
+19, Tailwind v4, Framer Motion, `Navbar · Hero · Marquee · Benefits ·
+LiveDemo · Credibility · FlowDiagram · FAQ · Offer · Footer`— dejando solo un
+`index.html` cascarón con un iframe a pantalla completa. Esa etapa quedó en
+el historial (commit `d5ec2fc`); la landing está de vuelta, con dos
+secciones nuevas (**Segments**, los tres perfiles de negocio, y **Pricing**),
+y `public/experiencia/` **sigue sin tocarse** (§8.3) — es el mismo bundle
+del quiz que servía el modal de la landing antes de que se borrara, y el
+mismo que sirvió solo durante esa etapa intermedia.
 
-Lo que queda son **dos piezas**: `index.html`, un cascarón de una sola página,
-y `public/experiencia/`, el bundle del quiz, que **no se tocó** (§8.3). Es el
-mismo que servía el modal de la landing: el formulario, tal cual estaba.
-
-**Stack:** Vite 8, y nada más. No hay build de TypeScript (`npm run build` ya
-no corre `tsc -b`, porque no queda código que compilar), ni oxlint, ni React.
-El bundle es JS vanilla que Vite sirve desde `public/` sin pasarlo por el
-pipeline.
+**Stack:** React 19 + Vite 8 + Tailwind v4 + Framer Motion en `src/`,
+compilado normalmente (`npm run build` corre `tsc -b && vite build`).
+`public/experiencia/` sigue siendo JS vanilla aparte, que Vite sirve desde
+`public/` sin pasarlo por el pipeline — eso no cambió.
 
 ### 8.1 Correr las dos mitades
 
 ```bash
 cd backend && uvicorn api.app:app --port 8000   # terminal 1
-cd frontend && npm install && npm run dev       # terminal 2, el quiz en :5173
+cd frontend && npm install && npm run dev       # terminal 2, landing + quiz en :5173
 ```
 
 `vite.config.ts` usa `strictPort: true` en 5173 (respeta `PORT` si está): si
@@ -1617,15 +1618,19 @@ que el quiz calcula su Top 6 con el motor de reglas de `matching.js` y **no
 llama al modelo**. Para probarlo contra `recomendar()` de verdad hay que
 apagar ese flag y levantar el servicio que espera `MACHEA_BASE`.
 
-### 8.2 `index.html` — el cascarón
+### 8.2 El modal "Pruébalo tú mismo" — `LiveDemo.tsx`
 
-Son ~20 líneas: un `<iframe>` a pantalla completa con
+Con la landing de vuelta, `index.html` es el mount point normal de React
+(`<div id="root">` + `src/main.tsx`) — ya no es el iframe. El iframe se movió
+adentro: vive en `frontend/src/components/LiveDemo.tsx`, en la constante
+`EXPERIENCIA_URL`, apuntando a
 
 ```
 /experiencia/index.html?marca=machea
 ```
 
-y tres decisiones que conviene no deshacer sin querer:
+y las mismas tres decisiones de antes siguen sin poderse deshacer sin querer,
+solo que ahora están documentadas ahí en vez de en `index.html`:
 
 - **`?marca=machea` no es opcional.** El bundle es multi-tenant y sin ese
   parámetro cae en `constructora-bolivar`, que filtra el catálogo a una sola
@@ -1647,20 +1652,21 @@ el build de Vite, borra el documento entero. El iframe lo deja intacto —
 aislamiento de parser y de CSS sin reescribir una línea— y mantiene la URL de
 la demo en `/`.
 
-**La paleta ya no vive en ningún `@theme`.** Con Tailwind se fue
-`src/index.css`, que era donde estaban los tokens de marca. Los valores quedan
-anotados en un comentario de `index.html`, porque `js/tema.js` del bundle los
-duplica a mano (§8.3) y hay que tener contra qué compararlos: coral `#ff6259`,
-navy `#2d3b4e`, beige `#fdf6f0`, emerald `#2dd4a7`, titulares Sora, cuerpo
-Manrope.
+**La paleta vive de nuevo en el `@theme` de `src/index.css`** — volvió con la
+landing. `js/tema.js` del bundle de `public/experiencia/` sigue duplicando
+esos mismos valores a mano por su cuenta (§8.3), porque ese bundle no compila
+con Vite y no puede importarlos: coral `#ff6259`, navy `#2d3b4e`, beige
+`#fdf6f0`, emerald `#2dd4a7`, titulares Sora, cuerpo Manrope. Si un valor
+cambia en un lado y no en el otro, se desincronizan en silencio — no hay
+ningún chequeo automático que lo detecte.
 
 ### 8.3 `public/experiencia/` — el quiz, vestido de Machea
 
 El bundle trae su propio sistema visual, gobernado por **tokens en el `:root`
 de `css/styles.css`** que reescribe `js/tema.js` según el tenant. Los valores
 por defecto son los de la **consola negra** de las cuatro constructoras; el
-tenant `machea` es el único que los cambia: es la identidad de Machea, la que
-tenía la landing que envolvía a este quiz y hoy es la única que queda.
+tenant `machea` es el único que los cambia: es la identidad de Machea, la
+misma de la landing que lo envuelve por iframe (§8.2).
 
 | | Las cuatro constructoras | Machea |
 |---|---|---|
@@ -1755,11 +1761,12 @@ de este bundle del invariante 1.
    año, además del SMMLV, son las tasas y plazos de `PARAMETROS_CREDITO`
    (§4.1): son datos de mercado y se mueven.
 6. **Todo espejo de `Model/catalogos.py` en el front hereda el invariante 1.**
-   `frontend/src/lib/catalogos.ts` ya no existe —se fue con la landing (§8)—,
-   pero el bundle de `public/experiencia/` sigue trayendo los suyos: si se
-   desincronizan, el front manda ids que apuntan a otra localidad o zonas que
-   el modelo descarta **sin error visible**. `GET /api/catalogos` sirve la
-   versión buena y es la vía para verificarlo.
+   Con la landing de vuelta, `frontend/src/lib/catalogos.ts` también volvió; el
+   bundle de `public/experiencia/` trae los suyos aparte. Dos copias, no una:
+   si se desincronizan entre sí o contra `Model/catalogos.py`, el front manda
+   ids que apuntan a otra localidad o zonas que el modelo descarta **sin
+   error visible**. `GET /api/catalogos` sirve la versión buena y es la vía
+   para verificarlo.
 7. **`DAPTA_FLOW_WEBHOOK_URL` nunca se hardcodea.** Sin la variable el
    endpoint responde en modo mock, que es el comportamiento correcto en
    desarrollo — no un fallo que haya que "arreglar" poniendo la URL en el

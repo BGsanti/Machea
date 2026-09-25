@@ -17,17 +17,20 @@ Bogotá: **Amarilo, Cusezar, Constructora Bolívar y Colsubsidio**.
 > Detalle técnico del contrato de datos, de los grafos de localidades y de
 > barrios, y del modelo: **[CLAUDE.md](CLAUDE.md)**.
 
-> **El front ya está conectado.** En esta copia el front es **solo el
-> formulario**: la experiencia de 7 preguntas que vive en
-> **[frontend/public/experiencia/](frontend/public/experiencia/)**, servida a
-> pantalla completa por Vite (la landing de GO FEST que la envolvía se borró).
+> **El front ya está conectado.** La landing de GO FEST volvió — vive en
+> **[frontend/src/](frontend/src/)** (React 19 + Tailwind v4 + Framer Motion),
+> con secciones nuevas de segmentos y precios. Adentro, el modal "Pruébalo tú
+> mismo" incrusta por iframe la experiencia de 7 preguntas que vive en
+> **[frontend/public/experiencia/](frontend/public/experiencia/)** — esa NO se
+> tocó, sigue siendo el mismo bundle vanilla que arma Santiago, y se puede
+> abrir sola en `/experiencia/index.html?marca=machea`.
 > Consume el modelo a través de **[backend/api/app.py](backend/api/app.py)**,
 > un wrapper de FastAPI sobre `recomendar()`.
 > Correr los dos a la vez:
 >
 > ```bash
 > cd backend && uvicorn api.app:app --port 8000   # backend
-> cd frontend && npm install && npm run dev       # el quiz, en otra terminal
+> cd frontend && npm install && npm run dev       # landing + quiz, en otra terminal
 > ```
 >
 > `api/app.py` también expone `POST /api/llamar`, que arma el payload de 19
