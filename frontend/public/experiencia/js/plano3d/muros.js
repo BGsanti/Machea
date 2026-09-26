@@ -87,9 +87,57 @@
     return cruz >= 0 ? -1 : 1;
   }
 
+  /* Parte un lado de un ambiente en los tramos que dan a FACHADA y los que dan
+     a otro ambiente o a circulacion. Con retranqueos la planta ya no es un
+     rectangulo: el vecino de una muesca tiene un lado que es medianera en un
+     tramo y fachada en otro, y mirar solo los bordes del rectangulo lo dejaba
+     sin muro. Se decide contra la huella COMPLETA (revelada o no): lo que da a
+     un ambiente aun no construido es interior, asi la cascara sigue creciendo
+     con las respuestas en vez de levantarse donde despues va una alcoba. */
+  function tramosLado(seg, lado, huella) {
+    var horiz = seg.horiz;
+    var f = horiz ? seg.a[1] : seg.a[0];
+    var a = horiz ? Math.min(seg.a[0], seg.b[0]) : Math.min(seg.a[1], seg.b[1]);
+    var b = horiz ? Math.max(seg.a[0], seg.b[0]) : Math.max(seg.a[1], seg.b[1]);
+    // Un punto apenas afuera del lado: el ambiente mismo nunca lo contiene.
+    var fuera = f + (lado === 'n' || lado === 'o' ? -0.05 : 0.05);
+    var cubierto = [];
+    huella.forEach(function (h) {
+      var q = h.rect;
+      var q0 = horiz ? q.z : q.x, q1 = horiz ? q.z + q.d : q.x + q.w;
+      if (fuera <= q0 || fuera >= q1) return;
+      var c0 = Math.max(a, horiz ? q.x : q.z), c1 = Math.min(b, horiz ? q.x + q.w : q.z + q.d);
+      if (c1 - c0 > 0.01) cubierto.push([c0, c1]);
+    });
+    cubierto.sort(function (p, q) { return p[0] - q[0]; });
+
+    var ext = [], cursor = a;
+    cubierto.forEach(function (c) {
+      if (c[0] - cursor > 0.05) ext.push([cursor, c[0]]);
+      cursor = Math.max(cursor, c[1]);
+    });
+    if (b - cursor > 0.05) ext.push([cursor, b]);
+
+    var intr = [];
+    cursor = a;
+    ext.forEach(function (e) {
+      if (e[0] - cursor > 0.05) intr.push([cursor, e[0]]);
+      cursor = e[1];
+    });
+    if (b - cursor > 0.05) intr.push([cursor, b]);
+    return { ext: ext, int: intr };
+  }
+
+  function tramo(seg, a, b) {
+    return seg.horiz
+      ? { a: [a, seg.a[1]], b: [b, seg.a[1]], horiz: true }
+      : { a: [seg.a[0], a], b: [seg.a[0], b], horiz: false };
+  }
+
   function derivarMuros(zon, opts) {
     var o = Object.assign({}, POR_DEFECTO, opts || {});
     var pl = zon.pl, hw = pl.w / 2, hd = pl.d / 2;
+    var huella = zon.huella || zon.completo.concat(zon.corredores || []);
 
     var candidatos = [], puertas = [], ventanas = [];
     var bloqueados = {};
@@ -111,20 +159,21 @@
     zon.rects.forEach(function (r) {
       var L = lados(r.rect);
       ['n', 's', 'o', 'e'].forEach(function (k) {
-        var seg = L[k];
-        if (!enPerimetro(seg, pl)) return;
-        proponer(seg, o.grosorCascara, o.alturaCascara);
+        tramosLado(L[k], k, huella).ext.forEach(function (iv) {
+          var seg = tramo(L[k], iv[0], iv[1]);
+          proponer(seg, o.grosorCascara, o.alturaCascara);
 
-        /* Ventana por AMBIENTE, centrada en su tramo y no en el muro entero: un
-           muro perimetral suele bordear varios, y una sola al medio dejaria
-           habitaciones a oscuras. */
-        if (r.zona === 'circulacion') return;
-        var ancho = Math.min(o.anchoVentana, largo(seg) - 0.9);
-        if (ancho < 0.7) return;
-        ventanas.push({
-          horiz: seg.horiz, fija: seg.horiz ? seg.a[1] : seg.a[0],
-          centro: seg.horiz ? (seg.a[0] + seg.b[0]) / 2 : (seg.a[1] + seg.b[1]) / 2,
-          ancho: ancho
+          /* Ventana por AMBIENTE, centrada en su tramo y no en el muro entero:
+             un muro perimetral suele bordear varios, y una sola al medio
+             dejaria habitaciones a oscuras. */
+          if (r.zona === 'circulacion') return;
+          var ancho = Math.min(o.anchoVentana, largo(seg) - 0.9);
+          if (ancho < 0.7) return;
+          ventanas.push({
+            horiz: seg.horiz, fija: seg.horiz ? seg.a[1] : seg.a[0],
+            centro: (iv[0] + iv[1]) / 2,
+            ancho: ancho
+          });
         });
       });
     });
@@ -137,12 +186,22 @@
       if (r.zona === 'social' || r.zona === 'circulacion') return;
       var rect = r.rect, L = lados(rect);
       var centro = [rect.x + rect.w / 2, rect.z + rect.d / 2];
-      var libres = ['n', 's', 'o', 'e'].filter(function (k) { return !enPerimetro(L[k], pl); });
+      var interior = {};
+      ['n', 's', 'o', 'e'].forEach(function (k) { interior[k] = tramosLado(L[k], k, huella).int; });
+      var libres = ['n', 's', 'o', 'e'].filter(function (k) { return interior[k].length; });
       if (!libres.length) return;
+
+      /* El vano va en el tramo interior mas largo del lado: junto a una muesca,
+         parte del lado es fachada y ahi no puede abrirse una puerta. */
+      var tramoPuerta = {};
+      libres.forEach(function (k) {
+        var mejor = interior[k].reduce(function (m, iv) { return iv[1] - iv[0] > m[1] - m[0] ? iv : m; });
+        tramoPuerta[k] = tramo(L[k], mejor[0], mejor[1]);
+      });
 
       // Un lado solo sirve de puerta si le queda muro a ambos costados del vano.
       var utiles = libres.filter(function (k) {
-        return largo(L[k]) - o.holguraPuerta >= 0.7;
+        return largo(tramoPuerta[k]) - o.holguraPuerta >= 0.7;
       });
 
       /* Preferencias de por donde se entra, filtradas por las que admiten vano:
@@ -158,14 +217,16 @@
       if (!ladoPuerta) ladoPuerta = ladoHaciaCirculacion(rect, zon.zonasAcceso, utiles);
       if (!ladoPuerta) {
         ladoPuerta = utiles.slice().sort(function (x, y) {
-          return largo(L[y]) - largo(L[x]);
+          return largo(tramoPuerta[y]) - largo(tramoPuerta[x]);
         })[0] || null;
       }
 
       libres.forEach(function (k) {
-        var seg = L[k];
-        proponer(seg, o.grosorTabique, o.alturaMuro);
+        interior[k].forEach(function (iv) {
+          proponer(tramo(L[k], iv[0], iv[1]), o.grosorTabique, o.alturaMuro);
+        });
         if (k !== ladoPuerta) return;
+        var seg = tramoPuerta[k];
         bloquear(r.id, k);
         puertas.push({
           horiz: seg.horiz, fija: seg.horiz ? seg.a[1] : seg.a[0],

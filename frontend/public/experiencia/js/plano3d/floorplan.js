@@ -98,15 +98,36 @@
         poner('chair', P(0.5, 0.78), [0.45, 0.45], 180);
         break;
 
-      case r.id === 'flexible':
+      /* Nada de sofa aqui: desde que 'flexible' aparece junto a la sala (paso
+         2), un segundo sofa con su tapete se leia como dos salas seguidas.
+         Estudio o rincon de lectura: piezas que la sala no tiene. */
+      case r.id === 'flexible': {
+        var ladoF = ladoLibre(horizontal ? ['n', 's', 'o', 'e'] : ['o', 'e', 'n', 's'], vetados);
+        var cf = CONTRA[ladoF];
+        var horizF = ladoF === 'n' || ladoF === 's';
+        var giroF = { n: 0, s: 180, o: 90, e: -90 }[ladoF];
         if (perfil.esJoven) {
-          poner('desk', P(0.5, 0.15), [Math.min(1.4, w * 0.7), 0.6]);
-          poner('chair', P(0.5, 0.35), [0.45, 0.45], 180);
+          poner('desk', P(cf[0], cf[1]), horizF ? [Math.min(1.3, w * 0.6), 0.6] : [0.6, Math.min(1.3, d * 0.6)]);
+          var trasF = { n: [0.5, 0.42], s: [0.5, 0.58], o: [0.4, 0.5], e: [0.6, 0.5] }[ladoF];
+          poner('chair', P(trasF[0], trasF[1]), [0.45, 0.45], giroF + 180);
         } else {
-          poner('sofa', P(0.5, 0.25), [Math.min(1.8, w * 0.7), 0.8]);
-          poner('rug', P(0.5, 0.6), [w * 0.6, d * 0.4]);
+          poner('rug', P(0.5, 0.55), [w * 0.5, d * 0.45]);
+          poner('chair', P(0.32, 0.55), [0.6, 0.6], 45);
+          poner('chair', P(0.68, 0.55), [0.6, 0.6], -45);
+          poner('table', P(0.5, 0.72), [0.4, 0.4]);
         }
+        // Biblioteca baja contra el muro opuesto: lo que lo hace estudio.
+        // Si ese muro tiene vano, se omite: en el mismo muro del escritorio
+        // se montarian una sobre otra.
+        var ladoB = { n: 's', s: 'n', o: 'e', e: 'o' }[ladoF];
+        if ((vetados || []).indexOf(ladoB) < 0) {
+          var cb = CONTRA[ladoB];
+          var horizB = ladoB === 'n' || ladoB === 's';
+          poner('wardrobe', P(cb[0], cb[1]), horizB ? [Math.min(1.2, w * 0.5), 0.35] : [0.35, Math.min(1.2, d * 0.5)]);
+        }
+        poner('plant', P(0.88, 0.88), [0.3, 0.3]);
         break;
+      }
 
       case r.id === 'cocina': {
         // El meson va contra un muro sin vano: pegado al del paso, tapaba la
@@ -300,10 +321,14 @@
       openings: md.openings,
       rooms: rooms,
       furniture: furniture,
+      /* Huella del programa COMPLETO (ambientes + circulacion, revelados o
+         no). La planta ya no es un rectangulo: con los retranqueos, la losa de
+         obra tiene que seguir este poligono o asoma gris en cada muesca. */
+      huella: zon.huella.map(function (r) { return r.rect; }),
       // Util para la ficha y para depurar; el render lo ignora.
       meta: {
         ancho: zon.pl.w, fondo: zon.pl.d,
-        area: zon.pl.w * zon.pl.d,
+        area: zon.huella.reduce(function (s, r) { return s + r.rect.w * r.rect.d; }, 0),
         alcobas: perfil.nAlcobas, banos: perfil.nBanos,
         vis: perfil.vis, paso: perfil.paso
       }

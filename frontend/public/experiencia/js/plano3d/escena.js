@@ -636,14 +636,24 @@
          aparecen de a poco: sin esto queda un vacio gris enorme dentro de los
          muros y se lee como que el piso no cargo. Va apenas debajo del nivel de
          los pisos de ambiente, que se van montando encima. */
-      var obra = new THREE.Mesh(
-        new THREE.BoxGeometry(caja.halfExtents[0] * 2, 0.02, caja.halfExtents[2] * 2), M.obra
-      );
-      // Hija de la losa del lote, asi que se va con ella al cambiar de plano.
-      // Su Y es relativa: queda justo debajo del nivel de los pisos de ambiente.
-      obra.position.set(0, GROSOR_BASE / 2 + HUNDIR_BASE - 0.015, 0);
-      obra.receiveShadow = true;
-      baseNodo.add(obra);
+      /* Con retranqueos la huella no es un rectangulo: una sola losa del
+         tamano de la caja asomaria clara en cada muesca, fuera de los muros.
+         Una por rectangulo de la huella; sin huella (planos que no salen del
+         formulario), la caja entera como antes. */
+      var s = plan.scale || 1;
+      var trozos = plan.huella && plan.huella.length
+        ? plan.huella.map(function (q) {
+          return { x: (q.x + q.w / 2) * s, z: (q.z + q.d / 2) * s, w: q.w * s, d: q.d * s };
+        })
+        : [{ x: caja.center[0], z: caja.center[2], w: caja.halfExtents[0] * 2, d: caja.halfExtents[2] * 2 }];
+      trozos.forEach(function (t) {
+        var obra = new THREE.Mesh(new THREE.BoxGeometry(t.w, 0.02, t.d), M.obra);
+        // Hija de la losa del lote, asi que se va con ella al cambiar de plano.
+        // Su Y es relativa: queda justo debajo del nivel de los pisos de ambiente.
+        obra.position.set(t.x - caja.center[0], GROSOR_BASE / 2 + HUNDIR_BASE - 0.015, t.z - caja.center[2]);
+        obra.receiveShadow = true;
+        baseNodo.add(obra);
+      });
 
       // El entorno (carreteras + arboles) tampoco se anima: es paisaje fijo
       // alrededor del lote, fuera del encuadre normal (solo se ve durante el
