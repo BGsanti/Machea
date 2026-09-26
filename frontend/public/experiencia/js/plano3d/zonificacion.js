@@ -223,6 +223,13 @@
     return 2.0;
   }
 
+  // Dos rectangulos que comparten un borde con tramo util (no solo una esquina).
+  function seTocan(a, b) {
+    var ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+    var oz = Math.min(a.z + a.d, b.z + b.d) - Math.max(a.z, b.z);
+    return (Math.abs(ox) < 0.02 && oz > 0.3) || (Math.abs(oz) < 0.02 && ox > 0.3);
+  }
+
   function muescar(todos, h, x0, W, D) {
     var cerca = function (a, b) { return Math.abs(a - b) < 0.02; };
     var caras = [
@@ -381,6 +388,20 @@
       });
       corrs.forEach(function (c) {
         var q = c.rect;
+        /* El vestibulo entra ENTERO: es chico y es donde va la puerta de
+           entrada. Recortado contra la caja de lo construido, una muesca en la
+           esquina vecina lo dejaba en una tira de 27 cm que se descartaba, y
+           la entrada daba a un piso a medias. */
+        if (c.id === 'vestibulo') {
+          /* ...pero recien cuando existe el ambiente cerrado que lo une al
+             resto (el bano o la alcoba de su banda). Antes queda suelto,
+             colgado solo de la sala, con un hueco entre el y la cocina. */
+          var junto = rects.some(function (r) {
+            return r.zona !== 'social' && r.zona !== 'circulacion' && seTocan(r.rect, q);
+          });
+          if (junto) rects.push({ id: c.id, nombre: c.nombre, zona: c.zona, rect: Object.assign({}, q) });
+          return;
+        }
         var x0 = Math.max(q.x, hx0), x1 = Math.min(q.x + q.w, hx1);
         var z0 = Math.max(q.z, hz0), z1 = Math.min(q.z + q.d, hz1);
         if (x1 - x0 < 0.3 || z1 - z0 < 0.3) return;   // no queda tramo util

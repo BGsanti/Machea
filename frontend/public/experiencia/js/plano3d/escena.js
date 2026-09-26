@@ -620,40 +620,33 @@
       caja = G.cajaDelPlano(plan);
       esquinasCaja = G.esquinas(caja);
 
-      // La losa no se anima: es el lote, existe antes que la vivienda.
+      /* La losa no se anima: es el lote, existe antes que la vivienda. Pero
+         tiene el tamano de lo construido EN ESTA PREGUNTA, con la forma de los
+         ambientes ya revelados (mas un margen), no el rectangulo del plano
+         completo: una placa del tamano de todo el apartamento cuando solo
+         existe la sala se lee como un vacio enorme. En el paso 0 no hay
+         ambientes, y ahi si va el lote completo para que la escena no arranque
+         en blanco. Todo en una geometria: una sola llamada de dibujo.
+
+         Ya no hay losa de obra encima: existia para tapar lo que el cascaron
+         encerraba sin ambiente todavia, y el cascaron ahora crece con lo
+         revelado. Todo lo que queda dentro de los muros tiene su propio piso. */
       if (baseNodo) soltar(baseNodo);
-      baseNodo = new THREE.Mesh(
-        new THREE.BoxGeometry(
-          (caja.halfExtents[0] + 0.5) * 2, GROSOR_BASE, (caja.halfExtents[2] + 0.5) * 2
-        ), M.base
-      );
+      var s = plan.scale || 1, MARGEN_LOTE = 0.5;
+      var cajasLote = plan.rooms.map(function (r) {
+        var xs = r.polygon.map(function (p) { return p[0] * s; });
+        var zs = r.polygon.map(function (p) { return p[1] * s; });
+        var x0 = Math.min.apply(null, xs) - MARGEN_LOTE, x1 = Math.max.apply(null, xs) + MARGEN_LOTE;
+        var z0 = Math.min.apply(null, zs) - MARGEN_LOTE, z1 = Math.max.apply(null, zs) + MARGEN_LOTE;
+        return [x1 - x0, GROSOR_BASE, z1 - z0, (x0 + x1) / 2 - caja.center[0], 0, (z0 + z1) / 2 - caja.center[2]];
+      });
+      if (!cajasLote.length) {
+        cajasLote = [[(caja.halfExtents[0] + MARGEN_LOTE) * 2, GROSOR_BASE, (caja.halfExtents[2] + MARGEN_LOTE) * 2, 0, 0, 0]];
+      }
+      baseNodo = new THREE.Mesh(G.unirCajas(cajasLote), M.base);
       baseNodo.position.set(caja.center[0], -GROSOR_BASE / 2 - HUNDIR_BASE, caja.center[2]);
       baseNodo.receiveShadow = true;
       raiz.add(baseNodo);
-
-      /* Losa de obra sobre TODA la huella. El cascaron se dimensiona para el
-         programa completo desde la primera respuesta, pero los ambientes
-         aparecen de a poco: sin esto queda un vacio gris enorme dentro de los
-         muros y se lee como que el piso no cargo. Va apenas debajo del nivel de
-         los pisos de ambiente, que se van montando encima. */
-      /* Con retranqueos la huella no es un rectangulo: una sola losa del
-         tamano de la caja asomaria clara en cada muesca, fuera de los muros.
-         Una por rectangulo de la huella; sin huella (planos que no salen del
-         formulario), la caja entera como antes. */
-      var s = plan.scale || 1;
-      var trozos = plan.huella && plan.huella.length
-        ? plan.huella.map(function (q) {
-          return { x: (q.x + q.w / 2) * s, z: (q.z + q.d / 2) * s, w: q.w * s, d: q.d * s };
-        })
-        : [{ x: caja.center[0], z: caja.center[2], w: caja.halfExtents[0] * 2, d: caja.halfExtents[2] * 2 }];
-      trozos.forEach(function (t) {
-        var obra = new THREE.Mesh(new THREE.BoxGeometry(t.w, 0.02, t.d), M.obra);
-        // Hija de la losa del lote, asi que se va con ella al cambiar de plano.
-        // Su Y es relativa: queda justo debajo del nivel de los pisos de ambiente.
-        obra.position.set(t.x - caja.center[0], GROSOR_BASE / 2 + HUNDIR_BASE - 0.015, t.z - caja.center[2]);
-        obra.receiveShadow = true;
-        baseNodo.add(obra);
-      });
 
       // El entorno (carreteras + arboles) tampoco se anima: es paisaje fijo
       // alrededor del lote, fuera del encuadre normal (solo se ve durante el

@@ -110,8 +110,6 @@
       muro: mat('#bcc1c4', 0.9),
       // El lote, no asfalto: sobre fondo crema un gris oscuro pesa demasiado.
       base: mat('#b3b0a9', 0.95),
-      // Losa de obra: el piso que existe antes de que el ambiente tenga acabado.
-      obra: mat('#cdc8c0', 0.9),
       marco: mat('#8a6a4a', 0.6),
       // Antes casi sin color (#d8d3c8/#b9c6cc): a la distancia de camara del
       // panel se leia como una casa de muestra sin amoblar. Terracota y verde

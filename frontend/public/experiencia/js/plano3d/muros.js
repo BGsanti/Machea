@@ -243,13 +243,26 @@
     /* --- Puerta de entrada ---
        Sobre el muro perimetral que toca la circulacion, para entrar al vestibulo
        y no directamente a una alcoba. */
+    /* Si el plano completo tiene vestibulo pero todavia no se revela (antes
+       de la pregunta 3), no hay puerta de entrada: ponerla provisional en la
+       sala la hacia saltar de muro al aparecer el vestibulo, y mientras tanto
+       caia en medio del mobiliario. Solo un plano SIN circulacion alguna entra
+       por la zona social. */
+    var huellaTieneCirculacion = huella.some(function (r) { return r.zona === 'circulacion'; });
     var acceso = zon.corredores.filter(function (c) { return c.id === 'vestibulo'; })[0] ||
       zon.corredores[0] ||
-      zon.rects.filter(function (r) { return r.zona === 'social'; })[0];
+      (huellaTieneCirculacion ? null : zon.rects.filter(function (r) { return r.zona === 'social'; })[0]);
     if (acceso && acceso.rect) {
-      var ladoE = ladoHaciaCirculacion(
-        { x: -hw, z: -hd, w: pl.w, d: pl.d }, [acceso], ['n', 's', 'o', 'e']
-      ) || 's';
+      /* El borde de la planta que el acceso TOCA. Antes se buscaba con
+         `ladoHaciaCirculacion`, que mira adyacencia desde afuera: el vestibulo
+         esta DENTRO de la planta, nunca calzaba y siempre caia en 's'. Con el
+         espejado en Z el vestibulo queda en 'n', y la puerta se abria en la
+         pared de la cocina, en el extremo opuesto. */
+      var qa = acceso.rect;
+      var ladoE = Math.abs(qa.z + qa.d - hd) < 0.05 ? 's'
+        : Math.abs(qa.z + hd) < 0.05 ? 'n'
+        : Math.abs(qa.x + hw) < 0.05 ? 'o'
+        : Math.abs(qa.x + qa.w - hw) < 0.05 ? 'e' : 's';
       var horizE = ladoE === 'n' || ladoE === 's';
       var fijaE = ladoE === 'n' ? -hd : ladoE === 's' ? hd : ladoE === 'o' ? -hw : hw;
       // El acceso marca ese lado para todo ambiente que de contra el.

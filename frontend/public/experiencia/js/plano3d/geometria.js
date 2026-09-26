@@ -37,10 +37,17 @@
 
     // Sobresale del grosor a proposito: al ras, la cara de la cortadora queda
     // coplanar con la del corte y deja artefactos.
-    var c = new Libs.Brush(new THREE.BoxGeometry(op.width * scale, alto, grosor * 2));
+    // Por lo mismo sobresale por abajo en las puertas, y por arriba en los
+    // vanos de altura completa. Al ras de la base del muro, el corte dejaba
+    // una lamina coplanar con el piso que peleaba con el en el umbral: el
+    // serrucho gris que se veia bajo la puerta de entrada.
+    var SOBRA = 0.1;
+    var abajo = op.type === 'door' ? SOBRA : 0;
+    var arriba = base + alto >= muro.height - 0.001 ? SOBRA : 0;
+    var c = new Libs.Brush(new THREE.BoxGeometry(op.width * scale, alto + abajo + arriba, grosor * 2));
     c.position.set(
       op.offset * largo - largo / 2,
-      base + alto / 2 - muro.height / 2,
+      base + (alto + arriba - abajo) / 2 - muro.height / 2,
       0
     );
     c.updateMatrixWorld();

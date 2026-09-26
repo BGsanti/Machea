@@ -197,7 +197,10 @@
     var t = op.offset * L;
     var cx = horiz ? Math.min(muro.start[0], muro.end[0]) + t : muro.start[0];
     var cz = horiz ? muro.start[1] : Math.min(muro.start[1], muro.end[1]) + t;
-    var FONDO = 0.45;
+    /* Un vano sin hoja solo necesita el paso. La puerta de entrada SI tiene
+       hoja, y barre un cuarto de circulo de radio igual a su ancho: con 0.45
+       las butacas quedaban dentro del barrido, pegadas a la hoja abierta. */
+    var FONDO = op.hoja ? op.width + 0.1 : 0.45;
     return horiz
       ? { x0: cx - op.width / 2, x1: cx + op.width / 2, z0: cz - FONDO, z1: cz + FONDO }
       : { x0: cx - FONDO, x1: cx + FONDO, z0: cz - op.width / 2, z1: cz + op.width / 2 };

@@ -17,6 +17,41 @@
     return m;
   }
 
+  /* Varias cajas en UNA geometria: una sola llamada de dibujo en vez de una
+     por caja. Para piezas repetidas y chicas, como las cuatro patas de cada
+     silla, que sueltas sumaban decenas de dibujos por plano. */
+  function unirCajas(cajas) {
+    var pos = [], nor = [], uv = [], idx = [], base = 0;
+    cajas.forEach(function (c) {
+      var g = new THREE.BoxGeometry(c[0], c[1], c[2]);
+      g.translate(c[3], c[4], c[5]);
+      Array.prototype.push.apply(pos, g.attributes.position.array);
+      Array.prototype.push.apply(nor, g.attributes.normal.array);
+      Array.prototype.push.apply(uv, g.attributes.uv.array);
+      var ix = g.index.array;
+      for (var i = 0; i < ix.length; i++) idx.push(ix[i] + base);
+      base += g.attributes.position.count;
+      g.dispose();
+    });
+    var out = new THREE.BufferGeometry();
+    out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+    out.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    out.setIndex(idx);
+    return out;
+  }
+
+  // Cuatro patas bajo un asiento de w x d, del piso a `alto`.
+  function patas(w, d, alto, mat) {
+    var g = 0.045, mx = w / 2 - g / 2 - 0.03, mz = d / 2 - g / 2 - 0.03;
+    var cajas = [[-mx, -mz], [mx, -mz], [-mx, mz], [mx, mz]].map(function (p) {
+      return [g, alto, g, p[0], alto / 2, p[1]];
+    });
+    var m = new THREE.Mesh(unirCajas(cajas), mat);
+    m.castShadow = true;
+    return m;
+  }
+
   /* Las piezas altas se topan contra el muro. No es cosmetico: los muros son de
      casa de munecas (1.3 m), y un closet de 2 m asoma por encima como si
      atravesara el techo. Se derivan del muro en vez de ser fijas, asi que
@@ -76,6 +111,8 @@
         var g = new THREE.Group();
         g.add(caja(w, 0.08, d, M.telaAcento, 0, 0.44, 0));
         g.add(caja(w, 0.48, 0.08, M.telaAcento, 0, 0.68, -d / 2 + 0.05));
+        // Sin patas el asiento flotaba a 40 cm del piso.
+        g.add(patas(w, d, 0.4, M.marco));
         return g;
       },
       meson: function (w, d) {
@@ -199,4 +236,5 @@
 
   window.GDF3D = window.GDF3D || {};
   window.GDF3D.mueble = mueble;
+  window.GDF3D.unirCajas = unirCajas;
 })();
