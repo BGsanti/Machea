@@ -119,6 +119,7 @@
       if (avanzar(dt)) sigue = true;
       if (avanzarVistaFinal(dt)) sigue = true;
       if (avanzarPreviaEntorno(dt)) sigue = true;
+      if (avanzarRegreso(dt)) sigue = true;
 
       renderer.render(scene, camera);
       if (sigue) pedirCuadro();
@@ -178,6 +179,8 @@
     // Sube la camara a vista cenital una sola vez; `cb` avisa cuando termina
     // (la anfitriona lo usa para recien ahi saltar a la pantalla de resultados).
     function finalizarVistaSuperior(duracionMs, cb) {
+      // Un regreso pendiente de la orbita pelearia con esta animacion.
+      cancelarOrbita();
       vistaFinal = {
         t: 0, dur: (duracionMs || 900) / 1000,
         desde: elevacionGrados, hasta: ELEVACION_CENITAL, cb: cb
@@ -192,12 +195,95 @@
       vistaFinal = null;
       previaEntorno = null;
       factorEntorno = 0;
+      cancelarOrbita();
       elevacionGrados = o.elevacion || ELEVACION_DEF;
       azimutGrados = o.azimut === undefined ? AZIMUT_DEF : o.azimut;
       if (entornoNodo) entornoNodo.visible = false;
       if (caja) encuadrar();
       pedirCuadro();
     }
+
+    /* ---------- orbita libre ----------
+       Arrastrar gira la camara alrededor del plano (azimut libre, 360) y la
+       inclina; a los ESPERA_REGRESO sin tocarla vuelve sola a la pose de
+       reposo. El reposo se captura al empezar a arrastrar, no es fijo: tras
+       `finalizarVistaSuperior` la pose de reposo es la cenital, y volver a 58
+       grados ahi desharia el cierre del quiz. La distancia la sigue poniendo
+       `encuadrar()`, asi que la casa entra completa desde cualquier angulo. */
+
+    var ESPERA_REGRESO = 3000, DUR_REGRESO = 0.9;
+    var GRADOS_POR_PX = 0.4, ELEV_MIN = 15;
+    var orbita = null, reposo = null, regreso = null, temporizador = null;
+
+    function cancelarOrbita() {
+      orbita = null; reposo = null; regreso = null;
+      if (temporizador) { clearTimeout(temporizador); temporizador = null; }
+    }
+
+    // Azimut por el camino corto: de 350 a 10 son 20 grados, no 340.
+    function difAngulo(desde, hasta) {
+      var d = (hasta - desde) % 360;
+      if (d > 180) d -= 360;
+      if (d < -180) d += 360;
+      return d;
+    }
+
+    function avanzarRegreso(dt) {
+      if (!regreso) return false;
+      regreso.t += dt;
+      var p = Math.min(1, regreso.t / DUR_REGRESO), k = suave(p);
+      azimutGrados = regreso.az + regreso.dAz * k;
+      elevacionGrados = regreso.el + (reposo.el - regreso.el) * k;
+      encuadrar();
+      if (p >= 1) { regreso = null; reposo = null; return false; }
+      return true;
+    }
+
+    function alPresionar(e) {
+      // Durante el cierre del quiz la camara ya tiene duenio.
+      if (vistaFinal || !caja) return;
+      if (!reposo) reposo = { az: azimutGrados, el: elevacionGrados };
+      regreso = null;
+      if (temporizador) { clearTimeout(temporizador); temporizador = null; }
+      orbita = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      try { lienzo.setPointerCapture(e.pointerId); } catch (err) { /* sin captura igual funciona */ }
+      lienzo.style.cursor = 'grabbing';
+    }
+
+    function alMover(e) {
+      if (!orbita || e.pointerId !== orbita.id) return;
+      var dx = e.clientX - orbita.x, dy = e.clientY - orbita.y;
+      orbita.x = e.clientX; orbita.y = e.clientY;
+      azimutGrados = (azimutGrados - dx * GRADOS_POR_PX) % 360;
+      elevacionGrados = Math.max(ELEV_MIN, Math.min(ELEVACION_CENITAL, elevacionGrados + dy * GRADOS_POR_PX));
+      encuadrar();
+      pedirCuadro();
+    }
+
+    function alSoltar(e) {
+      if (!orbita || e.pointerId !== orbita.id) return;
+      orbita = null;
+      lienzo.style.cursor = 'grab';
+      temporizador = setTimeout(function () {
+        temporizador = null;
+        if (!reposo || orbita || vistaFinal) return;
+        regreso = {
+          t: 0, az: azimutGrados, el: elevacionGrados,
+          dAz: difAngulo(azimutGrados, reposo.az)
+        };
+        pedirCuadro();
+      }, ESPERA_REGRESO);
+    }
+
+    // Sin esto, en movil el arrastre sobre el lienzo desplaza la pagina en vez
+    // de girar la casa. En movil la escena va clavada arriba y lo que scrollea
+    // es el panel de abajo, asi que no se pierde nada.
+    lienzo.style.touchAction = 'none';
+    lienzo.style.cursor = 'grab';
+    lienzo.addEventListener('pointerdown', alPresionar);
+    lienzo.addEventListener('pointermove', alMover);
+    lienzo.addEventListener('pointerup', alSoltar);
+    lienzo.addEventListener('pointercancel', alSoltar);
 
     function avanzar(dt) {
       var activo = false;
@@ -653,6 +739,11 @@
 
     function dispose() {
       vivo = false;
+      cancelarOrbita();
+      lienzo.removeEventListener('pointerdown', alPresionar);
+      lienzo.removeEventListener('pointermove', alMover);
+      lienzo.removeEventListener('pointerup', alSoltar);
+      lienzo.removeEventListener('pointercancel', alSoltar);
       if (ro) ro.disconnect();
       Object.keys(nodos).forEach(function (c) { soltar(nodos[c].grupo); delete nodos[c]; });
       if (baseNodo) soltar(baseNodo);
