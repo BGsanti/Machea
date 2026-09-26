@@ -1,0 +1,38 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1180, "h": 800, "title": "Tres zonas" },
+    { "file": "Centrado.dc.html", "x": 0, "y": 920, "w": 1180, "h": 800, "title": "Centrado" },
+    { "file": "PreguntaGrande.dc.html", "x": 0, "y": 1840, "w": 1180, "h": 800, "title": "Pregunta grande" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": -420,
+      "y": 0,
+      "w": 360,
+      "text": "El panel del quiz, en la columna izquierda del modal.\n\nEn cada fila, el mismo diseño en sus dos extremos:\n\nIZQUIERDA — 'habitaciones': 3 opciones en una fila. Es el peor vacío del recorrido (con 'edad', que es un solo input).\n\nDERECHA — 'zona': las 20 localidades en 2 columnas. Es el caso más alto.\n\nColores, tipos y medidas salen tal cual de app/css/styles.css."
+    },
+    {
+      "id": "nota-zonas",
+      "x": -420,
+      "y": 280,
+      "w": 360,
+      "text": "TRES ZONAS\n\nLa barra queda clavada arriba y 'Atrás' abajo; solo respira la banda del medio, que centra su contenido cuando sobra sitio y scrollea cuando falta.\n\nA favor: los dos puntos de referencia no se mueven nunca entre pregunta y pregunta.\n\nEn contra: es la que más cambia el CSS de hoy, y con 20 opciones hace falta el degradado del pie para que se note que hay más abajo."
+    },
+    {
+      "id": "nota-centrado",
+      "x": -420,
+      "y": 1200,
+      "w": 360,
+      "text": "CENTRADO\n\nTodo el bloque —barra, pregunta y opciones— flota junto en el centro vertical.\n\nA favor: es una línea de CSS sobre lo que ya hay.\n\nEn contra: la barra de progreso SUBE Y BAJA con cada pregunta según cuántas opciones tenga. Es el precio, y se nota al encadenar las siete."
+    },
+    {
+      "id": "nota-grande",
+      "x": -420,
+      "y": 2120,
+      "w": 360,
+      "text": "PREGUNTA GRANDE\n\nLa tipografía responde al número de opciones: con pocas, la pregunta sube a 40px y los botones a 76px de alto; con muchas, vuelve a los 22px de hoy.\n\nA favor: el vacío deja de ser vacío y el panel siempre se lee lleno.\n\nEn contra: dos escalas que mantener, y el salto de tamaño se ve al pasar de una pregunta corta a una larga."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

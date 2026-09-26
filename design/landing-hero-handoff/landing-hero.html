@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="icon" href="uploads/LogoV1.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#fff;font-family:'Inter',system-ui,sans-serif}
+  a{color:#0067B1;text-decoration:underline}
+  a:hover{color:#004d85}
+  @keyframes cd-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes cd-pop{from{opacity:0;transform:translateY(14px) scale(0.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes cd-glow{0%,100%{transform:scale(0.94);opacity:0.5}50%{transform:scale(1.06);opacity:0.85}}
+  @keyframes cd-float-a{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-12px) rotate(-3deg)}}
+  @keyframes cd-float-b{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}
+  @keyframes cd-orbit1{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(8px,-14px) rotate(20deg)}}
+  @keyframes cd-orbit2{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(-10px,-8px) rotate(-16deg)}}
+  @keyframes cd-orbit3{0%,100%{transform:translate(0,0)}50%{transform:translate(6px,10px)}}
+  @keyframes cd-pulse-shadow{0%,100%{box-shadow:0 10px 24px rgba(255,208,0,0.35)}50%{box-shadow:0 16px 34px rgba(255,208,0,0.52)}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#CCE1EF 0%,#E4F1FA 42%,#FFFFFF 85%)">
+
+  <nav style="height:76px;flex:none;background:#0067B1;display:flex;align-items:center;justify-content:space-between;padding:0 32px;box-shadow:0 1px 0 rgba(0,0,0,0.06)">
+    <button style="width:42px;height:42px;border-radius:8px;border:none;background:transparent;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;cursor:pointer" style-hover="background:rgba(255,255,255,0.12)" aria-label="Menú">
+      <span style="width:22px;height:2.5px;background:#fff;border-radius:2px"></span>
+      <span style="width:22px;height:2.5px;background:#fff;border-radius:2px"></span>
+      <span style="width:22px;height:2.5px;background:#fff;border-radius:2px"></span>
+    </button>
+    <img src="uploads/Logov2.png" alt="Colsubsidio" style="height:26px;width:auto;display:block">
+  </nav>
+
+  <main style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:56px 24px 72px;gap:22px">
+
+    <div style="display:inline-flex;align-items:center;gap:8px;background:#ffffff;border:1px solid rgba(0,103,177,0.25);color:#0067B1;font:700 12px/1 'Inter',sans-serif;letter-spacing:0.08em;text-transform:uppercase;padding:9px 16px;border-radius:999px;box-shadow:0 2px 8px rgba(0,103,177,0.08);animation:cd-in 0.6s ease-out both">
+      <span style="width:7px;height:7px;border-radius:50%;background:#FFD000;flex:none"></span>
+      {{ campaignTag }}
+    </div>
+
+    <div style="position:relative;width:320px;height:240px;margin:4px 0 -6px;animation:cd-pop 0.7s 0.1s ease-out both">
+      <div style="position:absolute;left:50%;top:50%;width:210px;height:210px;margin:-105px 0 0 -105px;border-radius:50%;background:radial-gradient(circle,rgba(0,103,177,0.22) 0%,rgba(0,103,177,0) 70%);animation:cd-glow 5s ease-in-out infinite"></div>
+
+      <div style="position:absolute;left:112px;top:56px;width:96px;height:80px;background:#fff;border:5px solid #0067B1;border-radius:10px;animation:cd-float-a 6s ease-in-out infinite;box-shadow:0 12px 22px rgba(0,103,177,0.18)"></div>
+      <div style="position:absolute;left:120px;top:32px;width:0;height:0;border-left:48px solid transparent;border-right:48px solid transparent;border-bottom:38px solid #FFD000;animation:cd-float-a 6s ease-in-out infinite"></div>
+      <div style="position:absolute;left:148px;top:100px;width:26px;height:36px;background:#FFD000;border-radius:4px 4px 0 0;animation:cd-float-a 6s ease-in-out infinite"></div>
+      <div style="position:absolute;left:190px;top:88px;width:14px;height:14px;background:#0067B1;border-radius:3px;animation:cd-float-a 6s ease-in-out infinite"></div>
+
+      <div style="position:absolute;left:36px;top:38px;width:22px;height:22px;background:#FFD000;border-radius:6px;animation:cd-orbit1 4.2s ease-in-out infinite"></div>
+      <div style="position:absolute;left:258px;top:150px;width:18px;height:18px;background:#0067B1;border-radius:50%;animation:cd-orbit2 5.1s ease-in-out infinite"></div>
+      <div style="position:absolute;left:40px;top:168px;width:16px;height:16px;background:#575756;border-radius:4px;animation:cd-orbit3 4.6s ease-in-out infinite;opacity:0.7"></div>
+      <div style="position:absolute;left:266px;top:44px;width:14px;height:14px;background:#FFD000;border-radius:50%;animation:cd-float-b 5.4s ease-in-out infinite"></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:620px">
+      <h1 style="margin:0;font:800 56px/1.08 'Poppins',sans-serif;color:#0067B1;letter-spacing:-0.01em;animation:cd-in 0.7s 0.25s ease-out both">Construye tu sueño</h1>
+      <p style="margin:0;font:500 21px/1.5 'Inter',sans-serif;color:#3385C1;animation:cd-in 0.7s 0.4s ease-out both">Responde jugando y encuentra tu vivienda ideal con <strong style="color:#0067B1;font-weight:700">Colsubsidio</strong>.</p>
+      <p style="margin:0;font:italic 500 16px/1.5 'Inter',sans-serif;color:#575756;animation:cd-in 0.7s 0.5s ease-out both">"Tú pones el sueño. Nosotros la grúa."</p>
+    </div>
+
+    <button style="margin-top:10px;border:none;cursor:pointer;background:#FFD000;color:#575756;font:700 21px/1 'Poppins',sans-serif;padding:22px 44px;border-radius:16px;transition:transform 0.15s ease;animation-name:cd-in,cd-pulse-shadow;animation-duration:0.7s,2.6s;animation-timing-function:ease-out,ease-in-out;animation-delay:0.6s,1.3s;animation-iteration-count:1,infinite;animation-fill-mode:both,none" style-hover="transform:translateY(-2px)">{{ ctaText }}</button>
+
+    <sc-if value="{{ showBadges }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:2px;animation:cd-in 0.7s 0.75s ease-out both">
+        <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(87,87,86,0.15);border-radius:999px;padding:10px 18px;font:600 14px/1 'Inter',sans-serif;color:#0067B1;box-shadow:0 2px 6px rgba(0,0,0,0.04)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0067B1" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2"></path><path d="M9 2h6"></path></svg>
+          2 minutos
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: {&quot;width&quot;: 1600, &quot;height&quot;: 960},
+  &quot;ctaText&quot;: {&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;¡Construir mi casa!&quot;,&quot;tsType&quot;:&quot;string&quot;},
+  &quot;campaignTag&quot;: {&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Grúa del Futuro&quot;,&quot;tsType&quot;:&quot;string&quot;},
+  &quot;showBadges&quot;: {&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      ctaText: this.props.ctaText ?? '¡Construir mi casa!',
+      campaignTag: this.props.campaignTag ?? 'Grúa del Futuro',
+      showBadges: this.props.showBadges ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>
