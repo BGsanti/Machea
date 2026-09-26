@@ -920,6 +920,200 @@
     return g;
   }
 
+  /* ---------- replanteo de obra (antes de la primera respuesta) ----------
+     Lo primero que se hace en una obra: trazar en el suelo lo que se va a
+     construir. Tiza en todos los bordes de la huella (se adivinan los
+     ambientes), estacas y cuerda en el contorno, cinta de peligro alrededor de
+     la losa y material acopiado. Se va al contestar la primera pregunta, cuando
+     empieza a caer la vivienda de verdad. */
+
+  // Contorno de la union de rectangulos: celdas de la grilla que forman sus
+  // coordenadas, y un borde donde una celda de adentro toca una de afuera.
+  function contorno(rects) {
+    var xs = [], zs = [];
+    rects.forEach(function (r) { xs.push(r.x, r.x + r.w); zs.push(r.z, r.z + r.d); });
+    var uniq = function (a) {
+      return a.sort(function (p, q) { return p - q; }).filter(function (v, i) { return i === 0 || v - a[i - 1] > 1e-6; });
+    };
+    xs = uniq(xs); zs = uniq(zs);
+    var dentro = function (i, j) {
+      if (i < 0 || j < 0 || i >= xs.length - 1 || j >= zs.length - 1) return false;
+      var cx = (xs[i] + xs[i + 1]) / 2, cz = (zs[j] + zs[j + 1]) / 2;
+      return rects.some(function (r) { return cx > r.x && cx < r.x + r.w && cz > r.z && cz < r.z + r.d; });
+    };
+    var segs = [], i, j;
+    for (i = 0; i < xs.length - 1; i++) {
+      for (j = 0; j <= zs.length - 1; j++) {
+        if (dentro(i, j - 1) !== dentro(i, j)) segs.push([xs[i], zs[j], xs[i + 1], zs[j]]);
+      }
+    }
+    for (j = 0; j < zs.length - 1; j++) {
+      for (i = 0; i <= xs.length - 1; i++) {
+        if (dentro(i - 1, j) !== dentro(i, j)) segs.push([xs[i], zs[j], xs[i], zs[j + 1]]);
+      }
+    }
+    // Fundir los colineales contiguos: las estacas van en las esquinas reales.
+    var cambio = true;
+    while (cambio) {
+      cambio = false;
+      for (i = 0; i < segs.length && !cambio; i++) {
+        for (j = 0; j < segs.length && !cambio; j++) {
+          if (i === j) continue;
+          var a = segs[i], b = segs[j];
+          var hz = a[1] === a[3] && b[1] === b[3] && a[1] === b[1];
+          var vt = a[0] === a[2] && b[0] === b[2] && a[0] === b[0];
+          if ((hz || vt) && Math.abs(a[2] - b[0]) < 1e-6 && Math.abs(a[3] - b[1]) < 1e-6) {
+            segs[i] = [a[0], a[1], b[2], b[3]];
+            segs.splice(j, 1);
+            cambio = true;
+          }
+        }
+      }
+    }
+    return segs;
+  }
+
+  function linea(a, mat, x0, z0, x1, z1, grosor, alto, y, sombra) {
+    var L = Math.sqrt((x1 - x0) * (x1 - x0) + (z1 - z0) * (z1 - z0));
+    if (L < 0.01) return;
+    var ry = -Math.atan2(z1 - z0, x1 - x0);
+    a.caja(mat, L, alto, grosor, (x0 + x1) / 2, y, (z0 + z1) / 2, ry, 0, sombra);
+  }
+
+  function obra(plan, lote) {
+    var M = window.GDF3D.materiales();
+    var rects = (plan.huella || []).map(function (r) {
+      var s = plan.scale || 1;
+      return { x: r.x * s, z: r.z * s, w: r.w * s, d: r.d * s };
+    });
+    if (!rects.length) return [];
+    var out = [];
+
+    // 1. Tiza: todos los bordes de la huella, finos, a ras de losa.
+    var tiza = acumulador();
+    rects.forEach(function (r) {
+      linea(tiza, M.tiza, r.x, r.z, r.x + r.w, r.z, 0.03, 0.004, 0.002, false);
+      linea(tiza, M.tiza, r.x, r.z + r.d, r.x + r.w, r.z + r.d, 0.03, 0.004, 0.002, false);
+      linea(tiza, M.tiza, r.x, r.z, r.x, r.z + r.d, 0.03, 0.004, 0.002, false);
+      linea(tiza, M.tiza, r.x + r.w, r.z, r.x + r.w, r.z + r.d, 0.03, 0.004, 0.002, false);
+    });
+    out.push({ clave: 'obra|tiza', grupo: tiza.grupo(), ambiente: 'obra1' });
+
+    // 2. Estacas en las esquinas del contorno, con cuerda tensada entre ellas.
+    var est = acumulador();
+    var esquinas = {};
+    contorno(rects).forEach(function (s) {
+      linea(est, M.cuerda, s[0], s[1], s[2], s[3], 0.012, 0.012, 0.26, false);
+      linea(est, M.tizaAzul, s[0], s[1], s[2], s[3], 0.05, 0.005, 0.004, false);
+      esquinas[s[0].toFixed(2) + ',' + s[1].toFixed(2)] = [s[0], s[1]];
+      esquinas[s[2].toFixed(2) + ',' + s[3].toFixed(2)] = [s[2], s[3]];
+    });
+    Object.keys(esquinas).forEach(function (k) {
+      var p = esquinas[k];
+      est.caja(M.estaca, 0.05, 0.34, 0.05, p[0], 0.17, p[1]);
+      est.caja(M.toldo1, 0.055, 0.05, 0.055, p[0], 0.32, p[1]);
+    });
+    out.push({ clave: 'obra|estacas', grupo: est.grupo(), ambiente: 'obra2' });
+
+    // 3. Cinta de peligro sobre postes, por el borde de la losa. Franjas
+    // alternas amarillo/negro: con una sola tira amarilla no se lee "obra".
+    var cin = acumulador();
+    var ins = 0.18;
+    var X0 = lote.x0 + ins, X1 = lote.x1 - ins, Z0 = lote.z0 + ins, Z1 = lote.z1 - ins;
+    var lados = [[X0, Z0, X1, Z0], [X1, Z0, X1, Z1], [X1, Z1, X0, Z1], [X0, Z1, X0, Z0]];
+    lados.forEach(function (l) {
+      var L = Math.abs(l[2] - l[0]) + Math.abs(l[3] - l[1]);
+      var n = Math.max(1, Math.round(L / 1.6));
+      var ux = (l[2] - l[0]) / L, uz = (l[3] - l[1]) / L;
+      for (var i = 0; i < n; i++) {
+        var px = l[0] + ux * L * i / n, pz = l[1] + uz * L * i / n;
+        cin.cil(M.conoObra, 0.025, 0.03, 0.55, 6, px, 0.275, pz);
+        cin.cil(M.cuerda, 0.07, 0.08, 0.03, 8, px, 0.015, pz);
+      }
+      var tramo = 0.18, k = 0;
+      for (var t = 0; t < L - 0.01; t += tramo, k++) {
+        var t1 = Math.min(L, t + tramo);
+        linea(cin, k % 2 ? M.cintaNegra : M.cintaAmarilla,
+          l[0] + ux * t, l[1] + uz * t, l[0] + ux * t1, l[1] + uz * t1, 0.012, 0.06, 0.48, false);
+      }
+    });
+    out.push({ clave: 'obra|cinta|' + [X0, X1, Z0, Z1].map(function (v) { return v.toFixed(2); }).join(','), grupo: cin.grupo(), ambiente: 'obra3' });
+
+    /* 4. Material acopiado, DENTRO de la huella hacia la esquina de la
+       camara: ladrillos en estiba, cemento, arena, varilla, mezcladora y
+       carretilla. Se arma en coordenadas locales y se agranda entero: a
+       escala real, con la camara encuadrando la losa completa, quedaba en
+       unos pixeles que no se leian como nada. */
+    var mat = acumulador();
+    var f, c, h;
+    mat.caja(M.estaca, 1.0, 0.07, 0.6, 0, 0.035, 0);
+    for (f = 0; f < 4; f++) {
+      for (c = 0; c < 4; c++) {
+        for (h = 0; h < 4 - (f === 3 ? 1 : 0); h++) {
+          mat.caja(M.ladrillo, 0.21, 0.07, 0.11, -0.33 + c * 0.22 + (h % 2) * 0.04, 0.11 + h * 0.074, -0.17 + f * 0.115);
+        }
+      }
+    }
+    [[0, 0, 0], [0.38, 0, 0.1], [0.19, 0.13, -0.08]].forEach(function (p) {
+      mat.caja(M.cemento, 0.36, 0.13, 0.52, -1.05 + p[0], 0.065 + p[1], -0.9, p[2]);
+    });
+    mat.cono(M.arena, 0.55, 0.4, 10, 0.6, 0.2, -1.2);
+    // Varilla: un atado de barras largas sobre dos tacos.
+    mat.caja(M.estaca, 0.08, 0.06, 0.3, -0.95, 0.03, -1.55);
+    mat.caja(M.estaca, 0.08, 0.06, 0.3, 0.0, 0.03, -1.55);
+    for (var v = 0; v < 6; v++) {
+      mat.cil(M.metal, 0.016, 0.016, 1.3, 5, -0.47, 0.08 + (v % 2) * 0.03, -1.62 + v * 0.028, Math.PI / 2, Math.PI / 2);
+    }
+    // Mezcladora: tambor inclinado sobre un chasis con rueda.
+    mat.caja(M.metal, 0.5, 0.06, 0.3, 1.1, 0.25, 0.5);
+    mat.caja(M.metal, 0.05, 0.25, 0.05, 0.9, 0.12, 0.5);
+    mat.toro(M.llanta, 0.1, 0.03, 1.3, 0.1, 0.5, Math.PI / 2);
+    mat.cil(M.conoObra, 0.2, 0.26, 0.45, 12, 1.1, 0.55, 0.5, 0.6);
+    mat.cil(M.conoObra, 0.08, 0.2, 0.14, 12, 1.1, 0.83, 0.35, 0.6);
+    // Carretilla: batea inclinada, rueda y dos varas.
+    var cx = -0.95, cz = 0.25;
+    mat.caja(M.conoObra, 0.6, 0.18, 0.42, cx, 0.33, cz, 0.4, 0);
+    mat.toro(M.llanta, 0.11, 0.035, cx + 0.4 * Math.cos(0.4), 0.13, cz - 0.4 * Math.sin(0.4), 0.4);
+    [-0.13, 0.13].forEach(function (o) {
+      var r = rot(-0.35, o, 0.4);
+      mat.caja(M.metal, 0.5, 0.025, 0.025, cx + r[0], 0.3, cz + r[1], 0.4);
+    });
+    var hx0 = Infinity, hx1 = -Infinity, hz0 = Infinity, hz1 = -Infinity;
+    rects.forEach(function (r) {
+      hx0 = Math.min(hx0, r.x); hx1 = Math.max(hx1, r.x + r.w);
+      hz0 = Math.min(hz0, r.z); hz1 = Math.max(hz1, r.z + r.d);
+    });
+    var ESC = 1.5;
+    var bx = Math.max((hx0 + hx1) / 2, hx1 - 2.2), bz = Math.max((hz0 + hz1) / 2, hz1 - 1.3);
+    var dentro = mat.grupo();
+    dentro.scale.setScalar(ESC);
+    dentro.position.set(bx, 0, bz);
+    // Contenedor en el origen: la animacion de entrada mueve la posicion del
+    // grupo de la pieza, y pisaria la del acopio.
+    var acopio = new THREE.Group();
+    acopio.add(dentro);
+    out.push({ clave: 'obra|material|' + bx.toFixed(2) + ',' + bz.toFixed(2), grupo: acopio, ambiente: 'obra4' });
+
+    // Conos en las esquinas de la cinta y el nivel del topografo en la
+    // opuesta al acopio: es el que hizo el replanteo.
+    var con = acumulador();
+    [[X1 - 0.3, Z0 + 0.3], [X0 + 0.3, Z1 - 0.3], [X1 - 0.3, Z1 - 0.3]].forEach(function (p) {
+      con.caja(M.cuerda, 0.3, 0.03, 0.3, p[0], 0.015, p[1]);
+      con.cono(M.conoObra, 0.12, 0.48, 10, p[0], 0.27, p[1]);
+      con.cil(M.blanco, 0.075, 0.09, 0.07, 10, p[0], 0.28, p[1]);
+    });
+    var tx = X0 + 0.55, tz = Z0 + 0.55;
+    [0, 2.1, 4.2].forEach(function (g) {
+      con.caja(M.metal, 0.03, 0.9, 0.03, tx + Math.cos(g) * 0.16, 0.44, tz + Math.sin(g) * 0.16, -g, 0.2);
+    });
+    con.caja(M.cintaAmarilla, 0.24, 0.15, 0.15, tx, 0.95, tz);
+    con.cil(M.red, 0.045, 0.045, 0.22, 8, tx, 0.97, tz + 0.15, Math.PI / 2);
+    out.push({ clave: 'obra|conos|' + [X0, X1, Z0, Z1].map(function (v) { return v.toFixed(2); }).join(','), grupo: con.grupo(), ambiente: 'obra4' });
+
+    return out;
+  }
+
   window.GDF3D = window.GDF3D || {};
   window.GDF3D.entorno = { disponer: disponer, asignar: asignar, piezas: piezas, grupos: grupos };
+  window.GDF3D.obra = obra;
 })();

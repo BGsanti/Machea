@@ -31,18 +31,23 @@
     flexible: 2     // ingresos, junto con sala/comedor
   };
 
-  /* Nivel de ingresos -> muebles extra en la sala. Es un agregado nuestro: en
-     la maqueta original `ingresos` no tocaba la planta y esa pregunta dejaba
-     la escena sin cambio alguno. No mueve muros, solo amobla. */
+  /* Nivel de ingresos -> ACABADOS y extras. No mueve muros: el tamano ya lo
+     fijan tipo y habitaciones, y que el plano salte por el ingreso seria
+     prometer metros que el catalogo no tiene. Lo que cambia es la calidad:
+     pisos (ver `acabado` en floorplan.js) y lo que amuebla la sala.
+     Antes eran solo extras de sala, y dos de los cuatro niveles se veian
+     identicos porque el "piano" nunca cabia: la pregunta no se notaba. */
   var EXTRAS_SALA = {
+    0: [],
     1: [],
     2: ['mesaAuxiliar'],
-    3: ['mesaAuxiliar', 'bar'],
-    4: ['mesaAuxiliar', 'bar', 'piano']
+    3: ['mesaAuxiliar', 'lampara'],
+    4: ['mesaAuxiliar', 'lampara', 'biblioteca', 'plantas']
   };
 
+  // 0 = aun sin contestar: acabado neutro, igual al de siempre.
   function nivelIngresos(answers) {
-    return { '≤2 SMMLV': 1, '2–4 SMMLV': 2, '4–8 SMMLV': 3, '8+ SMMLV': 4 }[answers.ingresos] || 1;
+    return { '≤2 SMMLV': 1, '2–4 SMMLV': 2, '4–8 SMMLV': 3, '8+ SMMLV': 4 }[answers.ingresos] || 0;
   }
 
   function personasACargo(answers) {
@@ -87,6 +92,7 @@
       // para el resto. Misma area, distinto nombre y mobiliario.
       esJoven: Number(answers.edad || 35) < 35,
       personas: personasACargo(answers),
+      nivel: nivelIngresos(answers),
       extrasSala: EXTRAS_SALA[nivelIngresos(answers)] || [],
       // El espejado de la planta se siembra con el nombre para que dos personas
       // distintas no vean exactamente el mismo apartamento. Determinista: no

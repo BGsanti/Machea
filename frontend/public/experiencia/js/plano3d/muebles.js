@@ -192,6 +192,24 @@
         g.add(caja(pw, 0.5, pd, M.electro, 0, 0.67, 0));
         return g;
       },
+      // Lampara de pie: base, vara y pantalla calida. Se topa al muro, como
+      // todo lo alto.
+      lampara: function (w, d) {
+        var g = new THREE.Group();
+        var r = Math.min(w, d) / 2, h = tope(1.45);
+        var base = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.55, r * 0.6, 0.04, 12), M.electro);
+        base.position.y = 0.02;
+        g.add(base);
+        var vara = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, h - 0.3, 6), M.electro);
+        vara.position.y = (h - 0.3) / 2;
+        vara.castShadow = true;
+        g.add(vara);
+        var pantalla = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.6, r * 0.85, 0.3, 14), M.pantalla);
+        pantalla.position.y = h - 0.15;
+        pantalla.castShadow = true;
+        g.add(pantalla);
+        return g;
+      },
       tapete: function (w, d) {
         var g = new THREE.Group();
         var m = caja(w, 0.024, d, M.tapete, 0, 0.012, 0, false);
@@ -223,7 +241,7 @@
     bed: 'cama', sofa: 'sofa', table: 'mesa', chair: 'silla', counter: 'meson',
     stove: 'estufa', fridge: 'nevera', wardrobe: 'closet', desk: 'escritorio',
     toilet: 'inodoro', sink: 'lavamanos', shower: 'ducha', rug: 'tapete',
-    plant: 'planta', console: 'consola', shelf: 'biblioteca'
+    plant: 'planta', console: 'consola', shelf: 'biblioteca', lamp: 'lampara'
   };
 
   var cache = null, cacheTecho = null;

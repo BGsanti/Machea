@@ -43,21 +43,28 @@
     return t;
   }
 
-  function texturaMadera() {
-    var l = lienzo(), ctx = l.ctx;
-    var filas = 10, altoFila = PX / filas, tabla = PX / 2;
+  function rgb(c, s, k) {
+    return 'rgb(' + Math.round(c[0] + s) + ',' + Math.round(c[1] + s * (k || 0.8)) + ',' + Math.round(c[2] + s * (k || 0.8) * 0.75) + ')';
+  }
 
-    ctx.fillStyle = '#8a6740';
+  /* Tablas corridas. `c` es el color medio de la tabla; la junta y la veta
+     salen de oscurecerlo, asi un solo parametro da madera clara u oscura. */
+  function texturaMadera(c, filas) {
+    var l = lienzo(), ctx = l.ctx;
+    filas = filas || 10;
+    var altoFila = PX / filas, tabla = PX / 2;
+
+    ctx.fillStyle = rgb(c, -52);
     ctx.fillRect(0, 0, PX, PX);
 
     for (var f = 0; f < filas; f++) {
       var off = ruido(f, 3) * tabla;
       for (var x = off - tabla; x < PX; x += tabla) {
         var s = ruido(f, Math.round(x)) * 26 - 13;
-        ctx.fillStyle = 'rgb(' + (138 + s) + ',' + (103 + s * 0.8) + ',' + (64 + s * 0.6) + ')';
+        ctx.fillStyle = rgb(c, s);
         ctx.fillRect(x, f * altoFila, tabla - 1.5, altoFila - 1.5);
 
-        ctx.strokeStyle = 'rgba(90, 62, 36, 0.18)';
+        ctx.strokeStyle = 'rgba(70, 48, 28, 0.16)';
         ctx.lineWidth = 1;
         for (var g = 0; g < 3; g++) {
           var gy = f * altoFila + ruido(f + g, x) * altoFila;
@@ -71,18 +78,73 @@
     return terminar(l.el);
   }
 
-  function texturaCeramica() {
+  /* Parque en tejido de cesta: bloques de 4 tablillas, alternando horizontal
+     y vertical como un tablero. Con 4x4 bloques el mosaico repite limpio. */
+  function texturaParque(c) {
     var l = lienzo(), ctx = l.ctx;
-    var n = 5, lado = PX / n;
+    var n = 4, lado = PX / n, tab = lado / 4;
+    ctx.fillStyle = rgb(c, -40);
+    ctx.fillRect(0, 0, PX, PX);
+    for (var by = 0; by < n; by++) {
+      for (var bx = 0; bx < n; bx++) {
+        var horiz = (bx + by) % 2 === 0;
+        for (var k = 0; k < 4; k++) {
+          ctx.fillStyle = rgb(c, ruido(bx * 7 + k, by) * 30 - 15);
+          if (horiz) ctx.fillRect(bx * lado + 1, by * lado + k * tab + 1, lado - 2, tab - 2);
+          else ctx.fillRect(bx * lado + k * tab + 1, by * lado + 1, tab - 2, lado - 2);
+        }
+      }
+    }
+    return terminar(l.el);
+  }
 
-    ctx.fillStyle = '#a9a49b';
+  // Baldosas con junta. `c` color medio, `n` baldosas por lado del parche.
+  function texturaCeramica(c, n, junta) {
+    var l = lienzo(), ctx = l.ctx;
+    c = c || [216, 212, 204];
+    n = n || 5;
+    var lado = PX / n, j = junta || 2;
+
+    ctx.fillStyle = rgb(c, -45, 1);
     ctx.fillRect(0, 0, PX, PX);
 
     for (var ty = 0; ty < n; ty++) {
       for (var tx = 0; tx < n; tx++) {
         var s = ruido(tx, ty) * 14 - 7;
-        ctx.fillStyle = 'rgb(' + (216 + s) + ',' + (212 + s) + ',' + (204 + s) + ')';
-        ctx.fillRect(tx * lado + 2, ty * lado + 2, lado - 4, lado - 4);
+        ctx.fillStyle = rgb(c, s, 1);
+        ctx.fillRect(tx * lado + j, ty * lado + j, lado - j * 2, lado - j * 2);
+      }
+    }
+    return terminar(l.el);
+  }
+
+  /* Marmol: baldosa blanca con vetas grises. Las vetas se recortan a SU
+     baldosa: una que cruzara el borde del lienzo romperia el mosaico. */
+  function texturaMarmol() {
+    var l = lienzo(), ctx = l.ctx;
+    var n = 3, lado = PX / n;
+    ctx.fillStyle = '#b9b7b2';
+    ctx.fillRect(0, 0, PX, PX);
+    for (var ty = 0; ty < n; ty++) {
+      for (var tx = 0; tx < n; tx++) {
+        var x0 = tx * lado + 1.5, y0 = ty * lado + 1.5, w = lado - 3;
+        ctx.fillStyle = 'rgb(' + (238 + ruido(tx, ty) * 10) + ',237,233)';
+        ctx.fillRect(x0, y0, w, w);
+        ctx.save();
+        ctx.beginPath(); ctx.rect(x0, y0, w, w); ctx.clip();
+        for (var v = 0; v < 3; v++) {
+          ctx.strokeStyle = 'rgba(120,120,125,' + (0.18 + ruido(tx + v, ty) * 0.2) + ')';
+          ctx.lineWidth = 0.8 + ruido(v, tx + ty) * 1.6;
+          ctx.beginPath();
+          var y = y0 + ruido(tx * 3 + v, ty) * w;
+          ctx.moveTo(x0, y);
+          for (var s = 1; s <= 6; s++) {
+            y += (ruido(tx + s, ty * 5 + v) - 0.5) * w * 0.35;
+            ctx.lineTo(x0 + w * s / 6, y);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
       }
     }
     return terminar(l.el);
@@ -172,6 +234,19 @@
       auto1: mat('#d64a3c', 0.45, 0.2), auto2: mat('#3f6fba', 0.45, 0.2),
       auto3: mat('#f1efe9', 0.45, 0.2), auto4: mat('#f2b93b', 0.45, 0.2),
       llanta: mat('#2b2d30', 0.8),
+      pantalla: new THREE.MeshStandardMaterial({
+        color: '#f7e7c4', roughness: 0.8, emissive: '#f3c77a', emissiveIntensity: 0.45
+      }),
+      // Replanteo de obra (paso 0, `GDF3D.obra` en entorno.js).
+      tiza: mat('#f4f1ea', 0.9),
+      tizaAzul: mat('#4d8fd6', 0.9),
+      cuerda: mat('#e0d2b0', 0.9),
+      estaca: mat('#a77c4f', 0.85),
+      conoObra: mat('#f26b1d', 0.7),
+      cintaAmarilla: mat('#f6c928', 0.6),
+      cintaNegra: mat('#26272a', 0.6),
+      ladrillo: mat('#b8573a', 0.9),
+      cemento: mat('#cfcac0', 0.95),
       // Madera clara: una hoja casi blanca no se distingue del muro donde va.
       puerta: mat('#d9bd97', 0.65),
       // Mas claro que los muros, para que el marco se lea como pieza aparte.
@@ -179,8 +254,13 @@
     };
     pisos = {
       // Color base blanco: el mapa lleva el color, no lo tine el material.
-      wood: new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.75 }),
+      wood: new THREE.MeshStandardMaterial({ map: texturaMadera([138, 103, 64]), roughness: 0.75 }),
       tile: new THREE.MeshStandardMaterial({ map: texturaCeramica(), roughness: 0.4 }),
+      // Acabados por nivel de ingresos (ver `acabado` en floorplan.js).
+      ceramic: new THREE.MeshStandardMaterial({ map: texturaCeramica([206, 190, 164], 4, 2.5), roughness: 0.5 }),
+      woodLight: new THREE.MeshStandardMaterial({ map: texturaMadera([196, 162, 118], 9), roughness: 0.7 }),
+      parquet: new THREE.MeshStandardMaterial({ map: texturaParque([112, 74, 44]), roughness: 0.55 }),
+      marble: new THREE.MeshStandardMaterial({ map: texturaMarmol(), roughness: 0.18 }),
       stone: mat('#c8c4bc', 0.6)
     };
   }

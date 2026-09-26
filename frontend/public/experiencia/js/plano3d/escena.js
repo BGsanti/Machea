@@ -22,6 +22,7 @@
   var MARGEN = 1.22;
   var GROSOR_BASE = 0.25;
   var HUNDIR_BASE = 0.02;   // la base y los pisos no pueden compartir y=0
+  var MARGEN_OBRA = 1.1;    // losa del replanteo alrededor de la huella
 
   var ENTRADA = 0.7;        // lo que tarda una pieza en llegar a su sitio
   var SALIDA = 0.3;         // igual que `retirarPieza` de la anfitriona
@@ -540,7 +541,10 @@
         var xs = r.polygon.map(function (p) { return p[0]; });
         var zs = r.polygon.map(function (p) { return p[1]; });
         out.push({
-          clave: 'piso|' + r.id + '|' + r.polygon.map(function (p) { return n2(p[0]) + ',' + n2(p[1]); }).join(';'),
+          // El acabado va en la clave: al contestar los ingresos el piso se
+          // vuelve a colocar con el material nuevo, no se queda el anterior.
+          clave: 'piso|' + r.id + '|' + (r.floor || 'wood') + '|' +
+            r.polygon.map(function (p) { return n2(p[0]) + ',' + n2(p[1]); }).join(';'),
           grupo: g, ambiente: r.id,
           centro: [(Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2,
                    (Math.min.apply(null, zs) + Math.max.apply(null, zs)) / 2]
@@ -615,6 +619,19 @@
         });
       });
 
+      /* Antes de la primera respuesta la losa no esta vacia: lleva el
+         replanteo de obra (entorno.js). Son piezas del plano como cualquier
+         otra, asi que caen al entrar y salen solas en cuanto hay ambientes. */
+      if (!plan.rooms.length && G.obra && caja) {
+        var hx = caja.halfExtents[0] + MARGEN_OBRA, hz = caja.halfExtents[2] + MARGEN_OBRA;
+        G.obra(plan, {
+          x0: caja.center[0] - hx, x1: caja.center[0] + hx,
+          z0: caja.center[2] - hz, z1: caja.center[2] + hz
+        }).forEach(function (p) {
+          out.push({ clave: p.clave, grupo: p.grupo, ambiente: p.ambiente, centro: [caja.center[0], caja.center[2]] });
+        });
+      }
+
       return out;
     }
 
@@ -678,6 +695,14 @@
 
       caja = G.cajaDelPlano(plan);
       esquinasCaja = G.esquinas(caja);
+      // Sin ambientes la losa es la del replanteo, mas ancha que la huella:
+      // se encuadra ELLA, o la cinta del borde queda cortada.
+      if (!plan.rooms.length) {
+        esquinasCaja = G.esquinas({
+          center: caja.center,
+          halfExtents: [caja.halfExtents[0] + MARGEN_OBRA, 0.5, caja.halfExtents[2] + MARGEN_OBRA]
+        });
+      }
 
       /* La losa no se anima: es el lote, existe antes que la vivienda. Pero
          tiene el tamano de lo construido EN ESTA PREGUNTA, con la forma de los
@@ -700,7 +725,8 @@
         return [x1 - x0, GROSOR_BASE, z1 - z0, (x0 + x1) / 2 - caja.center[0], 0, (z0 + z1) / 2 - caja.center[2]];
       });
       if (!cajasLote.length) {
-        cajasLote = [[(caja.halfExtents[0] + MARGEN_LOTE) * 2, GROSOR_BASE, (caja.halfExtents[2] + MARGEN_LOTE) * 2, 0, 0, 0]];
+        // Mas margen que el de lo construido: ahi va la cinta y el material.
+        cajasLote = [[(caja.halfExtents[0] + MARGEN_OBRA) * 2, GROSOR_BASE, (caja.halfExtents[2] + MARGEN_OBRA) * 2, 0, 0, 0]];
       }
       baseNodo = new THREE.Mesh(G.unirCajas(cajasLote), M.base);
       baseNodo.position.set(caja.center[0], -GROSOR_BASE / 2 - HUNDIR_BASE, caja.center[2]);

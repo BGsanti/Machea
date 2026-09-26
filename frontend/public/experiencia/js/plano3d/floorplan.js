@@ -4,12 +4,17 @@
 (function () {
   'use strict';
 
-  // Acabado de piso por zona. Los banos van en ceramica aunque su zona sea
-  // privada, que es como se resuelve en obra.
-  function acabado(r) {
-    if (r.zona === 'humeda') return 'tile';
-    if (r.id.indexOf('bano') === 0) return 'tile';
-    return 'wood';
+  /* Acabado de piso por zona y por nivel de ingresos. Los banos van en
+     ceramica aunque su zona sea privada, que es como se resuelve en obra.
+       0 sin contestar  madera de siempre
+       1 hasta 2 SMMLV  ceramica beige en todo: el acabado de entrega VIS
+       2 2 a 4          madera clara (laminado)
+       3 4 a 8          madera media
+       4 mas de 8       parque en espiga oscuro, y marmol en los banos */
+  function acabado(r, nivel) {
+    var humedo = r.zona === 'humeda' || r.id.indexOf('bano') === 0;
+    if (humedo) return nivel === 4 && r.id.indexOf('bano') === 0 ? 'marble' : 'tile';
+    return ['wood', 'ceramic', 'woodLight', 'wood', 'parquet'][nivel || 0];
   }
 
   /* Los muebles se separan del borde del ambiente MEDIO MURO mas un poco: el
@@ -51,7 +56,7 @@
      concreto (`pared`), no en una fraccion suelta del rectangulo: asi queda
      de espaldas al muro y de frente al ambiente, y `acomodar` puede moverla a
      otro muro sin dejarla mirando la pared. */
-  function amoblar(r, perfil, vetados) {
+  function amoblar(r, perfil, vetados, abiertos) {
     var rect = r.rect, out = [];
     var x = rect.x, z = rect.z, w = rect.w, d = rect.d;
     var n = 0;
@@ -100,7 +105,15 @@
         var pares = w >= d ? [['n', 's'], ['s', 'n'], ['o', 'e'], ['e', 'o']] : [['o', 'e'], ['e', 'o'], ['n', 's'], ['s', 'n']];
         var par = pares.filter(function (p) { return !veto(p[0]) && !veto(p[1]); })[0] ||
           pares.filter(function (p) { return !veto(p[0]); })[0] || pares[0];
-        var kS = par[0], kT = par[1], L = largo(kS), F = fondo(kS);
+        var kS = par[0], kT = par[1];
+        // Si frente al sofa no hay muro (da a otro espacio abierto), el
+        // televisor va a un muro lateral real antes que quedar parado en el aire.
+        if (veto(kT)) {
+          kT = LADOS.filter(function (k) { return k !== kS && !veto(k); })[0] ||
+            // Un muro con vano sigue siendo muro; comodar lo corre de la puerta.
+            LADOS.filter(function (k) { return k !== kS && (abiertos || []).indexOf(k) < 0; })[0] || kT;
+        }
+        var L = largo(kS), F = fondo(kS);
         var nsS = kS === 'n' || kS === 's';
         poner('rug', [x + w / 2, z + d / 2], nsS ? [L * 0.6, F * 0.45] : [F * 0.45, L * 0.6]);
         pared('sofa', kS, 0.5, Math.min(2.1, L * 0.7), 0.85);
@@ -116,14 +129,19 @@
         var laterales = LADOS.filter(function (k) { return k !== kS && k !== kT && !veto(k); });
         var areaSala = w * d;
         if (areaSala > 8.5 && laterales[0]) pared('chair', laterales[0], 0.5, 0.65, 0.65, { opcional: true });
-        if (areaSala > 9.8) pared('plant', kS, 0.94, 0.34, 0.34, { opcional: true });
+        if (areaSala > 9.8 && !veto(kS)) pared('plant', kS, 0.94, 0.34, 0.34, { opcional: true });
         // Los extras salen del tramo de ingresos: es lo unico que esa pregunta
         // mueve en la escena.
-        if (perfil.extrasSala.indexOf('mesaAuxiliar') >= 0) pared('table', kS, 0.06, 0.45, 0.45, { opcional: true });
-        if (perfil.extrasSala.indexOf('bar') >= 0) {
-          pared('counter', laterales[1] || kT, 0.5, Math.min(1.3, fondo(kS) * 0.45), 0.5, { opcional: true });
+        var ex = perfil.extrasSala;
+        if (ex.indexOf('mesaAuxiliar') >= 0) pared('table', kS, 0.06, 0.45, 0.45, { opcional: true });
+        // Lampara de pie en la otra punta del sofa: chica, casi siempre cabe.
+        if (ex.indexOf('lampara') >= 0) pared('lamp', kS, 0.94, 0.3, 0.3, { opcional: true });
+        if (ex.indexOf('plantas') >= 0 && !veto(kT)) pared('plant', kT, 0.08, 0.34, 0.34, { opcional: true });
+        // Biblioteca baja en un muro lateral. Antes era una "barra" hecha con
+        // el meson de cocina, y se leia como una cocina metida en la sala.
+        if (ex.indexOf('biblioteca') >= 0) {
+          pared('shelf', laterales[1] || laterales[0] || kT, 0.5, Math.min(1.2, fondo(kS) * 0.45), 0.35, { opcional: true });
         }
-        if (perfil.extrasSala.indexOf('piano') >= 0) pared('counter', kT, 0.12, 1.4, 0.7, { opcional: true });
         break;
       }
 
@@ -172,9 +190,14 @@
           }
           poner('table', [x + w / 2, z + d / 2], [0.4, 0.4], 0, { opcional: true });
         }
-        // Biblioteca baja contra el muro opuesto: es lo que lo hace estudio.
-        pared('shelf', OPUESTO[kF], 0.5, Math.min(1.2, largo(kF) * 0.5), 0.35, { opcional: true });
-        pared('plant', OPUESTO[kF], 0.92, 0.3, 0.3, { opcional: true });
+        /* Biblioteca baja contra otro muro REAL (el opuesto si lo es): es lo
+           que lo hace estudio. Si no queda ninguno, mejor sin biblioteca que
+           una parada en medio del espacio abierto. */
+        var kL = [OPUESTO[kF]].concat(libres).filter(function (k) { return k !== kF && !veto(k); })[0];
+        if (kL) {
+          pared('shelf', kL, 0.5, Math.min(1.2, largo(kL) * 0.5), 0.35, { opcional: true });
+          pared('plant', kL, 0.92, 0.3, 0.3, { opcional: true });
+        }
         break;
       }
 
@@ -292,7 +315,8 @@
      cualquier muro y de espaldas a el—, luego mas chica; si es un accesorio y
      aun asi no cabe, se omite. Mejor una planta de menos que una encima de la
      cama. Reemplaza al viejo despeje de vanos, que solo miraba las puertas. */
-  function acomodar(piezas, rect, pasos) {
+  function acomodar(piezas, rect, pasos, abiertos) {
+    abiertos = abiertos || [];
     var hechas = [];
     // Cuanto estorba: tapar un vano es inaceptable; encimarse, se mide.
     var estorbo = function (f) {
@@ -327,7 +351,8 @@
             else if (k === 's') p = [rect.x + t, rect.z + rect.d - HOLGURA - prof / 2];
             else if (k === 'o') p = [rect.x + HOLGURA + prof / 2, rect.z + t];
             else p = [rect.x + rect.w - HOLGURA - prof / 2, rect.z + t];
-            out.push({ position: p, rotation: ESPALDA[k] });
+            // Un lado abierto (sin muro, ver ladosAbiertos) solo como ultimo recurso.
+            out.push({ position: p, rotation: ESPALDA[k], muro: k, castigo: abiertos.indexOf(k) >= 0 ? 100 : 0 });
           });
         });
       } else {
@@ -338,7 +363,7 @@
         }
       }
       var o = f.position;
-      out.forEach(function (c) { c.dist = Math.hypot(c.position[0] - o[0], c.position[1] - o[1]); });
+      out.forEach(function (c) { c.dist = Math.hypot(c.position[0] - o[0], c.position[1] - o[1]) + (c.castigo || 0); });
       return out.sort(function (a, b) { return a.dist - b.dist; });
     };
 
@@ -353,9 +378,13 @@
           f.rotation = cs[c].rotation;
           f.position = dentro(f, cs[c].position);
           var est = estorbo(f);
-          if (!est.puerta && est.area === 0) { hechas.push(f); return; }
+          if (!est.puerta && est.area === 0) {
+            if (cs[c].muro) f.muro = cs[c].muro;
+            hechas.push(f);
+            return;
+          }
           if (!est.puerta && (!mejor || est.area < mejor.area)) {
-            mejor = { area: est.area, position: f.position, size: f.size.slice(), rotation: f.rotation };
+            mejor = { area: est.area, position: f.position, size: f.size.slice(), rotation: f.rotation, muro: cs[c].muro };
           }
         }
       }
@@ -365,9 +394,39 @@
          ningun vano y que menos se encima. Un vano tapado no se acepta nunca. */
       var q = mejor || orig;
       f.position = q.position; f.size = q.size; f.rotation = q.rotation;
+      if (q.muro) f.muro = q.muro;
       hechas.push(f);
     });
     return hechas;
+  }
+
+  /* Lados de un ambiente social que NUNCA llevan muro: los que dan a otro
+     ambiente social o a la circulacion (planta abierta; los muros solo los
+     levantan los ambientes cerrados y la fachada). Un mueble "de pared"
+     apoyado ahi quedaba parado en medio del espacio, como la biblioteca del
+     estudio entre el comedor y el estudio. Se mira la huella COMPLETA, no lo
+     revelado: si no, el mueble cambiaria de muro al revelarse el vecino. */
+  function ladosAbiertos(r, huellaCompleta) {
+    if (r.zona !== 'social') return [];
+    var q = r.rect, E = 0.02;
+    var lados = {
+      n: { eje: 'z', v: q.z, a: q.x, b: q.x + q.w },
+      s: { eje: 'z', v: q.z + q.d, a: q.x, b: q.x + q.w },
+      o: { eje: 'x', v: q.x, a: q.z, b: q.z + q.d },
+      e: { eje: 'x', v: q.x + q.w, a: q.z, b: q.z + q.d }
+    };
+    return Object.keys(lados).filter(function (k) {
+      var l = lados[k], largo = l.b - l.a, cubierto = 0;
+      (huellaCompleta || []).forEach(function (o) {
+        if (o.id === r.id || (o.zona !== 'social' && o.zona !== 'circulacion')) return;
+        var p = o.rect, bordes, a0, a1;
+        if (l.eje === 'z') { bordes = [p.z, p.z + p.d]; a0 = p.x; a1 = p.x + p.w; }
+        else { bordes = [p.x, p.x + p.w]; a0 = p.z; a1 = p.z + p.d; }
+        if (!bordes.some(function (b) { return Math.abs(b - l.v) < E; })) return;
+        cubierto += Math.max(0, Math.min(l.b, a1) - Math.max(l.a, a0));
+      });
+      return cubierto >= largo * 0.4;
+    });
   }
 
   function construirPlan(answers, paso, opts) {
@@ -382,7 +441,7 @@
         id: r.id,
         name: r.nombre,
         zona: r.zona,
-        floor: acabado(r),
+        floor: acabado(r, perfil.nivel),
         // En sentido horario: el generador de geometria triangula el poligono
         // tal cual, sin reordenarlo.
         polygon: [[q.x, q.z], [q.x + q.w, q.z], [q.x + q.w, q.z + q.d], [q.x, q.z + q.d]]
@@ -399,7 +458,9 @@
     var furniture = [];
     zon.rects.forEach(function (r) {
       if (r.zona === 'circulacion') return;
-      furniture = furniture.concat(acomodar(amoblar(r, perfil, vetados[r.id]), r.rect, pasos));
+      var abiertos = ladosAbiertos(r, zon.huella);
+      var veto = (vetados[r.id] || []).concat(abiertos);
+      furniture = furniture.concat(acomodar(amoblar(r, perfil, veto, abiertos), r.rect, pasos, abiertos));
     });
 
     var plan = {
