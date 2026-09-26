@@ -139,6 +139,19 @@
         g.add(caja(w, h, d, M.marco, 0, h / 2, 0));
         return g;
       },
+      /* Biblioteca BAJA. Reusar el closet la volvia un bloque hasta el techo
+         en medio del estudio; a 1 m, con dos entrepanos claros, se lee como
+         mueble de libros y no tapa el ambiente. */
+      biblioteca: function (w, d) {
+        var g = new THREE.Group();
+        var h = tope(1.0);
+        g.add(caja(w, h, d, M.marco, 0, h / 2, 0));
+        g.add(new THREE.Mesh(unirCajas([
+          [w * 0.94, 0.025, d + 0.01, 0, h / 3, 0],
+          [w * 0.94, 0.025, d + 0.01, 0, h * 2 / 3, 0]
+        ]), M.moldura));
+        return g;
+      },
       escritorio: function (w, d) {
         var g = new THREE.Group();
         g.add(caja(w, 0.05, d, M.marco, 0, 0.74, 0));
@@ -210,7 +223,7 @@
     bed: 'cama', sofa: 'sofa', table: 'mesa', chair: 'silla', counter: 'meson',
     stove: 'estufa', fridge: 'nevera', wardrobe: 'closet', desk: 'escritorio',
     toilet: 'inodoro', sink: 'lavamanos', shower: 'ducha', rug: 'tapete',
-    plant: 'planta', console: 'consola'
+    plant: 'planta', console: 'consola', shelf: 'biblioteca'
   };
 
   var cache = null, cacheTecho = null;
