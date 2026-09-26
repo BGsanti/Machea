@@ -103,6 +103,9 @@
     var nodosEntorno = {};
     var entornoPedido = null, layoutEnt = null, asignacion = null;
     var fEnt = 0, camEnt = null;
+    // Vistazo al barrio: tras alejarse, la camara lo muestra PAUSA_ENTORNO y
+    // vuelve sola a la casa. El barrio se queda; lo que va y vuelve es la camara.
+    var PAUSA_ENTORNO = 2000, volverTras = false, temporizadorEnt = null;
 
     /* ---------- bucle ---------- */
 
@@ -149,25 +152,68 @@
       return true;
     }
 
-    // Alejarse al barrio o volver a la casa. No hay ida y vuelta automatica:
-    // la camara se queda donde el entorno la deja mientras el entorno exista.
+    // Alejarse al barrio o volver a la casa.
     function avanzarCamEntorno(dt) {
       if (!camEnt) return false;
       camEnt.t += dt;
       var p = Math.min(1, camEnt.t / DUR_CAM_ENTORNO);
       fEnt = camEnt.desde + (camEnt.hasta - camEnt.desde) * suave(p);
       encuadrar();
-      if (p >= 1) { camEnt = null; return false; }
+      if (p >= 1) {
+        var llego = camEnt.hasta;
+        camEnt = null;
+        if (llego === 1 && volverTras) programarVuelta();
+        return false;
+      }
       return true;
+    }
+
+    function irAEntorno(hasta) {
+      if (camEnt ? camEnt.hasta === hasta : fEnt === hasta) return;
+      if (animar) camEnt = { t: 0, desde: fEnt, hasta: hasta };
+      else { camEnt = null; fEnt = hasta; encuadrar(); }
+      pedirCuadro();
+    }
+
+    function cancelarVistazo() {
+      volverTras = false;
+      if (temporizadorEnt) { clearTimeout(temporizadorEnt); temporizadorEnt = null; }
+    }
+
+    // Reloj de pared y no `dt`: `dt` se capa por cuadro, y en un equipo lento
+    // la pausa se estiraria.
+    function programarVuelta() {
+      if (temporizadorEnt) clearTimeout(temporizadorEnt);
+      temporizadorEnt = setTimeout(function () {
+        temporizadorEnt = null;
+        volverTras = false;
+        irAEntorno(0);
+      }, PAUSA_ENTORNO);
+    }
+
+    /* Alejarse, mostrar el barrio y volver. Cada chip nuevo lo relanza: si la
+       camara ya esta afuera, solo reinicia la pausa, para que se alcance a
+       ver caer la amenidad recien elegida. */
+    function vistazoEntorno() {
+      volverTras = true;
+      if (fEnt === 1 && !camEnt) programarVuelta();
+      else {
+        if (temporizadorEnt) { clearTimeout(temporizadorEnt); temporizadorEnt = null; }
+        irAEntorno(1);
+      }
     }
 
     /* La lista de amenidades elegidas (valores de `entorno_deseado`), o null
        si el entorno no toca todavia. Una lista vacia tambien vale: la
        pregunta es opcional y contestarla sin elegir nada igual pone el
-       barrio. Quien decide cuando hay entorno es la anfitriona (index.js). */
-    function fijarEntorno(lista) {
+       barrio. Quien decide cuando hay entorno es la anfitriona (index.js).
+       `mostrar`: la lista cambio por un chip, asi que la camara hace el
+       vistazo; si no, el barrio aparece o se va sin mover la camara. */
+    function fijarEntorno(lista, mostrar) {
       entornoPedido = lista ? lista.slice() : null;
       sincronizarEntorno();
+      if (!entornoPedido) { cancelarVistazo(); irAEntorno(0); }
+      else if (mostrar) vistazoEntorno();
     }
 
     function sincronizarEntorno() {
@@ -241,12 +287,6 @@
         cs.updateProjectionMatrix();
       }
 
-      var hasta = entornoPedido ? 1 : 0;
-      var destino = camEnt ? camEnt.hasta : fEnt;
-      if (destino !== hasta) {
-        if (animar) camEnt = { t: 0, desde: fEnt, hasta: hasta };
-        else { camEnt = null; fEnt = hasta; encuadrar(); }
-      }
       pedirCuadro();
     }
 
@@ -268,6 +308,9 @@
     function resetCamara() {
       vistaFinal = null;
       cancelarOrbita();
+      cancelarVistazo();
+      camEnt = null;
+      fEnt = 0;
       elevacionGrados = o.elevacion || ELEVACION_DEF;
       azimutGrados = o.azimut === undefined ? AZIMUT_DEF : o.azimut;
       if (caja) encuadrar();
@@ -751,6 +794,7 @@
     function dispose() {
       vivo = false;
       cancelarOrbita();
+      cancelarVistazo();
       lienzo.removeEventListener('pointerdown', alPresionar);
       lienzo.removeEventListener('pointermove', alMover);
       lienzo.removeEventListener('pointerup', alSoltar);
@@ -772,7 +816,10 @@
       plan: function () { return planActual; },
       piezas: function () { return Object.keys(nodos).length; },
       entorno: function () {
-        return { activo: !!entornoPedido, piezas: Object.keys(nodosEntorno), asignacion: asignacion, layout: layoutEnt };
+        return {
+          activo: !!entornoPedido, piezas: Object.keys(nodosEntorno), asignacion: asignacion,
+          layout: layoutEnt, camara: fEnt
+        };
       }
     };
   }

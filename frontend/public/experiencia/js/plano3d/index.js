@@ -101,7 +101,8 @@
      pregunta: llegar ahi es consecuencia de contestar la localidad, y el
      entorno disparado en ese momento se leia como efecto de la localidad.
      Una vez contestada (aun sin elegir nada, es opcional) se queda hasta el
-     final; volver atras de ella lo retira. */
+     final; volver atras de ella lo retira. Cada chip hace un vistazo: la
+     camara se aleja, muestra el barrio 2 s y vuelve a la casa. */
   function listaEntorno(answers) {
     if (enPreguntaEntorno) return seleccionEntorno.length ? seleccionEntorno : null;
     return Array.isArray(answers.entorno_deseado) ? answers.entorno_deseado : null;
@@ -110,7 +111,7 @@
   // La anfitriona la llama en cada chip que se marca o se quita.
   function seleccionarEntorno(lista) {
     seleccionEntorno = (lista || []).slice();
-    if (escena && enPreguntaEntorno) escena.fijarEntorno(listaEntorno({}));
+    if (escena && enPreguntaEntorno) escena.fijarEntorno(listaEntorno({}), true);
   }
 
   // Sube la camara a vista cenital una unica vez, al terminar el quiz. `cb` es
