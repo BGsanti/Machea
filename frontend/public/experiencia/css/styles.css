@@ -2353,15 +2353,9 @@ a.pt-flink:hover {
    radio— y adentro va el <input>, que pierde su propio borde y fondo para que
    los dos lean como una sola pieza.
 
-   LOS CHIPS YA NO VIVEN AHÍ DENTRO. Hasta que la pregunta tuvo un solo
-   buscador, las etiquetas iban dentro del propio campo (el patrón "para:" de
-   un cliente de correo) y `#zonaChips` usaba `display: contents` para que sus
-   `.gdf-entorno-chip` fueran hijos flex directos del envoltorio. Con dos
-   buscadores —barrio y lugar— eso obligaba a elegir en cuál de los dos
-   aparecen, y cambiar de pestaña se leía como perder lo ya elegido. Ahora
-   son una fila propia ARRIBA de los dos paneles (`.gdf-zona-chips`), que es
-   lo que dice la verdad: son la respuesta completa, venga del buscador que
-   venga.
+   LOS CHIPS NO VIVEN AHÍ DENTRO: son una fila propia ARRIBA del buscador
+   (`.gdf-zona-chips`), que dice lo que son — la respuesta completa, venga de
+   un barrio, de un lugar cercano o del mapa.
 
    OJO con el contexto de apilamiento: la animación de entrada va sobre
    '.gdf-quiz-freeform' y NUNCA sobre sus hijos. Un `animation-fill:both` en
@@ -2653,58 +2647,28 @@ a.pt-flink:hover {
 .gdf-zona-input-wrap:focus-within {
   border-color: var(--marca);
 }
-/* LAS DOS PESTAÑAS de la pregunta de ubicación: buscar por barrio (para quien
-   conoce Bogotá) o por un lugar cercano (para quien no). Se leen como un solo
-   control segmentado, no como dos botones sueltos: por eso comparten el borde
-   exterior y solo el activo se llena de color. */
-.gdf-zona-modos {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  margin-bottom: 12px;
-  background: var(--papel-2);
-  border: 1.5px solid var(--borde);
-  border-radius: 12px;
-}
-.gdf-zona-modo-btn {
-  flex: 1 1 0;
-  padding: 8px 10px;
-  border: none;
-  border-radius: 8px;
-  background: none;
-  color: var(--tinta-media);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.gdf-zona-modo-btn:hover {
-  color: var(--tinta);
-}
-.gdf-zona-modo-btn.activo {
-  background: var(--marca);
-  color: var(--sobre-marca);
-}
-/* Cada panel de búsqueda. El oculto lleva el atributo nativo `hidden`; esta
-   regla existe porque `.gdf-entorno-combo` trae su propio `display`, que
-   ganaría al `display:none` que el navegador le da a `[hidden]`. */
-.gdf-zona-modo-panel[hidden] {
-  display: none;
-}
-/* Los chips, ahora fuera de los dos buscadores y compartidos por ambos (ver
-   `zonaPanel` en templates.js). `.gdf-entorno-chips` ya los pinta como fila
-   flex por sí sola — igual que en 'entorno_deseado', donde también viven
-   sueltos—, así que aquí solo hace falta separarlos del panel de abajo. */
+/* Los chips, fuera del buscador (ver `zonaPanel` en templates.js).
+   `.gdf-entorno-chips` ya los pinta como fila flex por sí sola — igual que en
+   'entorno_deseado', donde también viven sueltos—, así que aquí solo hace
+   falta separarlos del buscador de abajo. */
 .gdf-zona-chips:not(:empty) {
   margin-bottom: 12px;
 }
-/* La línea que explica qué va a pasar al elegir un lugar. Va debajo del
-   buscador y no arriba: se lee al terminar de mirar el campo, no antes. */
-.gdf-zona-pista {
-  margin: 8px 2px 0;
-  font-size: 12px;
+/* El rótulo de cada grupo del desplegable único: "Barrios" arriba, "Lugares
+   cerca" debajo (ver renderZonaSugerencias en main.js). Pequeño y apagado:
+   separa, no compite con las filas. */
+.gdf-zona-grupo {
+  padding: 8px 10px 2px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--tinta-tenue);
+}
+.gdf-zona-grupo:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--borde);
+  padding-top: 10px;
 }
 /* El <input> de adentro pierde el aspecto de `.gdf-input` —fondo, borde,
    radio, el margen inferior de 14px que dejaba un hueco vacío bajo el
