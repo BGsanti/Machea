@@ -208,13 +208,17 @@
        si el entorno no toca todavia. Una lista vacia tambien vale: la
        pregunta es opcional y contestarla sin elegir nada igual pone el
        barrio. Quien decide cuando hay entorno es la anfitriona (index.js).
-       `mostrar`: la lista cambio por un chip, asi que la camara hace el
-       vistazo; si no, el barrio aparece o se va sin mover la camara. */
+       Vistazo (alejarse, mostrar, volver): con cada chip (`mostrar`) y
+       tambien cada vez que el barrio APARECE, aunque sea sin amenidades —
+       contestar la pregunta sin elegir nada ponia el barrio sin que la camara
+       lo mostrara, y se leia como que la animacion se habia perdido.
+       `mostrar === false` lo apaga (banco de pruebas con `&fijo=1`). */
     function fijarEntorno(lista, mostrar) {
+      var aparece = !entornoPedido && !!lista;
       entornoPedido = lista ? lista.slice() : null;
       sincronizarEntorno();
       if (!entornoPedido) { cancelarVistazo(); irAEntorno(0); }
-      else if (mostrar) vistazoEntorno();
+      else if (mostrar || (aparece && mostrar !== false)) vistazoEntorno();
     }
 
     function sincronizarEntorno() {
