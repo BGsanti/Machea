@@ -245,6 +245,11 @@
   function renderEntornoChips() {
     var cont = document.getElementById('entornoChips');
     if (!cont) return;
+    // El barrio 3D reacciona a cada chip, no al pulsar "Continuar": cada
+    // amenidad elegida cae en el lote alrededor de la casa (plano3d/entorno.js).
+    if (window.GDF3D && window.GDF3D.seleccionarEntorno) {
+      window.GDF3D.seleccionarEntorno(entornoSeleccion);
+    }
     var q = findQuestionById('entorno_deseado');
     cont.innerHTML = entornoSeleccion
       .map(function (valor) {

@@ -11,9 +11,12 @@
   var escena = null;
   var apagado = false;
   var ultimaClave = null;
-  // Evita relanzar el deszoom del entorno en cada repintado mientras se sigue
-  // EN esa pregunta (marcar un chip repinta el panel sin cambiar de pregunta).
-  var previaEntornoLanzada = false;
+
+  /* Seleccion EN CURSO de la pregunta de amenidades. La anfitriona no la pasa
+     a `state` hasta "Continuar" (ver `entornoSeleccion` en main.js), pero el
+     barrio tiene que reaccionar a cada chip, no al salir de la pregunta. */
+  var seleccionEntorno = [];
+  var enPreguntaEntorno = false;
 
   /* Se cae al plano 2D de recortes —que ya funciona— en vez de mostrar un
      hueco. El 3D es una mejora, no un requisito. */
@@ -65,20 +68,9 @@
     esc.montar(host);
     host.classList.add('con-plano3d');
 
-    // Al aterrizar en la pregunta de entorno (no en cada repintado suyo: marcar
-    // un chip no cambia `q.id`), la camara hace un deszoom de ida y vuelta que
-    // revela las carreteras y arboles alrededor del lote. Es la unica pregunta
-    // que hoy no mueve el plano (ver CLAUDE.md), asi que esto es lo que la
-    // hace sentir viva.
-    var enPreguntaEntorno = !!(derived && derived.q && derived.q.id === 'entorno_deseado');
-    if (enPreguntaEntorno && !previaEntornoLanzada) {
-      previaEntornoLanzada = true;
-      esc.previsualizarEntorno(3000);
-    } else if (!enPreguntaEntorno) {
-      previaEntornoLanzada = false;
-    }
-
     var answers = (state && state.answers) || {};
+    enPreguntaEntorno = !!(state && state.screen === 'quiz' &&
+      derived && derived.q && derived.q.id === 'entorno_deseado');
     // `qi` es el indice de la pregunta en curso, o sea cuantas van contestadas.
     var paso = Math.max(0, Number(state && state.qi) || 0);
     if (paso < 1) {
@@ -97,11 +89,28 @@
        motivo: la anfitriona llama aqui tambien por cambios que no tocan las
        respuestas. */
     var clave = paso + '|' + JSON.stringify(answers);
-    if (clave === ultimaClave) return true;
-    ultimaClave = clave;
-
-    esc.aplicarPlan(G.construirPlan(answers, paso));
+    if (clave !== ultimaClave) {
+      ultimaClave = clave;
+      esc.aplicarPlan(G.construirPlan(answers, paso));
+    }
+    esc.fijarEntorno(listaEntorno(answers));
     return true;
+  }
+
+  /* El barrio aparece al ELEGIR la primera amenidad, no al llegar a la
+     pregunta: llegar ahi es consecuencia de contestar la localidad, y el
+     entorno disparado en ese momento se leia como efecto de la localidad.
+     Una vez contestada (aun sin elegir nada, es opcional) se queda hasta el
+     final; volver atras de ella lo retira. */
+  function listaEntorno(answers) {
+    if (enPreguntaEntorno) return seleccionEntorno.length ? seleccionEntorno : null;
+    return Array.isArray(answers.entorno_deseado) ? answers.entorno_deseado : null;
+  }
+
+  // La anfitriona la llama en cada chip que se marca o se quita.
+  function seleccionarEntorno(lista) {
+    seleccionEntorno = (lista || []).slice();
+    if (escena && enPreguntaEntorno) escena.fijarEntorno(listaEntorno({}));
   }
 
   // Sube la camara a vista cenital una unica vez, al terminar el quiz. `cb` es
@@ -115,6 +124,7 @@
 
   window.GDF3D.actualizar = actualizar;
   window.GDF3D.finalizarVistaSuperior = finalizarVistaSuperior;
+  window.GDF3D.seleccionarEntorno = seleccionarEntorno;
   window.GDF3D.activo = function () { return !!escena && !apagado; };
   window.GDF3D.escena = function () { return escena; };
 })();

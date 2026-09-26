@@ -36,10 +36,10 @@
   // lock) que `encuadrar()` no puede normalizar.
   var ELEVACION_CENITAL = 89.5;
 
-  // Cuanto se aleja la camara durante la previsualizacion del entorno
-  // (pregunta de amenidades): multiplica la distancia normal de encuadre, asi
-  // que revela un anillo alrededor del lote sin depender de su tamano.
-  var ZOOM_ENTORNO = 0.85;
+  // Con el entorno a la vista la camara encuadra el disco del barrio, no la
+  // casa. Margen mas justo que el de la casa: el borde del disco ya es aire.
+  var MARGEN_ENTORNO = 1.1;
+  var DUR_CAM_ENTORNO = 1.3;   // alejarse o volver, en segundos
 
   function crearEscena(opciones) {
     var o = opciones || {};
@@ -65,7 +65,9 @@
        suelo abajo, que es justo la variacion que se pierde. */
     scene.add(new THREE.HemisphereLight(0xf2f6f8, 0x8d8579, 1.35));
     var sol = new THREE.DirectionalLight(0xffffff, 1.1);
-    sol.position.set(7, 14, 5);
+    var SOL_DESDE = [7, 14, 5];
+    sol.position.set(SOL_DESDE[0], SOL_DESDE[1], SOL_DESDE[2]);
+    scene.add(sol.target);
     if (o.sombras !== false) {
       sol.castShadow = true;
       sol.shadow.mapSize.set(o.mapaSombra || 1024, o.mapaSombra || 1024);
@@ -89,13 +91,18 @@
     var contenedor = null, ro = null, pendiente = false, vivo = true;
     var planActual = null, caja = null, esquinasCaja = null, edad = 1, ultimo = 0;
     var nodos = {};          // clave -> {grupo, anim}
-    var baseNodo = null, entornoNodo = null;
+    var baseNodo = null;
 
     // Animacion puntual de cierre: sube la camara a vista cenital una sola vez.
     var vistaFinal = null;
-    // Animacion puntual de la pregunta de entorno: deszoom para revelar
-    // carreteras y arboles, y vuelta al encuadre normal.
-    var previaEntorno = null, factorEntorno = 0;
+
+    /* Entorno (barrio + amenidades, ver entorno.js). Sus piezas van en su
+       propio mapa: `aplicarPlan` retira todo lo que no esta en el plano, y el
+       entorno no esta en el plano. `fEnt` (0..1) mezcla el encuadre de la
+       casa con el del barrio; `camEnt` lo anima. */
+    var nodosEntorno = {};
+    var entornoPedido = null, layoutEnt = null, asignacion = null;
+    var fEnt = 0, camEnt = null;
 
     /* ---------- bucle ---------- */
 
@@ -118,7 +125,7 @@
       if (edad < 0.6) { edad += dt; encuadrar(); sigue = true; }
       if (avanzar(dt)) sigue = true;
       if (avanzarVistaFinal(dt)) sigue = true;
-      if (avanzarPreviaEntorno(dt)) sigue = true;
+      if (avanzarCamEntorno(dt)) sigue = true;
       if (avanzarRegreso(dt)) sigue = true;
 
       renderer.render(scene, camera);
@@ -142,37 +149,104 @@
       return true;
     }
 
-    // Deszoom puntual de la pregunta de entorno: mitad afuera, mitad de vuelta.
-    // `factorEntorno` (0..1) lo lee `encuadrar()` para estirar la distancia ya
-    // calculada, asi que no duplica la logica de encuadre.
-    function avanzarPreviaEntorno(dt) {
-      if (!previaEntorno) return false;
-      previaEntorno.t += dt;
-      var mitad = previaEntorno.dur / 2;
-      var t = previaEntorno.t;
-      factorEntorno = t < mitad ? suave(t / mitad) : suave(1 - (t - mitad) / mitad);
+    // Alejarse al barrio o volver a la casa. No hay ida y vuelta automatica:
+    // la camara se queda donde el entorno la deja mientras el entorno exista.
+    function avanzarCamEntorno(dt) {
+      if (!camEnt) return false;
+      camEnt.t += dt;
+      var p = Math.min(1, camEnt.t / DUR_CAM_ENTORNO);
+      fEnt = camEnt.desde + (camEnt.hasta - camEnt.desde) * suave(p);
       encuadrar();
-      if (t >= previaEntorno.dur) {
-        previaEntorno = null;
-        factorEntorno = 0;
-        encuadrar();
-        // Solo se ve MIENTRAS dura el deszoom: el resto del formulario no debe
-        // asomar carreteras ni arboles por los bordes del encuadre normal.
-        if (entornoNodo) entornoNodo.visible = false;
-        return false;
-      }
+      if (p >= 1) { camEnt = null; return false; }
       return true;
     }
 
-    // Lanza la previsualizacion; no relanza si ya esta en curso (la anfitriona
-    // la dispara una vez por cada vez que se ATERRIZA en la pregunta, y
-    // repintados intermedios —marcar un chip— no deben reiniciarla).
-    function previsualizarEntorno(duracionMs) {
-      if (previaEntorno) return;
-      if (entornoNodo) entornoNodo.visible = true;
-      // `dt` (en `avanzar*`) esta en SEGUNDOS; la anfitriona pide la duracion
-      // en ms, que es lo natural para un setTimeout/temporizador de UI.
-      previaEntorno = { t: 0, dur: (duracionMs || 3000) / 1000 };
+    /* La lista de amenidades elegidas (valores de `entorno_deseado`), o null
+       si el entorno no toca todavia. Una lista vacia tambien vale: la
+       pregunta es opcional y contestarla sin elegir nada igual pone el
+       barrio. Quien decide cuando hay entorno es la anfitriona (index.js). */
+    function fijarEntorno(lista) {
+      entornoPedido = lista ? lista.slice() : null;
+      sincronizarEntorno();
+    }
+
+    function sincronizarEntorno() {
+      if (!planActual || !G.entorno) return;
+      var M = G.materiales();
+      var deseadas = [];
+      if (entornoPedido) {
+        var lay = G.entorno.disponer(planActual);
+        if (!layoutEnt || layoutEnt.clave !== lay.clave) asignacion = null;
+        layoutEnt = lay;
+        var asig = G.entorno.asignar(lay, entornoPedido, asignacion && asignacion.celdas);
+        asignacion = asig;
+        deseadas = G.entorno.piezas(lay, asig, M);
+      }
+
+      var vistas = {};
+      var baseNueva = !Object.keys(nodosEntorno).some(function (c) {
+        return c.indexOf('entorno|base|') === 0 && !(nodosEntorno[c].anim && nodosEntorno[c].anim.saliendo);
+      });
+      var nRel = 0, nAm = 0;
+      deseadas.forEach(function (pz) {
+        vistas[pz.clave] = true;
+        var previo = nodosEntorno[pz.clave];
+        if (previo) {
+          if (previo.anim && previo.anim.saliendo) {
+            previo.anim = animar
+              ? { t: 0, retraso: 0, dur: ENTRADA, saliendo: false, crece: previo.anim.crece }
+              : null;
+            if (!animar) { previo.grupo.position.set(0, 0, 0); previo.grupo.scale.set(1, 1, 1); }
+          }
+          return;
+        }
+        var grupo = pz.crear();
+        var cont = new THREE.Group();
+        cont.add(grupo);
+        raiz.add(cont);
+        var n = { grupo: cont, anim: null };
+        nodosEntorno[pz.clave] = n;
+        if (!animar) return;
+        /* El barrio BROTA del suelo mientras la camara se aleja; el relleno y
+           las amenidades caen despues, como las piezas de la casa. Si el
+           barrio ya estaba, la amenidad nueva cae de una. */
+        var espera = baseNueva ? 0.45 : 0;
+        if (pz.clase === 'base') n.anim = { t: 0, retraso: 0, dur: 0.9, saliendo: false, crece: true };
+        else if (pz.clase === 'rel') n.anim = { t: 0, retraso: espera + 0.05 * nRel++, dur: ENTRADA, saliendo: false };
+        else n.anim = { t: 0, retraso: espera + 0.3 + 0.12 * nAm++, dur: ENTRADA, saliendo: false };
+        cont.visible = false;
+        if (pz.clase === 'base') cont.scale.set(1, 0.001, 1);
+        else cont.position.set(0, ALTURA_CAIDA, 0);
+      });
+
+      Object.keys(nodosEntorno).forEach(function (clave) {
+        var n = nodosEntorno[clave];
+        if (vistas[clave] || (n.anim && n.anim.saliendo)) return;
+        if (!animar) { soltar(n.grupo); delete nodosEntorno[clave]; return; }
+        n.anim = {
+          t: 0, retraso: 0, dur: clave.indexOf('entorno|base|') === 0 ? 0.6 : SALIDA,
+          saliendo: true, crece: clave.indexOf('entorno|base|') === 0
+        };
+      });
+
+      // El sol sigue al barrio: su camara de sombras es de 24 m y sin esto
+      // la mitad del disco queda sin sombra si la casa no esta en el origen.
+      var c = layoutEnt && entornoPedido ? [layoutEnt.cx, layoutEnt.cz] : (caja ? [caja.center[0], caja.center[2]] : [0, 0]);
+      sol.target.position.set(c[0], 0, c[1]);
+      sol.position.set(c[0] + SOL_DESDE[0], SOL_DESDE[1], c[1] + SOL_DESDE[2]);
+      if (sol.castShadow) {
+        var r = layoutEnt && entornoPedido ? layoutEnt.R + 1 : 12;
+        var cs = sol.shadow.camera;
+        cs.left = -r; cs.right = r; cs.top = r; cs.bottom = -r;
+        cs.updateProjectionMatrix();
+      }
+
+      var hasta = entornoPedido ? 1 : 0;
+      var destino = camEnt ? camEnt.hasta : fEnt;
+      if (destino !== hasta) {
+        if (animar) camEnt = { t: 0, desde: fEnt, hasta: hasta };
+        else { camEnt = null; fEnt = hasta; encuadrar(); }
+      }
       pedirCuadro();
     }
 
@@ -193,12 +267,9 @@
     // vista cenital del intento anterior.
     function resetCamara() {
       vistaFinal = null;
-      previaEntorno = null;
-      factorEntorno = 0;
       cancelarOrbita();
       elevacionGrados = o.elevacion || ELEVACION_DEF;
       azimutGrados = o.azimut === undefined ? AZIMUT_DEF : o.azimut;
-      if (entornoNodo) entornoNodo.visible = false;
       if (caja) encuadrar();
       pedirCuadro();
     }
@@ -286,22 +357,34 @@
     lienzo.addEventListener('pointercancel', alSoltar);
 
     function avanzar(dt) {
+      var a = avanzarMapa(nodos, dt);
+      var b = avanzarMapa(nodosEntorno, dt);
+      return a || b;
+    }
+
+    function avanzarMapa(mapa, dt) {
       var activo = false;
-      Object.keys(nodos).forEach(function (clave) {
-        var n = nodos[clave], a = n.anim;
+      Object.keys(mapa).forEach(function (clave) {
+        var n = mapa[clave], a = n.anim;
         if (!a) return;
         a.t += dt;
         var p = Math.min(1, Math.max(0, (a.t - a.retraso) / a.dur));
         if (a.t < a.retraso) { activo = true; return; }
 
-        // Entra CAYENDO (acelera, como gravedad) y sale SUBIENDO (frena).
-        var altura = a.saliendo ? suave(p) : 1 - p * p;
-        n.grupo.position.set(0, ALTURA_CAIDA * altura, 0);
+        if (a.crece) {
+          // El barrio brota del suelo (y se hunde al irse) en vez de caer:
+          // un disco de 20 m cayendo de 5 m se lee como un golpe.
+          n.grupo.scale.set(1, Math.max(0.001, a.saliendo ? 1 - suave(p) : suave(p)), 1);
+        } else {
+          // Entra CAYENDO (acelera, como gravedad) y sale SUBIENDO (frena).
+          var altura = a.saliendo ? suave(p) : 1 - p * p;
+          n.grupo.position.set(0, ALTURA_CAIDA * altura, 0);
+        }
         n.grupo.visible = true;
 
         if (p >= 1) {
           n.anim = null;
-          if (a.saliendo) { soltar(n.grupo); delete nodos[clave]; }
+          if (a.saliendo) { soltar(n.grupo); delete mapa[clave]; }
         } else activo = true;
       });
       return activo;
@@ -333,6 +416,20 @@
        esta orientacion. Interpolar entre dos distancias correctas en los
        extremos no sirve: a mitad de camino la inclinacion mete la altura de los
        muros en pantalla y la vivienda se sale del cuadro. */
+    function distanciaPara(puntos, margen) {
+      var tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+      var tanH = tanV * camera.aspect;
+      var dist = 0;
+      for (var i = 0; i < puntos.length; i++) {
+        esquina.set(puntos[i][0], puntos[i][1], puntos[i][2]);
+        var a = esquina.dot(dir);
+        var h = Math.abs(esquina.dot(derecha)) / tanH;
+        var v = Math.abs(esquina.dot(arriba)) / tanV;
+        dist = Math.max(dist, a + Math.max(h, v) * margen);
+      }
+      return dist;
+    }
+
     function encuadrar() {
       if (!caja) return;
       var ELEVACION = THREE.MathUtils.degToRad(elevacionGrados);
@@ -347,20 +444,21 @@
       derecha.crossVectors(frente, ARRIBA).normalize();
       arriba.crossVectors(derecha, frente);
 
-      var tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-      var tanH = tanV * camera.aspect;
-      var dist = 0;
-      for (var i = 0; i < esquinasCaja.length; i++) {
-        esquina.set(esquinasCaja[i][0], esquinasCaja[i][1], esquinasCaja[i][2]);
-        var a = esquina.dot(dir);
-        var h = Math.abs(esquina.dot(derecha)) / tanH;
-        var v = Math.abs(esquina.dot(arriba)) / tanV;
-        dist = Math.max(dist, a + Math.max(h, v) * MARGEN);
+      var dist = distanciaPara(esquinasCaja, MARGEN);
+      /* Con el entorno: se mezcla hacia el encuadre del disco del barrio
+         (centro y distancia), calculado igual, por puntos contra el frustum.
+         Mezclar los dos resultados y no estirar uno: el centro del barrio no
+         es el de la casa, y estirar la distancia dejaria el disco corrido. */
+      if (fEnt > 0 && layoutEnt) {
+        var k = fEnt;
+        var dEnt = distanciaPara(layoutEnt.puntos, MARGEN_ENTORNO);
+        objetivo.set(
+          objetivo.x + (layoutEnt.cx - objetivo.x) * k,
+          objetivo.y * (1 - k),
+          objetivo.z + (layoutEnt.cz - objetivo.z) * k
+        );
+        dist += (dEnt - dist) * k;
       }
-      // Deszoom de la previa de entorno: estira la distancia YA ajustada al
-      // plano, no reemplaza el calculo — así el punto de mira sigue siendo el
-      // centro de la casa en vez de saltar al centro del anillo de carreteras.
-      dist *= 1 + factorEntorno * ZOOM_ENTORNO;
       camera.position.copy(objetivo).addScaledVector(dir, dist);
       camera.lookAt(objetivo);
     }
@@ -528,88 +626,6 @@
       return g;
     }
 
-    /* ---------- entorno (carreteras y arboles) ----------
-       Paisaje fijo alrededor del lote: un anillo de calle a una distancia
-       proporcional a la casa, con arboles en la franja de pasto entre el lote
-       y la calle. Deliberadamente fuera del encuadre normal (`MARGEN` en
-       `encuadrar` solo ajusta a la caja de la casa) — es lo que revela el
-       deszoom de la pregunta de entorno. */
-
-    var OFFSET_VIA = 2.2, ANCHO_VIA = 1.6;
-
-    // Determinista, no Math.random(): si el arbolado cambiara en cada
-    // repintado (cada tecla del buscador de amenidades) se leeria como que la
-    // escena tiembla en vez de como paisaje quieto.
-    function pseudoAleatorio(i, sal) {
-      var n = Math.sin(i * 12.9898 + sal * 78.233) * 43758.5453;
-      return n - Math.floor(n);
-    }
-
-    function construirEntorno(caja, M) {
-      var g = new THREE.Group();
-      var hx = caja.halfExtents[0], hz = caja.halfExtents[2];
-      var innerX = hx + OFFSET_VIA, innerZ = hz + OFFSET_VIA;
-      var outerX = innerX + ANCHO_VIA, outerZ = innerZ + ANCHO_VIA;
-      var Y_VIA = -HUNDIR_BASE + 0.001; // apenas sobre la losa, sin z-fighting
-
-      // Anillo de calle: norte/sur cubren el ancho completo; este/oeste
-      // cubren el largo completo para tapar las esquinas del marco.
-      [-1, 1].forEach(function (signo) {
-        var ns = new THREE.Mesh(new THREE.BoxGeometry(outerX * 2, 0.02, ANCHO_VIA), M.asfalto);
-        ns.position.set(caja.center[0], Y_VIA, caja.center[2] + signo * (innerZ + ANCHO_VIA / 2));
-        ns.receiveShadow = true;
-        g.add(ns);
-
-        var eo = new THREE.Mesh(new THREE.BoxGeometry(ANCHO_VIA, 0.02, outerZ * 2), M.asfalto);
-        eo.position.set(caja.center[0] + signo * (innerX + ANCHO_VIA / 2), Y_VIA, caja.center[2]);
-        eo.receiveShadow = true;
-        g.add(eo);
-
-        // Franja central, mas clara: sin ella la calle se lee como un charco
-        // gris uniforme a la distancia de camara final.
-        var linNS = new THREE.Mesh(new THREE.BoxGeometry(outerX * 1.9, 0.021, 0.06), M.marcaVial);
-        linNS.position.set(caja.center[0], Y_VIA, caja.center[2] + signo * (innerZ + ANCHO_VIA / 2));
-        g.add(linNS);
-        var linEO = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.021, outerZ * 1.9), M.marcaVial);
-        linEO.position.set(caja.center[0] + signo * (innerX + ANCHO_VIA / 2), Y_VIA, caja.center[2]);
-        g.add(linEO);
-      });
-
-      // Arboles repartidos en la franja de pasto entre el lote y la calle,
-      // uno por lado en vez de un anillo continuo: a la distancia final del
-      // deszoom un puñado se lee mejor que una fila apretada.
-      var perimetro = 2 * (hx + hz);
-      var nArboles = Math.max(6, Math.round(perimetro / 2.2));
-      for (var i = 0; i < nArboles; i++) {
-        var t = i / nArboles;
-        var jitter = (pseudoAleatorio(i, 3.1) - 0.5) * 0.6;
-        var lado = Math.floor(t * 4);
-        var frac = t * 4 - lado + jitter * 0.2;
-        var radioX = hx + OFFSET_VIA * (0.35 + pseudoAleatorio(i, 7.7) * 0.3);
-        var radioZ = hz + OFFSET_VIA * (0.35 + pseudoAleatorio(i, 5.3) * 0.3);
-        var x, z;
-        if (lado === 0) { x = -radioX + frac * radioX * 2; z = -radioZ; }
-        else if (lado === 1) { x = radioX; z = -radioZ + frac * radioZ * 2; }
-        else if (lado === 2) { x = radioX - frac * radioX * 2; z = radioZ; }
-        else { x = -radioX; z = radioZ - frac * radioZ * 2; }
-
-        var alto = 0.9 + pseudoAleatorio(i, 9.1) * 0.5;
-        var arbol = new THREE.Group();
-        var tronco = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, alto, 6), M.tronco);
-        tronco.position.y = alto / 2;
-        tronco.castShadow = true;
-        arbol.add(tronco);
-        var copa = new THREE.Mesh(new THREE.ConeGeometry(0.38 + pseudoAleatorio(i, 2.2) * 0.14, 0.75, 7), M.follaje);
-        copa.position.y = alto + 0.32;
-        copa.castShadow = true;
-        arbol.add(copa);
-        arbol.position.set(caja.center[0] + x, 0, caja.center[2] + z);
-        g.add(arbol);
-      }
-
-      return g;
-    }
-
     /* ---------- aplicar un plano ---------- */
 
     function aplicarPlan(plan, opts) {
@@ -647,18 +663,6 @@
       baseNodo.position.set(caja.center[0], -GROSOR_BASE / 2 - HUNDIR_BASE, caja.center[2]);
       baseNodo.receiveShadow = true;
       raiz.add(baseNodo);
-
-      // El entorno (carreteras + arboles) tampoco se anima: es paisaje fijo
-      // alrededor del lote, fuera del encuadre normal (solo se ve durante el
-      // deszoom de `previsualizarEntorno`). Se reconstruye con cada plano
-      // porque su tamano depende de `caja`.
-      // Oculto salvo durante el deszoom (ver `previsualizarEntorno`): a la
-      // distancia de camara normal no deberia asomar ni un pedazo de calle.
-      var entornoVisible = !!previaEntorno;
-      if (entornoNodo) soltar(entornoNodo);
-      entornoNodo = construirEntorno(caja, M);
-      entornoNodo.visible = entornoVisible;
-      raiz.add(entornoNodo);
 
       var nuevas = piezasDe(plan);
       var vistas = {};
@@ -719,6 +723,10 @@
         });
       }
 
+      // El entorno depende de la huella y de la puerta de entrada: se
+      // re-sincroniza con cada plano, pero solo cambia si cambian ellas.
+      sincronizarEntorno();
+
       edad = 0;
       encuadrar();
       pedirCuadro();
@@ -750,7 +758,7 @@
       if (ro) ro.disconnect();
       Object.keys(nodos).forEach(function (c) { soltar(nodos[c].grupo); delete nodos[c]; });
       if (baseNodo) soltar(baseNodo);
-      if (entornoNodo) soltar(entornoNodo);
+      Object.keys(nodosEntorno).forEach(function (c) { soltar(nodosEntorno[c].grupo); delete nodosEntorno[c]; });
       renderer.dispose();
       if (lienzo.parentNode) lienzo.parentNode.removeChild(lienzo);
     }
@@ -758,11 +766,14 @@
     return {
       montar: montar, aplicarPlan: aplicarPlan, encuadrar: encuadrar,
       pedirCuadro: pedirCuadro, dispose: dispose,
-      previsualizarEntorno: previsualizarEntorno, finalizarVistaSuperior: finalizarVistaSuperior,
+      fijarEntorno: fijarEntorno, finalizarVistaSuperior: finalizarVistaSuperior,
       resetCamara: resetCamara,
       canvas: lienzo, renderer: renderer, scene: scene, camera: camera,
       plan: function () { return planActual; },
-      piezas: function () { return Object.keys(nodos).length; }
+      piezas: function () { return Object.keys(nodos).length; },
+      entorno: function () {
+        return { activo: !!entornoPedido, piezas: Object.keys(nodosEntorno), asignacion: asignacion, layout: layoutEnt };
+      }
     };
   }
 

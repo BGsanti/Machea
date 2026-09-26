@@ -129,12 +129,49 @@
       }),
       tapete: mat('#a8552f', 0.95),
       follaje: mat('#4d7a3f', 0.9),
-      // Entorno de la pregunta de amenidades: se ven solo en el deszoom, a
-      // buena distancia de camara, asi que no hace falta la sutileza de los
-      // acabados interiores.
+      /* Entorno (entorno.js): se ve con la camara alejada, asi que manda la
+         lectura por color, no la sutileza de los acabados interiores. Verdes
+         distintos por capa (barrio, lote, copas) o todo se funde en una
+         mancha. Las copas van facetadas: estilo maqueta, no follaje. */
       asfalto: mat('#55585c', 0.95),
-      marcaVial: mat('#d8d5cc', 0.5),
+      marcaVial: mat('#e8e4d8', 0.5),
+      bordillo: mat('#b9b4aa', 0.9),
+      acera: mat('#d6d1c6', 0.9),
+      adoquin: mat('#cdb28a', 0.85),
+      deck: mat('#c89a6a', 0.75),
       tronco: mat('#6b4a2a', 0.85),
+      pasto: mat('#7da45a', 0.95),
+      pastoLote: mat('#93bb66', 0.95),
+      tierra: mat('#8a6647', 1),
+      seto: mat('#4f8a44', 0.9),
+      copa: new THREE.MeshStandardMaterial({ color: '#5b9a48', roughness: 0.9, flatShading: true }),
+      copaClara: new THREE.MeshStandardMaterial({ color: '#86b852', roughness: 0.9, flatShading: true }),
+      copaOscura: new THREE.MeshStandardMaterial({ color: '#3d7446', roughness: 0.9, flatShading: true }),
+      flor1: mat('#e8658c', 0.8), flor2: mat('#f4c247', 0.8), flor3: mat('#a98be6', 0.8),
+      agua: new THREE.MeshStandardMaterial({
+        color: '#45b4e0', roughness: 0.08, metalness: 0.1, emissive: '#0e4a66', emissiveIntensity: 0.35
+      }),
+      aguaClara: mat('#bfeaf7', 0.2),
+      arena: mat('#e6d19c', 1),
+      canchaVerde: mat('#4f9e6c', 0.8),
+      canchaAzul: mat('#3c7cc4', 0.7),
+      canchaBorde: mat('#c96f4a', 0.85),
+      pista: mat('#c95a40', 0.9),
+      pisoJuegos: mat('#6fb3a8', 0.9),
+      red: mat('#2d3033', 0.8),
+      blanco: mat('#f3f1eb', 0.6),
+      metal: mat('#6d7277', 0.4, 0.5),
+      farol: new THREE.MeshStandardMaterial({ color: '#fff4d6', emissive: '#ffe2a0', emissiveIntensity: 0.6 }),
+      ventanal: mat('#3e5668', 0.2, 0.3),
+      techo: mat('#8b8e91', 0.85),
+      techoRojo: mat('#b9573f', 0.85),
+      clubMuro: mat('#efe3cf', 0.85),
+      edificio1: mat('#e6d8c3', 0.9), edificio2: mat('#cbb8a2', 0.9),
+      edificio3: mat('#c4d0d4', 0.9), edificio4: mat('#ecc9a2', 0.9),
+      toldo1: mat('#dd5a4e', 0.8), toldo2: mat('#2f9487', 0.8), toldo3: mat('#f1a73a', 0.8),
+      auto1: mat('#d64a3c', 0.45, 0.2), auto2: mat('#3f6fba', 0.45, 0.2),
+      auto3: mat('#f1efe9', 0.45, 0.2), auto4: mat('#f2b93b', 0.45, 0.2),
+      llanta: mat('#2b2d30', 0.8),
       // Madera clara: una hoja casi blanca no se distingue del muro donde va.
       puerta: mat('#d9bd97', 0.65),
       // Mas claro que los muros, para que el marco se lea como pieza aparte.
