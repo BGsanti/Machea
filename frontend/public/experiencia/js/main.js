@@ -86,6 +86,7 @@
     attachInputListeners();
     // sceneBlock ya dejo el hueco del mapa en el HTML nuevo; esto lo llena.
     updateMapaDOM(derived);
+    if (window.GDF3D) window.GDF3D.actualizar(state, derived);
   }
 
   // Los inputs de nombre/apellido/correo/teléfono son "no controlados":
@@ -779,6 +780,11 @@
   function renderEntornoChips() {
     var cont = document.getElementById('entornoChips');
     if (!cont) return;
+    // El barrio 3D reacciona a cada chip, no al pulsar "Continuar": cada
+    // amenidad elegida cae en el lote alrededor de la casa (plano3d/entorno.js).
+    if (window.GDF3D && window.GDF3D.seleccionarEntorno) {
+      window.GDF3D.seleccionarEntorno(entornoSeleccion);
+    }
     var q = findQuestionById('entorno_deseado');
     cont.innerHTML = entornoSeleccion
       .map(function (valor) {
@@ -881,6 +887,98 @@
     if (action === 'reintentarResumen') {
       iniciarPolling(telefonoEnCurso);
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Cierre del quiz: confeti + cámara a vista cenital antes de saltar a
+  // 'result'. `dispatch('selectOption', ...)` es lo que de verdad cambia de
+  // pantalla y dispara `cargarRecomendaciones()` (ver 'dispatch' arriba); acá
+  // solo se retrasa ESE llamado lo que dura la animación, nada de state.js
+  // cambia. Si el 3D no está activo (sin WebGL, gama baja), solo queda el
+  // confeti y el salto es casi inmediato.
+  function finalizarQuizConFiesta(qid, valor) {
+    lanzarConfeti();
+    var DURACION_CAMARA = 900;
+    var yaTermino = false;
+    var saltarAResultado = function () {
+      if (yaTermino) return;   // por si el callback y el watchdog coinciden
+      yaTermino = true;
+      dispatch('selectOption', { qid: qid, value: valor });
+    };
+    if (window.GDF3D && window.GDF3D.activo && window.GDF3D.activo()) {
+      window.GDF3D.finalizarVistaSuperior(DURACION_CAMARA, saltarAResultado);
+      // Salvavidas: si el contenedor se desmonta a mitad de la animación (el
+      // usuario navega fuera), el callback de la escena nunca llega solo.
+      setTimeout(saltarAResultado, DURACION_CAMARA + 400);
+    } else {
+      setTimeout(saltarAResultado, 550);
+    }
+  }
+
+  // Lluvia de rectángulos de color con física mínima (gravedad + giro), en un
+  // <canvas> propio pegado a <body> — no a #root, que `render()` reconstruye
+  // por innerHTML y se llevaría el confeti a mitad de la caída. Vanilla, sin
+  // librería: mismo criterio que el resto de `plano3d/` (ver CLAUDE.md).
+  function lanzarConfeti() {
+    var lienzo = document.createElement('canvas');
+    lienzo.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999';
+    document.body.appendChild(lienzo);
+    var ctx = lienzo.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function medir() {
+      lienzo.width = window.innerWidth * dpr;
+      lienzo.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    medir();
+    window.addEventListener('resize', medir);
+
+    // Colores de marca: naranja/dorado de la app, no un arcoíris genérico.
+    var COLORES = ['#ff7a18', '#ff9d3f', '#e6bd00', '#ffbe8c', '#e7ebf0'];
+    var GRAVEDAD = 260;
+    var DURACION = 1600;
+    var piezas = [];
+    for (var i = 0; i < 140; i++) {
+      piezas.push({
+        x: Math.random() * window.innerWidth,
+        y: -20 - Math.random() * window.innerHeight * 0.5,
+        w: 6 + Math.random() * 5,
+        h: 8 + Math.random() * 6,
+        vx: (Math.random() - 0.5) * 140,
+        vy: 180 + Math.random() * 220,
+        rot: Math.random() * Math.PI * 2,
+        vr: (Math.random() - 0.5) * 8,
+        color: COLORES[i % COLORES.length],
+      });
+    }
+
+    var inicio = null, ultimo = null;
+    function cuadro(t) {
+      if (inicio === null) { inicio = t; ultimo = t; }
+      var dt = Math.min((t - ultimo) / 1000, 0.05);
+      ultimo = t;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      piezas.forEach(function (p) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += GRAVEDAD * dt;
+        p.rot += p.vr * dt;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      if (t - inicio < DURACION) {
+        requestAnimationFrame(cuadro);
+      } else {
+        window.removeEventListener('resize', medir);
+        lienzo.remove();
+      }
+    }
+    requestAnimationFrame(cuadro);
   }
 
   // Paso 2 del contrato: POST /api/llamar (ver js/llamada.js). Mismo patrón
@@ -1114,6 +1212,7 @@
    *   - la que sobra      -> se la lleva la grúa (.saliendo) y queda el hueco
    */
   function updatePlantaDOM(derived) {
+    if (window.GDF3D) window.GDF3D.actualizar(state, derived);
     var losa = root.querySelector('.gdf-losa');
     if (!losa) return;
 
@@ -1597,7 +1696,15 @@
       var n = numInput ? Number(numInput.value) : NaN;
       var valid = numInput && numInput.value !== '' && !isNaN(n) && (!q || (n >= q.min && n <= q.max));
       if (!valid) return;
-      dispatch('selectOption', { qid: el.dataset.qid, value: String(Math.round(n)) });
+      var valorEdad = String(Math.round(n));
+      // 'edad' va de ultima A PROPOSITO (ver data.js): contestarla es lo que
+      // manda a 'result'. Es el unico punto donde vale la pena la fiesta de
+      // cierre, y por eso se intercepta aqui en vez de en 'selectOption'.
+      if (el.dataset.qid === 'edad') {
+        finalizarQuizConFiesta(el.dataset.qid, valorEdad);
+        return;
+      }
+      dispatch('selectOption', { qid: el.dataset.qid, value: valorEdad });
       return;
     }
     if (el.dataset.action === 'answerQuizText') {
