@@ -58,6 +58,22 @@
   }
 
   function actualizar(state, derived) {
+    /* La pregunta de ubicacion (`escena: 'mapa'`) es del mapa de Leaflet: el 3D
+       empieza en la siguiente. Volver a ella desde la 2 no repinta la escena
+       (updateQuizDOM la conserva), asi que aqui se suelta el lienzo y la clase
+       para que el 2D quede como en version_0.5. Y la camara se reinicia AQUI
+       porque "Empezar de nuevo" cae en esta pregunta y ya no llega al
+       `paso < 1` de abajo. */
+    if (derived && derived.q && derived.q.escena === 'mapa') {
+      var hostMapa = document.querySelector('.gdf-scene');
+      if (hostMapa) hostMapa.classList.remove('con-plano3d');
+      if (escena) {
+        if (escena.canvas.parentNode) escena.canvas.parentNode.removeChild(escena.canvas);
+        escena.resetCamara();
+      }
+      return false;
+    }
+
     var esc = crear();
     if (!esc) return false;
 
