@@ -4,32 +4,45 @@
 (function () {
   'use strict';
 
-  /* Que ambiente se desbloquea al contestar cada pregunta.
-     El numero es CUANTAS respuestas hacen falta, no el indice de la pregunta:
-     asi reordenar el formulario es cambiar esta tabla y nada mas.
+  /* Que pregunta desbloquea cada ambiente, por ID y no por posicion.
+     Las etapas (CUANTAS respuestas hacen falta) salen del orden real del
+     formulario de la anfitriona: en Machea, `zona` paso a ser la primera y una
+     tabla de numeros fijos dejo toda la construccion corrida una pregunta
+     (la sala salia antes de contestar el tipo y las alcobas antes de
+     contestar cuantas).
 
-     El orden actual de la anfitriona es
-     tipo · ingresos · personas · habitaciones · zona · entorno · edad.
-     `zona` y `entorno` no construyen nada — la primera solo ordena los
+     `zona` y `entorno_deseado` no construyen nada — la primera solo ordena los
      proyectos recomendados y la segunda son amenidades del conjunto, no de la
-     vivienda. Son dos pasos con la escena quieta; si molesta, la solucion es
-     reordenar el formulario, no inventarles un efecto falso. */
-  var ETAPAS = {
-    sala: 1,        // tipo
-    comedor: 2,     // ingresos  (ademas sube los extras de la sala)
-    cocina: 3,      // personas
-    ropas: 3,
-    bano: 4,        // habitaciones
-    alcoba1: 4,
-    alcobas: 4,
-    /* Antes en 7 (edad), la ultima pregunta: su area ya estaba reservada en el
+     vivienda. Son pasos con la escena quieta. Mientras nada se haya
+     desbloqueado la losa lleva el replanteo de obra y la camara encuadra el
+     lote entero (ver `aplicarPlan` en escena.js). */
+  var DESBLOQUEA = {
+    sala: 'tipo',
+    comedor: 'ingresos',     // ademas sube los extras de la sala
+    /* Antes con `edad`, la ultima pregunta: su area ya estaba reservada en el
        programa completo desde la primera respuesta (asi los muros no bailan),
        pero sin nadie construyendo ahi se veia como losa cruda pegada a la
        cocina durante media encuesta. Se adelanta junto al resto de la zona
        social: `esJoven` ya tiene un default (< 35 anios) para nombrarla antes
        de saber la edad real, igual que hace con el mobiliario. */
-    flexible: 2     // ingresos, junto con sala/comedor
+    flexible: 'ingresos',
+    cocina: 'personas',
+    ropas: 'personas',
+    bano: 'habitaciones',
+    alcoba1: 'habitaciones',
+    alcobas: 'habitaciones'
   };
+
+  // El prototipo (Vivienda 3D) no carga la lista de preguntas de Machea.
+  var ORDEN_PROTOTIPO = ['tipo', 'ingresos', 'personas', 'habitaciones', 'zona', 'entorno_deseado', 'edad'];
+
+  var qs = window.GDF && window.GDF.data && window.GDF.data.QUESTIONS;
+  var orden = qs && qs.length ? qs.map(function (q) { return q.id; }) : ORDEN_PROTOTIPO;
+
+  var ETAPAS = {};
+  Object.keys(DESBLOQUEA).forEach(function (ambiente) {
+    ETAPAS[ambiente] = orden.indexOf(DESBLOQUEA[ambiente]) + 1;
+  });
 
   /* Nivel de ingresos -> ACABADOS y extras. No mueve muros: el tamano ya lo
      fijan tipo y habitaciones, y que el plano salte por el ingreso seria
