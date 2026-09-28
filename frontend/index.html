@@ -1194,7 +1194,9 @@ window.MACHEA = {
     // Botón "Ir al formulario completo" de la demo. Vacío = botón ilustrativo (no navega).
     // Apunta al formulario de 7 preguntas con el plano 3D (public/experiencia/). Se nombra
     // index.html y no el directorio: en `vite dev` una ruta sin extensión devuelve la landing.
-    formularioURL: '/experiencia/index.html?marca=machea'
+    // `embed=1` entra directo a la toma de datos ("Primero, preséntate"), sin la portada
+    // "Encuentra tu próximo hogar": quien pulsó el botón ya decidió empezar.
+    formularioURL: '/experiencia/index.html?marca=machea&embed=1'
   },
 
   // Ejemplo de compatibilidad que devuelve el modelo (cifra de la landing actual, sin datos del proyecto).
