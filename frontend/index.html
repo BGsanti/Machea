@@ -14,7 +14,8 @@
 /* ==========================================================================
    MACHEA — landing (iteración 3 · versión clara, película de día)
    Lienzo blanco. Marca como acento: navy #2D3B4E · coral #FF6259 ·
-   esmeralda #2DD4A7 · beige #FDF6F0 · degradado amanecer solo en toques.
+   beige #FDF6F0. Esmeralda #2DD4A7 SOLO en la película inicial (ciudad, hero,
+   capítulos); en el resto de la página el "listo/calificado" va en navy. · degradado amanecer solo en toques.
    Tipografía: Archivo variable (peso + ancho), una sola familia.
    ========================================================================== */
 
@@ -29,10 +30,10 @@
   --coral-ink: #e0463d;
   --coral-l: #ff8a84;
   --coral-soft: #fff0ee;
-  --peach: #ffb199;
+  /* Solo para la película inicial (#inicio) */
   --emerald: #2dd4a7;
   --emerald-ink: #139a78;
-  --emerald-soft: #e8faf4;
+  --peach: #ffb199;
   --ink: var(--navy);
   --ink-2: rgba(45, 59, 78, .72);
   --ink-3: rgba(45, 59, 78, .5);
@@ -230,6 +231,7 @@ svg { display: block; }
 .deadform .bar { display: flex; gap: 5px; align-items: center; margin-bottom: 10px; }
 .deadform .bar i { width: 8px; height: 8px; border-radius: 50%; background: #f87171; }
 .deadform .bar i:nth-child(2) { background: #facc15; } .deadform .bar i:nth-child(3) { background: #22c55e; }
+
 .deadform .bar span { margin-left: 6px; font-size: 10px; opacity: .45; font-family: var(--f); }
 .deadform h4 { font-family: Georgia, serif; text-align: center; font-size: 17px; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; margin-bottom: 8px; }
 .deadform label { display: block; font-size: 11px; opacity: .6; margin-top: 7px; }
@@ -337,7 +339,7 @@ svg { display: block; }
 .st-copy .t-label i { font-style: normal; color: var(--ink-3); }
 .st-copy h3 { font-size: clamp(1.6rem, 2.3vw, 2.35rem); font-weight: 540; font-stretch: 94%; letter-spacing: -.028em; line-height: 1.06; margin-top: 18px; color: var(--navy); }
 .st-copy p { margin-top: 18px; color: var(--ink-2); max-width: 38ch; }
-.st-copy .tag { margin-top: 22px; display: inline-flex; align-items: center; gap: 10px; color: var(--emerald-ink); }
+.st-copy .tag { margin-top: 22px; display: inline-flex; align-items: center; gap: 10px; color: var(--coral-ink); }
 .st-copy .tag::before { content: ""; width: 18px; height: 1.5px; background: currentColor; }
 
 .st-rail { position: absolute; left: var(--gutter); right: var(--gutter); bottom: calc(26px + env(safe-area-inset-bottom, 0px)); z-index: 6; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; margin: 0; padding: 0; }
@@ -369,7 +371,7 @@ svg { display: block; }
 .st-profile .row small { color: var(--ink-3); }
 .st-profile .row b { font-weight: 600; font-size: 15px; }
 .st-profile .score { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-top: 18px; }
-.st-profile .score .t-num { font-size: 88px; color: var(--emerald-ink); }
+.st-profile .score .t-num { font-size: 88px; color: var(--coral-ink); }
 .st-profile .score p { color: var(--ink-2); font-size: 13px; line-height: 1.45; max-width: 18ch; text-align: right; }
 .st-chain { position: absolute; left: 0; top: 0; z-index: 4; display: flex; align-items: center; gap: 16px; color: var(--ink-4); }
 .st-chain span { color: var(--navy); }
@@ -379,13 +381,13 @@ svg { display: block; }
 .st-line { position: absolute; left: 0; top: 0; z-index: 4; overflow: visible; }
 .st-line .base { stroke: var(--hair-2); stroke-width: 1.5; fill: none; }
 .st-line .draw { stroke: var(--navy); stroke-width: 2; fill: none; stroke-linecap: round; }
-.st-line .branch { stroke: #1a9d4f; stroke-width: 1.5; fill: none; }
+.st-line .branch { stroke: rgba(45,59,78,.45); stroke-width: 1.5; fill: none; }
 .st-line .wave { stroke: var(--coral); stroke-width: 1.8; fill: none; }
 .st-line .stn { fill: #fff; stroke: var(--navy); stroke-width: 2; }
-.st-line .stn.fin { fill: var(--emerald); stroke: var(--emerald-ink); }
+.st-line .stn.fin { fill: var(--navy); stroke: var(--navy); }
 .st-line .lbl { font-family: var(--f); font-size: 11px; font-weight: 650; font-stretch: 116%; letter-spacing: .13em; text-transform: uppercase; fill: var(--navy); }
 .st-line .lbl.c { fill: var(--coral-ink); }
-.st-line .lbl.g { fill: #16874a; }
+.st-line .lbl.g { fill: var(--navy); }
 .st-line .val { font-family: var(--f); font-size: 19px; font-weight: 520; font-stretch: 94%; letter-spacing: -.015em; fill: var(--navy); }
 .st-line .sm { font-family: var(--f); font-size: 13px; fill: var(--ink-3); }
 .st-line .pkt rect { fill: var(--navy); }
@@ -399,7 +401,7 @@ svg { display: block; }
 .st-result > .t-label { color: var(--coral-ink); }
 .st-result > .t-label i { font-style: normal; }
 .st-result h3 { color: var(--navy); margin-top: clamp(12px, 2.2vh, 22px); font-size: clamp(2rem, min(3.5vw, 6.4vh), 3.6rem); }
-.st-result h3 .ln + .ln { color: var(--emerald-ink); }
+.st-result h3 .ln + .ln { color: var(--coral-ink); }
 .st-result > p { color: var(--ink-2); margin-top: clamp(10px, 2vh, 22px); max-width: 42ch; }
 .st-result .btn { margin-top: clamp(18px, 3.4vh, 30px); flex: none; }
 .st-foot { position: absolute; z-index: 6; right: var(--gutter); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); max-width: 40ch; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; text-align: right;
@@ -456,7 +458,7 @@ svg { display: block; }
 .pr-status { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); }
 .pr-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--hair-2); transition: background-color .4s; }
 .pr-status.is-building::before { background: var(--coral); animation: live 1s ease-in-out infinite; }
-.pr-status.is-done::before { background: var(--emerald); }
+.pr-status.is-done::before { background: var(--navy); }
 .pr-body { display: grid; grid-template-columns: minmax(340px, 5fr) minmax(0, 7fr); min-height: 620px; }
 .pr-panel { padding: clamp(28px, 3vw, 44px); display: flex; flex-direction: column; border-right: 1px solid var(--hair); position: relative; }
 .pr-panel .q-k { font-size: 12.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--coral-ink); }
@@ -475,17 +477,21 @@ svg { display: block; }
 /* el boton elegido se "llena" mientras la vivienda se arma */
 .q-rooms button i { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--coral); transform-origin: 0 50%; transform: scaleX(0); }
 .q-live { margin-top: 18px; padding: 13px 15px; border-radius: 12px; background: var(--paper); font-size: 13.5px; color: var(--ink-2); display: flex; gap: 10px; align-items: flex-start; min-height: 48px; }
+/* Escritorio: alto fijo de dos líneas para que el texto no cambie el alto del panel
+   (y con él el del lienzo 3D, que se reencuadraría a mitad de la caída). */
+@media (min-width: 861px) { .q-live { min-height: 72px; } }
+@media (min-width: 861px) and (max-width: 1180px) { .pr-plan .room-list { min-height: 162px; } .pr-panel .q-live { min-height: 92px; } }
 .q-live svg { width: 16px; height: 16px; flex: none; margin-top: 2px; color: var(--coral); }
 .q-live b { color: var(--navy); font-weight: 600; }
 .pr-plan { margin-top: 22px; margin-bottom: 22px; }
-.pr-plan-k { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
-.pr-plan-k b { font-weight: 600; letter-spacing: .02em; text-transform: none; font-size: 13px; color: var(--emerald-ink); }
-.room-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 7px; min-height: 116px; }
+.pr-plan-k { line-height: 18px; height: 18px; display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.pr-plan-k b { font-weight: 600; letter-spacing: .02em; text-transform: none; font-size: 13px; color: var(--coral-ink); }
+.room-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 7px; min-height: 120px; }
 .room-list li { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--ink-3); background: #fff; box-shadow: inset 0 0 0 1px var(--hair-2);
   transition: color .4s var(--ease), background-color .4s var(--ease), box-shadow .4s var(--ease), transform .45s var(--ease); }
 .room-list li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--hair-2); transition: background-color .4s; }
 .room-list li.on { color: var(--navy); box-shadow: inset 0 0 0 1px rgba(45,59,78,.28); }
-.room-list li.on::before { background: var(--emerald); }
+.room-list li.on::before { background: var(--navy); }
 .room-list li.pop { transform: translateY(-3px); }
 .pr-full { margin-top: auto; width: 100%; justify-content: space-between; padding: 16px 20px; }
 .pr-full-t { display: inline-flex; align-items: baseline; gap: 10px; }
@@ -499,7 +505,7 @@ svg { display: block; }
 .pr-build { position: absolute; left: 18px; top: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px 7px 10px; border-radius: 999px; background: rgba(255,255,255,.9); box-shadow: 0 0 0 1px var(--hair), var(--shadow-1); font-size: 13px; font-weight: 500; color: var(--navy); opacity: 0; transform: translateY(-6px); transition: opacity .4s var(--ease), transform .4s var(--ease); pointer-events: none; }
 .pr-build.show { opacity: 1; transform: none; }
 .pr-build i { width: 7px; height: 7px; border-radius: 50%; background: var(--coral); animation: live 1s ease-in-out infinite; }
-.pr-build.done i { background: var(--emerald); animation: none; }
+.pr-build.done i { background: var(--navy); animation: none; }
 .pr-hint { position: absolute; left: 18px; bottom: 14px; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); pointer-events: none; transition: opacity .5s; }
 .pr-hint svg { width: 14px; height: 14px; }
 .pr-cap { position: absolute; right: 18px; bottom: 14px; font-size: 11.5px; color: var(--ink-4); pointer-events: none; }
@@ -529,10 +535,10 @@ svg { display: block; }
 .ben-panel p { color: var(--ink-2); margin-top: 14px; max-width: 40ch; }
 .ben-panel .bp-extra { margin-top: 24px; }
 .ben-panel .bp-foot { margin-top: auto; padding-top: 24px; color: var(--ink-3); font-size: 13.5px; border-top: 1px solid var(--hair); }
-.mm { display: flex; align-items: flex-end; gap: 18px; padding: 16px 18px; border-radius: 12px; background: var(--emerald-soft); }
-.mm .t-num { font-size: 64px; font-weight: 300; font-stretch: 72%; letter-spacing: -.05em; line-height: .8; color: var(--emerald-ink); }
+.mm { display: flex; align-items: flex-end; gap: 18px; padding: 16px 18px; border-radius: 12px; background: var(--coral-soft); }
+.mm .t-num { font-size: 64px; font-weight: 300; font-stretch: 72%; letter-spacing: -.05em; line-height: .8; color: var(--coral-ink); }
 .mm .t-num small { font-size: .5em; }
-.mm div small { display: block; font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--emerald-ink); }
+.mm div small { display: block; font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--coral-ink); }
 .mm div span { display: block; font-size: 13.5px; color: var(--ink-2); margin-top: 4px; }
 
 /* ==========================================================================
@@ -572,8 +578,8 @@ svg { display: block; }
 .stack .it .k { font-size: 12px; font-weight: 600; letter-spacing: .12em; color: var(--coral-ink); padding-top: 4px; }
 .stack .it h4 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
 .stack .it p { color: var(--ink-2); font-size: 15px; margin-top: 4px; }
-.guarantee { margin-top: 26px; max-width: 600px; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 20px; border-radius: 14px; background: var(--emerald-soft); }
-.guarantee .gi { width: 34px; height: 34px; border-radius: 50%; background: var(--emerald); color: #fff; display: grid; place-items: center; }
+.guarantee { margin-top: 26px; max-width: 600px; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 20px; border-radius: 14px; background: var(--coral-soft); }
+.guarantee .gi { width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; }
 .guarantee .gi svg { width: 16px; height: 16px; }
 .guarantee h4 { font-size: 17px; font-weight: 600; }
 .guarantee p { font-size: 15px; color: var(--ink-2); margin-top: 4px; }
@@ -592,7 +598,7 @@ svg { display: block; }
 .form-ok { display: none; }
 .form-card.done form { display: none; }
 .form-card.done .form-ok { display: block; }
-.form-ok .ok-i { width: 44px; height: 44px; border-radius: 50%; background: var(--emerald); color: #fff; display: grid; place-items: center; }
+.form-ok .ok-i { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; }
 .form-ok .ok-i svg { width: 20px; height: 20px; }
 .form-ok h3 { margin-top: 18px; }
 .form-ok p { color: var(--ink-2); margin: 10px 0 18px; font-size: 15px; }
@@ -1353,18 +1359,18 @@ window.MacheaCity = (function () {
     '  float lead = step(r1, uLit * vInfo.z * 0.34);',
     '  float cold = lead * step(r2, uCool);',
     '  float qual = step(r3, uQual * 0.62) * step(r1, 0.9);',
-    '  vec3 coral = vec3(1.0, 0.384, 0.349), emer = vec3(0.176, 0.831, 0.655), navy = vec3(0.176, 0.231, 0.306);',
+    '  vec3 coral = vec3(1.0, 0.384, 0.349), qualC = vec3(0.176, 0.831, 0.655), navy = vec3(0.176, 0.231, 0.306);',
     '  vec3 glass = mix(vec3(0.86, 0.895, 0.925), vec3(0.93, 0.95, 0.965), clamp(vLocal.y / 140.0, 0.0, 1.0));',
     '  glass = mix(glass, vec3(0.8, 0.85, 0.9), step(0.82, r2) * 0.6);',
     '  vec3 leadC = mix(vec3(1.0, 0.74, 0.70), coral, step(0.55, r2));',
     '  vec3 winCol = glass;',
     '  winCol = mix(winCol, leadC, lead * (1.0 - cold));',
     '  winCol = mix(winCol, vec3(0.80, 0.81, 0.83), cold);',
-    '  winCol = mix(winCol, mix(vec3(0.72, 0.94, 0.87), emer, step(0.5, r2)), qual);',
+    '  winCol = mix(winCol, mix(vec3(0.72, 0.94, 0.87), qualC, step(0.5, r2)), qual);',
     // ventana ancla
     '  float isA = vInfo.y * (1.0 - step(0.5, face)) * (1.0 - step(0.5, abs(cell.x - uAnchorCell.x))) * (1.0 - step(0.5, abs(cell.y - uAnchorCell.y)));',
     '  float pulse = 0.8 + 0.2 * sin(uTime * 4.0);',
-    '  vec3 aCol = uAnchorMode > 1.5 ? emer : mix(vec3(1.0,0.74,0.7), coral, pulse);',
+    '  vec3 aCol = uAnchorMode > 1.5 ? qualC : mix(vec3(1.0,0.74,0.7), coral, pulse);',
     '  winCol = mix(winCol, aCol, isA * step(0.5, uAnchorMode));',
     // delineados: marco de ventana, montante, losas y aristas del volumen
     '  vec2 wc = vec2(min(abs(f.x - wmin.x), abs(f.x - wmax.x)) / fw.x, min(abs(f.y - wmin.y), abs(f.y - wmax.y)) / fw.y);',
@@ -7464,7 +7470,7 @@ three/build/three.module.js:
       // azulado son el mismo nivel de saturacion que la madera del piso, asi
       // que compiten con ella en vez de apagarse al lado.
       tela: mat('#c1734a', 0.85),
-      telaAcento: mat('#3f7a78', 0.85),
+      telaAcento: mat('#3d4f66', 0.85), // landing: navy de marca en vez del verde azulado
       cojinAcento: mat('#d99a3a', 0.8),
       linoAzul: mat('#7fa6c2', 0.9),
       linoBlanco: mat('#eceae4', 0.95),
@@ -9207,6 +9213,12 @@ three/build/three.module.js:
   var ALTURA_CAIDA = 5;     // desde que altura cae una pieza, en metros
 
   function suave(t) { return 1 - Math.pow(1 - t, 3); }
+  // Landing: caida con gravedad y un rebote corto al tocar el lote (en fraccion de ALTURA_CAIDA).
+  var IMPACTO = 0.78, REBOTE = 0.035;
+  function caidaConRebote(p) {
+    if (p < IMPACTO) { var q = p / IMPACTO; return 1 - q * q; }
+    return REBOTE * Math.sin(Math.PI * (p - IMPACTO) / (1 - IMPACTO));
+  }
   function n2(v) { return (Math.round(v * 100) / 100).toFixed(2); }
 
   // Tope de la vista cenital, no 90 exactos: en 90 la dirección de cámara
@@ -9633,7 +9645,8 @@ three/build/three.module.js:
           n.grupo.scale.set(1, Math.max(0.001, a.saliendo ? 1 - suave(p) : suave(p)), 1);
         } else {
           // Entra CAYENDO (acelera, como gravedad) y sale SUBIENDO (frena).
-          var altura = a.saliendo ? suave(p) : 1 - p * p;
+          // Landing (`a.rebote`): cae hasta el 78 % del tiempo y da un rebote corto.
+          var altura = a.saliendo ? suave(p) : (a.rebote ? caidaConRebote(p) : 1 - p * p);
           n.grupo.position.set(0, ALTURA_CAIDA * altura, 0);
         }
         n.grupo.visible = true;
@@ -9948,6 +9961,12 @@ three/build/three.module.js:
       baseNodo.receiveShadow = true;
       raiz.add(baseNodo);
 
+      var caida = conAnim && opts && opts.caida;
+      /* Landing: la casa entra completa y de cero. Lo que quedara de la anterior
+         se suelta ya (la anfitriona espera a que termine `vaciar`), asi nada se
+         reutiliza a medias y no caen pedazos sueltos de la casa vieja. */
+      if (caida) Object.keys(nodos).forEach(function (clave) { soltar(nodos[clave].grupo); delete nodos[clave]; });
+
       var nuevas = piezasDe(plan);
       var vistas = {};
       var entrantes = [];
@@ -9985,7 +10004,25 @@ three/build/three.module.js:
         n.anim = { t: 0, retraso: 0, dur: SALIDA, saliendo: true };
       });
 
-      if (conAnim && entrantes.length) {
+      if (caida && entrantes.length) {
+        /* La estructura (pisos, muros, ventanas, puerta) cae como UN bloque: la
+           casa. Despues caen los muebles, ambiente por ambiente, en el orden de
+           `caida.rango` (id de ambiente -> etapa). */
+        var nPorAmb = {};
+        entrantes.forEach(function (pieza) {
+          var n = nodos[pieza.clave], esMueble = pieza.clave.indexOf('mueble|') === 0;
+          var retraso = 0, dur = caida.durCasa || 0.8;
+          if (esMueble) {
+            var amb = pieza.ambiente || '_', r = (caida.rango && caida.rango[amb]) || 0;
+            var k = nPorAmb[amb] = (nPorAmb[amb] || 0) + 1;
+            retraso = (caida.t0 || 0.5) + r * (caida.gap || 0.32) + Math.min(k - 1, 4) * 0.025;
+            dur = caida.durMueble || 0.6;
+          }
+          n.anim = { t: 0, retraso: retraso, dur: dur, saliendo: false, rebote: true };
+          pieza.grupo.visible = false;
+          pieza.grupo.position.set(0, ALTURA_CAIDA, 0);
+        });
+      } else if (conAnim && entrantes.length) {
         // Escalonado repartido, no fijo por pieza: un plano grande se comeria el
         // reloj y las ultimas piezas se quedarian a medio camino para siempre.
         var paso = DESFASE / entrantes.length;
@@ -10012,9 +10049,27 @@ three/build/three.module.js:
       sincronizarEntorno();
 
       edad = 0;
-      encDe = conAnim && encPrevio ? { c: encPrevio.c, e: encPrevio.e, t: 0, dur: 1.1 } : null;
+      // En la caida la escena esta vacia al aplicar: la camara se reencuadra en seco (no se nota)
+      // y la casa cae ya centrada, en vez de caer mientras la camara se aleja.
+      encDe = conAnim && encPrevio && !caida ? { c: encPrevio.c, e: encPrevio.e, t: 0, dur: 1.1 } : null;
       encuadrar();
       pedirCuadro();
+    }
+
+    /* Landing: retira TODA la casa a la vez (sube y desaparece, como la salida
+       normal). Lo que aun estaba esperando o cayendo se suelta en seco para que
+       no salte al suelo antes de irse. Devuelve cuanto dura, en ms. */
+    function vaciar() {
+      var claves = Object.keys(nodos);
+      if (!claves.length) return 0;
+      claves.forEach(function (clave) {
+        var n = nodos[clave], a = n.anim;
+        if (!animar || (a && !a.saliendo)) { soltar(n.grupo); delete nodos[clave]; return; }
+        if (a && a.saliendo) return;
+        n.anim = { t: 0, retraso: 0, dur: SALIDA, saliendo: true };
+      });
+      pedirCuadro();
+      return animar && Object.keys(nodos).length ? Math.round(SALIDA * 1000) + 40 : 0;
     }
 
     /* ---------- montaje ---------- */
@@ -10050,7 +10105,7 @@ three/build/three.module.js:
     }
 
     return {
-      montar: montar, aplicarPlan: aplicarPlan, encuadrar: encuadrar,
+      montar: montar, aplicarPlan: aplicarPlan, vaciar: vaciar, encuadrar: encuadrar,
       pedirCuadro: pedirCuadro, dispose: dispose,
       fijarEntorno: fijarEntorno, finalizarVistaSuperior: finalizarVistaSuperior,
       resetCamara: resetCamara, irAElevacion: irAElevacion,
@@ -10371,7 +10426,7 @@ three/build/three.module.js:
     const foot = $('#stFoot');
     const railLi = $$('#stRail li'), railI = railLi.map(li => $('i', li));
     const rail = $('#stRail');
-    const INK = '#2d3b4e', INK_DIM = 'rgba(45,59,78,.28)', EM = '#139a78';
+    const INK = '#2d3b4e', INK_DIM = 'rgba(45,59,78,.28)', EM = '#e0463d';
 
     const STAGES = [[15, 29], [29, 48], [48, 67], [67, 89], [89, 100]];
     const proxy = { score: 0, pkt: 0 };
@@ -10846,6 +10901,7 @@ three/build/three.module.js:
           scene.canvas.addEventListener('pointerdown', () => { hint.style.opacity = '0'; }, { once: true });
           // Antes de responder: la vivienda de 1 habitación completa, sin animación
           if (estatico && inicial && inicial.final) scene.aplicarPlan(inicial.final, { animar: false });
+          warm();
         } catch (e) { scene = null; }
       }
       if (!scene) stageEl.classList.add('no-webgl-demo');
@@ -10858,8 +10914,11 @@ three/build/three.module.js:
       status.textContent = text;
     }
 
-    // El plano por etapas, igual que en el formulario: sala → social → cocina → alcobas y baños
+    // El plano por etapas, igual que en el formulario: sala → social → cocina → alcobas y baños.
+    // Se calcula una vez por respuesta (solo hay tres) y se reutiliza.
+    const STAGES_CACHE = {};
     function stagesFor(v) {
+      if (STAGES_CACHE[v]) return STAGES_CACHE[v];
       let stages;
       if (ENGINE) {
         const a = answersFor(v), seen = {};
@@ -10871,14 +10930,37 @@ three/build/three.module.js:
         });
         stages.meta = plans[3].meta;
         stages.final = plans[3];
+        // id de ambiente -> etapa en la que caen sus muebles
+        stages.rango = {};
+        stages.forEach((st, i) => st.rooms.forEach(r => { stages.rango[r.id] = i; }));
       } else {
         stages = FALLBACK[v].map((names, i) => ({ plan: null, rooms: names.map((n, k) => ({ id: i + '-' + k, name: n })) }));
         stages.meta = { alcobas: v === '3+' ? 3 : +v, banos: v === '1' ? 1 : 2 };
         stages.final = null;
       }
       stages.all = stages.flatMap((s, i) => s.rooms.map(r => Object.assign({ stage: i }, r)));
-      return stages;
+      return (STAGES_CACHE[v] = stages);
     }
+
+    /* Caída de la casa (landing): la estructura cae entera como un bloque y
+       después los muebles, ambiente por ambiente. Mismos tiempos para el 3D y
+       para la lista. Segundos. */
+    const CAIDA = { t0: 0.55, gap: 0.34, durCasa: 0.85, durMueble: 0.6 };
+    const CAIDA_FIN = CAIDA.t0 + 3 * CAIDA.gap + 0.1 + CAIDA.durMueble; // ≈ 2.27 s
+
+    // Precalcula en reposo los muros (CSG, lo caro) de las otras respuestas: así
+    // al elegir no hay tirón a mitad de la caída.
+    function warm() {
+      if (!scene || !P3.construirMuros) return;
+      const todo = ['2', '3+', '1'];
+      const next = () => {
+        const v = todo.shift(); if (!v) return;
+        try { P3.construirMuros(stagesFor(v).final); } catch (e) { /* no crítico */ }
+        idle(next);
+      };
+      idle(next);
+    }
+    const idle = fn => ('requestIdleCallback' in window) ? requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(fn, 200);
     const resumen = m => `${m.alcobas} ${m.alcobas === 1 ? 'alcoba' : 'alcobas'} · ${m.banos} ${m.banos === 1 ? 'baño' : 'baños'}`;
     function markSel(v) { btns.forEach(b => { const on = b.dataset.v === v; b.classList.toggle('sel', on); b.setAttribute('aria-checked', String(on)); }); }
 
@@ -10908,33 +10990,42 @@ three/build/three.module.js:
       list.innerHTML = all.map(r => `<li data-s="${r.stage}">${esc(r.name)}</li>`).join('');
       countEl.textContent = '';
 
-      const step = RM ? 0 : (built ? 560 : 720);
+      // 1) La casa anterior se va entera; 2) cae la nueva, completa.
+      const salida = scene ? scene.vaciar() : 0; // 0 sin animación
+      const ms = x => RM ? 0 : Math.round(x * 1000);
+      const at = (t, fn) => timers.push(setTimeout(fn, salida + ms(t)));
+      const fin = CAIDA_FIN;
+
       const fill = $('i', btns.find(b => b.dataset.v === v));
       btns.forEach(b => { const f = $('i', b); if (G) G.killTweensOf(f); f.style.transform = 'scaleX(0)'; });
-      if (G && !RM) G.fromTo(fill, { scaleX: 0 }, { scaleX: 1, duration: (step * 3 + 700) / 1000, ease: 'none', onComplete: () => G.to(fill, { opacity: 0, duration: .5, onComplete: () => G.set(fill, { scaleX: 0, opacity: 1 }) }) });
+      if (G && !RM) G.fromTo(fill, { scaleX: 0 }, { scaleX: 1, duration: (salida + ms(fin)) / 1000, ease: 'none', onComplete: () => G.to(fill, { opacity: 0, duration: .5, onComplete: () => G.set(fill, { scaleX: 0, opacity: 1 }) }) });
       setStatus('building', 'Armando la vivienda…');
       pill.classList.remove('done'); pill.classList.add('show');
+      pillTxt.textContent = 'Levantando la vivienda…';
       setLive(`${ico('i-right')}<span>Tu lead eligió <b>${esc(HAB[v])}</b>: así se levanta su vivienda.</span>`);
 
+      at(0, () => {
+        if (scene && stages.final) scene.aplicarPlan(stages.final, { caida: Object.assign({ rango: stages.rango }, CAIDA) });
+      });
+      // La lista se enciende cuando los muebles de cada etapa tocan el lote
       stages.forEach((st, i) => {
-        timers.push(setTimeout(() => {
-          if (scene && st.plan) scene.aplicarPlan(st.plan, { encuadre: stages.final });
+        at(CAIDA.t0 + i * CAIDA.gap + CAIDA.durMueble * 0.75, () => {
           pillTxt.textContent = `${i + 1}/4 · ${st.rooms.map(r => r.name).join(' · ')}`;
           $$('li', list).forEach(li => {
             if (+li.dataset.s !== i) return;
             li.classList.add('on', 'pop');
             setTimeout(() => li.classList.remove('pop'), 420);
           });
-        }, step * i));
+        });
       });
-      timers.push(setTimeout(() => {
+      at(fin + 0.15, () => {
         built = true;
         pillTxt.textContent = `Lista · ${resumen(stages.meta)}`;
         pill.classList.add('done');
         setStatus('done', 'Vivienda lista');
         countEl.textContent = `${all.length} espacios`;
         setLive(`${ico('i-check')}<span>Perfil del lead: <b>${esc(HAB[v])}</b>. ${touched ? 'Cambia la respuesta y mira cómo se rearma.' : 'Es un ejemplo: elige otra opción y mira cómo se rearma.'}</span>`);
-      }, step * 3 + (RM ? 0 : 900)));
+      });
     }
 
     btns.forEach(b => b.addEventListener('click', () => { if (b.dataset.v !== sel || !built || estatico) choose(b.dataset.v); }));
