@@ -202,11 +202,18 @@
       // el contrato en §1, y es de los errores que no dan mensaje claro: llega
       // como dato inválido, no como campo ausente.
       //
-      // Va como LISTA porque se pueden pedir varias zonas. El contrato admite
-      // las dos formas —un entero suelto sigue valiendo— pero mandar siempre
-      // la lista evita tener dos caminos que probar; con una sola zona es una
-      // lista de un elemento.
-      Localidad: localidadIds(a),
+      // UN SOLO ENTERO, no una lista: `FormularioUsuario.Localidad` en
+      // backend/api/app.py es `int` a secas, y `catalogos.py` solo tiene BFS
+      // de UN origen (`localidades_por_distancia`, no `ids_localidades` —eso
+      // nunca existió en el backend real). Mandar la lista de localidadIds()
+      // aquí daba 422 ("Input should be a valid integer") apenas se conectó
+      // el modelo de verdad: nunca se había probado contra el backend real
+      // porque SIN_BACKEND estuvo en true desde siempre. Se manda la
+      // PRIMERA zona elegida (`a.zona`, que ya vive fuera de `answers` con
+      // exactamente este propósito — ver zonaBarrio/zonaSectores en
+      // state.js); si algún día el modelo acepta varias, aquí es donde hay
+      // que volver a mandar la lista.
+      Localidad: localidadId(a && a.zona),
       numero_habitaciones: a.habitaciones === '3+' ? 3 : parseInt(a.habitaciones || '1', 10),
       piso: 4,
       zonas_comunes: zonasComunesDe(a),
