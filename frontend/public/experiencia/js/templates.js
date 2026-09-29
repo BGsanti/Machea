@@ -401,11 +401,16 @@
   function sceneBlock(state, derived, animarTodo) {
     var planta = derived.planta;
     var answers = state.answers || {};
+    // 'operacion' (Comprar/Arrendar, ver data.js): lienzo en blanco, ni
+    // lote ni losa -- `state.planta` ya existe desde 'startQuiz', así que
+    // sin este corte se alcanzaría a ver el contorno vacío de la casa
+    // antes de elegir siquiera qué se está buscando.
+    var vacio = derived.q && derived.q.escena === 'vacio';
 
-    var loteHtml = derived.showLote ? '<div class="gdf-lote"><span>Tu lote</span></div>' : '';
+    var loteHtml = (derived.showLote && !vacio) ? '<div class="gdf-lote"><span>Tu lote</span></div>' : '';
 
     var roomsHtml = '';
-    if (derived.losaRevealed) {
+    if (derived.losaRevealed && !vacio) {
       var roomsInner = derived.rooms
         .map(function (room) {
           return cuartoHtml(room, !!animarTodo);
@@ -450,7 +455,7 @@
     // apartamento (a qué altura está) y la sombra que proyecta. Es data-* para
     // que main.js lo actualice sin tocar el resto de la escena.
     var piso = answers.piso_preferido ? ' data-piso="' + esc(answers.piso_preferido) + '"' : '';
-    var haloHtml = answers.entorno_deseado ? haloAmenidadesHtml(planta, answers) : '';
+    var haloHtml = (answers.entorno_deseado && !vacio) ? haloAmenidadesHtml(planta, answers) : '';
 
     // EL MAPA TAPA LA ESCENA, NO LA SUSTITUYE. En la pregunta de ubicación el
     // lienzo lo ocupa el mapa de Bogotá, pero `.gdf-scene` se sigue pintando

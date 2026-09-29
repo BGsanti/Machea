@@ -63,8 +63,12 @@
        (updateQuizDOM la conserva), asi que aqui se suelta el lienzo y la clase
        para que el 2D quede como en version_0.5. Y la camara se reinicia AQUI
        porque "Empezar de nuevo" cae en esta pregunta y ya no llega al
-       `paso < 1` de abajo. */
-    if (derived && derived.q && derived.q.escena === 'mapa') {
+       `paso < 1` de abajo.
+
+       'operacion' (`escena: 'vacio'`, Comprar/Arrendar -- ver data.js) es
+       la MISMA situacion un paso antes: todavia no hay nada que mostrar (ni
+       siquiera se sabe el camino), asi que se suelta el lienzo igual. */
+    if (derived && derived.q && (derived.q.escena === 'mapa' || derived.q.escena === 'vacio')) {
       var hostMapa = document.querySelector('.gdf-scene');
       if (hostMapa) hostMapa.classList.remove('con-plano3d');
       if (escena) {

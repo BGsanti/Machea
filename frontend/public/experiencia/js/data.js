@@ -222,6 +222,12 @@
     title: '¿Qué estás buscando?',
     sub: 'Elige cómo quieres encontrar tu próximo hogar.',
     cols: 2,
+    // Sin esto se alcanza a ver el contorno/losa vacía de la casa detrás
+    // del panel: `state.planta` ya existe desde 'startQuiz', antes de
+    // pintar esta primera pregunta (ver sceneBlock() en templates.js).
+    // Mismo mecanismo que `escena: 'mapa'` de la pregunta 'zona', pero
+    // para no pintar NADA en vez de tapar con otra cosa.
+    escena: 'vacio',
     options: [
       { v: 'compra', label: 'Comprar' },
       { v: 'arriendo', label: 'Arrendar' },
@@ -238,12 +244,14 @@
     id: 'tipo_propiedad',
     title: '¿Qué propiedad estás buscando?',
     sub: 'Esto nos ayuda a mostrarte las opciones correctas.',
-    cols: 2,
+    cols: 3,
+    // `v` igual al `label` a propósito, mismo criterio que la pregunta
+    // 'tipo' de Compra (v:'VIS', label:'VIS'): el chip del resumen
+    // (perfilChips en state.js) muestra el valor crudo, sin traducirlo.
     options: [
-      { v: 'apartamento', label: 'Apartamento' },
-      { v: 'casa', label: 'Casa' },
-      { v: 'apartaestudio', label: 'Apartaestudio' },
-      { v: 'habitacion', label: 'Habitación' },
+      { v: 'Vivienda', label: 'Vivienda' },
+      { v: 'Oficinas', label: 'Oficinas' },
+      { v: 'Bodegas', label: 'Bodegas' },
     ],
   };
 
