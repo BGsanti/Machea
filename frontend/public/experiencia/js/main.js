@@ -45,6 +45,14 @@
   // proyecto, así que el filtro real es y sigue siendo por localidad.
   var zonaSeleccion = [];
 
+  // Selección en curso del bloque de contadores de Arriendo (pregunta
+  // 'habitaciones' con type:'contador' -- ver data.js). No controlada, mismo
+  // motivo que `zonaSeleccion`/`entornoSeleccion`: cada +/- solo repinta su
+  // número (ver ajustarContador en onRootClick), sin re-render completo. Se
+  // arma en attachInputListeners() al entrar a esta pregunta -- recuperando
+  // lo ya elegido si se vuelve con "Atrás" (ver answers.preferencias).
+  var preferenciasActual = null;
+
   function render() {
     var sameScreen = state.screen === lastScreen;
     // Reconstruir TODO el innerHTML también destruye y recrea el nodo que
@@ -99,6 +107,7 @@
   function attachInputListeners() {
     var nombreInput = document.getElementById('nombreInput');
     var apellidoInput = document.getElementById('apellidoInput');
+    var cedulaInput = document.getElementById('cedulaInput');
     var correoInput = document.getElementById('correoInput');
     var telefonoInput = document.getElementById('telefonoInput');
 
@@ -120,6 +129,12 @@
       apellidoInput.addEventListener('input', function (e) {
         state.apellido = e.target.value;
         refreshCarnetName();
+        updateStartButton();
+      });
+    }
+    if (cedulaInput) {
+      cedulaInput.addEventListener('input', function (e) {
+        state.cedula = e.target.value;
         updateStartButton();
       });
     }
@@ -186,10 +201,15 @@
 
     engancharScrollResultados();
 
-    var entornoSearch = document.getElementById('entornoSearch');
-    if (entornoSearch) {
+    // El reinicio es común a las dos formas de esta pregunta (amenidades de
+    // Compra, con buscador; estilo de vida de Arriendo, sin él — ver data.js
+    // y quizPanel en templates.js): #entornoOpciones existe en ambas.
+    if (document.getElementById('entornoOpciones')) {
       entornoSeleccion = [];
       renderEntornoChips();
+    }
+    var entornoSearch = document.getElementById('entornoSearch');
+    if (entornoSearch) {
       var entornoLista = document.getElementById('entornoOpciones');
       // AL ENFOCAR, EL LISTADO COMPLETO. Son las 25 zonas comunes del
       // vocabulario, pre-renderizadas de una vez (a diferencia del buscador
@@ -242,6 +262,23 @@
         }
         var btn = document.querySelector('[data-action="answerQuizZona"]');
         if (btn && zonaSeleccion.length) btn.click();
+      });
+    }
+
+    // El bloque de contadores de Arriendo (ver data.js, 'habitaciones' con
+    // type:'contador'). Se detecta por el primer campo declarado en la
+    // pregunta -- no hay un id fijo porque `campos` es una lista.
+    var qContador = findQuestionById('habitaciones');
+    if (qContador && qContador.type === 'contador' &&
+        document.getElementById('contadorValor-' + qContador.campos[0].id)) {
+      // Recupera lo ya elegido si se vuelve con "Atrás"; si no, arranca en
+      // los valores iniciales de cada campo (ver data.js).
+      var previo = state.answers.preferencias;
+      preferenciasActual = {};
+      qContador.campos.forEach(function (c) {
+        preferenciasActual[c.id] = previo && previo[c.id] != null ? previo[c.id] : c.inicial;
+        var span = document.getElementById('contadorValor-' + c.id);
+        if (span) span.textContent = preferenciasActual[c.id];
       });
     }
   }
@@ -782,8 +819,20 @@
     if (!cont) return;
     // El barrio 3D reacciona a cada chip, no al pulsar "Continuar": cada
     // amenidad elegida cae en el lote alrededor de la casa (plano3d/entorno.js).
+    //
+    // Arriendo (estilo de vida): plano3d/entorno.js solo entiende los slugs
+    // reales de su catálogo de amenidades (GRUPO) -- se traduce el
+    // subconjunto mapeado (ver ESTILO_A_AMENIDAD en data.js) en vez de
+    // mandarle las opciones de estilo de vida tal cual.
+    var esArriendo = state.answers.operacion === 'arriendo';
+    var paraEscena = entornoSeleccion;
+    if (esArriendo) {
+      var mapaAmenidad = (window.GDF.data && window.GDF.data.ESTILO_A_AMENIDAD) || {};
+      paraEscena = entornoSeleccion.filter(function (v) { return mapaAmenidad[v]; })
+        .map(function (v) { return mapaAmenidad[v]; });
+    }
     if (window.GDF3D && window.GDF3D.seleccionarEntorno) {
-      window.GDF3D.seleccionarEntorno(entornoSeleccion);
+      window.GDF3D.seleccionarEntorno(paraEscena);
     }
     var q = findQuestionById('entorno_deseado');
     cont.innerHTML = entornoSeleccion
@@ -797,15 +846,26 @@
         );
       })
       .join('');
+    // Con `min` (estilo de vida de Arriendo): el botón Continuar se
+    // habilita solo al alcanzarlo. Sin `min` (amenidades de Compra) esto no
+    // hace nada -- el botón ya sale 'enabled' desde el HTML (ver
+    // quizPanel en templates.js) y se queda así siempre.
+    if (q && q.min) {
+      var btnCont = document.querySelector('[data-action="answerQuizMultiselect"]');
+      if (btnCont) btnCont.classList.toggle('enabled', entornoSeleccion.length >= q.min);
+    }
   }
 
   function updateStartButton() {
     var btn = document.querySelector('.gdf-btn-primary');
     if (!btn) return;
     var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
+    var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
     var canStart = !!(
       state.nombre.trim() &&
       state.apellido.trim() &&
+      state.cedula.trim() &&
+      isValidCedula &&
       state.correo.trim() &&
       isValidEmail &&
       state.telefono.trim() &&
@@ -854,7 +914,8 @@
     // por innerHTML. Si se destruyen y recrean los .gdf-room no hay nodos que
     // persistan, y entonces cada respuesta rehace el plano entero en vez de
     // añadirle una pieza.
-    if ((action === 'selectOption' || action === 'goBack') &&
+    if ((action === 'selectOption' || action === 'goBack' ||
+         action === 'answerPreferencias' || action === 'answerEstiloVida') &&
         prevScreen === 'quiz' && state.screen === 'quiz') {
       updateQuizDOM();
       return;
@@ -864,7 +925,11 @@
     // PASO 1 del contrato. El quiz termina y entra a 'result' exactamente una
     // vez por partida (desde selectOption, al contestar la última pregunta):
     // ese es el primer momento en que existen TODOS los campos requeridos.
-    if (prevScreen !== 'result' && state.screen === 'result') {
+    // Arriendo nunca llega hasta aquí: pinta 'result' desde 'answerEstiloVida'
+    // (ver state.js) y no desde 'selectOption', así que este `if` no lo
+    // alcanzaría de todos modos -- el chequeo queda explícito igual, para que
+    // no dependa de ese detalle si el flujo cambia más adelante.
+    if (prevScreen !== 'result' && state.screen === 'result' && state.answers.operacion !== 'arriendo') {
       cargarRecomendaciones();
     }
 
@@ -875,6 +940,9 @@
     // va (ver confirmacion() en templates.js, y js/llamada.js para el POST).
     if (prevScreen !== 'confirmacion' && state.screen === 'confirmacion') {
       dispararLlamada();
+      // Best-effort, en paralelo: un fallo aquí no debe retrasar ni
+      // impedir la llamada real de Manuela, que es lo que sí importa.
+      if (window.GDF.datos) window.GDF.datos.marcarInteres(state);
     }
     // Botón "Reintentar" tras un error de envío: 'reintentarLlamada' ya dejó
     // state.llamada en 'cargando' (ver state.js) y render() de arriba lo
@@ -1030,6 +1098,9 @@
           pollingHandle = null;
           window.GDF.state.applyAction(state, 'resumenListo', r);
           render();
+          // Best-effort: la fecha_de_seguimiento de Dapta es la señal de
+          // que se agendó una cita real (ver js/datos.js).
+          if (window.GDF.datos) window.GDF.datos.marcarIntencion(state, r);
           return;
         }
         if (intentos >= POLL_MAX_INTENTOS) {
@@ -1044,24 +1115,110 @@
     pollingHandle = setInterval(intentar, POLL_INTERVALO_MS);
   }
 
+  // Único punto donde 'reco' pasa a resuelto, vengan las tarjetas del
+  // backend (cargarRecomendaciones) o del motor local (usarLocalAproximado).
+  // Aquí también se guarda la consulta en la base de leads (ver
+  // js/datos.js) -- solo cuando el resultado es de verdad: nunca vacío ni
+  // en error, tal como exige guardar_consulta() de su lado igualmente.
+  function onRecoResuelta(resultado) {
+    window.GDF.state.applyAction(state, 'recoResuelta', resultado);
+    render();
+    if (window.GDF.datos && resultado && resultado.estado === 'listo' &&
+        resultado.items && resultado.items.length) {
+      window.GDF.datos.guardarConsulta(state, resultado, function (consultaId) {
+        if (consultaId) state.consultaId = consultaId;
+      });
+    }
+  }
+
   // POST /recomendaciones. Se usa igual en la primera carga y al reintentar.
   function cargarRecomendaciones() {
     window.GDF.state.applyAction(state, 'recoCargando', {});
     render();
-    window.GDF.recommender.recomendar(state, function (resultado) {
-      window.GDF.state.applyAction(state, 'recoResuelta', resultado);
-      render();
-    });
+    window.GDF.recommender.recomendar(state, onRecoResuelta);
   }
 
   // Salida de emergencia cuando el backend no responde: se muestran los
   // proyectos del catálogo local marcados como aproximados. Nunca se hace en
   // silencio — `aproximado: true` pinta un aviso permanente en la lista.
   function usarLocalAproximado() {
-    window.GDF.recommender.recomendarLocal(state.answers, function (resultado) {
-      window.GDF.state.applyAction(state, 'recoResuelta', resultado);
-      render();
+    window.GDF.recommender.recomendarLocal(state.answers, onRecoResuelta);
+  }
+
+  // Se intercepta 'startQuiz' (ver onRootClick) para, ANTES de arrancar el
+  // cuestionario, mirar si esta cédula+teléfono ya tiene una consulta
+  // guardada (ver js/datos.js) y saltarse las 7 preguntas directo a los
+  // resultados de esa vez. Nunca bloquea: buscarResultados() siempre
+  // resuelve (con match, sin match, o con timeout) y en cualquier caso que
+  // no sea un match se sigue el camino normal por dispatch('startQuiz').
+  function iniciarQuizConBusqueda() {
+    // Mismo criterio de canStart que templates.js/state.js: sin esto no
+    // vale la pena ni intentar la consulta.
+    var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
+    var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
+    var camposValidos = !!(
+      state.nombre.trim() && state.apellido.trim() &&
+      state.cedula.trim() && isValidCedula &&
+      state.correo.trim() && isValidEmail &&
+      state.telefono.trim() && state.consent
+    );
+    if (!camposValidos || !window.GDF.datos) {
+      // dispatch() vuelve a validar por su cuenta; si falta algo, no hace
+      // nada -- mismo comportamiento que antes de este cambio.
+      dispatch('startQuiz', {});
+      return;
+    }
+
+    var boton = document.querySelector('[data-action="startQuiz"]');
+    var textoOriginal = boton ? boton.textContent : '';
+    if (boton) {
+      boton.textContent = 'Buscando tu perfil…';
+      boton.style.pointerEvents = 'none';
+    }
+
+    window.GDF.datos.buscarResultados(state.cedula, state.telefono, function (r) {
+      if (r && r.encontrado) {
+        restaurarConsultaGuardada(r);
+        return; // pantalla nueva: el botón de la escarapela ya no existe
+      }
+      if (boton) {
+        boton.textContent = textoOriginal;
+        boton.style.pointerEvents = '';
+      }
+      dispatch('startQuiz', {});
     });
+  }
+
+  // Salta las 7 preguntas: pinta directo la pantalla de resultados con lo
+  // que ya se había calculado la vez anterior. Mismo estado final que deja
+  // 'selectOption' al contestar la última pregunta (ver state.js), armado a
+  // mano porque aquí no hay preguntas que recorrer.
+  function restaurarConsultaGuardada(r) {
+    state.answers = r.respuestas || {};
+    state.consultaId = r.consultaId || null;
+    state.planta = window.GDF.planta.elegirApartamento(state);
+    state.qi = (window.GDF.data.QUESTIONS || []).length;
+    state.chosen = null;
+    state.screen = 'result';
+
+    var guardado = r.resultados || {};
+    state.reco = {
+      estado: 'listo',
+      leadId: null,
+      items: guardado.items || [],
+      totalCatalogo: guardado.totalCatalogo || null,
+      origenCatalogo: guardado.origenCatalogo || null,
+      error: null,
+      aproximado: !!guardado.aproximado,
+    };
+
+    var mejores = window.GDF.matching.computeMatches(state.answers, 1);
+    state.lead = window.GDF.qualification.computeLeadQualification(
+      state.answers,
+      mejores[0] ? mejores[0].score : 0
+    );
+
+    render();
   }
 
   // AQUI SE ENVIABA EL LEAD, en el sentido del backend anterior (contrato de
@@ -1640,10 +1797,15 @@
     }, 300);
   }
 
+  // Busca por id en el recorrido ACTIVO (Compra o Arriendo -- ver qListFor en
+  // state.js), no en window.GDF.data.QUESTIONS a secas: los dos caminos
+  // tienen una pregunta 'entorno_deseado' distinta (amenidades reales de
+  // Compra vs. estilo de vida de Arriendo, con otras opciones), y buscar
+  // siempre en la de Compra le pintaría las etiquetas equivocadas a Arriendo.
   function findQuestionById(qid) {
-    var QUESTIONS = window.GDF.data.QUESTIONS;
-    for (var i = 0; i < QUESTIONS.length; i++) {
-      if (QUESTIONS[i].id === qid) return QUESTIONS[i];
+    var lista = window.GDF.state.qListFor(state.answers);
+    for (var i = 0; i < lista.length; i++) {
+      if (lista[i].id === qid) return lista[i];
     }
     return null;
   }
@@ -1667,6 +1829,33 @@
     }
     if (el.dataset.action === 'usarLocalAproximado') {
       usarLocalAproximado();
+      return;
+    }
+    if (el.dataset.action === 'startQuiz') {
+      iniciarQuizConBusqueda();
+      return;
+    }
+
+    // Arriendo: +/- de un campo del bloque de contadores. Patchea SOLO su
+    // número en el DOM (no controlado, igual que zonaSeleccion/
+    // entornoSeleccion) -- un re-render completo aquí reconstruiría la
+    // escena 3D de innerHTML.
+    if (el.dataset.action === 'ajustarContador') {
+      if (!preferenciasActual) return;
+      var qPref = findQuestionById('habitaciones');
+      var campo = (qPref && qPref.campos || []).filter(function (c) { return c.id === el.dataset.campo; })[0];
+      if (!campo) return;
+      var delta = Number(el.dataset.delta) || 0;
+      var actual = preferenciasActual[campo.id] != null ? preferenciasActual[campo.id] : campo.inicial;
+      var nuevo = Math.min(campo.max, Math.max(campo.min, actual + delta));
+      preferenciasActual[campo.id] = nuevo;
+      var spanValor = document.getElementById('contadorValor-' + campo.id);
+      if (spanValor) spanValor.textContent = nuevo;
+      return;
+    }
+    if (el.dataset.action === 'answerPreferencias') {
+      if (!preferenciasActual) return;
+      dispatch('answerPreferencias', { qid: el.dataset.qid, value: Object.assign({}, preferenciasActual) });
       return;
     }
 
@@ -1718,7 +1907,14 @@
     // las etiquetas `v` exactas que espera el backend (ver data.js), no se
     // aplanan a texto ni se traducen al `label`.
     if (el.dataset.action === 'answerQuizMultiselect') {
-      dispatch('selectOption', { qid: el.dataset.qid, value: entornoSeleccion.slice() });
+      // Arriendo (estilo de vida, con mínimo -- ver data.js): acción propia,
+      // porque escribe dos claves de `answers` a la vez (ver
+      // answerEstiloVida en state.js). Compra sigue exactamente igual.
+      if (state.answers.operacion === 'arriendo') {
+        dispatch('answerEstiloVida', { qid: el.dataset.qid, value: entornoSeleccion.slice() });
+      } else {
+        dispatch('selectOption', { qid: el.dataset.qid, value: entornoSeleccion.slice() });
+      }
       return;
     }
     if (el.dataset.action === 'toggleEntorno' || el.dataset.action === 'quitarEntorno') {

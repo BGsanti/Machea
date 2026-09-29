@@ -217,11 +217,19 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   }
 
+  // Mismo rango que el check de la tabla `leads` (ver
+  // supabase/migrations/): solo dígitos, 5 a 15 de largo.
+  function isValidCedula(v) {
+    return /^[0-9]{5,15}$/.test(v.replace(/\D/g, ''));
+  }
+
   function escarapela(state) {
     var genderObj = findGender(state.gender);
     var canStart = !!(
       state.nombre.trim() &&
       state.apellido.trim() &&
+      state.cedula.trim() &&
+      isValidCedula(state.cedula.trim()) &&
       state.correo.trim() &&
       isValidEmail(state.correo.trim()) &&
       state.telefono.trim() &&
@@ -289,6 +297,8 @@
       '<input class="gdf-input" id="nombreInput" placeholder="Ej: Ana" value="' + esc(state.nombre) + '" />' +
       '<label class="gdf-field-label">Apellidos</label>' +
       '<input class="gdf-input" id="apellidoInput" placeholder="Ej: Ruiz Gómez" value="' + esc(state.apellido) + '" />' +
+      '<label class="gdf-field-label">Cédula</label>' +
+      '<input class="gdf-input" id="cedulaInput" inputmode="numeric" placeholder="Ej: 1020304050" value="' + esc(state.cedula) + '" />' +
       '<label class="gdf-field-label">Correo electrónico</label>' +
       '<input class="gdf-input" id="correoInput" type="email" placeholder="Ej: ana.ruiz@correo.com" value="' + esc(state.correo) + '" />' +
       '<label class="gdf-field-label">Teléfono (WhatsApp)</label>' +
@@ -304,7 +314,7 @@
       '</span>' +
       '</label>' +
       '<button class="gdf-btn-primary' + (canStart ? ' enabled' : '') + '" data-action="startQuiz">Empezar a construir →</button>' +
-      '<p class="gdf-hint">Completa nombres, apellidos, correo, teléfono y consentimiento para continuar.</p>' +
+      '<p class="gdf-hint">Completa nombres, apellidos, cédula, correo, teléfono y consentimiento para continuar.</p>' +
       '</div>'
     );
   }
@@ -591,12 +601,6 @@
     } else if (q && q.type === 'zona') {
       answerAreaHtml = zonaPanel(q, state);
     } else if (q && q.type === 'multiselect') {
-      // Buscador con "explorar todo": al enfocar aparece el listado completo
-      // (25 zonas, precargadas de una — ver main.js) y escribir lo filtra.
-      // Flota pegado al buscador (position:absolute sobre '.gdf-entorno-combo',
-      // ver CSS), por eso no es un <details> nativo: ahí no hay forma de
-      // decidir por JS cuándo mostrarlo. Debajo, en su propio lugar: chips de
-      // lo elegido y Continuar al final.
       var multiOpts = q.options
         .map(function (o) {
           return (
@@ -606,14 +610,66 @@
           );
         })
         .join('');
+      // Con `min` declarado (estilo de vida de Arriendo, data.js): lista
+      // corta y fija, SIN buscador -- las 11 opciones se pintan directo, no
+      // hace falta filtrar. `abierto` a mano y `style` en línea porque
+      // '.gdf-multi-opt-list' flota por defecto pegada a un buscador que
+      // aquí no existe (ver el comentario de esa clase en CSS); así se
+      // pinta en flujo normal sin tocar esa regla compartida con la lista
+      // de amenidades de Compra. El botón Continuar arranca deshabilitado
+      // -- toggleEntornoValor()/renderEntornoChips() en main.js lo
+      // habilitan al llegar a `min` elegidos.
+      if (q.min) {
+        answerAreaHtml =
+          '<div class="gdf-quiz-freeform">' +
+          '<div class="gdf-multi-opt-list abierto" id="entornoOpciones" ' +
+          'style="position:static;display:flex;flex-wrap:wrap;gap:8px;max-height:none;">' +
+          multiOpts + '</div>' +
+          '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
+          '<button class="gdf-btn-primary" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+          '</div>';
+      } else {
+        // Buscador con "explorar todo": al enfocar aparece el listado
+        // completo (25 zonas, precargadas de una — ver main.js) y escribir
+        // lo filtra. Flota pegado al buscador (position:absolute sobre
+        // '.gdf-entorno-combo', ver CSS), por eso no es un <details>
+        // nativo: ahí no hay forma de decidir por JS cuándo mostrarlo.
+        // Debajo, en su propio lugar: chips de lo elegido y Continuar.
+        answerAreaHtml =
+          '<div class="gdf-quiz-freeform">' +
+          '<div class="gdf-entorno-combo">' +
+          '<input class="gdf-input" id="entornoSearch" type="text" placeholder="Busca (ej. piscina, bbq)…" autocomplete="off" />' +
+          '<div class="gdf-multi-opt-list" id="entornoOpciones">' + multiOpts + '</div>' +
+          '</div>' +
+          '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
+          '<button class="gdf-btn-primary enabled" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+          '</div>';
+      }
+    } else if (q && q.type === 'contador') {
+      // Arriendo: 4 contadores en una sola pantalla (ver data.js, id
+      // 'habitaciones'). Sin CSS propio a propósito (no se toca el
+      // stylesheet compartido en esta entrega) -- estilos en línea, mínimos,
+      // solo para que sea usable. Valor no controlado (igual que
+      // zonaSeleccion/entornoSeleccion): +/- patchea el número en el DOM sin
+      // re-render, ver ajustarContador() en main.js.
+      var filasContador = q.campos
+        .map(function (c) {
+          return (
+            '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--hair,#e5e5e5);">' +
+            '<span>' + esc(c.label) + '</span>' +
+            '<div style="display:flex;align-items:center;gap:14px;">' +
+            '<button type="button" class="gdf-back-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">−</button>' +
+            '<span id="contadorValor-' + c.id + '" style="min-width:1.5em;text-align:center;font-weight:600;">' + c.inicial + '</span>' +
+            '<button type="button" class="gdf-back-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">+</button>' +
+            '</div>' +
+            '</div>'
+          );
+        })
+        .join('');
       answerAreaHtml =
         '<div class="gdf-quiz-freeform">' +
-        '<div class="gdf-entorno-combo">' +
-        '<input class="gdf-input" id="entornoSearch" type="text" placeholder="Busca (ej. piscina, bbq)…" autocomplete="off" />' +
-        '<div class="gdf-multi-opt-list" id="entornoOpciones">' + multiOpts + '</div>' +
-        '</div>' +
-        '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
-        '<button class="gdf-btn-primary enabled" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+        filasContador +
+        '<button class="gdf-btn-primary enabled" data-action="answerPreferencias" data-qid="' + q.id + '">Continuar →</button>' +
         '</div>';
     } else if (q) {
       var cols = q.cols || 1;
@@ -652,7 +708,10 @@
       // cuando en realidad el modelo va a expandir a las vecinas y sí le va a
       // responder. A partir de dos respuestas el número ya promedia varios
       // factores y vuelve a significar algo.
-      (derived.answered >= 2
+      // Arriendo nunca la muestra: el número sale de matching.js, que es
+      // 100 % de compra (VIS, crédito) y no significa nada para un canon de
+      // arriendo -- ver el plan de esta entrega.
+      (derived.answered >= 2 && state.answers.operacion !== 'arriendo'
         ? '<div class="gdf-compat">' +
           '<div class="gdf-compat-row"><span>Encaje con el catálogo ahora mismo</span><span>' + derived.compat + '%</span></div>' +
           '<div class="gdf-progress-track"><div class="gdf-progress-fill" style="width:' + derived.compat + '%"></div></div>' +
@@ -678,7 +737,37 @@
     );
   }
 
+  // Arriendo: no hay modelo ni catálogo real detrás (ver el plan de esta
+  // entrega) -- se agradece, se resume lo contestado (mismos chips que
+  // Compra) y se explica que el matching automático está en desarrollo.
+  // Nunca llega a `state.lead`/`state.reco`: bifurca ANTES de que result()
+  // los toque.
+  function resultadoArriendo(state, derived) {
+    var chipsHtml = derived.perfilChips
+      .map(function (c) {
+        return '<span class="gdf-chip' + (c.hi ? ' hi' : '') + '">' + esc(c.text) + '</span>';
+      })
+      .join('');
+    var firstNameA = state.nombre.trim().split(' ')[0] || 'constructor';
+    return (
+      '<div class="gdf-screen gdf-result">' +
+      '<div class="gdf-result-head">' +
+      '<div class="eyebrow">ARRIENDO ✦</div>' +
+      '<h2>¡Gracias, ' + esc(firstNameA) + '!</h2>' +
+      '</div>' +
+      '<div class="gdf-chips">' + chipsHtml + '</div>' +
+      '<div class="gdf-lead-badge exploring">' +
+      '<span class="icon">🚧</span>' +
+      '<div class="title">Estamos construyendo el matching de Arriendo</div>' +
+      '<div class="subcopy">Ya guardamos lo que nos contaste. Muy pronto vamos a poder recomendarte arriendos reales con este mismo perfil.</div>' +
+      '</div>' +
+      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '</div>'
+    );
+  }
+
   function result(state, derived) {
+    if (state.answers.operacion === 'arriendo') return resultadoArriendo(state, derived);
     var lead = state.lead;
 
     var chipsHtml = derived.perfilChips

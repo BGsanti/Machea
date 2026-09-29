@@ -36,13 +36,32 @@
   // El prototipo (Vivienda 3D) no carga la lista de preguntas de Machea.
   var ORDEN_PROTOTIPO = ['tipo', 'ingresos', 'personas', 'habitaciones', 'zona', 'entorno_deseado', 'edad'];
 
-  var qs = window.GDF && window.GDF.data && window.GDF.data.QUESTIONS;
-  var orden = qs && qs.length ? qs.map(function (q) { return q.id; }) : ORDEN_PROTOTIPO;
+  /* ETAPAS depende de QUÉ RECORRIDO está activo (Compra o Arriendo: ver
+     QUESTIONS_COMPRA/QUESTIONS_ARRIENDO en data.js) -- los dos tienen a
+     'ingresos'/'personas'/'habitaciones' en POSICIONES distintas. Por eso
+     NO se puede calcular una sola vez al cargar el script (`answers` ni
+     existe todavía en ese momento): se recalcula en cada llamada a
+     `perfilDesdeRespuestas`, barato porque son un puñado de preguntas. */
+  function ordenPara(answers) {
+    var d = window.GDF && window.GDF.data;
+    var esArriendo = !!(answers && answers.operacion === 'arriendo');
+    var qs = d && (esArriendo ? d.QUESTIONS_ARRIENDO : d.QUESTIONS_COMPRA || d.QUESTIONS);
+    return qs && qs.length ? qs.map(function (q) { return q.id; }) : ORDEN_PROTOTIPO;
+  }
 
-  var ETAPAS = {};
-  Object.keys(DESBLOQUEA).forEach(function (ambiente) {
-    ETAPAS[ambiente] = orden.indexOf(DESBLOQUEA[ambiente]) + 1;
-  });
+  function etapasPara(answers) {
+    var orden = ordenPara(answers);
+    var e = {};
+    Object.keys(DESBLOQUEA).forEach(function (ambiente) {
+      e[ambiente] = orden.indexOf(DESBLOQUEA[ambiente]) + 1;
+    });
+    return e;
+  }
+
+  // Export solo para inspección en consola -- nadie más lo lee (ver el
+  // valor real, siempre fresco, en `perfil.etapas` que devuelve
+  // `perfilDesdeRespuestas`). Queda fijo al de Compra, el caso por defecto.
+  var ETAPAS = etapasPara({});
 
   /* Nivel de ingresos -> ACABADOS y extras. No mueve muros: el tamano ya lo
      fijan tipo y habitaciones, y que el plano salte por el ingreso seria
@@ -78,17 +97,18 @@
     answers = answers || {};
     paso = paso || 0;
 
+    var etapas = etapasPara(answers);
     var contestadas = paso;
     var n;
-    if (contestadas >= ETAPAS.alcobas && answers.habitaciones) {
+    if (contestadas >= etapas.alcobas && answers.habitaciones) {
       n = answers.habitaciones === '3+' ? 3 : Number(answers.habitaciones);
     } else {
-      n = contestadas >= ETAPAS.cocina ? sugeridaAlcobas(answers) : 2;
+      n = contestadas >= etapas.cocina ? sugeridaAlcobas(answers) : 2;
     }
 
     return {
       paso: contestadas,
-      etapas: ETAPAS,
+      etapas: etapas,
       // Todo lo que no diga 'No VIS' es VIS: el catalogo solo tiene esos dos.
       vis: answers.tipo !== 'No VIS',
       nAlcobas: n,
@@ -98,7 +118,7 @@
       // mirar esta bandera primero: si no, la estima de un paso temprano puede
       // activar una regla pensada para la respuesta real y mover el plano sin
       // que el usuario haya contestado nada nuevo.
-      nAlcobasResuelto: contestadas >= ETAPAS.alcobas && !!answers.habitaciones,
+      nAlcobasResuelto: contestadas >= etapas.alcobas && !!answers.habitaciones,
       // Una alcoba: un solo bano, privado. Dos o mas: social + principal.
       nBanos: n >= 2 ? 2 : 1,
       // El ambiente flexible es estudio para los mas jovenes y sala de estar
