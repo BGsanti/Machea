@@ -4,25 +4,18 @@
 //
 // Se carga ANTES que js/machea.js en index.html.
 window.GDF_CONFIG = {
-  // El servicio del modelo de recomendación (Machea). Ver
-  // integracion/servicio_machea.py: envuelve `recomendar()` en HTTP y además
-  // resuelve las fotos de cada proyecto por su `id_proyecto`.
+  // El servicio del modelo de recomendación: backend/api/app.py, YA
+  // desplegado en Render (ver render.yaml) y con CORS abierto a propósito.
+  // Expone /api/recomendar y agrega las fotos de cada proyecto (relativas a
+  // ESTE MISMO front, no al backend — ver el comentario de _fotos_de() en
+  // app.py y de urlDeFoto() en recommender.js).
   //
   // Si el modelo no está levantado, integracion/fake_machea.py habla el mismo
   // contrato y recomienda sobre el MISMO catálogo real (los 96 proyectos de
   // Bogotá) con sus fotos. No es el modelo —son reglas— y lo dice en el campo
   // `motor` de cada respuesta, que sale por consola:
   //   python integracion/fake_machea.py     -> escucha en el mismo puerto
-  //
-  // SE RESUELVE SOLO SEGÚN DÓNDE CORRA, igual que DAPTA_LLAMADA_BASE más
-  // abajo: en localhost (npm run dev) sigue apuntando al servicio local de
-  // siempre, y publicado (Vercel) apunta al backend real en Render. Escrito
-  // así, no hay que volver a tocar este archivo para pasar de local a
-  // producción ni al revés.
-  MACHEA_BASE:
-    location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-      ? 'http://localhost:8100'
-      : 'https://machea.onrender.com',
+  MACHEA_BASE: 'https://machea.onrender.com/api',
 
   // De dónde salen los proyectos recomendados (ver js/recommender.js):
   //   'machea' -> las 7 respuestas viajan al modelo, que devuelve el Top 6 con
@@ -32,13 +25,13 @@ window.GDF_CONFIG = {
   //               siempre como aproximado para no engañar a nadie.
   RECOMMENDER: 'machea',
 
-  // MODO DEMO SIN RED, apagado: publicado (Vercel) SÍ llama al modelo real
-  // en Render — ver MACHEA_BASE arriba. El servicio gratuito de Render se
-  // duerme tras un rato sin uso: la primera visita del día puede tardar
-  // 30–60 segundos en responder mientras despierta. No es un error, es la
-  // condición del plan gratuito; el motor local de respaldo (RECOMMENDER
-  // 'local') sigue existiendo como red de seguridad si el servicio no
-  // responde en absoluto, no como modo por defecto.
+  // MODO DEMO SIN RED. En true la app no llama al modelo en ningún momento y
+  // las recomendaciones salen del motor local. Existe para la versión de UN
+  // SOLO ARCHIVO (tools/empaquetar_demo.py), pensada para compartir por link:
+  // ahí la política de seguridad del visor bloquea cualquier petición externa.
+  // El plan gratuito de Render duerme el servicio tras un rato sin uso: la
+  // primera consulta del día puede tardar ~20 s en despertar (se ve como
+  // "Calculando tu match..." un rato largo, no como un error).
   SIN_BACKEND: false,
 
   // El backend de Machea (api.py, ver el repo de la landing), NO el mismo
@@ -52,4 +45,14 @@ window.GDF_CONFIG = {
   // formato internacional y sin "+" (57 + celular de 10 dígitos). Vacío, el
   // enlace abre WhatsApp con el mensaje listo y la persona elige el contacto.
   WHATSAPP_NUMERO: '',
+
+  // Base de datos persistente de leads (ver js/datos.js y
+  // supabase/migrations/). SIEMPRE la clave PUBLICABLE/anon -- nunca la
+  // service_role -- porque viaja al navegador. Es segura de exponer: las
+  // tablas están cerradas (RLS sin políticas) y esta clave solo puede
+  // ejecutar las 4 funciones SECURITY DEFINER de la migración. Vacías, la
+  // app funciona igual: js/datos.js nunca bloquea el formulario si no hay
+  // configuración o si Supabase no responde.
+  SUPABASE_URL: '',
+  SUPABASE_ANON_KEY: '',
 };

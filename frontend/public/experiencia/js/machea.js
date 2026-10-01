@@ -202,19 +202,18 @@
       // el contrato en §1, y es de los errores que no dan mensaje claro: llega
       // como dato inválido, no como campo ausente.
       //
-      // VA COMO ENTERO, no como lista. El contrato pide un entero 1..20, e
-      // `indice_localidad()` (Model/catalogos.py) acepta int, float o texto,
-      // nunca una lista — con `[7]` el modelo real responde 422:
-      // "Localidad: Input should be a valid integer" (input: [7]).
-      //
-      // El fallo estaba oculto porque SIN_BACKEND:true evitaba llegar al
-      // modelo, y se volvió a colar aquí al restaurar este archivo desde un
-      // commit anterior al primer arreglo. Verificado esta vez contra el
-      // backend real en Render, no solo localmente.
-      //
-      // Si se eligen varias zonas se manda LA PRIMERA: el contrato admite
-      // una sola.
-      Localidad: localidadIds(a)[0] || null,
+      // UN SOLO ENTERO, no una lista: `FormularioUsuario.Localidad` en
+      // backend/api/app.py es `int` a secas, y `catalogos.py` solo tiene BFS
+      // de UN origen (`localidades_por_distancia`, no `ids_localidades` —eso
+      // nunca existió en el backend real). Mandar la lista de localidadIds()
+      // aquí daba 422 ("Input should be a valid integer") apenas se conectó
+      // el modelo de verdad: nunca se había probado contra el backend real
+      // porque SIN_BACKEND estuvo en true desde siempre. Se manda la
+      // PRIMERA zona elegida (`a.zona`, que ya vive fuera de `answers` con
+      // exactamente este propósito — ver zonaBarrio/zonaSectores en
+      // state.js); si algún día el modelo acepta varias, aquí es donde hay
+      // que volver a mandar la lista.
+      Localidad: localidadId(a && a.zona),
       numero_habitaciones: a.habitaciones === '3+' ? 3 : parseInt(a.habitaciones || '1', 10),
       piso: 4,
       zonas_comunes: zonasComunesDe(a),
@@ -257,13 +256,7 @@
    */
   function urlDeRecomendar() {
     var c = constructoraDelTenant();
-    // VA CON `/api`. `MACHEA_BASE` en producción apunta al backend real
-    // (backend/api/app.py, desplegado en Render por render.yaml), y ese
-    // expone `/api/recomendar` — no `/recomendar`, que es la ruta de
-    // integracion/servicio_machea.py, un wrapper local que nunca se
-    // desplegó. Antes de este arreglo, cualquier intento de conectar el
-    // formulario publicado al backend real chocaba con un 404 silencioso.
-    return base() + '/api/recomendar' + (c ? '?constructora=' + encodeURIComponent(c) : '');
+    return base() + '/recomendar' + (c ? '?constructora=' + encodeURIComponent(c) : '');
   }
 
   /**

@@ -48,12 +48,11 @@ import { Reveal } from "./Reveal";
 // vacia, que es lo que hace que el motor puntue sobre los 96 y salgan las
 // cuatro marcas juntas, como corresponde a la demo de Machea.
 //
-// Ya no va `embed=1`: el bundle de la experiencia se lo quito (el splash que
-// saltaba ya no existe, ver js/state.js de `public/experiencia/`), asi que
-// aqui tampoco hace nada.
+// `embed=1` salta el splash ("Encuentra tu proximo hogar") y entra directo a
+// la escarapela, igual que el boton de la landing principal (index.html).
 const EXPERIENCIA_URL =
   import.meta.env.VITE_EXPERIENCIA_URL ??
-  "/experiencia/index.html?marca=machea";
+  "/experiencia/index.html?marca=machea&embed=1";
 
 export function LiveDemo() {
   const [open, setOpen] = useState(false);

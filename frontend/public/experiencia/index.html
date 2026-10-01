@@ -6,15 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Encuentra tu próximo hogar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <!-- SORA ES LA DE MACHEA y Poppins la de las cuatro constructoras: los
-         titulares salen de `--fuente-titulos`, que js/tema.js cambia segun el
-         tenant (ver SUPERFICIE_MACHEA). Se piden las dos en la MISMA peticion
-         porque el <link> se resuelve antes de saber que marca se cargo — el
-         tenant entra por `document.write` mas abajo— y una segunda hoja de
-         estilos descubierta a mitad del arranque es un parpadeo de fuente
-         garantizado. Sora pesa ~15 KB en woff2 y llega en paralelo. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Poppins:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <!-- Leaflet, para el mapa real de la primera pregunta (ver js/mapa.js).
@@ -31,7 +24,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="css/styles.css?v=106" />
+    <link rel="stylesheet" href="css/styles.css?v=108" />
   </head>
   <body>
     <div id="root"></div>
@@ -78,30 +71,30 @@
         // Antes eran cuatro: habia un `portada.js` con el clon de la portada de
         // Colsubsidio. La app ya no tiene portada — entra directa al splash.
         ['marca', 'proyectos', 'planos'].forEach(function (f) {
-          document.write('<scr' + 'ipt src="tenants/' + slug + '/' + f + '.js?v=105"></scr' + 'ipt>');
+          document.write('<scr' + 'ipt src="tenants/' + slug + '/' + f + '.js?v=108"></scr' + 'ipt>');
         });
       })();
     </script>
     <!-- traduce la paleta de la marca a las custom properties del :root -->
-    <script src="js/tema.js?v=105"></script>
-    <script src="js/config.js?v=105"></script>
+    <script src="js/tema.js?v=108"></script>
+    <script src="js/config.js?v=108"></script>
     <!-- Generado por tools/generar_mapa.py: las 20 localidades como anillos
          [lon, lat] para GeoJSON y el indice de 1.256 barrios del buscador.
          ANTES que data.js, que es quien arma la pregunta de ubicacion con
          ellos. -->
-    <script src="js/mapa_bogota.js?v=105"></script>
+    <script src="js/mapa_bogota.js?v=108"></script>
     <!-- Tambien generado: el contorno de los 1.229 barrios, para que un clic
          en cualquier punto del mapa resuelva en cual cayo. NO es una capa que
          se dibuje —js/mapa.js lo usa como datos y solo pinta el elegido—, asi
          que puede cargarse aqui sin costarle nada al DOM. -->
-    <script src="js/mapa_barrios.js?v=106"></script>
+    <script src="js/mapa_barrios.js?v=108"></script>
     <!-- Y el catalogo de sitios con nombre de Bogota (centros comerciales,
          parques, universidades...), para el buscador "se un lugar cerca" de la
          misma pregunta. Cada uno viaja ya resuelto a su localidad y sector, asi
          que el buscador responde sin red; lo que no este aqui lo completa el
          geocodificador en vivo (ver PHOTON_URL en js/main.js). -->
-    <script src="js/mapa_lugares.js?v=106"></script>
-    <script src="js/data.js?v=106"></script>
+    <script src="js/mapa_lugares.js?v=108"></script>
+    <script src="js/data.js?v=111"></script>
     <!-- La libreria del mapa y el modulo que la envuelve. `defer` no: el resto
          de este front se carga sincrono y js/mapa.js solo toca a Leaflet en
          tiempo de ejecucion, cuando main.js lo monta. Si la red falla, window.L
@@ -112,27 +105,41 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="js/mapa.js?v=106"></script>
-    <script src="js/matching.js?v=105"></script>
+    <script src="js/mapa.js?v=108"></script>
+    <script src="js/matching.js?v=108"></script>
     <!-- el plano que arma el quiz: cortes generados por tools/analizar_planos.py,
          normalización de espacios, sorteo del apartamento y cuánto se ve ya -->
-    <script src="js/espacios.js?v=105"></script>
-    <script src="js/planta.js?v=105"></script>
-    <script src="js/scene.js?v=105"></script>
-    <script src="js/recommender.js?v=105"></script>
-    <script src="js/qualification.js?v=105"></script>
-    <script src="js/simulador.js?v=105"></script>
+    <script src="js/espacios.js?v=108"></script>
+    <script src="js/planta.js?v=108"></script>
+    <script src="js/scene.js?v=108"></script>
+    <script src="js/recommender.js?v=108"></script>
+    <script src="js/qualification.js?v=108"></script>
+    <script src="js/simulador.js?v=108"></script>
     <!-- El fondo "AI Signal" del Machea Motion System: red de nodos y pulso
          coral. Cuelga del <body> y no de #root, que se reconstruye entero en
          cada pantalla — ver la cabecera de senal.js. -->
-    <script src="js/senal.js?v=105"></script>
+    <script src="js/senal.js?v=108"></script>
     <!-- Paso 2 del contrato: dispara la llamada de Manuela vía api.py -->
-    <script src="js/llamada.js?v=105"></script>
+    <script src="js/llamada.js?v=108"></script>
     <!-- el contrato del modelo de recomendacion (Machea) -->
-    <script src="js/iconos.js?v=105"></script>
-    <script src="js/machea.js?v=105"></script>
-    <script src="js/templates.js?v=106"></script>
-    <script src="js/state.js?v=105"></script>
-    <script src="js/main.js?v=106"></script>
+    <script src="js/iconos.js?v=108"></script>
+    <script src="js/machea.js?v=108"></script>
+    <script src="js/templates.js?v=111"></script>
+    <script src="js/state.js?v=110"></script>
+    <!-- plano 3D. El bundle de three va aparte porque la app no tiene bundler,
+         y TODOS estos van despues del document.write de arriba: moverlo o
+         ponerle defer borra el documento entero. -->
+    <script src="vendor/gdf-three.bundle.js?v=108"></script>
+    <script src="js/plano3d/perfil.js?v=110"></script>
+    <script src="js/plano3d/zonificacion.js?v=108"></script>
+    <script src="js/plano3d/muros.js?v=108"></script>
+    <script src="js/plano3d/floorplan.js?v=108"></script>
+    <script src="js/plano3d/materiales.js?v=108"></script>
+    <script src="js/plano3d/geometria.js?v=108"></script>
+    <script src="js/plano3d/muebles.js?v=108"></script>
+    <script src="js/plano3d/entorno.js?v=108"></script>
+    <script src="js/plano3d/escena.js?v=108"></script>
+    <script src="js/plano3d/index.js?v=109"></script>
+    <script src="js/main.js?v=110"></script>
   </body>
 </html>

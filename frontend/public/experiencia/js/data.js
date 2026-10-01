@@ -203,6 +203,161 @@
     },
   ];
 
+  function porId(lista, id) {
+    for (var i = 0; i < lista.length; i++) {
+      if (lista[i].id === id) return lista[i];
+    }
+    return null;
+  }
+
+  // -------------------------------------------------------------------------
+  // BIFURCACIÓN COMPRA / ARRIENDO
+  // -------------------------------------------------------------------------
+  // `operacion` es la primera pregunta del recorrido, justo después de la
+  // escarapela. Es una grilla simple más — sale gratis del renderer de
+  // siempre (ver `quizPanel` en templates.js) — y `qListFor` (state.js) mira
+  // su respuesta para decidir cuál de los dos arrays de abajo devolver.
+  var OPERACION = {
+    id: 'operacion',
+    title: '¿Qué estás buscando?',
+    sub: 'Elige cómo quieres encontrar tu próximo hogar.',
+    cols: 2,
+    // Sin esto se alcanza a ver el contorno/losa vacía de la casa detrás
+    // del panel: `state.planta` ya existe desde 'startQuiz', antes de
+    // pintar esta primera pregunta (ver sceneBlock() en templates.js).
+    // Mismo mecanismo que `escena: 'mapa'` de la pregunta 'zona', pero
+    // para no pintar NADA en vez de tapar con otra cosa.
+    escena: 'vacio',
+    options: [
+      { v: 'compra', label: 'Comprar' },
+      { v: 'arriendo', label: 'Arrendar' },
+    ],
+  };
+
+  // El formulario de Arriendo (`preguntas arriendo.txt`) reusa tal cual tres
+  // preguntas de Compra por id -- `zona`, `ingresos`, `personas` -- porque
+  // son las mismas preguntas de verdad (ubicación, ingresos del hogar,
+  // personas a cargo) y porque plano3d/perfil.js las reconoce por ESE id
+  // literal para reaccionar (ver ESTILO_A_AMENIDAD más abajo y el comentario
+  // de ETAPAS en plano3d/perfil.js).
+  var TIPO_PROPIEDAD = {
+    id: 'tipo_propiedad',
+    title: '¿Qué propiedad estás buscando?',
+    sub: 'Esto nos ayuda a mostrarte las opciones correctas.',
+    cols: 3,
+    // Va justo después de 'operacion' y todavía no hay nada que construir
+    // (ni siquiera se sabe si es vivienda): mismo `escena: 'vacio'` que esa
+    // pregunta, por la misma razón — ver el comentario de OPERACION arriba.
+    escena: 'vacio',
+    // `v` igual al `label` a propósito, mismo criterio que la pregunta
+    // 'tipo' de Compra (v:'VIS', label:'VIS'): el chip del resumen
+    // (perfilChips en state.js) muestra el valor crudo, sin traducirlo.
+    options: [
+      { v: 'Vivienda', label: 'Vivienda' },
+      { v: 'Oficinas', label: 'Oficinas' },
+      { v: 'Bodegas', label: 'Bodegas' },
+    ],
+  };
+
+  var PRESUPUESTO = {
+    id: 'presupuesto',
+    title: '¿Cuál es tu presupuesto?',
+    sub: 'Canon mensual que estás dispuesto a pagar.',
+    cols: 1,
+    options: [
+      { v: '<1M', label: 'Menos de $1.000.000' },
+      { v: '1-2M', label: '$1.000.000 – $2.000.000' },
+      { v: '2-3.5M', label: '$2.000.000 – $3.500.000' },
+      { v: '>3.5M', label: 'Más de $3.500.000' },
+    ],
+  };
+
+  var MUDANZA = {
+    id: 'mudanza',
+    title: '¿Cuándo proyectas realizar tu mudanza?',
+    sub: 'Así priorizamos disponibilidad con los asesores.',
+    cols: 1,
+    options: [
+      { v: 'inmediato', label: 'Inmediato' },
+      { v: '1_mes', label: 'En 1 mes' },
+      { v: '2_3_meses', label: 'En 2 a 3 meses' },
+      { v: '+3_meses', label: 'Más de 3 meses' },
+    ],
+  };
+
+  // Bloque de 4 contadores en una sola pantalla. REUSA el id 'habitaciones'
+  // a propósito: plano3d/perfil.js lo busca por ese nombre literal para
+  // desbloquear baño/alcobas y para dimensionar la planta (nAlcobas). Ver
+  // answerPreferencias en state.js/main.js: guarda un valor compatible
+  // ('1'|'2'|'3+') en answers.habitaciones ADEMÁS del detalle completo
+  // ({habitaciones, banos, parqueaderos, estrato}) en answers.preferencias.
+  var PREFERENCIAS_ARRIENDO = {
+    id: 'habitaciones',
+    title: 'Selecciona tus preferencias principales',
+    sub: 'Ajusta cada valor con los botones.',
+    type: 'contador',
+    campos: [
+      { id: 'habitaciones', label: 'Habitaciones', min: 1, max: 5, inicial: 1 },
+      { id: 'banos', label: 'Baños', min: 1, max: 4, inicial: 1 },
+      { id: 'parqueaderos', label: 'Parqueaderos', min: 0, max: 3, inicial: 0 },
+      { id: 'estrato', label: 'Estrato', min: 1, max: 6, inicial: 3 },
+    ],
+  };
+
+  // Solo estas opciones de estilo de vida mapean a una amenidad real del
+  // plano 3D (ver GRUPO en plano3d/entorno.js) -- el resto no tiene pieza
+  // equivalente hoy y solo queda en answers.estilo_vida para el resumen, sin
+  // mover el plano. Los valores de la derecha son los `v` EXACTOS que
+  // entiende plano3d/entorno.js, no slugs nuestros.
+  var ESTILO_A_AMENIDAD = {
+    vivo_mascotas: 'zona pet',
+    biciusuario: 'taller de bicicletas',
+    gimnasio_personal: 'gymnasio',
+    aire_libre: 'parque',
+  };
+
+  // REUSA el id 'entorno_deseado' a propósito (ver ESTILO_A_AMENIDAD arriba
+  // y answerEstiloVida en state.js/main.js): así el barrio 3D reacciona en
+  // las opciones mapeadas sin que plano3d/ tenga que aprender un concepto
+  // nuevo. `min: 3` es lo único que distingue este multiselect del de
+  // Compra -- ver quizPanel en templates.js.
+  var ESTILO_VIDA = {
+    id: 'entorno_deseado',
+    title: '¿Cuál es tu estilo de vida?',
+    sub: 'Selecciona mínimo 3 preferencias.',
+    type: 'multiselect',
+    min: 3,
+    options: [
+      { v: 'vivo_solo', label: 'Vivo Solo' },
+      { v: 'vivo_ninos', label: 'Vivo con niños' },
+      { v: 'vivo_mascotas', label: 'Vivo con mascotas' },
+      { v: 'discapacidad', label: 'Situación de discapacidad' },
+      { v: 'biciusuario', label: 'Soy Biciusuario' },
+      { v: 'gimnasio_personal', label: 'Entreno en gimnasio' },
+      { v: 'aire_libre', label: 'Actividades al aire libre' },
+      { v: 'balcon_terraza', label: 'Con balcón o terraza' },
+      { v: 'zona_ropas', label: 'Con zona de ropas' },
+      { v: 'deposito', label: 'Con depósito' },
+      { v: 'areas_sociales', label: 'Áreas sociales' },
+    ],
+  };
+
+  // Compra: las 7 preguntas de siempre, con `operacion` delante. Arriendo:
+  // el set de preguntas arriba, reusando `zona`/`ingresos`/`personas` de
+  // Compra tal cual (mismo objeto, mismas opciones).
+  var QUESTIONS_COMPRA = [OPERACION].concat(QUESTIONS);
+  var QUESTIONS_ARRIENDO = [
+    OPERACION,
+    TIPO_PROPIEDAD,
+    porId(QUESTIONS, 'zona'),
+    PRESUPUESTO,
+    porId(QUESTIONS, 'ingresos'),
+    porId(QUESTIONS, 'personas'),
+    MUDANZA,
+    PREFERENCIAS_ARRIENDO,
+    ESTILO_VIDA,
+  ];
+
   // NOTA: aquí vivían ROOM_GEO (geometría fija de la planta) y FURN (muebles).
   // Se fueron cuando el quiz pasó a armar el PLANO REAL de un apartamento del
   // catálogo: ya no se dibujan cuartos ni muebles, se recortan piezas de la
@@ -298,7 +453,16 @@
 
   window.GDF = window.GDF || {};
   window.GDF.data = {
-    QUESTIONS: QUESTIONS,
+    // QUESTIONS se queda apuntando a Compra por compatibilidad: código que
+    // ya asumía un solo recorrido (js/llamada.js, js/machea.js, la
+    // restauración de una consulta guardada en main.js) solo corre para
+    // Compra de todos modos, porque Arriendo no llega ni a la llamada de
+    // Manuela ni a Supabase en esta entrega. El código nuevo que sí necesita
+    // saber cuál recorrido está activo usa qListFor() de state.js.
+    QUESTIONS: QUESTIONS_COMPRA,
+    QUESTIONS_COMPRA: QUESTIONS_COMPRA,
+    QUESTIONS_ARRIENDO: QUESTIONS_ARRIENDO,
+    ESTILO_A_AMENIDAD: ESTILO_A_AMENIDAD,
     PROJECTS: PROJECTS,
     AMENITIES: AMENITIES,
     VECINAS: VECINAS,

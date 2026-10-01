@@ -63,14 +63,20 @@
   // Todo lo que pinta projectCard() sale de acá. `local` es la referencia al
   // proyecto del catálogo scrapeado (o null), y es lo que habilita el
   // desplegable de planos.
-  // Las fotos llegan como rutas RELATIVAS ("/imagenes_proyectos/12/01.jpg"),
-  // porque el servicio no sabe con qué URL pública lo están llamando. Aquí se
-  // resuelven contra MACHEA_BASE: sin esto el navegador las pide al servidor
-  // del front, que no las tiene, y las seis tarjetas salen sin foto — sin
-  // ningún error, solo un degradado donde debería haber un edificio.
+  // Las fotos llegan como rutas RELATIVAS, porque el servicio no sabe con qué
+  // URL pública lo están llamando. Dos formas, según quién respondió:
+  //   - "/experiencia/imagenes_proyectos/12/01.webp" (backend/api/app.py):
+  //     las fotos SON un estático de este mismo front (ver ese archivo) —
+  //     se resuelven contra location.origin, la propia página.
+  //   - "/imagenes_proyectos/12/01.jpg" (integracion/servicio_machea.py, para
+  //     correr junto al modelo en un stand): ahí sí viven en el servicio, no
+  //     en el front — se resuelven contra MACHEA_BASE como antes.
+  // Sin esto, alguna de las dos rutas sale sin foto: sin ningún error, solo
+  // un degradado donde debería haber un edificio.
   function urlDeFoto(ruta) {
     var r = String(ruta || '');
     if (!r || /^https?:/i.test(r) || r.indexOf('data:') === 0) return r;
+    if (r.indexOf('/experiencia/') === 0) return r;
     var base = (window.GDF_CONFIG || {}).MACHEA_BASE || '';
     return base.replace(/\/$/, '') + (r.charAt(0) === '/' ? r : '/' + r);
   }

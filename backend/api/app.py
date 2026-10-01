@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import pathlib
 import re
 import sys
 from datetime import datetime, timedelta, timezone
@@ -61,6 +62,41 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Las fotos de cada proyecto NO viven en este servicio: son estáticos del
+# front (`frontend/public/experiencia/imagenes_proyectos/<id_proyecto>/`,
+# ~76 MB), y ese front ya las publica en su propio origen (Vercel) junto con
+# la landing. Duplicarlas aquí y servirlas desde Render sería repetir ese
+# peso en un segundo lugar sin necesidad. Por eso `imagenes` sale como rutas
+# RELATIVAS (`/experiencia/imagenes_proyectos/12/01.webp`) para que el front
+# las resuelva contra SU PROPIO origen (ver urlDeFoto() en recommender.js) y
+# no contra MACHEA_BASE. Mismo criterio que integracion/servicio_machea.py
+# (pensado para correr junto al modelo en un stand, con su propia copia de
+# las fotos), pero sin copiarlas: aquí solo se listan las que ya existen en
+# el repo del front.
+_RAIZ_REPO = pathlib.Path(__file__).resolve().parent.parent.parent
+_IMAGENES_DIR = _RAIZ_REPO / "frontend" / "public" / "experiencia" / "imagenes_proyectos"
+_EXTENSIONES_IMAGEN = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"}
+
+
+def _fotos_de(id_proyecto: Any) -> List[str]:
+    """Rutas relativas de las fotos de un proyecto, en orden (01 = portada).
+
+    No se inventa nada: si la carpeta no existe la lista sale vacía y la
+    tarjeta pinta el degradado de siempre — peor que una tarjeta sin foto es
+    una tarjeta con la foto de otro proyecto.
+    """
+    if id_proyecto is None:
+        return []
+    carpeta = _IMAGENES_DIR / str(id_proyecto)
+    if not carpeta.is_dir():
+        return []
+    nombres = sorted(
+        f.name for f in carpeta.iterdir()
+        if f.is_file() and f.suffix.lower() in _EXTENSIONES_IMAGEN
+    )
+    return ["/experiencia/imagenes_proyectos/%s/%s" % (id_proyecto, n) for n in nombres]
 
 
 class FormularioUsuario(BaseModel):
@@ -118,7 +154,17 @@ def api_recomendar(payload: FormularioUsuario):
         resultado = recomendar(data, ruta_salida=None, verbose=False)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return respuesta_json(resultado, ruta_salida=None)
+    respuesta = respuesta_json(resultado, ruta_salida=None)
+    sin_fotos = 0
+    for apto in respuesta.get("apartamentos", []):
+        apto["imagenes"] = _fotos_de(apto.get("id_proyecto"))
+        if not apto["imagenes"]:
+            sin_fotos += 1
+    # Se dice cuántos se quedaron sin foto en vez de dejarlo notar por la
+    # ausencia — si un día salen todos en cero, es que la carpeta no está
+    # donde toca (o el checkout de Render no trajo `frontend/`).
+    respuesta["sin_imagenes"] = sin_fotos
+    return respuesta
 
 
 def normalizar_telefono_e164(raw: str | None) -> str | None:

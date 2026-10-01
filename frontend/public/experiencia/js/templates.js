@@ -89,10 +89,9 @@
   }
 
   /**
-   * La casita ilustrada. HOY NO LA LLAMA NADIE: su único sitio era splash(), y
-   * el splash se borró al quedar la experiencia sola, sin landing delante (ver
-   * `screen` en state.js). Se conserva porque es la pieza de marca de la
-   * entrada, y recuperarla es volver a llamarla desde una pantalla.
+   * La casita ilustrada. Hoy solo la usa splash(): la portada dejó de tener
+   * bloque propio al pasar a ser el clon de la página de Colsubsidio, cuyo
+   * hero lleva la casa 3D amarilla de ellos.
    *
    * Es UN SVG y no veinte <div> absolutos, y esa es la corrección de fondo:
    * antes cada pieza (muro, tejado, chimenea, puerta, ventanas…) llevaba su
@@ -169,26 +168,47 @@
   // Con el diseño estandar dejo de aportar: era una banda naranja igual en las
   // cuatro constructoras, y lo unico que la diferenciaba —el nombre— sigue
   // apareciendo donde importa (el consentimiento de la escarapela, el enlace a
-  // la ficha oficial, el cierre). `logoHtml` se queda escrito, aunque desde
-  // que se fue el splash no lo llame nadie: es la pieza que resuelve el logo
-  // del tenant, y volver a usarla es una linea.
+  // la ficha oficial, el cierre). `logoHtml` se queda: lo usa el splash.
 
   // AQUI VIVIA LA PORTADA. Eran ~400 lineas que clonaban
   // colsubsidio.com/vivienda/proyectos: sus tres barras de cabecera, sus cuatro
   // carruseles con su reparto por breakpoint y su footer de pestañas. Se fue
   // entera con Colsubsidio, junto con `paginasPortada` y `guionesHtml`.
   //
-  // AQUI VIVIA EL SPLASH. Era la pantalla de entrada —pastilla de campaña, la
-  // casita, "Encuentra tu próximo hogar", el botón "¡Construir mi casa!" y el
-  // badge de 2 minutos— y se fue al quedar la experiencia sola: dentro de la
-  // landing ya era una segunda puerta (el modal la saltaba con `embed=1`), y
-  // sin landing delante es la única puerta, que es peor — tres frases entre el
-  // usuario y el formulario. Ahora se entra rellenando los datos.
-  //
-  // Sus textos siguen en el manifiesto de cada tenant (`splashTitulo`,
-  // `splashLead`, `splashQuote`, `splashCta`) y su CSS en `.gdf-hero*`: son
-  // datos y estilo, no estorban quietos, y son justo lo que haria falta si la
-  // entrada vuelve.
+  // La app entra ahora por el splash, que es de marca y no de nadie en
+  // concreto: se viste con el tenant que toque.
+
+  // Pantalla de entrada: sigue el spec visual de
+  // design/landing-hero-handoff/ (nav azul con logo, pastilla de campaña,
+  // casa ilustrada con CSS, un solo badge). El CTA salta directo a escarapela:
+  // ya no hay pantalla de elegir personaje.
+  function splash() {
+    return (
+      '<div class="gdf-screen gdf-hero">' +
+      // El splash tenia su propia barra de marca, igual que el resto de
+      // pantallas. Se fue con ellas: era la misma franja naranja con el nombre
+      // a la derecha, y el nombre ya sale dos lineas mas abajo, dentro de la
+      // frase de entrada ("...encaja contigo, con Cusezar").
+      '<main class="gdf-hero-main">' +
+      '<div class="gdf-hero-pill"><span class="dot"></span>Grúa del Futuro</div>' +
+      houseIllustration() +
+      '<h1>' + txt('splashTitulo', 'Construye tu sueño') + '</h1>' +
+      '<p class="gdf-hero-lead">' +
+      txt('splashLead', 'Responde jugando y encuentra tu vivienda ideal.') +
+      '</p>' +
+      '<p class="gdf-hero-quote">' +
+      txt('splashQuote', '&ldquo;Tú pones el sueño. Nosotros la grúa.&rdquo;') +
+      '</p>' +
+      '<button class="gdf-hero-cta" data-action="goEscarapela">' +
+      txt('splashCta', '¡Construir mi casa!') +
+      '</button>' +
+      '<div class="gdf-hero-badges">' +
+      '<span class="gdf-hero-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--marca)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2"></path><path d="M9 2h6"></path></svg>2 minutos</span>' +
+      '</div>' +
+      '</main>' +
+      '</div>'
+    );
+  }
 
   // nombre/apellido/correo separados (no un solo "nombre completo"): el
   // backend de leads (contrato SenalBowl) los requiere como campos
@@ -197,11 +217,19 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   }
 
+  // Mismo rango que el check de la tabla `leads` (ver
+  // supabase/migrations/): solo dígitos, 5 a 15 de largo.
+  function isValidCedula(v) {
+    return /^[0-9]{5,15}$/.test(v.replace(/\D/g, ''));
+  }
+
   function escarapela(state) {
     var genderObj = findGender(state.gender);
     var canStart = !!(
       state.nombre.trim() &&
       state.apellido.trim() &&
+      state.cedula.trim() &&
+      isValidCedula(state.cedula.trim()) &&
       state.correo.trim() &&
       isValidEmail(state.correo.trim()) &&
       state.telefono.trim() &&
@@ -238,10 +266,16 @@
 
     return (
       '<div class="gdf-screen gdf-escarapela">' +
-      // NO HAY ATRAS, porque no hay nada detras: la escarapela es la primera
-      // pantalla (ver `screen` en state.js). Aqui habia un boton al splash y se
-      // fue con el — un "← Atrás" que lleva a una pantalla que no existe no se
-      // ve roto, se ve como una puerta anterior a la que ya se cruzo.
+      // EMBEBIDA NO HAY ATRAS, porque no hay nada detras. La escarapela es la
+      // primera pantalla dentro del modal (ver `screen` en state.js), asi que
+      // este boton llevaba al splash —"Encuentra tu proximo hogar"—, una
+      // pantalla de bienvenida que dentro de un modal sobra: quien pulso
+      // "¡Empezar mi match!" ya dijo que queria empezar. Se colaba solo por
+      // aqui, y quien lo pulsaba se quedaba en una puerta anterior a la que
+      // ya habia cruzado.
+      (window.GDF_EMBED
+        ? ''
+        : '<button class="gdf-back-btn" data-action="goSplash">← Atrás</button>') +
       '<div class="kicker"><div class="eyebrow">TU CARNÉ DE CONSTRUCTOR</div><h2>Primero, preséntate</h2></div>' +
       '<div class="gdf-carnet">' +
       '<div class="clip"></div>' +
@@ -263,6 +297,8 @@
       '<input class="gdf-input" id="nombreInput" placeholder="Ej: Ana" value="' + esc(state.nombre) + '" />' +
       '<label class="gdf-field-label">Apellidos</label>' +
       '<input class="gdf-input" id="apellidoInput" placeholder="Ej: Ruiz Gómez" value="' + esc(state.apellido) + '" />' +
+      '<label class="gdf-field-label">Cédula</label>' +
+      '<input class="gdf-input" id="cedulaInput" inputmode="numeric" placeholder="Ej: 1020304050" value="' + esc(state.cedula) + '" />' +
       '<label class="gdf-field-label">Correo electrónico</label>' +
       '<input class="gdf-input" id="correoInput" type="email" placeholder="Ej: ana.ruiz@correo.com" value="' + esc(state.correo) + '" />' +
       '<label class="gdf-field-label">Teléfono (WhatsApp)</label>' +
@@ -278,7 +314,7 @@
       '</span>' +
       '</label>' +
       '<button class="gdf-btn-primary' + (canStart ? ' enabled' : '') + '" data-action="startQuiz">Empezar a construir →</button>' +
-      '<p class="gdf-hint">Completa nombres, apellidos, correo, teléfono y consentimiento para continuar.</p>' +
+      '<p class="gdf-hint">Completa nombres, apellidos, cédula, correo, teléfono y consentimiento para continuar.</p>' +
       '</div>'
     );
   }
@@ -365,11 +401,16 @@
   function sceneBlock(state, derived, animarTodo) {
     var planta = derived.planta;
     var answers = state.answers || {};
+    // 'operacion' (Comprar/Arrendar, ver data.js): lienzo en blanco, ni
+    // lote ni losa -- `state.planta` ya existe desde 'startQuiz', así que
+    // sin este corte se alcanzaría a ver el contorno vacío de la casa
+    // antes de elegir siquiera qué se está buscando.
+    var vacio = derived.q && derived.q.escena === 'vacio';
 
-    var loteHtml = derived.showLote ? '<div class="gdf-lote"><span>Tu lote</span></div>' : '';
+    var loteHtml = (derived.showLote && !vacio) ? '<div class="gdf-lote"><span>Tu lote</span></div>' : '';
 
     var roomsHtml = '';
-    if (derived.losaRevealed) {
+    if (derived.losaRevealed && !vacio) {
       var roomsInner = derived.rooms
         .map(function (room) {
           return cuartoHtml(room, !!animarTodo);
@@ -414,7 +455,7 @@
     // apartamento (a qué altura está) y la sombra que proyecta. Es data-* para
     // que main.js lo actualice sin tocar el resto de la escena.
     var piso = answers.piso_preferido ? ' data-piso="' + esc(answers.piso_preferido) + '"' : '';
-    var haloHtml = answers.entorno_deseado ? haloAmenidadesHtml(planta, answers) : '';
+    var haloHtml = (answers.entorno_deseado && !vacio) ? haloAmenidadesHtml(planta, answers) : '';
 
     // EL MAPA TAPA LA ESCENA, NO LA SUSTITUYE. En la pregunta de ubicación el
     // lienzo lo ocupa el mapa de Bogotá, pero `.gdf-scene` se sigue pintando
@@ -439,8 +480,12 @@
     // la recomendación. La recomendación sale al final, calculada con las
     // respuestas. Además el nombre de la localidad chocaba con la que el
     // usuario acababa de elegir.
+    // `gdf-scene--vacio` es lo que lee el CSS (y updateEscenaVacioDOM en
+    // main.js, en preguntas siguientes) para pasar el panel a pantalla
+    // completa en vez de dejar esta mitad en blanco -- ver el media query de
+    // 900px en styles.css.
     return (
-      '<div class="gdf-scene"' + piso + '>' +
+      '<div class="gdf-scene' + (vacio ? ' gdf-scene--vacio' : '') + '"' + piso + '>' +
       loteHtml + roomsHtml + haloHtml + mapaHtml +
       '</div>'
     );
@@ -510,18 +555,16 @@
   // entre mapa y buscador, ni forma de corregirse. La elección en curso vive
   // fuera de `state` (ver `zonaSeleccion` en main.js) y se compromete al
   // pulsar Continuar, exactamente como 'entorno_deseado'.
-  // UN SOLO BUSCADOR PARA LOS DOS CAMINOS. Hubo un momento de dos pestañas
-  // —"conozco el barrio" y "sé un lugar cerca"—, y esa pregunta previa sobraba:
-  // obligaba a declarar QUIÉN es uno antes de poder escribir, y quien no sabía
-  // en qué pestaña estaba lo escrito se encontraba un campo que no encontraba
-  // nada. Ahora se escribe y ya: "Cedritos" trae el barrio, "Unicentro" trae el
-  // centro comercial, y las dos clases de resultado bajan en la MISMA lista,
-  // cada una bajo su encabezado. Los dos terminan en el mismo
-  // `{localidad, barrio, bi}` y se pueden mezclar en la misma respuesta.
+  // UN SOLO BUSCADOR PARA LOS DOS CAMINOS. Quien conoce los barrios de Bogotá
+  // escribe el suyo; quien no, el centro comercial o el parque de al lado. Ya
+  // no se le pregunta antes cuál de los dos es: eran dos pestañas, y la
+  // persona tenía que decidir de qué tipo era lo que iba a escribir antes de
+  // escribirlo. Ahora el desplegable trae las dos cosas juntas —barrios
+  // arriba, lugares debajo (ver renderZonaSugerencias en main.js)— y las dos
+  // terminan en el mismo `{localidad, barrio, bi}`.
   //
-  // LOS CHIPS VAN ARRIBA, fuera del buscador. Antes vivían dentro del propio
-  // campo (fundidos en su caja, como el "para:" de un correo); en una fila
-  // propia dicen mejor lo que son: la respuesta completa, venga de donde venga.
+  // Los chips van arriba del buscador, en su propia fila: son la respuesta
+  // completa, venga del barrio, del lugar o del mapa.
   function zonaPanel(q, state) {
     // Habilitado si ya había zonas elegidas —se vuelve aquí con "Atrás"—; con
     // la lista vacía, el botón lo enciende sincronizarZona() al primer clic.
@@ -530,19 +573,14 @@
       '<div class="gdf-quiz-freeform gdf-zona">' +
       '<div class="gdf-entorno-chips gdf-zona-chips" id="zonaChips"></div>' +
 
-      '<div class="gdf-entorno-combo gdf-zona-combo">' +
+      '<div class="gdf-entorno-combo">' +
       '<div class="gdf-zona-input-wrap" id="zonaInputWrap">' +
       '<input class="gdf-input gdf-zona-input" id="zonaSearch" type="text" autocomplete="off" ' +
-      'placeholder="' + (elegida ? 'Agregar otra zona…' : 'Tu barrio, o un lugar que reconozcas…') + '" />' +
+      'placeholder="' + (elegida ? 'Agregar otra zona…' : 'Tu barrio o un lugar cerca (Cedritos, Unicentro…)') + '" />' +
       '</div>' +
       '<div class="gdf-multi-opt-list" id="zonaOpciones"></div>' +
       '</div>' +
-      // NO HAY UNA LINEA QUE EXPLIQUE EL BUSCADOR, y es a proposito. La tuvo
-      // mientras fue la pestana de lugares ("Ubicamos el barrio al que
-      // pertenece el lugar que elijas"), donde era la unica pista de que ese
-      // modo hacia algo distinto. Con un solo campo ya lo dicen el enunciado
-      // de la pregunta (data.js) y el placeholder, y una tercera linea entre
-      // el campo y el eco solo repetia lo mismo tres veces seguidas.
+
       '<p class="gdf-zona-eco" id="zonaEco">' + zonaEco(state.zonaSectores) + '</p>' +
       '<button class="gdf-btn-primary' + (elegida ? ' enabled' : '') + '" ' +
       'data-action="answerQuizZona" data-qid="' + q.id + '">Continuar →</button>' +
@@ -572,12 +610,6 @@
     } else if (q && q.type === 'zona') {
       answerAreaHtml = zonaPanel(q, state);
     } else if (q && q.type === 'multiselect') {
-      // Buscador con "explorar todo": al enfocar aparece el listado completo
-      // (25 zonas, precargadas de una — ver main.js) y escribir lo filtra.
-      // Flota pegado al buscador (position:absolute sobre '.gdf-entorno-combo',
-      // ver CSS), por eso no es un <details> nativo: ahí no hay forma de
-      // decidir por JS cuándo mostrarlo. Debajo, en su propio lugar: chips de
-      // lo elegido y Continuar al final.
       var multiOpts = q.options
         .map(function (o) {
           return (
@@ -587,14 +619,66 @@
           );
         })
         .join('');
+      // Con `min` declarado (estilo de vida de Arriendo, data.js): lista
+      // corta y fija, SIN buscador -- las 11 opciones se pintan directo, no
+      // hace falta filtrar. `abierto` a mano y `style` en línea porque
+      // '.gdf-multi-opt-list' flota por defecto pegada a un buscador que
+      // aquí no existe (ver el comentario de esa clase en CSS); así se
+      // pinta en flujo normal sin tocar esa regla compartida con la lista
+      // de amenidades de Compra. El botón Continuar arranca deshabilitado
+      // -- toggleEntornoValor()/renderEntornoChips() en main.js lo
+      // habilitan al llegar a `min` elegidos.
+      if (q.min) {
+        answerAreaHtml =
+          '<div class="gdf-quiz-freeform">' +
+          '<div class="gdf-multi-opt-list abierto" id="entornoOpciones" ' +
+          'style="position:static;display:flex;flex-wrap:wrap;gap:8px;max-height:none;">' +
+          multiOpts + '</div>' +
+          '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
+          '<button class="gdf-btn-primary" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+          '</div>';
+      } else {
+        // Buscador con "explorar todo": al enfocar aparece el listado
+        // completo (25 zonas, precargadas de una — ver main.js) y escribir
+        // lo filtra. Flota pegado al buscador (position:absolute sobre
+        // '.gdf-entorno-combo', ver CSS), por eso no es un <details>
+        // nativo: ahí no hay forma de decidir por JS cuándo mostrarlo.
+        // Debajo, en su propio lugar: chips de lo elegido y Continuar.
+        answerAreaHtml =
+          '<div class="gdf-quiz-freeform">' +
+          '<div class="gdf-entorno-combo">' +
+          '<input class="gdf-input" id="entornoSearch" type="text" placeholder="Busca (ej. piscina, bbq)…" autocomplete="off" />' +
+          '<div class="gdf-multi-opt-list" id="entornoOpciones">' + multiOpts + '</div>' +
+          '</div>' +
+          '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
+          '<button class="gdf-btn-primary enabled" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+          '</div>';
+      }
+    } else if (q && q.type === 'contador') {
+      // Arriendo: 4 contadores en una sola pantalla (ver data.js, id
+      // 'habitaciones'). Sin CSS propio a propósito (no se toca el
+      // stylesheet compartido en esta entrega) -- estilos en línea, mínimos,
+      // solo para que sea usable. Valor no controlado (igual que
+      // zonaSeleccion/entornoSeleccion): +/- patchea el número en el DOM sin
+      // re-render, ver ajustarContador() en main.js.
+      var filasContador = q.campos
+        .map(function (c) {
+          return (
+            '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--hair,#e5e5e5);">' +
+            '<span>' + esc(c.label) + '</span>' +
+            '<div style="display:flex;align-items:center;gap:14px;">' +
+            '<button type="button" class="gdf-back-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">−</button>' +
+            '<span id="contadorValor-' + c.id + '" style="min-width:1.5em;text-align:center;font-weight:600;">' + c.inicial + '</span>' +
+            '<button type="button" class="gdf-back-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">+</button>' +
+            '</div>' +
+            '</div>'
+          );
+        })
+        .join('');
       answerAreaHtml =
         '<div class="gdf-quiz-freeform">' +
-        '<div class="gdf-entorno-combo">' +
-        '<input class="gdf-input" id="entornoSearch" type="text" placeholder="Busca (ej. piscina, bbq)…" autocomplete="off" />' +
-        '<div class="gdf-multi-opt-list" id="entornoOpciones">' + multiOpts + '</div>' +
-        '</div>' +
-        '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
-        '<button class="gdf-btn-primary enabled" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+        filasContador +
+        '<button class="gdf-btn-primary enabled" data-action="answerPreferencias" data-qid="' + q.id + '">Continuar →</button>' +
         '</div>';
     } else if (q) {
       var cols = q.cols || 1;
@@ -633,7 +717,10 @@
       // cuando en realidad el modelo va a expandir a las vecinas y sí le va a
       // responder. A partir de dos respuestas el número ya promedia varios
       // factores y vuelve a significar algo.
-      (derived.answered >= 2
+      // Arriendo nunca la muestra: el número sale de matching.js, que es
+      // 100 % de compra (VIS, crédito) y no significa nada para un canon de
+      // arriendo -- ver el plan de esta entrega.
+      (derived.answered >= 2 && state.answers.operacion !== 'arriendo'
         ? '<div class="gdf-compat">' +
           '<div class="gdf-compat-row"><span>Encaje con el catálogo ahora mismo</span><span>' + derived.compat + '%</span></div>' +
           '<div class="gdf-progress-track"><div class="gdf-progress-fill" style="width:' + derived.compat + '%"></div></div>' +
@@ -659,7 +746,37 @@
     );
   }
 
+  // Arriendo: no hay modelo ni catálogo real detrás (ver el plan de esta
+  // entrega) -- se agradece, se resume lo contestado (mismos chips que
+  // Compra) y se explica que el matching automático está en desarrollo.
+  // Nunca llega a `state.lead`/`state.reco`: bifurca ANTES de que result()
+  // los toque.
+  function resultadoArriendo(state, derived) {
+    var chipsHtml = derived.perfilChips
+      .map(function (c) {
+        return '<span class="gdf-chip' + (c.hi ? ' hi' : '') + '">' + esc(c.text) + '</span>';
+      })
+      .join('');
+    var firstNameA = state.nombre.trim().split(' ')[0] || 'constructor';
+    return (
+      '<div class="gdf-screen gdf-result">' +
+      '<div class="gdf-result-head">' +
+      '<div class="eyebrow">ARRIENDO ✦</div>' +
+      '<h2>¡Gracias, ' + esc(firstNameA) + '!</h2>' +
+      '</div>' +
+      '<div class="gdf-chips">' + chipsHtml + '</div>' +
+      '<div class="gdf-lead-badge exploring">' +
+      '<span class="icon">🚧</span>' +
+      '<div class="title">Estamos construyendo el matching de Arriendo</div>' +
+      '<div class="subcopy">Ya guardamos lo que nos contaste. Muy pronto vamos a poder recomendarte arriendos reales con este mismo perfil.</div>' +
+      '</div>' +
+      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '</div>'
+    );
+  }
+
   function result(state, derived) {
+    if (state.answers.operacion === 'arriendo') return resultadoArriendo(state, derived);
     var lead = state.lead;
 
     var chipsHtml = derived.perfilChips
@@ -1677,6 +1794,9 @@
   function renderApp(state, derived) {
     var screenHtml;
     switch (state.screen) {
+      case 'splash':
+        screenHtml = splash();
+        break;
       case 'escarapela':
         screenHtml = escarapela(state);
         break;
@@ -1690,10 +1810,9 @@
         screenHtml = confirmacion(state, derived);
         break;
       default:
-        // Incluye el 'landing' de la portada borrada y el 'splash' de la
-        // entrada borrada: si algo dejo uno de esos valores guardado, se entra
-        // por la escarapela en vez de por una pantalla en blanco.
-        screenHtml = escarapela(state);
+        // Incluye el 'landing' de la portada borrada: si algo dejo ese valor
+        // guardado, se entra por el splash en vez de a una pantalla en blanco.
+        screenHtml = splash();
     }
     // `data-embed` cuelga del shell y no del <body> porque es este nodo el
     // que lleva el grid de dos columnas del media query de 900px: la regla que

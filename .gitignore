@@ -22,3 +22,13 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+
+# Copias de la experiencia que NO son la fuente. La única que se versiona es
+# frontend/public/experiencia/: `experiencia/` en la raíz y `web/` (con su
+# build en web/dist) son duplicados viejos que solo inflarían el repo.
+/experiencia/
+/web/
+# Copia suelta de integracion/servicio_machea.py.
+/servicio_machea.py
+# Enlace local a web/public/experiencia/imagenes_proyectos. Roto y sin uso.
+/imagenes_proyectos
