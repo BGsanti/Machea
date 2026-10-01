@@ -1766,6 +1766,14 @@ a.pt-flink:hover {
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 18px);
   overflow: hidden;
 }
+/* Preguntas sin nada que mostrar todavia (operacion, tipo_propiedad: ver
+   `escena: 'vacio'` en data.js). En vez de un rectangulo gris vacio -clavado
+   arriba en movil, ocupando media pantalla en escritorio- la escena se quita
+   del todo y el panel de la pregunta pasa a pantalla completa (ver el
+   override de `.gdf-shell:has()` en el media query de 900px). */
+.gdf-scene.gdf-scene--vacio {
+  display: none;
+}
 .gdf-lote {
   position: absolute;
   left: 18px;
@@ -4683,6 +4691,19 @@ a.pt-flink:hover {
        mitad del panel en vez de separar las dos mitades. */
     border-left: 0;
     border-right: 1px solid var(--borde);
+  }
+
+  /* --- pregunta sin escena real (`.gdf-scene--vacio`, ver arriba): pantalla
+     completa en vez del grid de dos columnas, en normal Y en embebida.
+     Especificidad más alta que las reglas de arriba por las dos clases
+     dentro de :has(), así que gana sin importar el orden. */
+  .gdf-shell:has(.gdf-scene.gdf-scene--vacio) {
+    display: flex;
+    flex-direction: column;
+  }
+  .gdf-shell:has(.gdf-scene.gdf-scene--vacio) > .gdf-quiz {
+    border-left: 0;
+    border-right: 0;
   }
 
   /* la escena crece con el lote más grande; damos algo más de margen para

@@ -480,8 +480,12 @@
     // la recomendación. La recomendación sale al final, calculada con las
     // respuestas. Además el nombre de la localidad chocaba con la que el
     // usuario acababa de elegir.
+    // `gdf-scene--vacio` es lo que lee el CSS (y updateEscenaVacioDOM en
+    // main.js, en preguntas siguientes) para pasar el panel a pantalla
+    // completa en vez de dejar esta mitad en blanco -- ver el media query de
+    // 900px en styles.css.
     return (
-      '<div class="gdf-scene"' + piso + '>' +
+      '<div class="gdf-scene' + (vacio ? ' gdf-scene--vacio' : '') + '"' + piso + '>' +
       loteHtml + roomsHtml + haloHtml + mapaHtml +
       '</div>'
     );

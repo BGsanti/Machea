@@ -245,6 +245,10 @@
     title: '¿Qué propiedad estás buscando?',
     sub: 'Esto nos ayuda a mostrarte las opciones correctas.',
     cols: 3,
+    // Va justo después de 'operacion' y todavía no hay nada que construir
+    // (ni siquiera se sabe si es vivienda): mismo `escena: 'vacio'` que esa
+    // pregunta, por la misma razón — ver el comentario de OPERACION arriba.
+    escena: 'vacio',
     // `v` igual al `label` a propósito, mismo criterio que la pregunta
     // 'tipo' de Compra (v:'VIS', label:'VIS'): el chip del resumen
     // (perfilChips en state.js) muestra el valor crudo, sin traducirlo.

@@ -1280,7 +1280,21 @@
     attachInputListeners();
     updatePlantaDOM(derived);
     updateEscenaExtrasDOM(derived);
+    updateEscenaVacioDOM(derived);
     updateMapaDOM(derived);
+  }
+
+  /**
+   * Igual que updateMapaDOM pero para `escena: 'vacio'` (operacion,
+   * tipo_propiedad): sceneBlock ya puso la clase en el primer pintado, pero
+   * la escena no se reconstruye entre preguntas, así que hay que alternarla
+   * a mano cada vez que se entra o se sale de una pregunta vacía.
+   */
+  function updateEscenaVacioDOM(derived) {
+    var escena = root.querySelector('.gdf-scene');
+    if (!escena) return;
+    var vacio = !!(derived.q && derived.q.escena === 'vacio');
+    escena.classList.toggle('gdf-scene--vacio', vacio);
   }
 
   /**
