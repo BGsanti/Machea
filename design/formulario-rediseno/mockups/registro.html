@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machea - Mockups del registro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --red:#FC4633; --navy:#1F2E42; --white:#fff; --bg:#F5F6F8; --gray:#A7ADB5; --dark:#111820; --line:#DCE1E7;
+  --ink-2:#5d6876; --red-soft:#FFF0ED;
+  --shadow:0 12px 30px rgba(31,46,66,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--navy);background:#e9edf1;-webkit-font-smoothing:antialiased}
+.page-head{max-width:1500px;margin:0 auto;padding:36px 28px 8px}
+.page-head h1{margin:0 0 6px;font-size:28px;font-weight:800;letter-spacing:-.03em}
+.page-head p{margin:0;color:var(--ink-2);font-size:14px;max-width:760px;line-height:1.55}
+.tabs{max-width:1500px;margin:18px auto 0;padding:0 28px;display:flex;gap:8px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;font:600 13px Inter;color:var(--navy);cursor:pointer}
+.tab[aria-selected=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.stage{max-width:1500px;margin:18px auto 60px;padding:0 28px}
+.variant{display:none}
+.variant.on{display:block}
+.vnote{font-size:13px;color:var(--ink-2);margin:0 0 14px;max-width:820px;line-height:1.55}
+.vnote b{color:var(--navy)}
+.devices{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+.desktop{width:1060px;max-width:100%;height:640px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:0 24px 50px rgba(31,46,66,.14);position:relative}
+.phone{width:340px;height:640px;border-radius:26px;overflow:hidden;background:#fff;border:8px solid var(--dark);box-shadow:0 24px 50px rgba(31,46,66,.18);position:relative}
+.cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin:0 0 8px;font-weight:600}
+.scroll{height:100%;overflow:auto}
+
+/* ---- logo ---- */
+.logo{display:inline-flex;align-items:center;gap:10px;color:var(--navy)}
+.logo svg{height:26px;width:auto;display:block}
+.logo span{font-weight:800;letter-spacing:-.03em;font-size:21px;line-height:1}
+.logo.on-dark{color:#fff}
+
+/* ---- form ---- */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:6px}
+.field input[type=text],.field input[type=email],.field input[type=tel]{
+  width:100%;height:46px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 14px;font:500 15px Inter;color:var(--navy);outline:none;transition:border-color .2s, box-shadow .2s}
+.field input::placeholder{color:var(--gray);font-weight:400}
+.field input:hover{border-color:#c4cbd3}
+.field input:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(31,46,66,.08)}
+.field.bad input{border-color:var(--red);box-shadow:0 0 0 4px rgba(252,70,51,.08)}
+.field.good input{border-color:var(--navy)}
+.msg{display:none;margin-top:6px;font-size:12px;color:var(--red);font-weight:500;align-items:center;gap:6px}
+.field.bad .msg{display:flex}
+.msg svg{width:14px;height:14px;flex:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.consent{display:flex;gap:11px;align-items:flex-start;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;margin:6px 0 16px}
+.consent input{position:absolute;opacity:0}
+.box{width:20px;height:20px;border:1.5px solid #b7bfc8;border-radius:6px;flex:none;display:grid;place-items:center;background:#fff;transition:.15s;margin-top:1px}
+.box svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.consent input:checked + .box{background:var(--navy);border-color:var(--navy)}
+.consent input:checked + .box svg{opacity:1}
+.consent input:focus-visible + .box{box-shadow:0 0 0 4px rgba(31,46,66,.15)}
+.consent span.t{font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:50px;border:0;border-radius:999px;background:var(--red);color:#fff;font:700 15px Inter;cursor:pointer;transition:transform .2s, box-shadow .2s, background .2s;box-shadow:0 10px 22px rgba(252,70,51,.25)}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 14px 26px rgba(252,70,51,.3)}
+.btn:disabled{background:#E9ECF0;color:#9aa3ad;box-shadow:none;cursor:not-allowed}
+.help{margin:10px 0 0;font-size:12px;color:var(--gray);text-align:center}
+.legal{font-size:11.5px;color:var(--gray);text-align:center;margin:14px 0 0;line-height:1.5}
+.eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--red);margin:0 0 10px}
+h2.t{margin:0 0 8px;font-size:30px;line-height:1.08;font-weight:800;letter-spacing:-.04em}
+.sub{margin:0 0 22px;font-size:14.5px;line-height:1.55;color:var(--ink-2)}
+.progress{height:4px;background:#E9ECF0;border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--red);border-radius:99px}
+
+/* ---- Variante A: carné sobrio ---- */
+.A{height:100%;background:var(--bg);display:flex;flex-direction:column;align-items:center;padding:26px 20px;overflow:auto}
+.A>*{flex:none}
+.A .logo{margin-bottom:18px}
+.A h2.t{font-size:26px;text-align:center}
+.A .sub{text-align:center;margin-bottom:18px}
+.badge{width:340px;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;margin:0 auto 20px}
+.badge .top{background:var(--navy);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.badge .top b{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+.badge .top svg{height:18px;width:auto}
+.badge .body{display:flex;gap:14px;align-items:center;padding:16px}
+.mono{width:54px;height:54px;border-radius:50%;background:var(--red-soft);color:var(--red);display:grid;place-items:center;font-weight:800;font-size:19px;letter-spacing:-.02em;flex:none}
+.badge .nm{font-weight:800;font-size:17px;letter-spacing:-.02em;line-height:1.15}
+.badge .nm.ph{color:#c2c8cf}
+.badge .meta{font-size:12.5px;color:var(--ink-2);margin-top:4px;line-height:1.4;word-break:break-all}
+.badge .meta.ph{color:#c2c8cf}
+.badge .bar{height:4px;background:var(--bg)}
+.badge .bar i{display:block;height:100%;width:0;background:var(--red);transition:width .3s}
+.A .card{width:100%;max-width:440px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.phone .A .card{padding:16px}
+
+/* ---- Variante B: limpio ---- */
+.B{min-height:100%;background:#fff;display:flex;flex-direction:column;align-items:center;padding:34px 22px}
+.B .wrap{width:100%;max-width:460px}
+.B .logo{margin-bottom:34px}
+
+/* ---- Variante C: panel dividido ---- */
+.C{height:100%;display:grid;grid-template-columns:44% 56%}
+.phone .C{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+.C .side{background:var(--navy);color:#fff;padding:36px 34px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.C .side:after{content:"";position:absolute;right:-90px;bottom:-110px;width:300px;height:300px;border-radius:50%;border:1px solid rgba(255,255,255,.1);box-shadow:0 0 0 30px rgba(255,255,255,.03),0 0 0 60px rgba(255,255,255,.02)}
+.C .side h3{font-size:28px;line-height:1.08;letter-spacing:-.04em;font-weight:800;margin:28px 0 10px}
+.C .side p{margin:0;color:#c7d0d9;font-size:14px;line-height:1.55;max-width:340px}
+.ticks{display:grid;gap:14px;margin-top:26px;position:relative;z-index:1}
+.tick{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:#e6ebf0;line-height:1.45}
+.ico{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.08);display:grid;place-items:center;flex:none}
+.ico svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.C .main{padding:34px 40px;overflow:auto;display:flex;flex-direction:column;justify-content:center}
+.phone .C .side{padding:18px 20px}
+.phone .C .side h3,.phone .C .side p,.phone .C .ticks{display:none}
+.phone .C .main{padding:20px}
+.phone .C .side:after{display:none}
+
+/* ---- Variante D: carné lateral ---- */
+.D{height:100%;display:grid;grid-template-columns:1fr 360px;background:var(--bg)}
+.phone .D{grid-template-columns:1fr}
+.D .left{padding:34px 40px;overflow:auto;background:#fff}
+.D .right{padding:34px 30px;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.phone .D .right{display:none}
+.D .left .logo{margin-bottom:26px}
+.D .badge{margin:0}
+.D .why{font-size:12.5px;color:var(--ink-2);line-height:1.55;padding:0 4px}
+.D .why b{color:var(--navy)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="iso" viewBox="0 0 1515 1038"><path fill-rule="evenodd" d="M 652.9,89.7 C 612.2,128.8 558.5,180.2 526.1,210.9 C 492.6,242.7 384.9,343.6 353,373 C 345.6,379.9 329.4,395 317,406.5 C 304.6,418.1 284.1,437 271.5,448.5 C 258.9,460.1 244.8,473.1 240.1,477.5 C 235.4,481.9 221.8,494.3 210.1,505 C 198.3,515.7 174.2,537.7 156.6,553.9 C 138.9,570.1 117.6,589.6 109.3,597.3 C 100.9,605 94,611.5 94,611.7 C 94,612 99.5,618.2 106.3,625.4 C 113,632.7 130.9,652.3 146.1,669.1 C 161.3,685.8 176.6,702.6 180.1,706.4 L 186.5,713.3 207.4,694.9 C 219,684.8 232.2,673.2 236.9,669.1 C 241.6,665 249.6,658 254.5,653.6 C 268.2,641.2 276.6,634 277.5,634 C 277.9,634 277.9,705.6 277.5,793 L 276.7,952 346.9,952 L 417,952 417,731.1 L 417,510.3 445.2,483.9 C 460.7,469.4 480.6,450.8 489.5,442.5 C 504.8,428.2 537,398.1 624.4,316 C 645.8,295.9 664.6,278.4 666.2,277.1 L 669.1,274.8 675.8,281.1 C 679.5,284.6 716,320.5 757,361 C 858.2,461 863.9,466.5 865.5,466.5 C 866.8,466.5 894.7,439.8 945.6,389.9 L 967.8,368.2 937.6,338.4 C 853.9,255.4 810.4,212.5 746.5,149.5 C 707.9,111.5 674.8,79 672.9,77.2 L 669.3,73.9 652.9,89.7 M 1412.5,157.7 C 1408.1,158.4 1394.2,160.6 1381.5,162.5 C 1368.9,164.4 1356,166.5 1353,167 C 1350,167.5 1339.9,169.1 1330.5,170.6 C 1314.4,173 1290.7,176.7 1263,181 C 1256.1,182 1243.5,184 1235,185.4 C 1226.5,186.8 1208.7,189.5 1195.5,191.5 C 1182.3,193.5 1151.7,198.2 1127.5,202 C 1103.3,205.8 1082.2,209 1080.6,209.2 C 1078,209.5 1079.5,211 1099.7,229 C 1140,264.9 1169,291.2 1169,291.8 C 1169,292.6 1126.7,331.9 1086.9,368.1 C 1073.4,380.4 1048.2,403.5 1030.9,419.5 C 995.5,452 974.6,471.1 955.5,488.4 C 948.4,494.9 938.8,503.6 934.2,507.7 C 929.6,511.9 919.7,520.7 912.1,527.4 C 904.5,534 894.5,542.9 889.9,547.1 C 878.3,557.5 837.9,593.4 831,599.5 C 818.5,610.4 804,623.1 770,652.9 C 750.5,670 734.1,684 733.6,684 C 733.1,684 700.6,651.9 661.3,612.8 C 622,573.6 589.8,541.4 589.7,541.4 C 589.6,541.3 566.4,564 538.1,591.9 L 486.6,642.6 512.6,668 C 567.9,722.2 593.3,747.3 643.5,797 C 731.5,884.1 730.9,883.6 732.4,882.5 C 733.2,881.9 739.6,876.1 746.7,869.5 C 753.8,862.9 772.6,845.6 788.5,831 C 804.4,816.4 824,798.4 832,791 C 840,783.5 855.3,769.4 866,759.5 C 887.7,739.6 957.6,675 1019.5,617.5 C 1027.8,609.8 1042,596.8 1051.1,588.5 C 1060.1,580.3 1071.8,569.5 1077,564.5 C 1082.2,559.6 1091.5,551 1097.5,545.4 C 1110,534 1130.3,515.2 1159.5,488 C 1170.5,477.8 1187.8,461.8 1198,452.5 C 1208.2,443.2 1225.3,427.4 1236,417.4 C 1246.7,407.3 1256.7,398.2 1258.1,397.1 L 1260.7,395.1 1297.2,432.8 C 1317.2,453.5 1337.6,474.7 1342.5,479.8 C 1347.3,484.9 1351.4,488.9 1351.6,488.7 C 1352,488.3 1358.8,456 1377.5,365 C 1379.9,353.2 1383.3,337 1385,329 C 1386.7,321 1390.1,304.8 1392.5,293 C 1394.9,281.2 1398.8,262.7 1401,252 C 1403.2,241.3 1405.5,230.5 1406,228 C 1406.5,225.5 1408.9,214.1 1411.4,202.5 C 1415.9,181.8 1420.9,156.6 1420.6,156.4 C 1420.6,156.4 1416.9,156.9 1412.5,157.7 M 1179.3,558.3 C 1156.3,580 1127.8,607.1 1102.9,630.7 L 1076.3,656.1 1075.7,765.7 C 1075.3,826 1075,892.6 1075,913.7 L 1075,952 1152,952 L 1229,952 1229,773.5 L 1229,595 1218.3,582.3 C 1206,567.6 1189.9,549 1189.5,549 C 1189.3,549 1184.8,553.2 1179.3,558.3 Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7M6 10v9h12v-9M10 19v-5h4v5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="18" cy="18" r="2.6"/><path d="M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6"/></symbol>
+</svg>
+
+<div class="page-head">
+  <h1>Registro del formulario: cuatro propuestas</h1>
+  <p>Mockups para decidir el rediseño del registro (primera pantalla). Todos siguen el manual de marca: rojo #FC4633 como único acento, navy #1F2E42, Inter, iconos lineales, cero emojis y sin cédula. Los campos validan en vivo: prueba escribiendo un correo incompleto. Son referencias de diseño, no código de producción.</p>
+</div>
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true" data-v="A">A. Carné sobrio</button>
+  <button class="tab" role="tab" aria-selected="false" data-v="B">B. Formulario limpio</button>
+  <button class="tab" role="tab" aria-selected="false" data-v="C">C. Panel dividido</button>
+  <button class="tab" role="tab" aria-selected="false" data-v="D">D. Carné lateral</button>
+</div>
+
+<div class="stage">
+
+<!-- ================= A ================= -->
+<section class="variant on" id="vA">
+  <p class="vnote"><b>A. Carné sobrio.</b> Conserva la idea del carné que ya funciona, pero recta, blanca y con banda navy. La inicial se arma en vivo (círculo con iniciales en lugar del avatar) y una barra roja muestra cuánto falta para completar. Es la opción más cercana a lo que hoy existe.</p>
+  <div class="devices">
+    <div><p class="cap">Escritorio</p><div class="desktop"><div class="scroll" id="A-d"></div></div></div>
+    <div><p class="cap">Móvil</p><div class="phone"><div class="scroll" id="A-m"></div></div></div>
+  </div>
+</section>
+
+<!-- ================= B ================= -->
+<section class="variant" id="vB">
+  <p class="vnote"><b>B. Formulario limpio.</b> Sin tarjeta decorativa: logo, título, dos columnas y un botón. Es la opción más sobria y la más rápida de completar. Pierde el guiño del carné.</p>
+  <div class="devices">
+    <div><p class="cap">Escritorio</p><div class="desktop"><div class="scroll" id="B-d"></div></div></div>
+    <div><p class="cap">Móvil</p><div class="phone"><div class="scroll" id="B-m"></div></div></div>
+  </div>
+</section>
+
+<!-- ================= C ================= -->
+<section class="variant" id="vC">
+  <p class="vnote"><b>C. Panel dividido.</b> Panel navy con el logo y tres razones para confiar (rapidez, privacidad, conexión con el asesor) junto al formulario. Es la que más transmite "producto serio para empresas". En móvil el panel se reduce a la barra de marca.</p>
+  <div class="devices">
+    <div><p class="cap">Escritorio</p><div class="desktop"><div class="scroll" id="C-d"></div></div></div>
+    <div><p class="cap">Móvil</p><div class="phone"><div class="scroll" id="C-m"></div></div></div>
+  </div>
+</section>
+
+<!-- ================= D ================= -->
+<section class="variant" id="vD">
+  <p class="vnote"><b>D. Carné lateral.</b> El formulario a la izquierda y el carné como resumen vivo a la derecha (en móvil se oculta para no estorbar). Mantiene el carné sin que se interponga entre la persona y el formulario.</p>
+  <div class="devices">
+    <div><p class="cap">Escritorio</p><div class="desktop"><div class="scroll" id="D-d"></div></div></div>
+    <div><p class="cap">Móvil</p><div class="phone"><div class="scroll" id="D-m"></div></div></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+const ICON = n => `<svg stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#${n}"/></svg>`;
+const LOGO = (cls='') => `<span class="logo ${cls}"><svg viewBox="0 0 1515 1038" fill="#FC4633"><use href="#iso"/></svg><span>machea</span></span>`;
+const alertMsg = t => `<div class="msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-alert"/></svg><span>${t}</span></div>`;
+
+function fields(id){
+  return `
+  <div class="row2">
+    <div class="field" data-f="nombre"><label for="${id}-n">Nombres</label><input id="${id}-n" type="text" placeholder="Ej: Ana" autocomplete="given-name">${alertMsg('Escribe tu nombre.')}</div>
+    <div class="field" data-f="apellido"><label for="${id}-a">Apellidos</label><input id="${id}-a" type="text" placeholder="Ej: Ruiz" autocomplete="family-name">${alertMsg('Escribe tus apellidos.')}</div>
+  </div>
+  <div class="field" data-f="correo"><label for="${id}-c">Correo electrónico</label><input id="${id}-c" type="email" placeholder="ana.ruiz@correo.com" autocomplete="email">${alertMsg('Revisa el correo: falta algo como nombre@dominio.com')}</div>
+  <div class="field" data-f="tel"><label for="${id}-t">Teléfono (WhatsApp)</label><input id="${id}-t" type="tel" placeholder="300 123 4567" autocomplete="tel">${alertMsg('Escribe un celular de 10 dígitos.')}</div>
+  <label class="consent"><input type="checkbox" data-f="consent"><span class="box"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span><span class="t">Autorizo el tratamiento de mis datos personales para recibir información de vivienda (Habeas Data).</span></label>
+  <button class="btn" disabled>Empezar <svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
+  <p class="help">Completa los campos para continuar.</p>`;
+}
+const badge = () => `
+  <div class="badge"><div class="top"><b>Tu perfil</b><svg viewBox="0 0 1515 1038" fill="#fff"><use href="#iso"/></svg></div>
+    <div class="body"><div class="mono" data-b="ini">AR</div><div><div class="nm ph" data-b="nm">Tu nombre</div><div class="meta ph" data-b="meta">Tu teléfono y correo</div></div></div>
+    <div class="bar"><i data-b="bar"></i></div></div>`;
+
+const T = {
+ A:id=>`<div class="A">${LOGO()}<h2 class="t">Primero, preséntate</h2><p class="sub">Con estos datos tu asesor sabrá con quién habla. Tarda menos de un minuto.</p>${badge()}<div class="card">${fields(id)}</div></div>`,
+ B:id=>`<div class="B"><div class="wrap">${LOGO()}<p class="eyebrow">Paso 1 de 2</p><h2 class="t">Cuéntanos quién eres</h2><p class="sub">Después te hacemos unas preguntas sobre la vivienda que buscas.</p>${fields(id)}<p class="legal">Tus datos se usan solo para contactarte sobre esta busqueda.</p></div></div>`,
+ C:id=>`<div class="C"><div class="side">${LOGO('on-dark')}<div><h3>Encuentra tu vivienda ideal en minutos.</h3><p>Responde unas preguntas y conectamos tu perfil con proyectos reales.</p><div class="ticks">
+    <div class="tick"><span class="ico">${ICON('i-bolt')}</span><span>Resultados al instante, sin llamadas de espera.</span></div>
+    <div class="tick"><span class="ico">${ICON('i-shield')}</span><span>Tus datos están protegidos y solo los ve tu asesor.</span></div>
+    <div class="tick"><span class="ico">${ICON('i-link')}</span><span>Conectamos tu perfil con el proyecto que mejor encaja.</span></div></div></div><span></span></div>
+    <div class="main"><p class="eyebrow">Paso 1 de 2</p><h2 class="t">Tus datos de contacto</h2><p class="sub">Para que un asesor pueda escribirte cuando tengamos tu recomendación.</p>${fields(id)}</div></div>`,
+ D:id=>`<div class="D"><div class="left">${LOGO()}<p class="eyebrow">Paso 1 de 2</p><h2 class="t">Primero, preséntate</h2><p class="sub">Estos datos nos permiten enviarte tu recomendación.</p>${fields(id)}</div>
+    <div class="right">${badge()}<p class="why"><b>Así te veran.</b> El resumen se completa mientras escribes y es lo que recibirá tu asesor.</p></div></div>`
+};
+
+for (const v of ['A','B','C','D']) for (const d of ['d','m']) {
+  const root = document.getElementById(v+'-'+d); root.innerHTML = T[v](v+d); wire(root);
+}
+
+function wire(root){
+  const q = s => root.querySelector(s), qa = s => [...root.querySelectorAll(s)];
+  const val = {nombre:'',apellido:'',correo:'',tel:'',consent:false};
+  const touched = {};
+  const rules = {
+    nombre:v=>v.trim().length>=2, apellido:v=>v.trim().length>=2,
+    correo:v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
+    tel:v=>v.replace(/\D/g,'').length===10
+  };
+  function paint(){
+    const ok = Object.keys(rules).every(k=>rules[k](val[k])) && val.consent;
+    const btn=q('.btn'); btn.disabled=!ok;
+    const help=q('.help'); if(help) help.textContent = ok ? 'Todo listo.' : 'Completa los campos para continuar.';
+    qa('.field').forEach(f=>{const k=f.dataset.f; const good=rules[k](val[k]); f.classList.toggle('bad',!!touched[k]&&!good); f.classList.toggle('good',good);});
+    const full=(val.nombre.trim()+' '+val.apellido.trim()).trim();
+    const ini=((val.nombre.trim()[0]||'')+(val.apellido.trim()[0]||'')).toUpperCase()||'AR';
+    qa('[data-b=ini]').forEach(e=>e.textContent=ini);
+    qa('[data-b=nm]').forEach(e=>{e.textContent=full||'Tu nombre';e.classList.toggle('ph',!full)});
+    const meta=[val.tel.trim(),val.correo.trim()].filter(Boolean).join(' · ');
+    qa('[data-b=meta]').forEach(e=>{e.textContent=meta||'Tu teléfono y correo';e.classList.toggle('ph',!meta)});
+    const done=[rules.nombre(val.nombre),rules.apellido(val.apellido),rules.correo(val.correo),rules.tel(val.tel),val.consent].filter(Boolean).length;
+    qa('[data-b=bar]').forEach(e=>e.style.width=(done/5*100)+'%');
+  }
+  qa('.field').forEach(f=>{const k=f.dataset.f,i=f.querySelector('input');
+    i.addEventListener('input',()=>{val[k]=i.value;paint()});
+    i.addEventListener('blur',()=>{touched[k]=true;paint()});});
+  q('input[data-f=consent]').addEventListener('change',e=>{val.consent=e.target.checked;paint()});
+  paint();
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));
+  document.querySelectorAll('.variant').forEach(v=>v.classList.toggle('on',v.id==='v'+t.dataset.v));
+}));
+if(location.hash){const t=document.querySelector(`.tab[data-v="${location.hash.slice(1)}"]`);t&&t.click();}
+</script>
+</body>
+</html>
