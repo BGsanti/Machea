@@ -5076,13 +5076,14 @@ html[data-marca='machea'] .gdf-tipo-tabs-wrap::after {
   background: linear-gradient(90deg, rgba(255, 255, 255, 0), var(--papel) 78%);
 }
 
-/* --- Boton principal: rojo en pastilla, texto blanco a 18 px Bold --------
+/* --- Boton principal: rojo en pastilla, texto blanco a 19 px Bold --------
    Blanco sobre #FC4633 da 3,5:1, que WCAG AA acepta solo para texto grande
-   (18,66 px en negrita o 24 px). Por eso el tamano no es decorativo: si baja,
-   el blanco deja de cumplir. Ver la nota en js/tema.js. */
+   (18,67 px en negrita o 24 px). Por eso el tamano no es decorativo: 18 px
+   NO alcanza (medido con axe) y si baja, el blanco deja de cumplir. Ver la
+   nota en js/tema.js. */
 html[data-marca='machea'] .gdf-btn-primary {
   border-radius: var(--radio-boton);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   padding: 15px 24px;
   background: var(--borde);
@@ -5975,4 +5976,32 @@ html[data-marca='machea'] .gdf-zona-eco strong {
   .gdf-scene:has(.gdf-mapa-real) {
     height: clamp(260px, 44vh, 420px);
   }
+}
+
+/* ============ QA PREVIO DE T12: CONTRASTE AA ============
+   Hallazgos de axe (WCAG 2 AA) sobre las pantallas de Machea. El rojo del
+   manual (#FC4633) da 3,5:1 sobre blanco: sirve para texto grande y para
+   formas, no para letra pequena, que va con el rojo hondo `--marca-texto`
+   (4,8:1). Y el gris #A7ADB5 (`--tinta-tenue`) no es para texto que haya que
+   leer: placeholders y deshabilitado, nada mas. */
+html[data-marca='machea'] .eyebrow,
+html[data-marca='machea'] .gdf-confirm-proyecto-precio {
+  color: var(--marca-texto);
+}
+html[data-marca='machea'] .gdf-carnet .band {
+  background: var(--marca-texto);
+}
+html[data-marca='machea'] .gdf-hint,
+html[data-marca='machea'] .gdf-zona-eco .vacio,
+html[data-marca='machea'] .gdf-project-dir {
+  color: var(--tinta-suave);
+}
+/* `.gdf-escarapela .kicker .eyebrow` pinta el rotulo del registro con mas
+   especificidad que la regla de arriba. */
+html[data-marca='machea'] .gdf-escarapela .kicker .eyebrow {
+  color: var(--marca-texto);
+}
+/* El pie legal llevaba un gris escrito a mano (#b3b6b9, 2:1). */
+html[data-marca='machea'] .gdf-disclaimer {
+  color: var(--tinta-suave);
 }

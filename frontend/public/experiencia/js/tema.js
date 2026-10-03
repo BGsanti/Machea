@@ -75,7 +75,8 @@
    * (Machea Motion Graphics Package v1.0): blanco y gris claro #F5F6F8, sin
    * el beige ni el degradado rosado; navy #1F2E42 para el texto y línea
    * #DCE1E7. La escala de tinta baja del navy con contraste medido sobre
-   * blanco: media 7,5:1 y suave 4,6:1 (las dos sirven para texto); el gris
+   * blanco: media 7,5:1 y suave 5,3:1 (4,9:1 sobre el gris #F5F6F8 de los
+   * estados hover y seleccionado; con #6B7684 ahí daba 4,3 y no cumplía); el gris
    * #A7ADB5 del manual da 2,2:1 y por eso queda solo para la tenue
    * (placeholders y deshabilitado), nunca para texto que haya que leer.
    */
@@ -86,7 +87,7 @@
     borde: '#dce1e7',
     tinta: '#1f2e42',
     tintaMedia: '#4a5666',
-    tintaSuave: '#6b7684',
+    tintaSuave: '#626d7b',
     tintaTenue: '#a7adb5',
     // El manual no tiene verde: lo que "está bien" se dice con navy y un
     // check, y el rojo queda para la acción y el error.
@@ -380,9 +381,10 @@
     //
     // Blanco sobre el rojo #FC4633 da 3,5:1: no llega al 4,5 de la regla de
     // arriba, que elegiría el navy. Se fuerza el blanco (es como lo pide el
-    // manual) y la etiqueta del botón va a 18 px en negrita en styles.css,
-    // que es "texto grande" para WCAG AA y ahí 3:1 basta. Si el botón vuelve
-    // a letra pequeña, este blanco deja de cumplir.
+    // manual) y la etiqueta del botón va a 19 px en negrita en styles.css,
+    // que es "texto grande" para WCAG AA (14 pt en negrita = 18,67 px) y ahí
+    // 3:1 basta. OJO: 18 px NO alcanza — se midió con axe en el QA previo de
+    // T12. Si el botón vuelve a letra más pequeña, este blanco deja de cumplir.
     if (esMachea) {
       Object.keys(TOKENS_MACHEA).forEach(function (k) {
         tokens[k] = TOKENS_MACHEA[k];
