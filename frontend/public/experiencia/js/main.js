@@ -2025,10 +2025,23 @@
     }
   }
 
+  // Escape cierra cualquier lista desplegable de un buscador (amenidades o
+  // zona) y suelta el foco del campo, para que no se reabra sola: abrirla es
+  // lo que hacen 'focus' y 'click' sobre el input (ver attachInputListeners).
+  function cerrarListasConEscape(e) {
+    if (e.key !== 'Escape') return;
+    var abiertas = document.querySelectorAll('.gdf-entorno-combo .gdf-multi-opt-list.abierto');
+    if (!abiertas.length) return;
+    for (var i = 0; i < abiertas.length; i++) abiertas[i].classList.remove('abierto');
+    var activo = document.activeElement;
+    if (activo && activo.closest && activo.closest('.gdf-entorno-combo')) activo.blur();
+  }
+
   function boot() {
     root = document.getElementById('root');
     root.addEventListener('click', onRootClick);
     document.addEventListener('click', cerrarEntornoSiTocaAfuera);
+    document.addEventListener('keydown', cerrarListasConEscape);
     // El fondo AI Signal. Va ANTES del primer render y una sola vez: cuelga
     // del <body>, así que los re-renders de #root no lo tocan y la red sigue
     // corriendo igual al pasar de la escarapela al quiz. Se monta solo con la

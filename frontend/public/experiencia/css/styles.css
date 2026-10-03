@@ -5445,3 +5445,21 @@ html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom-out {
   color: inherit;
   stroke-width: 2.6;
 }
+
+/* La lista de AMENIDADES (pregunta de entorno de Compra) va en flujo, no
+   flotando. Flotaba encima de los chips y de "Continuar", y como es de
+   seleccion multiple se queda abierta tras cada eleccion: el boton quedaba
+   tapado y el clic caia en la lista. Asi, abierta, empuja el boton hacia
+   abajo en vez de cubrirlo. La de barrios (#zonaOpciones) sigue flotando:
+   se cierra sola al elegir. */
+.gdf-entorno-combo #entornoOpciones {
+  position: static;
+  margin: -6px 0 12px;
+}
+/* En el movil la escena ocupa el tercio de arriba: con 280 px de lista el
+   boton quedaba cortado por el borde inferior. */
+@media (max-width: 899px) {
+  .gdf-entorno-combo #entornoOpciones {
+    max-height: min(280px, 24dvh);
+  }
+}
