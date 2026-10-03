@@ -713,6 +713,20 @@
     clearTimeout(remedir);
     remedir = null;
     if (mapa) {
+      // ANIMACIONES EN VUELO. Elegir un barrio dispara un fitBounds animado
+      // (volarA); si la persona pulsa "Continuar" antes de que termine (unos
+      // 250 ms), remove() borra los paneles pero Leaflet ya dejó agendado el
+      // final del zoom con un setTimeout que remove() no cancela. Ese final
+      // corre después, busca el panel borrado y revienta con "Cannot read
+      // properties of undefined (reading '_leaflet_pos')".
+      //
+      // stop() corta el paneo. Para el zoom no hay API pública: se cierra a
+      // mano llamando a su final AHORA, mientras los paneles existen. Cuando
+      // el setTimeout agendado corra, verá `_animatingZoom` en false y no
+      // hará nada (es la primera línea de _onZoomTransitionEnd en 1.9.4,
+      // la versión fijada en index.html).
+      mapa.stop();
+      if (mapa._animatingZoom && mapa._onZoomTransitionEnd) mapa._onZoomTransitionEnd();
       mapa.off();
       mapa.remove();
     }
