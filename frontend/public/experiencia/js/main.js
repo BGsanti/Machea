@@ -1000,13 +1000,27 @@
   // solo se retrasa ESE llamado lo que dura la animación, nada de state.js
   // cambia. Si el 3D no está activo (sin WebGL, gama baja), solo queda el
   // confeti y el salto es casi inmediato.
+  //
+  // UNA SOLA VEZ AUNQUE SE PULSE VARIAS. Entre el clic y el salto pasan ~1,3 s
+  // sin que nada cambie en pantalla, y es justo cuando la gente vuelve a
+  // pulsar "Continuar". Cada clic agendaba su propio salto: el primero
+  // llevaba a resultados y el segundo, ya allí, volvía a contestar la última
+  // pregunta y dejaba la pantalla en "Buscando proyectos…" para siempre.
+  // `finalEnCurso` deja pasar solo el primero; y el salto no se hace si para
+  // entonces la pregunta en pantalla ya no es la última (se pulsó "Atrás").
+  var finalEnCurso = false;
   function finalizarQuizConFiesta(qid, valor) {
+    if (finalEnCurso) return;
+    finalEnCurso = true;
     lanzarConfeti();
     var DURACION_CAMARA = 900;
     var yaTermino = false;
     var saltarAResultado = function () {
       if (yaTermino) return;   // por si el callback y el watchdog coinciden
       yaTermino = true;
+      finalEnCurso = false;
+      var actual = state.screen === 'quiz' ? window.GDF.state.computeDerived(state).q : null;
+      if (!actual || actual.id !== qid) return;
       dispatch('selectOption', { qid: qid, value: valor });
     };
     if (window.GDF3D && window.GDF3D.activo && window.GDF3D.activo()) {
