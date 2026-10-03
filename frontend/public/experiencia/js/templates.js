@@ -12,6 +12,14 @@
     });
   }
 
+  // Un icono de interfaz (js/iconos-ui.js). El formulario no usa emojis ni
+  // simbolos tipograficos (decision de Diego, 2026-10-02): todo pictograma
+  // sale de aqui. Va SIEMPRE fuera de esc(): es HTML, no texto.
+  function ic(nombre, opciones) {
+    var I = window.GDF.iconosUI;
+    return I ? I.icono(nombre, opciones) : '';
+  }
+
   // -------------------------------------------------------------------------
   // LA MARCA ACTIVA
   // -------------------------------------------------------------------------
@@ -80,13 +88,6 @@
     return n.tipo ? n.tipo === 'caja' : true;
   }
 
-  function findGender(v) {
-    var GENDERS = window.GDF.data.GENDERS;
-    for (var i = 0; i < GENDERS.length; i++) {
-      if (GENDERS[i].v === v) return GENDERS[i];
-    }
-    return GENDERS[GENDERS.length - 1];
-  }
 
   /**
    * La casita ilustrada. Hoy solo la usa splash(): la portada dejó de tener
@@ -224,7 +225,6 @@
   }
 
   function escarapela(state) {
-    var genderObj = findGender(state.gender);
     var canStart = !!(
       state.nombre.trim() &&
       state.apellido.trim() &&
@@ -238,7 +238,7 @@
 
     var affiliateBadge =
       pideAfiliacion() && state.afiliado !== null
-        ? '<span class="affiliate-badge">' + (state.afiliado === 'Sí' ? 'Afiliado ✓' : 'No afiliado') + '</span>'
+        ? '<span class="affiliate-badge">' + (state.afiliado === 'Sí' ? 'Afiliado ' + ic('check') : 'No afiliado') + '</span>'
         : '';
 
     // La pregunta de afiliación solo existe en una caja de compensación. En una
@@ -275,7 +275,7 @@
       // ya habia cruzado.
       (window.GDF_EMBED
         ? ''
-        : '<button class="gdf-back-btn" data-action="goSplash">← Atrás</button>') +
+        : '<button class="gdf-back-btn" data-action="goSplash">' + ic('flecha-izquierda') + ' Atrás</button>') +
       '<div class="kicker"><div class="eyebrow">TU CARNÉ DE CONSTRUCTOR</div><h2>Primero, preséntate</h2></div>' +
       '<div class="gdf-carnet">' +
       '<div class="clip"></div>' +
@@ -287,7 +287,7 @@
         : '') +
       '<span>CARNÉ DE CONSTRUCTOR</span></div>' +
       '<div class="body">' +
-      '<div class="avatar" id="carnetAvatar">' + genderObj.emoji + '</div>' +
+      '<div class="avatar" id="carnetAvatar">' + ic('usuario') + '</div>' +
       '<div class="name" id="carnetName">' + (esc(fullName) || 'Tu nombre') + '</div>' +
       '<div class="phone" id="carnetPhone">' + (esc(state.telefono.trim()) || 'Tu teléfono') + '</div>' +
       '<div class="badge-wrap" id="carnetBadgeWrap">' + affiliateBadge + '</div>' +
@@ -305,7 +305,7 @@
       '<input class="gdf-input" id="telefonoInput" inputmode="tel" placeholder="Ej: 300 123 4567" value="' + esc(state.telefono) + '" />' +
       afiliacionCampo +
       '<label class="gdf-consent" data-action="toggleConsent">' +
-      '<span class="box' + (state.consent ? ' checked' : '') + '">' + (state.consent ? '✓' : '') + '</span>' +
+      '<span class="box' + (state.consent ? ' checked' : '') + '">' + (state.consent ? ic('check') : '') + '</span>' +
       '<span class="text">' +
       txt(
         'habeasData',
@@ -313,7 +313,7 @@
       ) +
       '</span>' +
       '</label>' +
-      '<button class="gdf-btn-primary' + (canStart ? ' enabled' : '') + '" data-action="startQuiz">Empezar a construir →</button>' +
+      '<button class="gdf-btn-primary' + (canStart ? ' enabled' : '') + '" data-action="startQuiz">Empezar a construir ' + ic('flecha-derecha') + '</button>' +
       '<p class="gdf-hint">Completa nombres, apellidos, cédula, correo, teléfono y consentimiento para continuar.</p>' +
       '</div>'
     );
@@ -583,7 +583,7 @@
 
       '<p class="gdf-zona-eco" id="zonaEco">' + zonaEco(state.zonaSectores) + '</p>' +
       '<button class="gdf-btn-primary' + (elegida ? ' enabled' : '') + '" ' +
-      'data-action="answerQuizZona" data-qid="' + q.id + '">Continuar →</button>' +
+      'data-action="answerQuizZona" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
       '</div>'
     );
   }
@@ -599,13 +599,13 @@
         (q.min != null ? ' min="' + q.min + '"' : '') +
         (q.max != null ? ' max="' + q.max + '"' : '') +
         ' placeholder="' + esc(q.placeholder || '') + '" />' +
-        '<button class="gdf-btn-primary" data-action="answerQuizNumber" data-qid="' + q.id + '">Continuar →</button>' +
+        '<button class="gdf-btn-primary" data-action="answerQuizNumber" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
         '</div>';
     } else if (q && q.type === 'text') {
       answerAreaHtml =
         '<div class="gdf-quiz-freeform">' +
         '<input class="gdf-input" id="quizTextInput" type="text" placeholder="' + esc(q.placeholder || '') + '" />' +
-        '<button class="gdf-btn-primary enabled" data-action="answerQuizText" data-qid="' + q.id + '">Continuar →</button>' +
+        '<button class="gdf-btn-primary enabled" data-action="answerQuizText" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
         '</div>';
     } else if (q && q.type === 'zona') {
       answerAreaHtml = zonaPanel(q, state);
@@ -634,7 +634,7 @@
           '<div class="gdf-multi-opt-list gdf-multi-opt-list--fija abierto" id="entornoOpciones">' +
           multiOpts + '</div>' +
           '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
-          '<button class="gdf-btn-primary" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+          '<button class="gdf-btn-primary" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
           '</div>';
       } else {
         // Buscador con "explorar todo": al enfocar aparece el listado
@@ -650,7 +650,7 @@
           '<div class="gdf-multi-opt-list" id="entornoOpciones">' + multiOpts + '</div>' +
           '</div>' +
           '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
-          '<button class="gdf-btn-primary enabled" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
+          '<button class="gdf-btn-primary enabled" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
           '</div>';
       }
     } else if (q && q.type === 'contador') {
@@ -665,9 +665,9 @@
             '<div class="gdf-contador">' +
             '<span>' + esc(c.label) + '</span>' +
             '<div class="gdf-contador-control">' +
-            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">−</button>' +
+            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">' + ic('menos') + '</button>' +
             '<span class="gdf-contador-valor" id="contadorValor-' + c.id + '">' + c.inicial + '</span>' +
-            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">+</button>' +
+            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">' + ic('mas') + '</button>' +
             '</div>' +
             '</div>'
           );
@@ -676,7 +676,7 @@
       answerAreaHtml =
         '<div class="gdf-quiz-freeform">' +
         filasContador +
-        '<button class="gdf-btn-primary enabled" data-action="answerPreferencias" data-qid="' + q.id + '">Continuar →</button>' +
+        '<button class="gdf-btn-primary enabled" data-action="answerPreferencias" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
         '</div>';
     } else if (q) {
       var cols = q.cols || 1;
@@ -696,7 +696,7 @@
 
     // Siempre visible: en la primera pregunta (qi===0) goBack regresa a
     // escarapela en vez de no hacer nada (ver applyAction en state.js).
-    var backBtn = '<button class="gdf-back-btn" data-action="goBack">← Atrás</button>';
+    var backBtn = '<button class="gdf-back-btn" data-action="goBack">' + ic('flecha-izquierda') + ' Atrás</button>';
 
     return (
       '<div class="gdf-screen gdf-quiz">' +
@@ -759,16 +759,16 @@
     return (
       '<div class="gdf-screen gdf-result">' +
       '<div class="gdf-result-head">' +
-      '<div class="eyebrow">ARRIENDO ✦</div>' +
+      '<div class="eyebrow">ARRIENDO ' + ic('destello') + '</div>' +
       '<h2>¡Gracias, ' + esc(firstNameA) + '!</h2>' +
       '</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
       '<div class="gdf-lead-badge exploring">' +
-      '<span class="icon">🚧</span>' +
+      '<span class="icon">' + ic('construccion') + '</span>' +
       '<div class="title">Estamos construyendo el matching de Arriendo</div>' +
       '<div class="subcopy">Ya guardamos lo que nos contaste. Muy pronto vamos a poder recomendarte arriendos reales con este mismo perfil.</div>' +
       '</div>' +
-      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '<button class="gdf-restart-btn" data-action="restart">' + ic('reiniciar') + ' Empezar de nuevo</button>' +
       '</div>'
     );
   }
@@ -797,7 +797,7 @@
 
     var leadBadgeHtml =
       '<div class="gdf-lead-badge ' + lead.status + '">' +
-      '<span class="icon">' + lead.icon + '</span>' +
+      '<span class="icon">' + ic(lead.icon) + '</span>' +
       '<div class="title">' + leadTitle + '</div>' +
       '<div class="subcopy">' + leadSub + '</div>' +
       '<div class="gdf-lead-notes">' + notesHtml + '</div>' +
@@ -817,12 +817,12 @@
     return (
       '<div class="gdf-screen gdf-result">' +
       '<div class="gdf-result-head">' +
-      '<div class="eyebrow">TUS PROYECTOS RECOMENDADOS ✦</div>' +
+      '<div class="eyebrow">TUS PROYECTOS RECOMENDADOS ' + ic('destello') + '</div>' +
       '<h2>Esto es lo que encaja contigo,<br>' + esc(firstName) + '</h2>' +
       '</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
       cuerpoHtml +
-      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '<button class="gdf-restart-btn" data-action="restart">' + ic('reiniciar') + ' Empezar de nuevo</button>' +
       '<p class="gdf-disclaimer">' +
       txt(
         'disclaimerCatalogo',
@@ -866,12 +866,12 @@
     var zona = state.answers.zona || 'tu localidad';
     return (
       '<div class="gdf-reco-aviso vacio">' +
-      '<div class="icono">🔍</div>' +
+      '<div class="icono">' + ic('buscar') + '</div>' +
       '<h3>Sin resultados para ' + esc(zona) + '</h3>' +
       '<p>No encontramos proyectos disponibles ahí con lo que nos contaste. ' +
       'Prueba con otra zona o ajusta el presupuesto.</p>' +
       '<div class="acciones">' +
-      '<button class="gdf-btn-primary enabled" data-action="goBack">← Cambiar mis respuestas</button>' +
+      '<button class="gdf-btn-primary enabled" data-action="goBack">' + ic('flecha-izquierda') + ' Cambiar mis respuestas</button>' +
       '<button class="gdf-btn-secundario" data-action="usarLocalAproximado">Ver proyectos parecidos</button>' +
       '</div>' +
       '</div>'
@@ -883,7 +883,7 @@
   function recoError(reco) {
     return (
       '<div class="gdf-reco-aviso error">' +
-      '<div class="icono">⚠️</div>' +
+      '<div class="icono">' + ic('alerta') + '</div>' +
       '<h3>No pudimos traer tus recomendaciones</h3>' +
       '<p>' + esc(reco.error || 'Hubo un problema de conexión.') + '</p>' +
       '<div class="acciones">' +
@@ -931,10 +931,10 @@
       paginacionHtml =
         '<div class="gdf-paginacion">' +
         '<button class="gdf-pag-btn" data-action="irAPagina" data-pagina="' + (pagina - 1) + '"' +
-        (pagina === 0 ? ' disabled' : '') + '>← Anteriores</button>' +
+        (pagina === 0 ? ' disabled' : '') + '>' + ic('flecha-izquierda') + ' Anteriores</button>' +
         '<div class="gdf-pag-puntos">' + puntos + '</div>' +
         '<button class="gdf-pag-btn" data-action="irAPagina" data-pagina="' + (pagina + 1) + '"' +
-        (pagina === totalPaginas - 1 ? ' disabled' : '') + '>Siguientes →</button>' +
+        (pagina === totalPaginas - 1 ? ' disabled' : '') + '>Siguientes ' + ic('flecha-derecha') + '</button>' +
         '</div>';
     }
 
@@ -1002,7 +1002,7 @@
     return (
       '<div class="gdf-amenity' + (coincide ? ' coincide' : '') + '"' + delay + '>' +
       ico + '<span class="gdf-amenity-label">' + esc(a.label) + '</span>' +
-      (coincide ? '<span class="gdf-amenity-check" aria-hidden="true">✓</span>' : '') +
+      (coincide ? '<span class="gdf-amenity-check" aria-hidden="true">' + ic('check') + '</span>' : '') +
       '</div>'
     );
   }
@@ -1018,7 +1018,7 @@
 
     return (
       '<div class="gdf-project-entorno destacado">' +
-      '<div class="gdf-entorno-titulo">Tiene lo que buscas ✓</div>' +
+      '<div class="gdf-entorno-titulo">Tiene lo que buscas ' + ic('check') + '</div>' +
       '<div class="gdf-project-amenities' + marcaEnCuadricula(amenidades) + '">' + items + '</div>' +
       '</div>'
     );
@@ -1108,7 +1108,7 @@
     var headerStyle = foto
       ? "background:url('" + foto + "') center/cover no-repeat, " + fondo
       : 'background:' + fondo;
-    var emojiHtml = foto ? '' : '<span class="emoji">' + (local.emoji || '🏢') + '</span>';
+    var emojiHtml = foto ? '' : '<span class="emoji">' + ic('edificio') + '</span>';
 
     // El modelo puntúa (compatibilidad); si algún día no lo mandara, se muestra
     // la posición en vez de un "% match" inventado.
@@ -1129,7 +1129,7 @@
     // etiqueta de arriba, y esa es información que decide una compra — no
     // puede quedar mezclada entre habitaciones y baños como una etiqueta más.
     var subsidioHtml = sim.aptoParaSubsidio(vm.vis, vm.precioCop)
-      ? '<div class="gdf-project-subsidio">🏅 Apto para subsidio' +
+      ? '<div class="gdf-project-subsidio">' + ic('subsidio') + ' Apto para subsidio' +
         (montoSubsidio ? '<span class="monto">hasta ' + esc(sim.pesos(montoSubsidio)) + '</span>' : '') +
         '</div>'
       : '';
@@ -1191,7 +1191,7 @@
       // usuario acaba de elegir en el mapa y lo que le deja reconocer cual de
       // sus zonas es esta. Debajo la direccion exacta, en tono mas bajo:
       // interesa cuando ya decidio mirar el proyecto, no antes.
-      (vm.ubicacion ? '<div class="gdf-project-loc">📍 ' + esc(vm.ubicacion) + '</div>' : '') +
+      (vm.ubicacion ? '<div class="gdf-project-loc">' + ic('ubicacion') + ' ' + esc(vm.ubicacion) + '</div>' : '') +
       (vm.direccion ? '<div class="gdf-project-dir">' + esc(vm.direccion) + '</div>' : '') +
       '<div class="gdf-project-tags">' + especificaciones + '</div>' +
       accionesContacto(vm, state) +
@@ -1326,9 +1326,9 @@
     if (!url) return '';
     return (
       '<a class="gdf-tour360" href="' + esc(url) + '" target="_blank" rel="noopener">' +
-      '<span class="gdf-tour360-icon">🧭</span>' +
+      '<span class="gdf-tour360-icon">' + ic('brujula') + '</span>' +
       '<span class="gdf-tour360-texto">' + esc(etiqueta) + '</span>' +
-      '<span class="gdf-tour360-flecha">↗</span>' +
+      '<span class="gdf-tour360-flecha">' + ic('enlace-externo') + '</span>' +
       '</a>'
     );
   }
@@ -1381,7 +1381,10 @@
     var urlFicha = local.url || vm.fichaUrl || '';
     var fichaHtml = urlFicha
       ? '<a class="gdf-project-ficha" href="' + esc(urlFicha) + '" target="_blank" rel="noopener">' +
-        txt('fichaOficial', 'Ver ficha oficial en ' + ident('dominio', 'colsubsidio.com') + ' ↗') +
+        // El texto viene del tenant con su propia flecha al final (marca.js es
+        // generado y no se edita): se le quita y se pone el icono.
+        String(txt('fichaOficial', 'Ver ficha oficial en ' + ident('dominio', 'colsubsidio.com')))
+          .replace(/\s*\u2197\s*$/, '') + ' ' + ic('enlace-externo') +
         '</a>'
       : '';
     // Recorrido del EDIFICIO (zonas comunes, fachada...), distinto del que
@@ -1416,7 +1419,7 @@
       return (
         '<details class="gdf-project-detalle"' + (abierto ? ' open' : '') + ' data-action="noop" data-proyecto="' + esc(vm.id) + '">' +
         '<summary><span class="gdf-detalle-titulo">Ver todo lo que incluye</span>' +
-        '<span class="gdf-detalle-chevron">▾</span></summary>' +
+        '<span class="gdf-detalle-chevron">' + ic('chevron-abajo') + '</span></summary>' +
         '<div class="gdf-detalle-body">' +
         restoAmenidadesHtml +
           '<p class="gdf-detalle-vacio">' + motivo + '</p>' +
@@ -1468,7 +1471,7 @@
     return (
       '<details class="gdf-project-detalle"' + (abierto ? ' open' : '') + ' data-action="noop" data-proyecto="' + esc(vm.id) + '">' +
       '<summary><span class="gdf-detalle-titulo">' + esc(resumen) + '</span>' +
-      '<span class="gdf-detalle-chevron">▾</span></summary>' +
+      '<span class="gdf-detalle-chevron">' + ic('chevron-abajo') + '</span></summary>' +
       '<div class="gdf-detalle-body">' +
       restoAmenidadesHtml +
       tabsHtml +
@@ -1530,7 +1533,7 @@
 
     return (
       '<div class="gdf-debug">' +
-      '<div class="gdf-debug-title">🔍 Depuración del motor de recomendación</div>' +
+      '<div class="gdf-debug-title">' + ic('buscar') + ' Depuración del motor de recomendación</div>' +
       '<div class="gdf-debug-meta">' +
       'origen: <b>' + esc(reco.items[0] ? reco.items[0].origen : '—') +
       (reco.aproximado ? ' (aproximado)' : '') + '</b>' +
@@ -1586,16 +1589,16 @@
   // veredicto de DESPUÉS de la llamada real, con lo que la persona dijo de
   // verdad. Los dos pueden decir cosas distintas — es información, no un bug.
   var TEMPERATURA = {
-    caliente: { emoji: '🔥', label: 'Caliente', clase: 'gdf-temp--caliente' },
-    tibio: { emoji: '🌤️', label: 'Tibio', clase: 'gdf-temp--tibio' },
-    frio: { emoji: '❄️', label: 'Frío', clase: 'gdf-temp--frio' },
+    caliente: { icono: 'temp-caliente', label: 'Caliente', clase: 'gdf-temp--caliente' },
+    tibio: { icono: 'temp-tibio', label: 'Tibio', clase: 'gdf-temp--tibio' },
+    frio: { icono: 'temp-frio', label: 'Frío', clase: 'gdf-temp--frio' },
   };
 
   function resumenLlamadaHtml(resumen) {
     if (resumen.estado === 'esperando') {
       return (
         '<div class="gdf-confirm-resumen gdf-confirm-resumen--esperando">' +
-        '🎙️ Manuela está en la llamada — el resumen aparece aquí apenas cuelgue.' +
+        ic('microfono') + ' Manuela está en la llamada — el resumen aparece aquí apenas cuelgue.' +
         '</div>'
       );
     }
@@ -1612,7 +1615,7 @@
     var d = resumen.datos;
     var temp = TEMPERATURA[d.temperatura_lead] || null;
     var tempHtml = temp
-      ? '<span class="gdf-temp-badge ' + temp.clase + '">' + temp.emoji + ' ' + esc(temp.label) + '</span>'
+      ? '<span class="gdf-temp-badge ' + temp.clase + '">' + ic(temp.icono) + ' ' + esc(temp.label) + '</span>'
       : '';
 
     var filas = '';
@@ -1629,12 +1632,12 @@
     // ausente (null, porque no salió en la conversación) no se pinta como
     // "No" — se omite, que es honesto con lo que de verdad se sabe.
     var chips = [];
-    if (d.presupuesto_confirmado === true) chips.push('💰 Presupuesto confirmado');
-    if (d.tomador_de_decision === true) chips.push('🙋 Toma la decisión');
+    if (d.presupuesto_confirmado === true) chips.push(ic('presupuesto') + ' Presupuesto confirmado');
+    if (d.tomador_de_decision === true) chips.push(ic('decisor') + ' Toma la decisión');
     if (d.nivel_de_urgencia) {
-      chips.push('⏱ Urgencia ' + (d.nivel_de_urgencia === 'high' ? 'alta' : d.nivel_de_urgencia === 'medium' ? 'media' : 'baja'));
+      chips.push(ic('reloj') + ' Urgencia ' + (d.nivel_de_urgencia === 'high' ? 'alta' : d.nivel_de_urgencia === 'medium' ? 'media' : 'baja'));
     }
-    if (d.fecha_de_seguimiento) chips.push('📅 Seguimiento: ' + esc(d.fecha_de_seguimiento));
+    if (d.fecha_de_seguimiento) chips.push(ic('calendario') + ' Seguimiento: ' + esc(d.fecha_de_seguimiento));
     var chipsHtmlResumen = chips.length
       ? '<div class="gdf-confirm-resumen-chips">' +
         chips.map(function (c) { return '<span class="gdf-chip">' + c + '</span>'; }).join('') +
@@ -1688,7 +1691,7 @@
       (fotoCierre ? '<div class="gdf-confirm-foto" style="background-image:url(\'' + esc(fotoCierre) + '\')"></div>' : '') +
       '<div class="gdf-confirm-proyecto-info">' +
       '<div class="gdf-confirm-proyecto-nombre">' + esc(nombreProyecto) + '</div>' +
-      (elegido && elegido.ubicacion ? '<div class="gdf-confirm-proyecto-loc">📍 ' + esc(elegido.ubicacion) + '</div>' : '') +
+      (elegido && elegido.ubicacion ? '<div class="gdf-confirm-proyecto-loc">' + ic('ubicacion') + ' ' + esc(elegido.ubicacion) + '</div>' : '') +
       (elegido
         ? '<div class="gdf-confirm-proyecto-precio">Desde ' + esc(sim.pesos(elegido.precioCop)) +
           (elegido.area ? ' · ' + elegido.area + ' m²' : '') + '</div>'
@@ -1715,7 +1718,7 @@
         : 'Sigamos afinando tu compra ideal — te acompañamos con información y seguimiento.';
     var leadBloqueHtml =
       '<div class="gdf-lead-badge ' + lead.status + '">' +
-      '<span class="icon">' + lead.icon + '</span>' +
+      '<span class="icon">' + ic(lead.icon) + '</span>' +
       '<div class="title">' + leadTitle + '</div>' +
       '<div class="subcopy">' + leadSub + '</div>' +
       '<div class="gdf-lead-notes">' + notesHtml + '</div>' +
@@ -1729,7 +1732,7 @@
     // que le va a sonar el teléfono.
     var contactoHtml =
       '<div class="gdf-confirm-contacto">' +
-      '<div class="gdf-confirm-contacto-avatar">📞</div>' +
+      '<div class="gdf-confirm-contacto-avatar">' + ic('telefono') + '</div>' +
       '<div class="gdf-confirm-contacto-info">' +
       '<div class="gdf-confirm-contacto-titulo">Te contactamos por llamada</div>' +
       '<div class="gdf-confirm-contacto-tel">' + telefono + '</div>' +
@@ -1745,7 +1748,7 @@
     //   error    -> qué falló, con botón para reintentar sin perder nada.
     var llamada = state.llamada;
     var heroClase = 'gdf-confirm-hero--ok';
-    var heroIcono = '<span class="gdf-confirm-check">✓</span>';
+    var heroIcono = '<span class="gdf-confirm-check">' + ic('check') + '</span>';
     var heroTitulo = '¡Gracias por tu interés, ' + esc(firstName) + '!';
     var heroTexto =
       'Elegiste <strong>' + esc(nombreProyecto) + '</strong>. Un asesor de vivienda de ' +
@@ -1753,12 +1756,12 @@
     var extra = '';
 
     if (llamada.estado === 'cargando') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">📡 Conectando con Manuela…' +
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">' + ic('senal') + ' Conectando con Manuela…' +
         '<br /><small>Puede tardar unos segundos si el servidor estaba dormido.</small></div>';
     } else if (llamada.estado === 'lista') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">📞 ' + esc(llamada.mensaje) + '</div>';
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">' + ic('telefono') + ' ' + esc(llamada.mensaje) + '</div>';
     } else if (llamada.estado === 'error') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">⚠️ ' + esc(llamada.mensaje) +
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">' + ic('alerta') + ' ' + esc(llamada.mensaje) +
         ' <button class="gdf-llamada-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';
     }
 
@@ -1785,8 +1788,8 @@
       '<h3>Tu perfil</h3>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
       '</div>' +
-      '<button class="gdf-back-btn" data-action="goSeleccion">← Cambiar mi selección</button>' +
-      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '<button class="gdf-back-btn" data-action="goSeleccion">' + ic('flecha-izquierda') + ' Cambiar mi selección</button>' +
+      '<button class="gdf-restart-btn" data-action="restart">' + ic('reiniciar') + ' Empezar de nuevo</button>' +
       '</div>'
     );
   }

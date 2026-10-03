@@ -2,7 +2,8 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏗️</text></svg>" />
+    <!-- El isotipo de Machea, en SVG (antes era un emoji dentro de un SVG). -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon-machea.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Encuentra tu próximo hogar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,7 +25,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="css/styles.css?v=110" />
+    <link rel="stylesheet" href="css/styles.css?v=111" />
   </head>
   <body>
     <div id="root"></div>
@@ -94,7 +95,7 @@
          que el buscador responde sin red; lo que no este aqui lo completa el
          geocodificador en vivo (ver PHOTON_URL en js/main.js). -->
     <script src="js/mapa_lugares.js?v=108"></script>
-    <script src="js/data.js?v=111"></script>
+    <script src="js/data.js?v=112"></script>
     <!-- La libreria del mapa y el modulo que la envuelve. `defer` no: el resto
          de este front se carga sincrono y js/mapa.js solo toca a Leaflet en
          tiempo de ejecucion, cuando main.js lo monta. Si la red falla, window.L
@@ -113,7 +114,7 @@
     <script src="js/planta.js?v=108"></script>
     <script src="js/scene.js?v=108"></script>
     <script src="js/recommender.js?v=108"></script>
-    <script src="js/qualification.js?v=108"></script>
+    <script src="js/qualification.js?v=109"></script>
     <script src="js/simulador.js?v=108"></script>
     <!-- El fondo "AI Signal" del Machea Motion System: red de nodos y pulso
          coral. Cuelga del <body> y no de #root, que se reconstruye entero en
@@ -127,8 +128,8 @@
          los emojis y simbolos. Ver la cabecera del archivo. -->
     <script src="js/iconos-ui.js?v=109"></script>
     <script src="js/machea.js?v=108"></script>
-    <script src="js/templates.js?v=112"></script>
-    <script src="js/state.js?v=110"></script>
+    <script src="js/templates.js?v=113"></script>
+    <script src="js/state.js?v=111"></script>
     <!-- plano 3D. El bundle de three va aparte porque la app no tiene bundler,
          y TODOS estos van despues del document.write de arriba: moverlo o
          ponerle defer borra el documento entero. -->
@@ -143,6 +144,6 @@
     <script src="js/plano3d/entorno.js?v=108"></script>
     <script src="js/plano3d/escena.js?v=108"></script>
     <script src="js/plano3d/index.js?v=109"></script>
-    <script src="js/main.js?v=111"></script>
+    <script src="js/main.js?v=112"></script>
   </body>
 </html>
