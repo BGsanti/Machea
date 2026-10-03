@@ -861,7 +861,7 @@
     return (
       '<div class="gdf-screen gdf-result">' +
       '<div class="gdf-result-head">' +
-      '<div class="eyebrow">TUS PROYECTOS RECOMENDADOS ' + ic('destello') + '</div>' +
+      '<div class="eyebrow">Tus proyectos recomendados</div>' +
       '<h2>Esto es lo que encaja contigo,<br>' + esc(firstName) + '</h2>' +
       '</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
@@ -898,7 +898,7 @@
     }
     return (
       '<p class="gdf-match-count">Buscando proyectos para ti…</p>' +
-      '<p class="gdf-reco-lento">El servidor puede tardar unos segundos en despertar la primera vez.</p>' +
+      '<p class="gdf-reco-lento">Estamos preparando tus resultados. La primera consulta puede tardar unos segundos.</p>' +
       '<div class="gdf-projects">' + tarjetas + '</div>'
     );
   }
@@ -985,18 +985,18 @@
     // Cuando las tarjetas salen del motor local hay que decirlo, siempre. Que
     // el backend esté caído no puede parecer un resultado del modelo.
     var avisoAprox = reco.aproximado
-      ? '<div class="gdf-reco-banner">Estos proyectos salen de nuestro catálogo local, no del modelo de recomendación. ' +
-        'Son reales, pero el orden es aproximado.</div>'
+      ? '<div class="gdf-reco-banner">' + ic('alerta') + '<span>Mostramos una selección aproximada porque el servicio de ' +
+        'recomendación no respondió. Los proyectos son reales; el orden puede variar.</span></div>'
       : '';
 
     return (
       avisoAprox +
       // Sin "Continuar" al pie ni proyecto que marcar: cada tarjeta trae sus
       // propios botones de llamar y WhatsApp (ver `accionesContacto`).
-      '<p class="gdf-match-count">Ordenados por afinidad con tu perfil. Llama o escribe desde el que más te interese.' +
+      '<p class="gdf-match-count"><b>' + reco.items.length + (reco.items.length === 1 ? ' proyecto' : ' proyectos') +
+      '</b> ordenados por afinidad con tu perfil.' +
       (totalPaginas > 1
-        ? ' <b>' + reco.items.length + ' proyectos</b>, de ' + (desde + 1) + ' a ' +
-          Math.min(desde + porPagina, reco.items.length) + '.'
+        ? ' Mostrando del ' + (desde + 1) + ' al ' + Math.min(desde + porPagina, reco.items.length) + '.'
         : '') +
       '</p>' +
       debugPanel(state) +
@@ -1158,7 +1158,7 @@
     // la posición en vez de un "% match" inventado.
     var badge =
       vm.score != null
-        ? '<span class="gdf-project-badge">' + vm.score + '% match</span>'
+        ? '<span class="gdf-project-badge"><span class="gdf-match-cifra" data-hasta="' + vm.score + '">' + vm.score + '</span>% match</span>'
         : '<span class="gdf-project-badge">#' + (i + 1) + '</span>';
 
     var habLabel = etiquetaHabitaciones(vm.habitaciones);
@@ -1238,15 +1238,42 @@
       (vm.ubicacion ? '<div class="gdf-project-loc">' + ic('ubicacion') + ' ' + esc(vm.ubicacion) + '</div>' : '') +
       (vm.direccion ? '<div class="gdf-project-dir">' + esc(vm.direccion) + '</div>' : '') +
       '<div class="gdf-project-tags">' + especificaciones + '</div>' +
-      accionesContacto(vm, state) +
       avisoHab +
-      // Por qué quedó en esta posición. Lo redacta js/recommender.js con los
+      // Por qué quedó en esta posición. Lo arma js/recommender.js con los
       // mismos criterios del scoring, para que el % del badge no sea un número
       // que aparece sin explicación.
-      (vm.razon ? '<p class="gdf-project-razon">' + esc(vm.razon) + '</p>' : '') +
+      razonHtml(vm.razon) +
       amenidadesCoincidenHtml(vm.amenidades, state.answers.entorno_deseado) +
+      // LAS ACCIONES AL PIE (T9): primero se entiende el proyecto, después se
+      // actúa. `margin-top: auto` en CSS las alinea entre tarjetas de distinto
+      // alto. El detalle (planos y todo lo que incluye) va debajo porque se
+      // despliega y empujaría los botones fuera de vista.
+      accionesContacto(vm, state) +
       detalleProyecto(vm, state) +
       '</div>' +
+      '</div>'
+    );
+  }
+
+  /**
+   * La razón del match: encabezado por puesto, máximo tres motivos con su
+   * etiqueta y, aparte, lo que no encaja (ver razonDeMatch en recommender.js).
+   */
+  function razonHtml(r) {
+    if (!r || (!r.puntos.length && !r.considerar)) return '';
+    return (
+      '<div class="gdf-project-razon">' +
+      (r.titulo ? '<div class="gdf-razon-titulo">' + esc(r.titulo) + '</div>' : '') +
+      (r.puntos.length
+        ? '<ul class="gdf-razon-lista">' +
+          r.puntos.map(function (p) {
+            return '<li>' + ic('check') + '<span><b>' + esc(p.etiqueta) + ':</b> ' + esc(p.texto) + '</span></li>';
+          }).join('') +
+          '</ul>'
+        : '') +
+      (r.considerar
+        ? '<p class="gdf-razon-considerar"><b>A considerar:</b> ' + esc(r.considerar) + '</p>'
+        : '') +
       '</div>'
     );
   }
@@ -1264,12 +1291,13 @@
     var url = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(mensaje);
     return (
       '<div class="gdf-project-acciones">' +
+      // La principal dispara la llamada de Manuela (ver dispatch en main.js);
+      // la secundaria es un enlace. El peso visual dice esa diferencia.
       '<button class="gdf-btn-primary enabled gdf-project-llamar" data-action="llamarProyecto" data-value="' + esc(vm.id) + '">' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6.2 6.2l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>' +
-      'Llamar</button>' +
+      ic('telefono') + 'Hablar con un asesor</button>' +
       '<a class="gdf-project-whatsapp" data-action="whatsapp" href="' + esc(url) + '" target="_blank" rel="noopener">' +
       '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>' +
-      'WhatsApp</a>' +
+      'Escribir por WhatsApp</a>' +
       '</div>'
     );
   }
