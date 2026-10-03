@@ -470,6 +470,11 @@
         }
         var qList = qListFor(state.answers);
         var prev = qList[state.qi - 1];
+        // Lo que se había elegido, SOLO para pintarlo marcado al volver (ver
+        // quizPanel en templates.js). La respuesta sí se deshace —el 3D y el
+        // matching retroceden con ella—; esto es memoria visual, nada lo lee
+        // para calcular.
+        state.respuestaPrevia = { qid: prev.id, v: state.answers[prev.id] };
         var nextAnswers2 = Object.assign({}, state.answers);
         delete nextAnswers2[prev.id];
         state.qi = state.qi - 1;
