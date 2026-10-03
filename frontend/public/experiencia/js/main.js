@@ -1004,6 +1004,14 @@
 
     // Colores de marca: naranja/dorado de la app, no un arcoíris genérico.
     var COLORES = ['#ff7a18', '#ff9d3f', '#e6bd00', '#ffbe8c', '#e7ebf0'];
+    // Machea lleva los de su manual (rojo, navy y grises), leídos de los
+    // tokens que fija js/tema.js para no repetir los hex aquí.
+    if (document.documentElement.dataset.marca === 'machea') {
+      var css = getComputedStyle(document.documentElement);
+      COLORES = ['--marca', '--tinta', '--tinta-tenue', '--borde', '--marca-velo-fuerte']
+        .map(function (t) { return css.getPropertyValue(t).trim(); })
+        .filter(Boolean);
+    }
     var GRAVEDAD = 260;
     var DURACION = 1600;
     var piezas = [];
