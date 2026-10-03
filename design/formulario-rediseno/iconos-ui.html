@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Iconos de interfaz - Machea</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../frontend/public/experiencia/css/styles.css" />
+<style>
+  /* Muestra de js/iconos-ui.js con los tokens de Machea (T1). Se abre directo
+     desde el repo: carga el modulo real del formulario, no una copia. */
+  :root {
+    --rojo: #fc4633; --rojo-texto: #d13a26; --navy: #1f2e42; --gris: #f5f6f8;
+    --gris-texto: #6b7684; --tenue: #a7adb5; --linea: #dce1e7;
+  }
+  body { margin: 0; background: #fff; color: var(--navy); font: 500 14px/1.5 'Inter', sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 6px; }
+  h2 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin: 44px 0 14px; }
+  p.sub { color: var(--gris-texto); margin: 0; max-width: 680px; }
+  .grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .ficha { border: 1px solid var(--linea); border-radius: 14px; padding: 16px 14px 12px; }
+  .ficha .grande { font-size: 32px; line-height: 1; height: 32px; }
+  .ficha .tams { display: flex; align-items: flex-end; gap: 10px; margin: 14px 0 10px; color: var(--navy); }
+  .ficha code { font: 600 12px/1.3 ui-monospace, Consolas, monospace; color: var(--gris-texto); }
+  .colores { display: flex; gap: 10px; flex-wrap: wrap; }
+  .colores span { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; }
+  .fila { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .boton { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 999px;
+    background: var(--rojo); color: #fff; font: 700 18px/1 'Inter'; padding: 15px 28px; }
+  .atras { display: inline-flex; align-items: center; gap: 6px; color: var(--gris-texto); font-weight: 700; font-size: 13px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--gris); border: 1px solid var(--linea);
+    border-radius: 999px; padding: 5px 8px 5px 12px; font-size: 12px; font-weight: 700; }
+  .chip i { color: var(--gris-texto); font-size: 14px; display: inline-flex; }
+  .dato { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+  .dato.rojo { color: var(--rojo-texto); font-weight: 700; }
+  .eyebrow { color: var(--rojo-texto); font-size: 11px; font-weight: 800; letter-spacing: .14em; display: inline-flex; gap: 6px; align-items: center; }
+  .temp { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; border: 1px solid; }
+  .temp.c { background: #fff0ed; color: var(--rojo-texto); border-color: var(--rojo); }
+  .temp.t { background: var(--gris); color: var(--navy); border-color: var(--tenue); }
+  .temp.f { background: var(--gris); color: var(--gris-texto); border-color: var(--linea); }
+  .circulo { width: 66px; height: 66px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 30px; }
+  .aviso { display: flex; gap: 10px; align-items: flex-start; border: 1.5px solid var(--rojo); border-radius: 14px; padding: 12px 14px; color: var(--rojo-texto); max-width: 420px; font-weight: 600; }
+  .familia { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; font-size: 24px; }
+  .familia .gdf-icono { width: 24px; height: 24px; color: var(--navy); opacity: 1; }
+  .familia small { font-size: 12px; color: var(--gris-texto); width: 100%; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--linea); vertical-align: middle; }
+  th { font-weight: 800; font-size: 12px; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .06em; }
+  td.orig { font-size: 20px; width: 52px; }
+  td.nuevo { font-size: 22px; width: 52px; }
+  td code { font: 600 12px ui-monospace, Consolas, monospace; }
+  td.donde { color: var(--gris-texto); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Iconos de interfaz</h1>
+  <p class="sub">Módulo <code>js/iconos-ui.js</code> del formulario: lineales, retícula de 24, trazo de 1,6 y <code>currentColor</code>. Sustituyen a todos los emojis y símbolos tipográficos (T2; el reemplazo en pantalla es T3).</p>
+
+  <h2>El set</h2>
+  <div class="grilla" id="grilla"></div>
+
+  <h2>Toman el color del texto</h2>
+  <div class="colores" id="colores"></div>
+
+  <h2>Misma familia que los iconos de amenidades</h2>
+  <div class="familia" id="familia"></div>
+
+  <h2>En contexto</h2>
+  <div class="fila" id="contexto"></div>
+
+  <h2>Tabla de reemplazo para T3</h2>
+  <table>
+    <thead><tr><th>Hoy</th><th>Icono</th><th>Nombre</th><th>Dónde está</th></tr></thead>
+    <tbody id="tabla"></tbody>
+  </table>
+</main>
+
+<script src="../../frontend/public/experiencia/js/iconos.js"></script>
+<script src="../../frontend/public/experiencia/js/iconos-ui.js"></script>
+<script>
+  var I = window.GDF.iconosUI;
+  var ic = I.icono;
+
+  document.getElementById('grilla').innerHTML = I.nombres.map(function (n) {
+    return '<div class="ficha"><div class="grande">' + ic(n) + '</div>' +
+      '<div class="tams">' + ic(n, { tam: 16 }) + ic(n, { tam: 20 }) + ic(n, { tam: 24 }) + '</div>' +
+      '<code>' + n + '</code></div>';
+  }).join('');
+
+  document.getElementById('colores').innerHTML = [
+    ['#1f2e42', '#fff'], ['#d13a26', '#fff'], ['#6b7684', '#fff'], ['#a7adb5', '#fff'],
+    ['#fff', '#1f2e42'], ['#fff', '#fc4633'], ['#1f2e42', '#f5f6f8']
+  ].map(function (c, i) {
+    var n = ['telefono', 'alerta', 'calendario', 'cerrar', 'check', 'subsidio', 'asesor'][i];
+    return '<span style="color:' + c[0] + ';background:' + c[1] + ';border:1px solid #dce1e7">' + ic(n) + '</span>';
+  }).join('');
+
+  var A = window.GDF.iconos;
+  document.getElementById('familia').innerHTML =
+    ['Lobby', 'Piscina', 'Zona BBQ', 'Zona pet', 'Salón social'].map(function (l) { return A.icono(l); }).join('') +
+    '<span style="width:1px;height:28px;background:#dce1e7"></span>' +
+    ['telefono', 'ubicacion', 'edificio', 'calendario', 'presupuesto'].map(function (n) { return ic(n); }).join('') +
+    '<small>Izquierda: amenidades (js/iconos.js). Derecha: interfaz (js/iconos-ui.js).</small>';
+
+  document.getElementById('contexto').innerHTML = [
+    '<button class="boton">Continuar ' + ic('flecha-derecha') + '</button>',
+    '<span class="atras">' + ic('flecha-izquierda') + ' Atrás</span>',
+    '<span class="chip">Chapinero <i>' + ic('cerrar', { titulo: 'Quitar Chapinero' }) + '</i></span>',
+    '<span class="eyebrow">' + ic('destello') + ' TUS PROYECTOS RECOMENDADOS</span>',
+    '<span class="dato">' + ic('ubicacion') + ' Chapinero · Espartillal</span>',
+    '<span class="dato">' + ic('subsidio') + ' Apto para subsidio</span>',
+    '<span class="dato rojo">' + ic('telefono') + ' Hablar con un asesor</span>',
+    '<span class="dato">' + ic('brujula') + ' Recorrido 360 ' + ic('enlace-externo') + '</span>',
+    '<span class="temp c">' + ic('temp-caliente') + ' Caliente</span>',
+    '<span class="temp t">' + ic('temp-tibio') + ' Tibio</span>',
+    '<span class="temp f">' + ic('temp-frio') + ' Frío</span>',
+    '<span class="chip">' + ic('presupuesto') + ' Presupuesto confirmado</span>',
+    '<span class="chip">' + ic('calendario') + ' Seguimiento: 12 oct</span>',
+    '<span class="circulo">' + ic('check') + '</span>',
+    '<div class="aviso">' + ic('alerta', { tam: 20 }) + ' No pudimos traer tus recomendaciones.</div>'
+  ].join('');
+
+  // La misma tabla que design/formulario-rediseno/ICONOS.md.
+  var TABLA = [
+    ['📞', 'telefono', 'templates.js: contacto y llamada en la confirmación'],
+    ['📍', 'ubicacion', 'templates.js: ubicación de la tarjeta y de la confirmación'],
+    ['🏅', 'subsidio', 'templates.js: "Apto para subsidio"'],
+    ['🔍', 'buscar', 'templates.js: sin resultados'],
+    ['⚠️', 'alerta', 'templates.js: error de recomendaciones y de llamada'],
+    ['🚧', 'construccion', 'templates.js: cierre de Arriendo'],
+    ['🏢', 'edificio', 'templates.js: tarjeta sin foto'],
+    ['📡', 'senal', 'templates.js: conectando la llamada'],
+    ['🧭', 'brujula', 'templates.js: recorrido 360'],
+    ['↗', 'enlace-externo', 'templates.js: recorrido 360, ficha oficial'],
+    ['🔥', 'temp-caliente', 'templates.js: temperatura del lead'],
+    ['🌤️', 'temp-tibio', 'templates.js: temperatura del lead'],
+    ['❄️', 'temp-frio', 'templates.js: temperatura del lead'],
+    ['🎙️', 'microfono', 'templates.js: Manuela en la llamada'],
+    ['💰', 'presupuesto', 'templates.js: chip del resumen'],
+    ['🙋', 'decisor', 'templates.js: chip del resumen'],
+    ['⏱', 'reloj', 'templates.js: chip de urgencia'],
+    ['📅', 'calendario', 'templates.js: chip de seguimiento'],
+    ['✅', 'check-circulo', 'qualification.js: lead listo'],
+    ['🌱', 'brote', 'qualification.js: lead en maduración'],
+    ['👷', 'usuario', 'data.js GENDERS y avatar del carné (se va con T4b)'],
+    ['🏗️', 'isotipo de Machea', 'index.html: favicon (SVG del logo, no de este set)'],
+    ['✓', 'check', 'templates.js, state.js ("Afiliado"), styles.css (content)'],
+    ['✦', 'destello', 'templates.js: rótulos de resultados'],
+    ['↺', 'reiniciar', 'templates.js: "Empezar de nuevo"'],
+    ['←', 'flecha-izquierda', 'templates.js: "Atrás"'],
+    ['→', 'flecha-derecha', 'templates.js y styles.css: "Continuar", botones'],
+    ['▾', 'chevron-abajo', 'templates.js: desplegables "Ver todo lo que incluye"'],
+    ['×', 'cerrar', 'main.js: quitar un chip'],
+    ['−  +', 'menos / mas', 'templates.js: contadores de Arriendo']
+  ];
+  document.getElementById('tabla').innerHTML = TABLA.map(function (f) {
+    var nombres = f[1].split(' / ');
+    var dib = nombres.map(function (n) { return I.TRAZOS[n] ? ic(n) : ''; }).join(' ');
+    return '<tr><td class="orig">' + f[0] + '</td><td class="nuevo">' + (dib || '—') + '</td>' +
+      '<td><code>' + f[1] + '</code></td><td class="donde">' + f[2] + '</td></tr>';
+  }).join('');
+</script>
+</body>
+</html>
