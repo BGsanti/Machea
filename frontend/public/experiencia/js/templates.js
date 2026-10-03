@@ -83,6 +83,15 @@
    * reglas de matching que miran `a.afiliado` quedan muertas solas, sin tocar
    * su lógica.
    */
+  // Las notas de afiliación ("Afiliado Colsubsidio", "No afiliado — cupo
+  // 10%…") son la regla 90/10 de una caja de compensación. qualification.js
+  // las escribe para todas las marcas; se pintan solo donde se pregunta la
+  // afiliación. El PUNTAJE de ese bloque no se toca aquí: es lógica de
+  // calificación y la decide quien lleva qualification.js.
+  function notaVisible(nota) {
+    return pideAfiliacion() || !/afiliad/i.test(nota);
+  }
+
   function pideAfiliacion() {
     var n = marca().negocio || {};
     return n.tipo ? n.tipo === 'caja' : true;
@@ -803,16 +812,26 @@
     return (
       '<div class="gdf-screen gdf-result">' +
       '<div class="gdf-result-head">' +
-      '<div class="eyebrow">ARRIENDO ' + ic('destello') + '</div>' +
+      '<div class="eyebrow">Arriendo</div>' +
       '<h2>¡Gracias, ' + esc(firstNameA) + '!</h2>' +
       '</div>' +
+      // SIN PROMESAS (TEXTOS.md, sección 7): ni "ya guardamos lo que nos
+      // contaste" ni "te contactaremos" hasta que se confirme qué pasa con
+      // los datos de Arriendo — hoy no llegan a Supabase ni a la llamada.
+      '<div class="gdf-arriendo-cierre">' +
+      '<h3>Las recomendaciones de arriendo están en preparación</h3>' +
+      '<p>Todavía no podemos recomendarte arriendos con este perfil. Estamos trabajando en ello.</p>' +
+      '<div class="gdf-arriendo-perfil">' +
+      '<div class="gdf-arriendo-perfil-titulo">Lo que nos contaste</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
-      '<div class="gdf-lead-badge exploring">' +
-      '<span class="icon">' + ic('construccion') + '</span>' +
-      '<div class="title">Estamos construyendo el matching de Arriendo</div>' +
-      '<div class="subcopy">Ya guardamos lo que nos contaste. Muy pronto vamos a poder recomendarte arriendos reales con este mismo perfil.</div>' +
       '</div>' +
-      '<button class="gdf-restart-btn" data-action="restart">' + ic('reiniciar') + ' Empezar de nuevo</button>' +
+      '<div class="gdf-arriendo-acciones">' +
+      // Lo que SÍ se puede hacer hoy: buscar para comprar, sin volver a
+      // llenar el registro (ver 'buscarCompra' en main.js).
+      '<button class="gdf-btn-primary enabled" data-action="buscarCompra">Buscar para comprar ' + ic('flecha-derecha') + '</button>' +
+      '<button class="gdf-btn-secundario" data-action="restart">Volver al inicio</button>' +
+      '</div>' +
+      '</div>' +
       '</div>'
     );
   }
@@ -828,16 +847,17 @@
       .join('');
 
     var notesHtml = lead.notes
+      .filter(notaVisible)
       .map(function (n) {
         return '<span class="gdf-lead-note">' + esc(n) + '</span>';
       })
       .join('');
 
-    var leadTitle = lead.status === 'ready' ? '¡Listo para hablar con un asesor!' : 'Vamos construyendo tu camino';
+    var leadTitle = lead.status === 'ready' ? 'Tu perfil está listo para un asesor' : 'Seguimos afinando tu búsqueda';
     var leadSub =
       lead.status === 'ready'
-        ? 'Tu perfil y tu financiación están listos. Un asesor te contacta muy pronto.'
-        : 'Ya tienes un plano. Sigamos afinando tu compra ideal — te acompañamos con información y seguimiento.';
+        ? 'Con lo que nos contaste, un asesor ya puede ayudarte.'
+        : 'Te acompañamos con información y seguimiento mientras defines tu compra.';
 
     var leadBadgeHtml =
       '<div class="gdf-lead-badge ' + lead.status + '">' +
@@ -1670,7 +1690,7 @@
     if (resumen.estado === 'esperando') {
       return (
         '<div class="gdf-confirm-resumen gdf-confirm-resumen--esperando">' +
-        ic('microfono') + ' Manuela está en la llamada — el resumen aparece aquí apenas cuelgue.' +
+        ic('microfono') + ' Manuela está en la llamada. El resumen aparecerá aquí cuando termine.' +
         '</div>'
       );
     }
@@ -1778,16 +1798,17 @@
       .join('');
 
     var notesHtml = lead.notes
+      .filter(notaVisible)
       .map(function (n) {
         return '<span class="gdf-lead-note">' + esc(n) + '</span>';
       })
       .join('');
 
-    var leadTitle = lead.status === 'ready' ? '¡Listo para hablar con un asesor!' : 'Vamos construyendo tu camino';
+    var leadTitle = lead.status === 'ready' ? 'Tu perfil está listo para un asesor' : 'Seguimos afinando tu búsqueda';
     var leadSub =
       lead.status === 'ready'
-        ? 'Tu perfil y tu financiación están listos. Un asesor te contacta muy pronto.'
-        : 'Sigamos afinando tu compra ideal — te acompañamos con información y seguimiento.';
+        ? 'Con lo que nos contaste, un asesor ya puede ayudarte.'
+        : 'Te acompañamos con información y seguimiento mientras defines tu compra.';
     var leadBloqueHtml =
       '<div class="gdf-lead-badge ' + lead.status + '">' +
       '<span class="icon">' + ic(lead.icon) + '</span>' +
@@ -1828,8 +1849,8 @@
     var extra = '';
 
     if (llamada.estado === 'cargando') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">' + ic('senal') + ' Conectando con Manuela…' +
-        '<br /><small>Puede tardar unos segundos si el servidor estaba dormido.</small></div>';
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">' + ic('senal') +
+        ' Conectando con Manuela, nuestra asistente. Puede tardar unos segundos.</div>';
     } else if (llamada.estado === 'lista') {
       extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">' + ic('telefono') + ' ' + esc(llamada.mensaje) + '</div>';
     } else if (llamada.estado === 'error') {

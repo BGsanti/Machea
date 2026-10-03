@@ -2047,6 +2047,23 @@
       return;
     }
 
+    // Cierre de Arriendo -> "Buscar para comprar". Es "Empezar de nuevo" sin
+    // obligar a llenar otra vez el registro: se reinicia, se recuperan los
+    // datos de la persona y se entra al quiz con "Comprar" ya elegido. Solo
+    // encadena acciones que ya existen (restart, startQuiz, selectOption), así
+    // que el 3D y el estado arrancan igual que en una partida nueva.
+    if (el.dataset.action === 'buscarCompra') {
+      var conserva = {};
+      ['gender', 'nombre', 'apellido', 'cedula', 'correo', 'telefono', 'afiliado', 'consent'].forEach(function (k) {
+        conserva[k] = state[k];
+      });
+      dispatch('restart');
+      Object.keys(conserva).forEach(function (k) { state[k] = conserva[k]; });
+      dispatch('startQuiz');
+      dispatch('selectOption', { qid: 'operacion', value: 'compra' });
+      return;
+    }
+
     dispatch(el.dataset.action, el.dataset);
   }
 

@@ -5821,3 +5821,98 @@ html[data-marca='machea'] .gdf-project-ficha {
 html[data-marca='machea'] .gdf-project-detalle {
   border-top-color: var(--borde);
 }
+
+/* ============ CIERRES (T10) ============ */
+
+/* Cierre de Arriendo: una tarjeta sobria con lo que pasa, lo que contesto y
+   que puede hacer ahora. Sin icono de obra ni promesas. */
+.gdf-arriendo-cierre {
+  max-width: 560px;
+  margin: 18px auto 0;
+  padding: 24px 22px;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-tarjeta);
+  text-align: left;
+}
+.gdf-arriendo-cierre h3 {
+  font-family: var(--fuente-titulos);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--tinta);
+}
+.gdf-arriendo-cierre > p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--tinta-media);
+}
+.gdf-arriendo-perfil {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borde);
+}
+.gdf-arriendo-perfil-titulo {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+}
+.gdf-arriendo-perfil .gdf-chips {
+  justify-content: flex-start;
+  margin: 10px 0 0;
+}
+.gdf-arriendo-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 22px;
+}
+.gdf-arriendo-acciones .gdf-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Machea: el secundario en pastilla y navy, como "Escribir por WhatsApp". */
+html[data-marca='machea'] .gdf-btn-secundario {
+  border-radius: var(--radio-boton);
+  border-color: var(--tinta);
+  color: var(--tinta);
+  font-size: 15px;
+  padding: 13px 20px;
+}
+html[data-marca='machea'] .gdf-btn-secundario:hover {
+  border-color: var(--tinta);
+  color: var(--tinta);
+  background: var(--papel-2);
+}
+/* Confirmacion: los numeros de "Que sigue" y el telefono en navy; el rojo
+   queda para el precio. */
+html[data-marca='machea'] .gdf-paso-num {
+  background: var(--tinta);
+  color: #fff;
+}
+html[data-marca='machea'] .gdf-confirm-contacto-tel {
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-restart-btn {
+  color: var(--tinta);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* En escritorio los hijos de la pantalla van a todo el ancho de la columna
+   (ver el media query de 900px): con inline-flex el texto quedaba a la
+   izquierda. */
+html[data-marca='machea'] .gdf-restart-btn {
+  justify-content: center;
+}
+html[data-marca='machea'] .gdf-confirm-resumen-reco strong {
+  color: var(--tinta);
+}
