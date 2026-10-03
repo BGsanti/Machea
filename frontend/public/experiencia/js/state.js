@@ -244,7 +244,7 @@
     if (zonasChip.length > 3) {
       perfilChips.push({ text: '+' + (zonasChip.length - 3) + ' zonas', hi: false });
     }
-    if (a.afiliado === 'Sí') perfilChips.push({ text: 'Afiliado ✓', hi: true });
+    if (a.afiliado === 'Sí') perfilChips.push({ text: 'Afiliado', hi: true });
 
     return {
       qList: qList,

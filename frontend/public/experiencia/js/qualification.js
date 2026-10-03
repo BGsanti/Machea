@@ -90,7 +90,8 @@
       score: s,
       status: ready ? 'ready' : 'nurture',
       label: ready ? 'Listo para asesor' : 'En maduración',
-      icon: ready ? '✅' : '🌱',
+      // Nombre de un icono de js/iconos-ui.js, no un emoji.
+      icon: ready ? 'check-circulo' : 'brote',
       notes: notes,
     };
   }

@@ -355,6 +355,13 @@
     return window.GDF.templates.esc(s);
   }
 
+  // Un icono de js/iconos-ui.js (la × de los chips, por ejemplo). Ver ic() en
+  // templates.js: el formulario no pinta emojis ni símbolos tipográficos.
+  function iconoUI(nombre, opciones) {
+    var I = window.GDF.iconosUI;
+    return I ? I.icono(nombre, opciones) : '';
+  }
+
   // Nombre de localidad a partir del id 1..20 del índice de barrios.
   function localidadPorId(id) {
     var lista = (window.GDF.data && window.GDF.data.LOCALIDADES) || [];
@@ -776,7 +783,7 @@
           '<button type="button" class="gdf-entorno-chip-x" data-action="quitarZona"' +
           ' data-loc="' + esc(sector.localidad) + '"' +
           ' data-barrio="' + esc(sector.barrio || '') + '"' +
-          ' aria-label="Quitar ' + esc(etiqueta) + '">×</button>' +
+          ' aria-label="Quitar ' + esc(etiqueta) + '">' + iconoUI('cerrar') + '</button>' +
           '</span>'
         );
       })
@@ -841,7 +848,7 @@
         var label = opt ? opt.label : valor;
         return (
           '<span class="gdf-entorno-chip">' + label +
-          '<button type="button" class="gdf-entorno-chip-x" data-action="quitarEntorno" data-value="' + valor + '" aria-label="Quitar ' + label + '">×</button>' +
+          '<button type="button" class="gdf-entorno-chip-x" data-action="quitarEntorno" data-value="' + valor + '" aria-label="Quitar ' + label + '">' + iconoUI('cerrar') + '</button>' +
           '</span>'
         );
       })

@@ -1,6 +1,6 @@
 // Datos estáticos: preguntas del quiz, geometría del plano, catálogo de
 // proyectos y avatares. Portado literalmente desde grua-del-futuro/src/App.jsx
-// (mismos campos, mismo orden, mismas opciones) — la única pieza nueva es GENDERS.
+// (mismos campos, mismo orden, mismas opciones).
 (function () {
   'use strict';
 
@@ -395,14 +395,9 @@
   // Bogotá y la cercanía que importa ahora es entre LOCALIDADES, que llega
   // ya calculada de los límites oficiales en GDF_LOCALIDADES_VECINAS.)
 
-  // Selección de personaje: puramente cosmético (carné + marcador en la
-  // escena). No entra en computeLeadQualification — el PDF del hackathon
-  // marca el género como variable opcional de bajo valor de negocio.
-  var GENDERS = [
-    { v: 'f', label: 'Constructora', emoji: '👷‍♀️' },
-    { v: 'm', label: 'Constructor', emoji: '👷‍♂️' },
-    { v: 'x', label: 'Sin especificar', emoji: '👷' },
-  ];
+  // GENDERS (el personaje del carné, con emojis) se quitó en el rediseño del
+  // formulario (2026-10): el avatar pasó a un icono y ya nadie lo leía.
+  // `state.gender` sigue existiendo, pero nada lo usa para pintar.
 
   // El catalogo lo genera plataforma/motor/generar.py en
   // tenants/<slug>/proyectos.js, que index.html carga ANTES que este archivo.
@@ -466,7 +461,6 @@
     PROJECTS: PROJECTS,
     AMENITIES: AMENITIES,
     VECINAS: VECINAS,
-    GENDERS: GENDERS,
     LOCALIDADES: LOCALIDADES_BOGOTA,
     OFERTA: OFERTA,
   };

@@ -2360,7 +2360,16 @@ a.pt-flink:hover {
   font-weight: 800;
 }
 .gdf-multi-opt.selected::after {
-  content: '✓';
+  /* El check de js/iconos-ui.js ('check') como mascara: toma el color del
+     texto igual que los demas iconos. Antes era el caracter de check, que
+     cambia de dibujo segun la fuente y el sistema operativo. */
+  content: '';
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .gdf-multi-opt.oculto {
   display: none;
@@ -5397,4 +5406,42 @@ html[data-marca='machea'] .gdf-contador-valor {
 .gdf-icono-ui:not([width]) {
   width: 1em;
   height: 1em;
+}
+
+/* Los botones de zoom del mapa: Leaflet los escribe con los caracteres "+" y
+   "menos" de texto. En Machea se pintan con los iconos `mas` y `menos` de
+   js/iconos-ui.js, como mascara para que tomen el color del texto. El texto
+   original se queda (font-size 0) porque Leaflet lo usa de nombre accesible
+   junto con su title. El rediseño del mapa es de T7. */
+html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom a {
+  font-size: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom a::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+  -webkit-mask: var(--icono-zoom) center / contain no-repeat;
+  mask: var(--icono-zoom) center / contain no-repeat;
+}
+html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom-in {
+  --icono-zoom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M12 5.5v13M5.5 12h13'/%3E%3C/svg%3E");
+}
+html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom-out {
+  --icono-zoom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M5.5 12h13'/%3E%3C/svg%3E");
+}
+
+/* El check de la insignia de una amenidad que coincide. `.gdf-amenity svg`
+   pinta a 20 px y en el color de marca todo SVG de la tarjeta, y la insignia
+   es un circulo de 15 px en ese mismo color: sin esto el check quedaba del
+   color del fondo, invisible. A 11 px el trazo de 1,6 casi no se ve, por eso
+   va mas grueso aqui. */
+.gdf-amenity-check .gdf-icono-ui {
+  width: 11px;
+  height: 11px;
+  color: inherit;
+  stroke-width: 2.6;
 }
