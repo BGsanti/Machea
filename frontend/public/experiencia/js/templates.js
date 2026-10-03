@@ -680,69 +680,113 @@
         '</div>';
     } else if (q) {
       var cols = q.cols || 1;
+      // DOS FORMAS DE OPCION (variante B "lista sobria", aprobada por Diego
+      // el 2026-10-03; mockup en design/formulario-rediseno):
+      //   - FILA: ancho completo, con el indicador de selección a la derecha
+      //     (o, si la opción tiene icono, el icono a la izquierda y una
+      //     flecha a la derecha). Es la de casi todas las preguntas.
+      //   - CASILLA: las numéricas cortas (personas, habitaciones), que en
+      //     filas serían cinco renglones para "0, 1, 2, 3, 4+". Siguen en
+      //     cuadrícula, con la misma forma y los mismos estados.
+      var iconos = ICONOS_OPCION[q.id] || null;
+      var enFilas = !!iconos || cols <= 2 || q.options.some(function (o) { return !!o.hint; });
+      // La elegida: la respuesta vigente o, al volver con "Atrás" (que la
+      // deshace), la que había — ver `respuestaPrevia` en state.js.
+      var previa = state.respuestaPrevia;
+      var elegida = state.answers && state.answers[q.id] != null
+        ? state.answers[q.id]
+        : previa && previa.qid === q.id ? previa.v : null;
       var options = q.options
         .map(function (o) {
           var hasHint = !!o.hint;
+          var icono = iconos && iconos[o.v];
+          var sel = elegida != null && String(elegida) === String(o.v);
+          var indicador = '';
+          if (enFilas) {
+            indicador = icono
+              ? '<span class="gdf-opt-flecha">' + ic('flecha-derecha') + '</span>'
+              : '<span class="gdf-opt-radio">' + (sel ? ic('check') : '') + '</span>';
+          }
           return (
-            '<button class="gdf-opt-btn' + (hasHint ? ' has-hint' : '') + '" data-action="selectOption" data-qid="' + q.id + '" data-value="' + esc(o.v) + '">' +
-            '<span class="label">' + esc(o.label) + '</span>' +
-            (hasHint ? '<span class="hint">' + esc(o.hint) + '</span>' : '') +
+            '<button class="gdf-opt-btn' + (hasHint ? ' has-hint' : '') + (sel ? ' selected' : '') +
+            '" data-action="selectOption" data-qid="' + q.id + '" data-value="' + esc(o.v) + '"' +
+            (sel ? ' aria-pressed="true"' : '') + '>' +
+            (icono ? '<span class="gdf-opt-icono">' + ic(icono) + '</span>' : '') +
+            '<span class="gdf-opt-texto"><span class="label">' + esc(o.label) + '</span>' +
+            (hasHint ? '<span class="hint">' + esc(o.hint) + '</span>' : '') + '</span>' +
+            indicador +
             '</button>'
           );
         })
         .join('');
-      answerAreaHtml = '<div class="gdf-options cols-' + cols + '">' + options + '</div>';
+      answerAreaHtml = enFilas
+        ? '<div class="gdf-options gdf-options--filas">' + options + '</div>'
+        : '<div class="gdf-options gdf-options--casillas cols-' + cols + '">' + options + '</div>';
     }
 
     // Siempre visible: en la primera pregunta (qi===0) goBack regresa a
     // escarapela en vez de no hacer nada (ver applyAction en state.js).
+    // Va DEBAJO DE LAS RESPUESTAS, alineado con ellas (variante B): antes
+    // quedaba suelto al fondo del panel, lejos de lo que se estaba mirando.
     var backBtn = '<button class="gdf-back-btn" data-action="goBack">' + ic('flecha-izquierda') + ' Atrás</button>';
+
+    // EL PROGRESO ES EL DE LAS PREGUNTAS: un segmento por pregunta, rellenos
+    // los contestados y el actual. Antes la única barra era la de afinidad,
+    // que no aparece en la primera respuesta ni en Arriendo, así que el
+    // formulario no tenía un progreso constante.
+    var paso = Math.min(derived.answered + 1, derived.stepTotal);
+    var segmentos = '';
+    for (var s = 1; s <= derived.stepTotal; s++) {
+      segmentos += '<i class="' + (s < paso ? 'hecho' : s === paso ? 'actual' : '') + '"></i>';
+    }
+
+    // LA AFINIDAD queda como dato secundario, junto al paso.
+    //
+    // El número es REAL: sale de matching.js con lo contestado hasta ahora
+    // (ver compatDe), y puede BAJAR si una respuesta aleja a la persona del
+    // catálogo. Es una estimación del motor local; el "% match" de los
+    // resultados viene del modelo y puede no coincidir (diagnóstico A5).
+    //
+    // NO SE MUESTRA HASTA LA SEGUNDA RESPUESTA. Con una sola contestada el
+    // número lo decide un único factor, y desde que `zona` va primera ese
+    // factor es el más brusco de la fórmula: +29 si el proyecto está en la
+    // localidad pedida, −16 si no (ver matching.js). Quien elija una de las
+    // seis localidades sin oferta lo veía caer a su suelo del 40 % en la
+    // primera pantalla, que se lee como "no hay nada para ti".
+    // Arriendo nunca la muestra: matching.js es 100 % de compra (VIS,
+    // crédito) y no significa nada para un canon de arriendo.
+    var afinidad = derived.answered >= 2 && state.answers.operacion !== 'arriendo'
+      ? '<span class="gdf-afinidad">Afinidad con el catálogo <b>' + derived.compat + '%</b></span>'
+      : '';
 
     return (
       '<div class="gdf-screen gdf-quiz">' +
-      // El número es REAL: sale de matching.js con lo contestado hasta ahora
-      // (ver compatDe). Por eso el rótulo dice "ahora mismo" — a diferencia de
-      // la barra falsa que había antes, esta puede BAJAR si una respuesta
-      // aleja a la persona del catálogo, y prometerle "compatibilidad" a secas
-      // haría que bajar se leyera como un error de la app.
-      //
-      // NO SE MUESTRA HASTA LA SEGUNDA RESPUESTA. Con una sola contestada el
-      // número lo decide un único factor, y desde que `zona` va primera ese
-      // factor es el más brusco de la fórmula: +29 si el proyecto está en la
-      // localidad pedida, −16 si no (ver matching.js). Quien elija una de las
-      // seis localidades sin oferta veía la barra caer a su suelo del 40 % en
-      // la primera pantalla del quiz, que se lee como "no hay nada para ti"
-      // cuando en realidad el modelo va a expandir a las vecinas y sí le va a
-      // responder. A partir de dos respuestas el número ya promedia varios
-      // factores y vuelve a significar algo.
-      // Arriendo nunca la muestra: el número sale de matching.js, que es
-      // 100 % de compra (VIS, crédito) y no significa nada para un canon de
-      // arriendo -- ver el plan de esta entrega.
-      (derived.answered >= 2 && state.answers.operacion !== 'arriendo'
-        ? '<div class="gdf-compat">' +
-          '<div class="gdf-compat-row"><span>Encaje con el catálogo ahora mismo</span><span>' + derived.compat + '%</span></div>' +
-          '<div class="gdf-progress-track"><div class="gdf-progress-fill" style="width:' + derived.compat + '%"></div></div>' +
-          '</div>'
-        : '<div class="gdf-compat gdf-compat-vacia"></div>') +
-      // LAS TRES ZONAS. La barra de arriba y el "Atrás" de abajo son los dos
-      // puntos fijos del panel: entre pregunta y pregunta no se mueven ni un
-      // píxel. Todo lo que cambia vive en `.gdf-quiz-cuerpo`, que es lo único
-      // que respira — se centra cuando sobra sitio (la pregunta de
-      // habitaciones son tres botones en una fila) y scrollea cuando falta
-      // (el buscador de barrios de `zona`, o las 25 amenidades).
-      //
-      // El envoltorio hace falta AUNQUE en móvil no se use la maqueta de tres
-      // zonas: es también lo que agrupa a los hijos que entran escalonados, y
-      // tenerlo siempre evita un segundo camino en templates.
+      // LAS TRES ZONAS. El progreso de arriba es el punto fijo del panel:
+      // entre pregunta y pregunta no se mueve ni un píxel. Todo lo que cambia
+      // vive en `.gdf-quiz-cuerpo`, que es lo único que respira — se centra
+      // cuando sobra sitio y scrollea cuando falta (el buscador de barrios de
+      // `zona`, o las 25 amenidades).
+      '<div class="gdf-quiz-progreso">' +
+      '<div class="gdf-pasos" aria-hidden="true">' + segmentos + '</div>' +
+      '<div class="gdf-quiz-meta"><span class="gdf-step-count">Pregunta ' + paso + ' de ' + derived.stepTotal + '</span>' +
+      afinidad + '</div>' +
+      '</div>' +
       '<div class="gdf-quiz-cuerpo">' +
-      '<div class="gdf-step-count">Pregunta ' + Math.min(derived.answered + 1, derived.stepTotal) + ' de ' + derived.stepTotal + '</div>' +
       '<div class="gdf-question"><h2>' + (q ? esc(q.title) : '') + '</h2><p>' + (q ? esc(q.sub) : '') + '</p></div>' +
       answerAreaHtml +
-      '</div>' +
       backBtn +
+      '</div>' +
       '</div>'
     );
   }
+
+  // Iconos de las opciones que tienen uno (variante B): las dos preguntas de
+  // entrada, donde la persona elige QUÉ busca. Por `v`, que es lo que no
+  // cambia; los textos visibles sí pueden cambiar.
+  var ICONOS_OPCION = {
+    operacion: { compra: 'llave', arriendo: 'contrato' },
+    tipo_propiedad: { Vivienda: 'casa', Oficinas: 'edificio', Bodegas: 'bodega' },
+  };
 
   // Arriendo: no hay modelo ni catálogo real detrás (ver el plan de esta
   // entrega) -- se agradece, se resume lo contestado (mismos chips que

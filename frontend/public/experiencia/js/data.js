@@ -96,7 +96,7 @@
     {
       id: 'ingresos',
       title: '¿Cuánto suman los ingresos de tu hogar?',
-      sub: 'Esto define a qué proyectos y subsidios puedes acceder.',
+      sub: 'Suma los ingresos mensuales de todas las personas que aportan en tu hogar.',
       cols: 1,
       options: [
         // Las cifras salen del SMMLV que usa js/simulador.js (SUPUESTOS.smmlv,

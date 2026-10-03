@@ -67,6 +67,15 @@
              '<path d="M18.2 6.8l1.3-1.3"/>',
     'brujula': '<circle cx="12" cy="12" r="8.5"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1Z"/>',
 
+    // --- Opciones de las preguntas (T5) ----------------------------------
+    // Comprar / Arrendar y el tipo de propiedad de Arriendo.
+    'llave': '<circle cx="8" cy="15" r="4.5"/><path d="M11.2 11.8 20 3"/><path d="M16.5 6.5l2.5 2.5"/>' +
+             '<path d="M14 9l2 2"/>',
+    'contrato': '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/>' +
+                '<path d="M8.5 12.5h7M8.5 16h4"/>',
+    'casa': '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>',
+    'bodega': '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7"/><path d="M7 16h10"/><path d="M3 20h18"/>',
+
     // --- Estado y avisos --------------------------------------------------
     'check': '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     'check-circulo': '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3l2.6 2.6 5-5.2"/>',
