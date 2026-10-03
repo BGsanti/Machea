@@ -76,6 +76,7 @@
     // initialized". Es no-op si no habia mapa.
     if (window.GDF.mapa) window.GDF.mapa.desmontar();
     root.innerHTML = window.GDF.templates.renderApp(state, derived);
+    animarContadores();
     if (sameScreen) {
       var screenEl = root.querySelector('.gdf-screen');
       if (screenEl) {
@@ -353,6 +354,34 @@
   // generado, no de la maquetación.
   function esc(s) {
     return window.GDF.templates.esc(s);
+  }
+
+  // EL "% MATCH" CUENTA DESDE CERO (M04 del manual: contador, ~1 s). Solo
+  // cuando cambia lo que se ve —otra tanda de tarjetas u otra página—: un
+  // repintado de la misma pantalla no puede volver a contar, se leería como
+  // un parpadeo. Quien pide menos movimiento ve el número final de una vez.
+  var ultimaTandaContadores = '';
+  function animarContadores() {
+    var nodos = root.querySelectorAll('.gdf-match-cifra[data-hasta]');
+    if (!nodos.length) { ultimaTandaContadores = ''; return; }
+    var tanda = Array.prototype.map.call(nodos, function (n) { return n.dataset.hasta; }).join(',') +
+      '|' + (state.recoPagina || 0);
+    if (tanda === ultimaTandaContadores) return;
+    ultimaTandaContadores = tanda;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var DURACION = 900;
+    var inicio = null;
+    function paso(t) {
+      if (inicio === null) inicio = t;
+      var k = Math.min(1, (t - inicio) / DURACION);
+      var suave = 1 - Math.pow(1 - k, 3);
+      for (var i = 0; i < nodos.length; i++) {
+        if (!nodos[i].isConnected) continue;
+        nodos[i].textContent = Math.round(Number(nodos[i].dataset.hasta) * suave);
+      }
+      if (k < 1) requestAnimationFrame(paso);
+    }
+    requestAnimationFrame(paso);
   }
 
   // Un icono de js/iconos-ui.js (la × de los chips, por ejemplo). Ver ic() en

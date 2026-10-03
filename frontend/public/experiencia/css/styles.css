@@ -5653,3 +5653,171 @@ html[data-marca='machea'] .gdf-opt-btn.selected {
     bottom: 0;
   }
 }
+
+/* ============ RESULTADOS DE COMPRA (T9) ============
+   Tarjetas que se leen de un vistazo: nombre, precio, ubicacion y
+   especificaciones; la razon del match en viñetas con etiqueta; lo que
+   coincide del entorno; y las acciones AL PIE, alineadas entre tarjetas.
+   Estructura con tokens, para todas las marcas; lo de Machea va al final. */
+
+.gdf-project-card {
+  height: 100%;
+}
+.gdf-project-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.gdf-project-body > .gdf-project-subsidio {
+  align-self: flex-start;
+}
+
+/* La razon: encabezado por puesto, hasta tres motivos y "A considerar". */
+.gdf-project-razon {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: var(--papel-2);
+  border-left: 0;
+  border-radius: var(--radio-interior);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--tinta-media);
+}
+.gdf-razon-titulo {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta);
+  margin-bottom: 8px;
+}
+.gdf-razon-lista {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gdf-razon-lista li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.gdf-razon-lista li .gdf-icono-ui {
+  color: var(--tinta);
+  margin-top: 0.15em;
+}
+.gdf-razon-lista b,
+.gdf-razon-considerar b {
+  color: var(--tinta);
+  font-weight: 700;
+}
+.gdf-razon-considerar {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--borde);
+}
+.gdf-razon-lista + .gdf-razon-considerar {
+  margin-top: 10px;
+}
+.gdf-project-razon > :first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Las acciones: la principal (dispara la llamada) arriba y a todo el ancho;
+   la secundaria, un enlace, debajo. Al pie de la tarjeta. */
+.gdf-project-acciones {
+  grid-template-columns: 1fr;
+  margin-top: auto;
+  padding-top: 16px;
+}
+.gdf-project-acciones .gdf-project-llamar,
+.gdf-project-acciones .gdf-project-whatsapp {
+  min-height: 46px;
+  font-size: 15px;
+  gap: 8px;
+}
+.gdf-project-acciones .gdf-project-llamar .gdf-icono-ui {
+  font-size: 17px;
+}
+/* Sin acciones al pie el detalle se pegaba al boton. */
+.gdf-project-acciones + * {
+  margin-top: 12px;
+}
+
+/* El "% match" cuenta (ver animarContadores en main.js): cifras de ancho
+   fijo para que la pastilla no tiemble mientras sube. */
+.gdf-match-cifra {
+  font-variant-numeric: tabular-nums;
+}
+.gdf-project-badge {
+  white-space: nowrap;
+}
+
+.gdf-reco-banner {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.gdf-reco-banner .gdf-icono-ui {
+  font-size: 16px;
+  margin-top: 0.1em;
+}
+
+/* --- Machea: rojo solo para el precio y la accion principal ------------ */
+html[data-marca='machea'] .gdf-result-head .eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--marca-texto);
+}
+html[data-marca='machea'] .gdf-project-badge {
+  background: var(--tinta);
+  color: #fff;
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+html[data-marca='machea'] .gdf-project-razon {
+  border-left: 0;
+  border-radius: var(--radio-interior);
+}
+html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar {
+  font-size: 15px;
+  padding: 12px 16px;
+}
+/* "Tiene lo que buscas" en navy: es una coincidencia, no una accion. */
+html[data-marca='machea'] .gdf-project-entorno.destacado {
+  background: var(--papel-2);
+  border-left: 0;
+  border-radius: var(--radio-interior);
+  padding: 12px 14px 10px;
+}
+html[data-marca='machea'] .gdf-project-entorno.destacado .gdf-entorno-titulo {
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-amenity.coincide {
+  border-color: var(--tinta);
+  background: var(--papel);
+}
+html[data-marca='machea'] .gdf-amenity svg,
+html[data-marca='machea'] .gdf-amenity.coincide .gdf-amenity-label {
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-amenity-check {
+  background: var(--tinta);
+}
+/* La regla de arriba pinta en navy todo SVG de la amenidad; el check de la
+   insignia va sobre fondo navy y tiene que quedar blanco. */
+html[data-marca='machea'] .gdf-amenity-check .gdf-icono-ui {
+  color: #fff;
+}
+/* Los enlaces secundarios de la tarjeta (desplegar el detalle, la ficha
+   oficial) en navy: el rojo queda para el precio y "Hablar con un asesor". */
+html[data-marca='machea'] .gdf-project-detalle > summary,
+html[data-marca='machea'] .gdf-project-ficha {
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-project-detalle {
+  border-top-color: var(--borde);
+}
