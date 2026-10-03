@@ -5916,3 +5916,63 @@ html[data-marca='machea'] .gdf-restart-btn {
 html[data-marca='machea'] .gdf-confirm-resumen-reco strong {
   color: var(--tinta);
 }
+
+/* ============ ZONA Y MAPA (T7) ============
+   Mapa sobrio: los mismos mosaicos de OpenStreetMap de siempre (sin
+   proveedor nuevo, mismos terminos y la misma atribucion), pero en gris claro
+   para que el unico color sea la seleccion en rojo. Decision de Diego
+   (2026-10-03) frente a CARTO o Stadia, que piden licencia comercial.
+   Solo Machea: las constructoras siguen con el mapa a color. */
+html[data-marca='machea'] .gdf-mapa-real {
+  background: var(--papel-2);
+}
+/* El filtro va sobre el PANEL DE MOSAICOS, no sobre el mapa: los poligonos
+   (localidades y barrio elegido) viven en otro panel y conservan su color. */
+html[data-marca='machea'] .gdf-mapa-real .leaflet-tile-pane {
+  filter: grayscale(1) contrast(0.92) brightness(1.06);
+}
+html[data-marca='machea'] .gdf-mapa-real .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--tinta-suave);
+}
+html[data-marca='machea'] .gdf-mapa-real .leaflet-control-attribution a {
+  color: var(--tinta-media);
+}
+html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-interior);
+  overflow: hidden;
+  box-shadow: var(--sombra-tarjeta);
+}
+html[data-marca='machea'] .gdf-zona-poly {
+  stroke: var(--tinta-suave);
+  stroke-opacity: 0.45;
+}
+html[data-marca='machea'] .gdf-zona-poly.sel {
+  stroke: var(--marca);
+  stroke-opacity: 1;
+  stroke-width: 2.5;
+}
+html[data-marca='machea'] .gdf-barrio-poly {
+  fill-opacity: 0.45;
+  stroke: var(--marca);
+  stroke-width: 2;
+}
+html[data-marca='machea'] .gdf-zona-tip {
+  border-radius: 999px;
+  padding: 4px 10px;
+  box-shadow: var(--sombra-tarjeta);
+}
+/* "1 zona elegida": es un conteo, no una accion. */
+html[data-marca='machea'] .gdf-zona-eco strong {
+  color: var(--tinta);
+}
+
+/* MOVIL: en la pregunta de zona el mapa ES la respuesta, y la franja de
+   siempre (30 % del alto) no alcanzaba para tocar un barrio. Solo mientras
+   el mapa esta montado; el resto de preguntas conserva la escena chica. */
+@media (max-width: 899px) {
+  .gdf-scene:has(.gdf-mapa-real) {
+    height: clamp(260px, 44vh, 420px);
+  }
+}
