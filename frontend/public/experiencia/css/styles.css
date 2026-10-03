@@ -5384,3 +5384,17 @@ html[data-marca='machea'] .gdf-contador-valor {
   font-weight: 700;
   color: var(--tinta);
 }
+
+/* ============ ICONOS DE INTERFAZ (js/iconos-ui.js) ============
+   Miden 1em para crecer con la letra que acompañan y toman su color
+   (`currentColor`). Si el SVG trae `width` propio — `icono(n, { tam: 20 })` —
+   se respeta: por eso el :not([width]); sin el, esta regla le ganaria al
+   atributo, que en SVG no tiene especificidad. */
+.gdf-icono-ui {
+  flex: none;
+  vertical-align: -0.15em;
+}
+.gdf-icono-ui:not([width]) {
+  width: 1em;
+  height: 1em;
+}
