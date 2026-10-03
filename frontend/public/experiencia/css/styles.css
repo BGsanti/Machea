@@ -93,6 +93,19 @@
   --exito: #4fd6bf;
 
   --texto-cta: #1b1c1f;
+
+  /* ---- TIPOGRAFIA Y FORMA ----
+     Las dos familias iban escritas a mano en cada regla, y asi no habia modo
+     de que una marca usara otra. Estos son los valores de las constructoras;
+     Machea los reescribe desde js/tema.js con los de su manual (Inter, 18/14
+     px y botones en pastilla). Una regla nueva debe usar estas variables y no
+     el valor literal. */
+  --fuente-titulos: 'Poppins', sans-serif;
+  --fuente-cuerpo: 'Manrope', sans-serif;
+  --radio-tarjeta: 16px;   /* tarjetas y paneles */
+  --radio-interior: 12px;  /* campos, opciones, cajas dentro de una tarjeta */
+  --radio-boton: 13px;     /* el boton principal */
+  --sombra-tarjeta: 0 4px 16px rgba(0, 0, 0, 0.07);
 }
 
 * {
@@ -109,7 +122,7 @@ body {
 body {
   background: var(--fondo);
   color: var(--tinta);
-  font-family: 'Manrope', sans-serif;
+  font-family: var(--fuente-cuerpo);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -127,7 +140,7 @@ body {
 h1,
 h2,
 h3 {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
 }
 
 button {
@@ -179,7 +192,7 @@ textarea::placeholder { color: var(--tinta-tenue); }
    verse al enseñarle su version a un cliente. Toma --sobre-marca para leerse
    sobre una cabecera de cualquier color. */
 .gdf-logo-texto {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 700;
   font-size: 17px;
   letter-spacing: -0.01em;
@@ -350,7 +363,7 @@ textarea::placeholder { color: var(--tinta-tenue); }
 
 .gdf-hero-main h1 {
   margin: 0;
-  font: 800 56px/1.08 'Poppins', sans-serif;
+  font: 800 56px/1.08 var(--fuente-titulos);
   color: var(--marca);
   letter-spacing: -0.01em;
   animation: heroFadeIn 0.7s 0.25s ease-out both;
@@ -379,7 +392,7 @@ textarea::placeholder { color: var(--tinta-tenue); }
   cursor: pointer;
   background: var(--acento);
   color: var(--texto-cta);
-  font: 700 21px/1 'Poppins', sans-serif;
+  font: 700 21px/1 var(--fuente-titulos);
   padding: 22px 44px;
   border-radius: 16px;
   transition: transform 0.15s ease;
@@ -1580,7 +1593,7 @@ a.pt-flink:hover {
   font-size: 28px;
 }
 .gdf-carnet .name {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 800;
   font-size: 15px;
   color: var(--tinta);
@@ -1628,7 +1641,7 @@ a.pt-flink:hover {
   outline: none;
   margin-bottom: 14px;
   width: 100%;
-  font-family: 'Manrope', sans-serif;
+  font-family: var(--fuente-cuerpo);
   transition: border-color 0.15s;
 }
 .gdf-input:focus {
@@ -1643,7 +1656,7 @@ a.pt-flink:hover {
 .gdf-affiliate-btn {
   flex: 1;
   cursor: pointer;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 700;
   font-size: 14px;
   padding: 13px;
@@ -1703,7 +1716,7 @@ a.pt-flink:hover {
   cursor: not-allowed;
   background: var(--papel-2);
   color: var(--tinta-tenue);
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 800;
   font-size: 16px;
   padding: 15px;
@@ -2261,7 +2274,7 @@ a.pt-flink:hover {
   transform: scale(0.97);
 }
 .gdf-opt-btn .label {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 800;
   font-size: 15px;
   color: var(--tinta);
@@ -2758,7 +2771,7 @@ a.pt-flink:hover {
   margin-bottom: 6px;
 }
 .gdf-lead-badge .title {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 800;
   font-size: 17px;
   color: var(--marca-fuerte);
@@ -2939,7 +2952,7 @@ a.pt-flink:hover {
   padding: 14px 16px 16px;
 }
 .gdf-project-name {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 800;
   font-size: 17px;
   color: var(--tinta);
@@ -2956,13 +2969,14 @@ a.pt-flink:hover {
 }
 .gdf-project-precio strong {
   display: block;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   /* 26px y no 27: el precio dejó de abreviarse a "$240,8M" y ahora se pinta
      entero ("$240.800.000", ver `pesos()` en js/simulador.js). Son cinco
      glifos más en una tarjeta cuya columna mide 260px, y los dígitos de
-     Poppins ExtraBold son anchos. Con esto el precio más largo del catálogo
-     cabe con aire de sobra y sigue siendo, de lejos, lo más grande del
-     cuerpo — el nombre del proyecto va en 17px. */
+     Poppins ExtraBold (la fuente de las constructoras) son anchos. Con esto
+     el precio más largo del catálogo cabe con aire de sobra y sigue siendo,
+     de lejos, lo más grande del cuerpo — el nombre del proyecto va en 17px.
+     En Machea va en Inter, más estrecha: cabe con más holgura todavía. */
   font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -3236,7 +3250,7 @@ a.pt-flink:hover {
   min-height: 42px;
   padding: 10px 12px;
   border-radius: 12px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-size: 13.5px;
   font-weight: 700;
   line-height: 1;
@@ -3292,7 +3306,7 @@ a.pt-flink:hover {
 }
 .gdf-tour360-texto {
   flex: 1;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-size: 12px;
   font-weight: 800;
   color: var(--marca);
@@ -3389,7 +3403,7 @@ a.pt-flink:hover {
   line-height: 1;
 }
 .gdf-reco-aviso h3 {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-size: 17px;
   font-weight: 800;
   color: var(--tinta);
@@ -3424,7 +3438,7 @@ a.pt-flink:hover {
   color: var(--tinta-media);
   border-radius: 12px;
   padding: 12px 18px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
@@ -3544,7 +3558,7 @@ a.pt-flink:hover {
   color: var(--tinta-media);
   border-radius: 999px;
   padding: 6px 13px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
@@ -3774,7 +3788,7 @@ a.pt-flink:hover {
   border: 1.5px solid var(--borde);
   border-radius: 999px;
   padding: 10px 18px;
-  font: 700 13px/1 'Manrope', sans-serif;
+  font: 700 13px/1 var(--fuente-cuerpo);
   color: var(--tinta);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
@@ -3901,7 +3915,7 @@ a.pt-flink:hover {
   animation: jibSpin 0.8s linear infinite;
 }
 .gdf-confirm-hero h2 {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-size: 24px;
   font-weight: 800;
   color: var(--marca-fuerte);
@@ -3957,7 +3971,7 @@ a.pt-flink:hover {
   background-position: center;
 }
 .gdf-confirm-proyecto-nombre {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-weight: 800;
   font-size: 15px;
   color: var(--tinta);
@@ -4101,7 +4115,7 @@ a.pt-flink:hover {
   margin-bottom: 8px;
 }
 .gdf-confirm-resumen-cabecera h3 {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--fuente-titulos);
   font-size: 14px;
   font-weight: 800;
   color: var(--tinta);
@@ -5003,3 +5017,370 @@ a.pt-flink:hover {
 .gdf-scene.con-plano3d .gdf-losa,
 .gdf-scene.con-plano3d .gdf-lote,
 .gdf-scene.con-plano3d .gdf-halo { display: none; }
+
+/* ============ MACHEA — MANUAL DE MARCA v1.0 ============
+   Solo la marca Machea: `data-marca` lo pone js/tema.js en el <html>. Las
+   cuatro constructoras no pasan por aqui y se quedan exactamente como estaban.
+
+   Los COLORES ya llegan por tokens (tema.js: rojo #FC4633 como unico acento,
+   navy #1F2E42, blanco y gris claro #F5F6F8, linea #DCE1E7, sin verde). Este
+   bloque pone lo que un token no alcanza a decir:
+   - la FORMA del manual: tarjetas 18 px, interiores 14 px, botones y chips en
+     pastilla, una sola sombra suave;
+   - la SELECCION en navy (borde, fondo gris claro y check navy), para que el
+     rojo quede solo en la accion principal, el progreso y los datos clave;
+   - los fondos LISOS, sin degradados ni lavados rosados;
+   - los pocos colores escritos a mano en las reglas de arriba (verdes,
+     azules de Colsubsidio, amarillos) que no pasan por los tokens.
+
+   Antes de agregar algo aqui, preferir un token de :root: este bloque es para
+   lo que de verdad cambia de forma, no para repetir colores. */
+
+html[data-marca='machea'] body {
+  font-weight: 500;
+}
+html[data-marca='machea'] h1,
+html[data-marca='machea'] h2,
+html[data-marca='machea'] h3 {
+  letter-spacing: -0.02em;
+}
+
+/* --- Fondos lisos ------------------------------------------------------ */
+/* Lo que se ve detras de la foto de un proyecto (o en su lugar si no tiene):
+   ver `fondo` en projectCard() de js/templates.js. */
+html[data-marca='machea'] {
+  --fondo-sin-foto: var(--papel-2);
+}
+/* El avatar del carne: el registro se rediseña en T4b; mientras tanto, liso. */
+html[data-marca='machea'] .gdf-carnet .avatar {
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+}
+html[data-marca='machea'] .gdf-escarapela,
+html[data-marca='machea'] .gdf-result,
+html[data-marca='machea'] .gdf-confirmacion {
+  background: var(--papel);
+}
+/* El desvanecido de las pestanas de tipologia fundia contra el negro de la
+   consola: sobre blanco dejaba una sombra gris en el borde. */
+html[data-marca='machea'] .gdf-tipo-tabs-wrap::after {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), var(--papel) 78%);
+}
+
+/* --- Boton principal: rojo en pastilla, texto blanco a 18 px Bold --------
+   Blanco sobre #FC4633 da 3,5:1, que WCAG AA acepta solo para texto grande
+   (18,66 px en negrita o 24 px). Por eso el tamano no es decorativo: si baja,
+   el blanco deja de cumplir. Ver la nota en js/tema.js. */
+html[data-marca='machea'] .gdf-btn-primary {
+  border-radius: var(--radio-boton);
+  font-size: 18px;
+  font-weight: 700;
+  padding: 15px 24px;
+  background: var(--borde);
+  color: var(--tinta-tenue);
+}
+html[data-marca='machea'] .gdf-btn-primary.enabled {
+  background: var(--acento);
+  color: var(--sobre-acento);
+  box-shadow: 0 8px 20px rgba(252, 70, 51, 0.22);
+  transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+html[data-marca='machea'] .gdf-btn-primary.enabled:hover {
+  background: var(--acento-oscuro);
+}
+/* LLAMAR, dentro de cada tarjeta de resultado, reusa el boton principal pero
+   va a 13,5 px: a ese tamano el blanco sobre #FC4633 no cumple, asi que aqui
+   el fondo es el rojo hondo de `--marca-texto` (4,8:1). T9 rediseña estas
+   tarjetas; esto solo evita que queden ilegibles mientras tanto. */
+html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar {
+  border-radius: var(--radio-boton);
+  font-size: 13.5px;
+  padding: 10px 12px;
+  background: var(--marca-texto);
+  box-shadow: none;
+}
+/* WhatsApp: secundario, en navy de contorno. El verde de WhatsApp era el
+   unico verde que quedaba en la pantalla de resultados. */
+html[data-marca='machea'] .gdf-project-whatsapp {
+  border-radius: var(--radio-boton);
+  background: var(--papel);
+  color: var(--tinta);
+  border: 1.5px solid var(--tinta);
+}
+html[data-marca='machea'] .gdf-project-whatsapp:hover {
+  filter: none;
+  background: var(--papel-2);
+}
+
+/* --- Foco visible y campos --------------------------------------------- */
+html[data-marca='machea'] .gdf-input {
+  border-radius: var(--radio-interior);
+  font-family: var(--fuente-cuerpo);
+}
+html[data-marca='machea'] .gdf-input:focus {
+  border-color: var(--tinta);
+  box-shadow: 0 0 0 3px rgba(31, 46, 66, 0.18);
+}
+html[data-marca='machea'] .gdf-btn-primary:focus-visible,
+html[data-marca='machea'] .gdf-opt-btn:focus-visible,
+html[data-marca='machea'] .gdf-multi-opt:focus-visible,
+html[data-marca='machea'] .gdf-back-btn:focus-visible,
+html[data-marca='machea'] .gdf-project-whatsapp:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(31, 46, 66, 0.28);
+}
+
+/* --- Consentimiento: check navy (estado aprobado: valido = navy) ------- */
+html[data-marca='machea'] .gdf-consent {
+  border-radius: var(--radio-interior);
+}
+html[data-marca='machea'] .gdf-consent .box {
+  border-color: var(--tinta-tenue);
+}
+html[data-marca='machea'] .gdf-consent .box.checked {
+  background: var(--tinta);
+}
+
+/* --- Progreso: rojo solido, sin degradado ni brillo -------------------- */
+html[data-marca='machea'] .gdf-progress-track {
+  height: 6px;
+  border-radius: 999px;
+}
+html[data-marca='machea'] .gdf-progress-fill {
+  background: var(--marca);
+  border-radius: 999px;
+}
+html[data-marca='machea'] .gdf-progress-fill::after {
+  display: none;
+}
+
+/* --- Opciones: hover y seleccion en navy ------------------------------- */
+html[data-marca='machea'] .gdf-opt-btn {
+  border-radius: var(--radio-interior);
+  background: var(--papel);
+}
+html[data-marca='machea'] .gdf-opt-btn:hover {
+  border-color: var(--tinta);
+  background: var(--papel-2);
+}
+html[data-marca='machea'] .gdf-multi-opt-list {
+  border-radius: var(--radio-interior);
+  box-shadow: var(--sombra-tarjeta);
+}
+html[data-marca='machea'] .gdf-multi-opt.selected {
+  background: var(--papel-2);
+  color: var(--tinta);
+}
+/* Chips de lo elegido (zona, entorno, estilo de vida) y del resumen: gris
+   claro con texto navy. */
+html[data-marca='machea'] .gdf-entorno-chip,
+html[data-marca='machea'] .gdf-chip {
+  background: var(--papel-2);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+}
+html[data-marca='machea'] .gdf-entorno-chip-x {
+  color: var(--tinta-suave);
+}
+html[data-marca='machea'] .gdf-chip.hi {
+  background: var(--papel);
+  color: var(--tinta);
+  border: 1.5px solid var(--tinta);
+}
+html[data-marca='machea'] .gdf-halo-chip.coincide {
+  background: var(--tinta);
+  border-color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-halo-chip.coincide img {
+  filter: brightness(0) invert(1);
+}
+
+/* --- Tarjetas: 18 px y la sombra del manual ---------------------------- */
+html[data-marca='machea'] .gdf-project-card,
+html[data-marca='machea'] .gdf-skeleton-card,
+html[data-marca='machea'] .gdf-reco-aviso,
+html[data-marca='machea'] .gdf-lead-badge,
+html[data-marca='machea'] .gdf-confirm-hero,
+html[data-marca='machea'] .gdf-confirm-proyecto,
+html[data-marca='machea'] .gdf-confirm-contacto,
+html[data-marca='machea'] .gdf-carnet {
+  border-radius: var(--radio-tarjeta);
+}
+html[data-marca='machea'] .gdf-project-card,
+html[data-marca='machea'] .gdf-confirm-proyecto,
+html[data-marca='machea'] .gdf-carnet {
+  border: 1px solid var(--borde);
+  box-shadow: var(--sombra-tarjeta);
+}
+html[data-marca='machea'] .gdf-project-card:hover {
+  border-color: var(--tinta-tenue);
+}
+html[data-marca='machea'] .gdf-project-razon {
+  border-left-color: var(--tinta);
+  border-radius: 0 var(--radio-interior) var(--radio-interior) 0;
+}
+
+/* --- Avisos y estados del lead: gris claro y navy, sin verde ni amarillo - */
+html[data-marca='machea'] .gdf-reco-banner {
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  color: var(--tinta-media);
+  border-radius: var(--radio-interior);
+}
+html[data-marca='machea'] .gdf-reco-aviso.error {
+  border-color: var(--marca);
+  background: var(--papel);
+}
+html[data-marca='machea'] .gdf-lead-badge.ready,
+html[data-marca='machea'] .gdf-lead-badge.nurture {
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+}
+html[data-marca='machea'] .gdf-lead-badge .title,
+html[data-marca='machea'] .gdf-lead-badge.nurture .title {
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-lead-badge .subcopy,
+html[data-marca='machea'] .gdf-lead-badge.nurture .subcopy {
+  color: var(--tinta-media);
+}
+html[data-marca='machea'] .gdf-lead-note,
+html[data-marca='machea'] .gdf-lead-badge.nurture .gdf-lead-note {
+  background: var(--papel);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+}
+html[data-marca='machea'] .gdf-lead-submit.sent {
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-lead-submit.error {
+  color: var(--marca-texto);
+}
+html[data-marca='machea'] .gdf-project-subsidio {
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+  color: var(--tinta);
+}
+
+/* --- Confirmacion: exito en navy, error en rojo ------------------------ */
+html[data-marca='machea'] .gdf-confirm-hero--ok {
+  background: var(--papel-2);
+  border: 1px solid var(--borde);
+}
+html[data-marca='machea'] .gdf-confirm-hero--error {
+  background: var(--papel);
+  border: 1.5px solid var(--marca);
+}
+html[data-marca='machea'] .gdf-confirm-hero h2,
+html[data-marca='machea'] .gdf-confirm-hero--error h2 {
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-confirm-hero p,
+html[data-marca='machea'] .gdf-confirm-hero--error p {
+  color: var(--tinta-media);
+}
+html[data-marca='machea'] .gdf-confirm-check {
+  background: var(--tinta);
+  box-shadow: 0 10px 24px rgba(31, 46, 66, 0.22);
+}
+html[data-marca='machea'] .gdf-confirm-check::before {
+  border-color: var(--borde);
+}
+html[data-marca='machea'] .gdf-confirm-check.err {
+  background: var(--marca);
+  box-shadow: 0 10px 24px rgba(252, 70, 51, 0.25);
+}
+html[data-marca='machea'] .gdf-confirm-contacto,
+html[data-marca='machea'] .gdf-confirm-contacto-avatar {
+  border-color: var(--borde);
+}
+html[data-marca='machea'] .gdf-confirm-contacto-avatar {
+  background: var(--papel-2);
+}
+html[data-marca='machea'] .gdf-confirm-llamada {
+  border-radius: var(--radio-interior);
+}
+html[data-marca='machea'] .gdf-confirm-llamada--ok {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-confirm-llamada--error {
+  background: var(--papel);
+  border: 1.5px solid var(--marca);
+  color: var(--marca-texto);
+}
+/* Temperatura del lead en el resumen post-llamada: sin el rojo/ambar/azul
+   de semaforo. Caliente lleva el acento; las otras dos, la escala navy. */
+html[data-marca='machea'] .gdf-temp--caliente {
+  background: var(--marca-velo-fuerte);
+  color: var(--marca-texto);
+  border-color: var(--marca);
+}
+html[data-marca='machea'] .gdf-temp--tibio {
+  background: var(--papel-2);
+  color: var(--tinta);
+  border-color: var(--tinta-tenue);
+}
+html[data-marca='machea'] .gdf-temp--frio {
+  background: var(--papel-2);
+  color: var(--tinta-suave);
+  border-color: var(--borde);
+}
+
+/* --- Contadores de Arriendo y estilo de vida ---------------------------
+   Antes eran estilos en linea en templates.js. Las clases sirven a todas las
+   marcas; aqui solo la forma de Machea. T8 los rediseña del todo. */
+.gdf-contador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--borde);
+}
+.gdf-contador-control {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.gdf-contador-valor {
+  min-width: 1.5em;
+  text-align: center;
+  font-weight: 600;
+}
+/* La lista de estilo de vida usa la misma clase que el desplegable de
+   amenidades, que flota pegado a un buscador; aqui no hay buscador y va en
+   flujo normal, como una nube de opciones. */
+.gdf-multi-opt-list.gdf-multi-opt-list--fija {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: none;
+}
+/* Los botones - y + reusaban .gdf-back-btn tal cual, con su margin-top de
+   "Atras", y quedaban un escalon por debajo del numero. */
+.gdf-contador-btn {
+  margin-top: 0;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--borde);
+  border-radius: 999px;
+  font-size: 16px;
+  line-height: 1;
+}
+html[data-marca='machea'] .gdf-contador-btn {
+  color: var(--tinta);
+  background: var(--papel);
+}
+html[data-marca='machea'] .gdf-contador-btn:hover {
+  border-color: var(--tinta);
+}
+html[data-marca='machea'] .gdf-contador-valor {
+  font-weight: 700;
+  color: var(--tinta);
+}

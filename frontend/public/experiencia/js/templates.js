@@ -621,9 +621,9 @@
         .join('');
       // Con `min` declarado (estilo de vida de Arriendo, data.js): lista
       // corta y fija, SIN buscador -- las 11 opciones se pintan directo, no
-      // hace falta filtrar. `abierto` a mano y `style` en línea porque
-      // '.gdf-multi-opt-list' flota por defecto pegada a un buscador que
-      // aquí no existe (ver el comentario de esa clase en CSS); así se
+      // hace falta filtrar. `abierto` a mano y el modificador `--fija`
+      // porque '.gdf-multi-opt-list' flota por defecto pegada a un buscador
+      // que aquí no existe (ver el comentario de esa clase en CSS); así se
       // pinta en flujo normal sin tocar esa regla compartida con la lista
       // de amenidades de Compra. El botón Continuar arranca deshabilitado
       // -- toggleEntornoValor()/renderEntornoChips() en main.js lo
@@ -631,8 +631,7 @@
       if (q.min) {
         answerAreaHtml =
           '<div class="gdf-quiz-freeform">' +
-          '<div class="gdf-multi-opt-list abierto" id="entornoOpciones" ' +
-          'style="position:static;display:flex;flex-wrap:wrap;gap:8px;max-height:none;">' +
+          '<div class="gdf-multi-opt-list gdf-multi-opt-list--fija abierto" id="entornoOpciones">' +
           multiOpts + '</div>' +
           '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
           '<button class="gdf-btn-primary" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
@@ -656,20 +655,19 @@
       }
     } else if (q && q.type === 'contador') {
       // Arriendo: 4 contadores en una sola pantalla (ver data.js, id
-      // 'habitaciones'). Sin CSS propio a propósito (no se toca el
-      // stylesheet compartido en esta entrega) -- estilos en línea, mínimos,
-      // solo para que sea usable. Valor no controlado (igual que
+      // 'habitaciones'). Estilos en `.gdf-contador*` de styles.css (antes
+      // iban en línea). Valor no controlado (igual que
       // zonaSeleccion/entornoSeleccion): +/- patchea el número en el DOM sin
       // re-render, ver ajustarContador() en main.js.
       var filasContador = q.campos
         .map(function (c) {
           return (
-            '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--hair,#e5e5e5);">' +
+            '<div class="gdf-contador">' +
             '<span>' + esc(c.label) + '</span>' +
-            '<div style="display:flex;align-items:center;gap:14px;">' +
-            '<button type="button" class="gdf-back-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">−</button>' +
-            '<span id="contadorValor-' + c.id + '" style="min-width:1.5em;text-align:center;font-weight:600;">' + c.inicial + '</span>' +
-            '<button type="button" class="gdf-back-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">+</button>' +
+            '<div class="gdf-contador-control">' +
+            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">−</button>' +
+            '<span class="gdf-contador-valor" id="contadorValor-' + c.id + '">' + c.inicial + '</span>' +
+            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">+</button>' +
             '</div>' +
             '</div>'
           );
@@ -1104,7 +1102,9 @@
     // asi que el navegador tiraba la declaracion ENTERA y la tarjeta salia sin
     // foto — sin error de consola, solo un hueco. Antes no se notaba porque
     // solo habia foto si habia `local`, y entonces tambien habia `grad`.
-    var fondo = local.grad || 'linear-gradient(135deg,var(--marca),var(--marca-medio))';
+    // `--fondo-sin-foto` deja a una marca cambiar ese degradado por un color
+    // liso (Machea lo hace en styles.css); sin la variable, el de siempre.
+    var fondo = local.grad || 'var(--fondo-sin-foto, linear-gradient(135deg,var(--marca),var(--marca-medio)))';
     var headerStyle = foto
       ? "background:url('" + foto + "') center/cover no-repeat, " + fondo
       : 'background:' + fondo;
