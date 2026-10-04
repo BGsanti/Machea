@@ -2353,6 +2353,51 @@ a.pt-flink:hover {
   display: none;
 }
 
+/* Variante EN FLUJO de la lista de arriba (estilo de vida de Arriendo,
+   `q.min` en data.js, ver templates.js): abre empujando lo que sigue hacia
+   abajo en vez de flotar encima. La de arriba flota porque está pensada
+   para un buscador que se cierra solo al elegir o al escribir; aquí, con 11
+   opciones fijas, el usuario elige varias seguidas (min:3) y flotando le
+   taparía los chips y el botón Continuar mientras tanto. */
+.gdf-multi-opt-list--plegable {
+  position: static;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: none;
+  overflow: visible;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* Variante sin buscador de '.gdf-entorno-combo' (estilo de vida de Arriendo,
+   `q.min` en data.js): un botón hace de "campo" en vez de un <input>, mismo
+   look que '.gdf-input' (de ahí viene el fondo/borde/radio) más una flecha
+   que se invierte al abrir. El combo entero son 11 opciones fijas: no hace
+   falta escribir para filtrar, solo abrir y tocar. */
+.gdf-entorno-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.gdf-entorno-toggle-caret {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--tinta-suave);
+  border-bottom: 2px solid var(--tinta-suave);
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+.gdf-entorno-toggle[aria-expanded='true'] .gdf-entorno-toggle-caret {
+  transform: rotate(-135deg);
+}
+
 /* ============ PREGUNTA 'zona': BUSCADOR DE BARRIOS + MAPA ============ */
 /* Reutiliza '.gdf-entorno-combo' y '.gdf-multi-opt-list' de arriba; lo de
    aquí es solo lo propio del mapa y de la sugerencia a dos líneas.
@@ -3225,6 +3270,213 @@ a.pt-flink:hover {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 12px;
+}
+/* Arriendo trae un solo botón ("Ver ficha"), no el par Llamar/WhatsApp de
+   Compra: una sola columna para que ocupe el ancho entero en vez de quedar
+   a mitad de grilla con un hueco vacío al lado. */
+.gdf-project-acciones.una-accion {
+  grid-template-columns: 1fr;
+}
+
+/* El pliego de fotos de Arriendo (ver galeriaArriendo en templates.js). Donde
+   Compra despliega planos por tipología, aquí van las fotos que publica la
+   ficha: es lo que deja ver si una bodega o una oficina sirve. */
+.gdf-arriendo-galeria {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.gdf-arriendo-foto {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  /* El color de fondo se ve mientras la foto remota carga, en vez de un hueco
+     blanco que mueve el layout. */
+  background: var(--papel-2);
+}
+.gdf-arriendo-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+.gdf-arriendo-foto:hover img {
+  transform: scale(1.06);
+}
+
+/* --- Visor de fotos a pantalla completa (ver `visorFotos` en templates.js) --- */
+.gdf-visor {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px 64px;
+  animation: visorEntra 0.18s ease-out;
+}
+@keyframes visorEntra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* La misma foto detrás, ampliada y desenfocada. El `scale` evita que el
+   desenfoque deje los bordes transparentes. */
+.gdf-visor-fondo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) brightness(0.45);
+  transform: scale(1.15);
+}
+.gdf-visor-marco {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  max-height: 100%;
+}
+.gdf-visor-foto {
+  max-width: min(1100px, 100%);
+  max-height: calc(100vh - 112px);
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+.gdf-visor-flecha,
+.gdf-visor-cerrar {
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.gdf-visor-flecha {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  font-size: 30px;
+  padding-bottom: 4px;
+}
+.gdf-visor-cerrar {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  font-size: 17px;
+}
+.gdf-visor-flecha:hover,
+.gdf-visor-cerrar:hover {
+  background: #fff;
+  transform: scale(1.08);
+}
+.gdf-visor-pie {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  text-align: center;
+}
+.gdf-visor-nombre {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gdf-visor-contador {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+/* En móvil las flechas no caben a los lados de la foto: se bajan sobre ella. */
+@media (max-width: 640px) {
+  .gdf-visor-marco {
+    gap: 0;
+  }
+  .gdf-visor-flecha {
+    position: absolute;
+    bottom: -54px;
+    z-index: 1;
+  }
+  .gdf-visor-flecha.izq { left: 12px; }
+  .gdf-visor-flecha.der { right: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gdf-visor { animation: none; }
+  .gdf-visor-flecha:hover,
+  .gdf-visor-cerrar:hover { transform: none; }
+}
+
+/* Ficha y comodidades, debajo de las fotos en el mismo pliego. */
+.gdf-detalle-titulo-bloque {
+  margin: 14px 0 7px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+}
+.gdf-ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0 18px;
+}
+.gdf-ficha-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--borde);
+  font-size: 12.5px;
+}
+.gdf-ficha-etiqueta {
+  color: var(--tinta-suave);
+}
+.gdf-ficha-valor {
+  font-weight: 700;
+  color: var(--tinta);
+  text-align: right;
+}
+.gdf-comodidad-grupo {
+  margin-bottom: 8px;
+}
+.gdf-comodidad-grupo-nombre {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tinta-tenue);
+}
+.gdf-comodidad {
+  display: inline-block;
+  margin: 0 4px 4px 0;
+  padding: 3px 9px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--tinta-suave);
 }
 .gdf-project-acciones .gdf-project-llamar,
 .gdf-project-whatsapp {

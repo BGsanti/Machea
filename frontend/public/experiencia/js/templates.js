@@ -620,20 +620,30 @@
         })
         .join('');
       // Con `min` declarado (estilo de vida de Arriendo, data.js): lista
-      // corta y fija, SIN buscador -- las 11 opciones se pintan directo, no
-      // hace falta filtrar. `abierto` a mano y `style` en línea porque
-      // '.gdf-multi-opt-list' flota por defecto pegada a un buscador que
-      // aquí no existe (ver el comentario de esa clase en CSS); así se
-      // pinta en flujo normal sin tocar esa regla compartida con la lista
-      // de amenidades de Compra. El botón Continuar arranca deshabilitado
-      // -- toggleEntornoValor()/renderEntornoChips() en main.js lo
-      // habilitan al llegar a `min` elegidos.
+      // corta y fija, DESPLEGABLE. Reusa '.gdf-multi-opt-list' de las
+      // amenidades de Compra para el estilo de cada fila, pero con el
+      // modificador `--plegable` (ver CSS): esa lista flota encima de lo que
+      // sigue (pensada para un buscador, que se cierra solo al elegir o al
+      // escribir), y aquí con 11 opciones fijas y min:3 el usuario elige
+      // varias seguidas sin cerrarla -- flotando le tapaba los chips y el
+      // botón Continuar mientras tanto. `--plegable` la abre empujando el
+      // resto hacia abajo en vez de flotar. El botón alterna 'abierto' a
+      // mano (ver 'entornoToggle' en main.js); el cierre por "clic afuera" lo
+      // cubre gratis cerrarEntornoSiTocaAfuera(), que ya recorre TODOS los
+      // '.gdf-entorno-combo' de la pantalla. El botón Continuar arranca
+      // deshabilitado -- toggleEntornoValor()/renderEntornoChips() en main.js
+      // lo habilitan al llegar a `min` elegidos.
       if (q.min) {
         answerAreaHtml =
           '<div class="gdf-quiz-freeform">' +
-          '<div class="gdf-multi-opt-list abierto" id="entornoOpciones" ' +
-          'style="position:static;display:flex;flex-wrap:wrap;gap:8px;max-height:none;">' +
-          multiOpts + '</div>' +
+          '<div class="gdf-entorno-combo">' +
+          '<button type="button" class="gdf-input gdf-entorno-toggle" id="entornoToggle" ' +
+          'aria-haspopup="listbox" aria-expanded="false" aria-controls="entornoOpciones">' +
+          '<span>Elige tus preferencias (mínimo ' + q.min + ')</span>' +
+          '<span class="gdf-entorno-toggle-caret" aria-hidden="true"></span>' +
+          '</button>' +
+          '<div class="gdf-multi-opt-list gdf-multi-opt-list--plegable" id="entornoOpciones">' + multiOpts + '</div>' +
+          '</div>' +
           '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
           '<button class="gdf-btn-primary" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar →</button>' +
           '</div>';
@@ -751,6 +761,364 @@
   // Compra) y se explica que el matching automático está en desarrollo.
   // Nunca llega a `state.lead`/`state.reco`: bifurca ANTES de que result()
   // los toque.
+  // Los tres estados de GET /api/arriendo (ver js/arriendo.js). Mismo
+  // criterio que recoCargando/recoVacio/recoError para Compra -- y, desde
+  // esta entrega, la misma tarjeta (`projectCardArriendo`, calcada de
+  // `projectCard` de Compra): el pedido fue justamente que Arriendo se vea
+  // igual, con foto y todo. Sin mapa: Compra tampoco lo tiene en resultados.
+  function arriendoCargando() {
+    return '<p class="gdf-match-count">Buscando inmuebles en arriendo…</p>';
+  }
+
+  function arriendoError(arriendo) {
+    return (
+      '<div class="gdf-lead-badge exploring">' +
+      '<span class="icon">⚠️</span>' +
+      '<div class="title">No pudimos cargar el catálogo de arriendo</div>' +
+      '<div class="subcopy">' + esc(arriendo.error || 'Intenta de nuevo en un momento.') + '</div>' +
+      '</div>'
+    );
+  }
+
+  function arriendoVacio() {
+    return (
+      '<div class="gdf-lead-badge exploring">' +
+      '<span class="icon">🔍</span>' +
+      '<div class="title">Todavía no tenemos inmuebles de este tipo</div>' +
+      '<div class="subcopy">Es un catálogo demo -- vuelve a intentarlo más adelante o ajusta tu búsqueda.</div>' +
+      '</div>'
+    );
+  }
+
+  // Tarjeta de un inmueble de Arriendo. Mismo esqueleto visual que
+  // `projectCard()` (Compra) -- mismas clases CSS, cero CSS nuevo -- pero
+  // con los campos que Arriendo sí tiene: canon mensual en vez de "Desde",
+  // tipo de inmueble en vez de VIS/subsidio, un solo botón "Ver ficha" en
+  // vez de Llamar/WhatsApp (Arriendo no dispara la llamada de Manuela, eso
+  // no cambió en esta entrega).
+  // El pliego de fotos. Cada ficha de Fincaraíz publica 18 en promedio (hasta
+  // 60) y la portada sola desaprovecha el resto, que es justo lo que deja ver
+  // si una bodega sirve o no. Se corta en `MAX_FOTOS_ARRIENDO` porque son
+  // imágenes remotas del CDN de Fincaraíz: 60 por tarjeta x 6 tarjetas serían
+  // 360 descargas por página.
+  //
+  // Reusa `.gdf-project-detalle` de Compra tal cual, y con ello el acordeón y
+  // la persistencia al repintar: el listener de 'toggle' en main.js engancha
+  // por esa clase y guarda el estado en `state.detalleAbierto[data-proyecto]`.
+  var MAX_FOTOS_ARRIENDO = 12;
+
+  // "Detalles de la Propiedad" tal como los publica la ficha de Fincaraíz: el
+  // scraper copia su tabla (`technicalSheet`) con sus propias etiquetas, así
+  // que aquí no se traduce ni se reordena nada. Ver `_ficha` en
+  // scraping/scraper_arriendo.py.
+  function fichaArriendo(item) {
+    var filas = (item.ficha || [])
+      .map(function (f) {
+        return (
+          '<div class="gdf-ficha-fila">' +
+          '<span class="gdf-ficha-etiqueta">' + esc(f.etiqueta) + '</span>' +
+          '<span class="gdf-ficha-valor">' + esc(f.valor) + '</span>' +
+          '</div>'
+        );
+      })
+      .join('');
+    if (!filas) return '';
+    return (
+      '<div class="gdf-detalle-titulo-bloque">Detalles de la propiedad</div>' +
+      '<div class="gdf-ficha">' + filas + '</div>'
+    );
+  }
+
+  // "Comodidades de la propiedad", agrupadas como vienen en la ficha
+  // (Interior, Exterior, Sector...). Sin agrupar, 30 etiquetas sueltas se
+  // leen como una bolsa: el grupo es lo que deja ver de un vistazo si lo que
+  // tiene es del inmueble o del barrio.
+  function comodidadesArriendo(item) {
+    var comodidades = item.comodidades || [];
+    if (!comodidades.length) return '';
+    var grupos = [];
+    var porGrupo = {};
+    comodidades.forEach(function (c) {
+      var grupo = c.grupo || 'Otras';
+      if (!porGrupo[grupo]) {
+        porGrupo[grupo] = [];
+        grupos.push(grupo);
+      }
+      porGrupo[grupo].push(c.nombre);
+    });
+    var html = grupos
+      .map(function (grupo) {
+        return (
+          '<div class="gdf-comodidad-grupo">' +
+          '<span class="gdf-comodidad-grupo-nombre">' + esc(grupo) + '</span>' +
+          porGrupo[grupo]
+            .map(function (n) { return '<span class="gdf-comodidad">' + esc(n) + '</span>'; })
+            .join('') +
+          '</div>'
+        );
+      })
+      .join('');
+    return (
+      '<div class="gdf-detalle-titulo-bloque">Comodidades (' + comodidades.length + ')</div>' +
+      '<div class="gdf-comodidades">' + html + '</div>'
+    );
+  }
+
+  function galeriaArriendo(item, state) {
+    var fotos = (item.imagenes || []).slice(0, MAX_FOTOS_ARRIENDO);
+    var extras = fichaArriendo(item) + comodidadesArriendo(item);
+    if (fotos.length < 2 && !extras) return '';
+    var id = String(item.id_inmueble);
+    var abierto = !!state.detalleAbierto[id];
+    var total = (item.imagenes || []).length;
+
+    // `loading="lazy"`: el pliego nace cerrado y sin esto el navegador se baja
+    // las 12 fotos de las 6 tarjetas igual, para no mostrarlas.
+    //
+    // La miniatura abre el VISOR (ver `visorFotos`) en vez de la foto en una
+    // pestaña nueva: ahí se ven en grande y se pueden pasar sin salirse de la
+    // experiencia, que es lo que se pidió.
+    var miniaturas = fotos
+      .map(function (url, idx) {
+        return (
+          '<button class="gdf-arriendo-foto" data-action="abrirVisor" data-inmueble="' + esc(id) +
+          '" data-idx="' + idx + '" aria-label="Ver la foto ' + (idx + 1) + ' en grande">' +
+          '<img src="' + esc(url) + '" alt="Foto ' + (idx + 1) + ' de ' + esc(item.nombre || 'el inmueble') +
+          '" loading="lazy">' +
+          '</button>'
+        );
+      })
+      .join('');
+
+    return (
+      '<details class="gdf-project-detalle"' + (abierto ? ' open' : '') +
+      ' data-action="noop" data-proyecto="' + esc(id) + '">' +
+      '<summary><span class="gdf-detalle-titulo">' +
+      (total > 1 ? 'Ver las ' + total + ' fotos y los detalles' : 'Ver los detalles') +
+      '</span><span class="gdf-detalle-chevron">▾</span></summary>' +
+      '<div class="gdf-detalle-body">' +
+      (miniaturas ? '<div class="gdf-arriendo-galeria">' + miniaturas + '</div>' : '') +
+      (total > fotos.length
+        ? '<p class="gdf-detalle-vacio">Las otras ' + (total - fotos.length) +
+          ' están en la ficha de Fincaraíz.</p>'
+        : '') +
+      extras +
+      '</div>' +
+      '</details>'
+    );
+  }
+
+  // Las comodidades de Fincaraíz traducidas al vocabulario de iconos
+  // (js/iconos.js), que está escrito con los nombres del catálogo de Compra.
+  // Se compara por substring normalizado: la fuente dice "Zonas Verdes",
+  // "Ascensor(es) inteligente(s)" o "Sauna / Turco / Jacuzzi" para lo que el
+  // vocabulario llama "Zona verde", "Ascensor" y "Sauna".
+  //
+  // EL ORDEN IMPORTA: gana la primera que coincida, así que lo específico va
+  // antes que lo genérico ("salon de juegos" antes que "salon").
+  // Se construye con new RegExp para no dejar caracteres combinantes sueltos
+  // en el archivo, que son invisibles en el editor (mismo criterio que
+  // RE_DIACRITICOS en js/recommender.js).
+  var RE_DIACRITICOS_TPL = new RegExp('[̀-ͯ]', 'g');
+
+  var ICONO_POR_COMODIDAD = [
+    ['zona infantil', 'Zona kids'],
+    ['salon de juegos', 'Sala de juegos'],
+    ['salon comunal', 'Salón social'],
+    ['parques cercanos', 'Parque'],
+    ['zonas verdes', 'Zona verde'],
+    ['jardin', 'Zona verde'],
+    ['mascota', 'Zona pet'],
+    ['gimnasio', 'Gimnasio'],
+    ['sauna', 'Sauna'],
+    ['canchas deportivas', 'Cancha múltiple'],
+    ['bici', 'Taller de bicicletas'],
+    ['lavanderia', 'Zona de lavandería'],
+    ['sala de internet', 'Coworking'],
+    ['deposito', 'Depósito'],
+    ['balcon', 'Balcón'],
+    ['terraza', 'Balcón'],
+    ['ascensor', 'Ascensor'],
+    ['colegios', 'Colegios'],
+    ['porteria', 'Portería'],
+    ['piscina', 'Piscina'],
+  ];
+
+  function claveDeIcono(nombre) {
+    var limpio = String(nombre || '')
+      .normalize('NFD')
+      .replace(RE_DIACRITICOS_TPL, '')
+      .toLowerCase();
+    for (var i = 0; i < ICONO_POR_COMODIDAD.length; i++) {
+      if (limpio.indexOf(ICONO_POR_COMODIDAD[i][0]) > -1) return ICONO_POR_COMODIDAD[i][1];
+    }
+    return '';
+  }
+
+  // "Tiene lo que buscas ✓": lo que la persona marcó en estilo de vida y este
+  // inmueble sí publica (lo cruza `_coincidencias_estilo` en Model/arriendo.py).
+  //
+  // VA SIEMPRE VISIBLE, fuera del pliego, por lo mismo que en Compra: es el
+  // "esto sí tiene lo que pediste", y metido entre las otras 20 comodidades
+  // deja de leerse como respuesta a lo que la persona pidió.
+  //
+  // Reusa el mismo marcado de Compra (`.gdf-project-entorno.destacado` +
+  // `amenidadItem`), así que hereda sus iconos, su ✓ y su entrada escalonada
+  // sin una sola regla de CSS nueva.
+  function estiloCoincideArriendo(item) {
+    var coinciden = item.estilo_coinciden || [];
+    if (!coinciden.length) return '';
+    var items = coinciden
+      .map(function (c, idx) {
+        return amenidadItem({ label: c.comodidad, icon: '', iconoClave: claveDeIcono(c.comodidad) }, true, idx);
+      })
+      .join('');
+    return (
+      '<div class="gdf-project-entorno destacado">' +
+      '<div class="gdf-entorno-titulo">Tiene lo que buscas ✓</div>' +
+      '<div class="gdf-project-amenities">' + items + '</div>' +
+      '</div>'
+    );
+  }
+
+  // Calcado de `accionesContacto` de Compra, con el texto del mensaje de
+  // WhatsApp adaptado: en arriendo no se pregunta por un proyecto, se pregunta
+  // si el inmueble sigue disponible.
+  function accionesContactoArriendo(item, state) {
+    var numero = String((window.GDF_CONFIG && window.GDF_CONFIG.WHATSAPP_NUMERO) || '').replace(/\D/g, '');
+    var quien = (state.nombre || '').trim();
+    var mensaje =
+      'Hola, me interesa ' + (item.nombre || 'este inmueble') +
+      (item.localidad_nombre ? ' (' + item.localidad_nombre + ')' : '') +
+      '. ¿Sigue disponible? Vengo de Machea' + (quien ? ', mi nombre es ' + quien : '') + '.';
+    var url = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(mensaje);
+    return (
+      '<div class="gdf-project-acciones">' +
+      '<button class="gdf-btn-primary enabled gdf-project-llamar" data-action="llamarProyecto" data-value="' +
+      esc(item.id_inmueble) + '">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6.2 6.2l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>' +
+      'Llamar</button>' +
+      '<a class="gdf-project-whatsapp" data-action="whatsapp" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>' +
+      'WhatsApp</a>' +
+      '</div>'
+    );
+  }
+
+  function projectCardArriendo(item, i, state) {
+    var foto = (item.imagenes || [])[0] || '';
+    var fondo = 'linear-gradient(135deg,var(--marca),var(--marca-medio))';
+    var headerStyle = foto
+      ? "background:url('" + foto + "') center/cover no-repeat, " + fondo
+      : 'background:' + fondo;
+    var emoji = item.tipo_inmueble === 'vivienda' ? '🏠' : '🏢';
+    var emojiHtml = foto ? '' : '<span class="emoji">' + emoji + '</span>';
+    // El % lo calcula Model/arriendo.py (cercanía a la zona elegida, y en
+    // Vivienda también presupuesto y perfil). Sin zona no hay % que defender
+    // y llega null: ahí se muestra la posición, como Compra sin score.
+    var badge =
+      item.porcentaje_compatibilidad != null
+        ? '<span class="gdf-project-badge">' + item.porcentaje_compatibilidad + '% match</span>'
+        : '<span class="gdf-project-badge">#' + (i + 1) + '</span>';
+
+    var precioHtml = item.precio_canon_cop
+      ? '<div class="gdf-project-precio">Arriendo <strong>' +
+        esc('$' + Math.round(item.precio_canon_cop).toLocaleString('es-CO') + '/mes') +
+        '</strong></div>'
+      : '<div class="gdf-project-tags"><span class="gdf-project-tag no-informado">Precio no informado</span></div>';
+
+    var tipoLabel = { vivienda: 'Vivienda', oficina: 'Oficina', bodega: 'Bodega' }[item.tipo_inmueble] || '';
+    // Habitaciones/baños solo para vivienda: una bodega o una oficina no se
+    // describen por "alcobas", aunque Fincaraíz a veces publique ese campo
+    // igual (son plantillas de formulario compartidas con vivienda).
+    var esVivienda = item.tipo_inmueble === 'vivienda';
+    var tags =
+      (tipoLabel ? '<span class="gdf-project-tag">' + tipoLabel + '</span>' : '') +
+      (item.area_m2 ? '<span class="gdf-project-tag">' + esc(item.area_m2 + ' m²') + '</span>' : '') +
+      (esVivienda && item.habitaciones ? '<span class="gdf-project-tag">' + item.habitaciones + (item.habitaciones === 1 ? ' hab' : ' habs') + '</span>' : '') +
+      (esVivienda && item.banos ? '<span class="gdf-project-tag">' + item.banos + (item.banos === 1 ? ' baño' : ' baños') + '</span>' : '');
+
+    // Las mismas dos salidas que en Compra (ver `accionesContacto`): llamar
+    // dispara a Manuela y WhatsApp abre el chat con el mensaje escrito. La
+    // ficha de Fincaraíz baja a enlace: es para mirar, no para contactar.
+    var accionesHtml = accionesContactoArriendo(item, state) +
+      (item.link_origen
+        ? '<a class="gdf-project-ficha" href="' + esc(item.link_origen) +
+          '" target="_blank" rel="noopener noreferrer">Ver ficha en Fincaraíz ↗</a>'
+        : '');
+
+    return (
+      '<div class="gdf-project-card">' +
+      '<div class="gdf-project-header" style="' + headerStyle + '">' +
+      emojiHtml +
+      badge +
+      '</div>' +
+      '<div class="gdf-project-body">' +
+      '<div class="gdf-project-name">' + esc(item.nombre || 'Inmueble') + '</div>' +
+      precioHtml +
+      (item.localidad_nombre ? '<div class="gdf-project-loc">📍 ' + esc(item.localidad_nombre) + '</div>' : '') +
+      (item.direccion ? '<div class="gdf-project-dir">' + esc(item.direccion) + '</div>' : '') +
+      '<div class="gdf-project-tags">' + tags + '</div>' +
+      accionesHtml +
+      // Por qué quedó en esta posición, redactado por el modelo con los mismos
+      // criterios del score (mismo rol que `vm.razon` en Compra).
+      (item.razon ? '<p class="gdf-project-razon">' + esc(item.razon) + '</p>' : '') +
+      estiloCoincideArriendo(item) +
+      galeriaArriendo(item, state) +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  // Grilla paginada de tarjetas, igual patrón que `recoLista()` de Compra:
+  // de a 6 (`POR_PAGINA`), con los mismos `.gdf-projects`/`.gdf-paginacion`.
+  function arriendoLista(state, arriendo) {
+    var porPagina = window.GDF.recommender.POR_PAGINA || 6;
+    var totalPaginas = Math.max(1, Math.ceil(arriendo.items.length / porPagina));
+    var pagina = Math.min(Math.max(state.arriendoPagina || 0, 0), totalPaginas - 1);
+    var desde = pagina * porPagina;
+
+    var tarjetasHtml = arriendo.items
+      .slice(desde, desde + porPagina)
+      .map(function (item, i) {
+        return projectCardArriendo(item, desde + i, state);
+      })
+      .join('');
+
+    var paginacionHtml = '';
+    if (totalPaginas > 1) {
+      var puntos = '';
+      for (var n = 0; n < totalPaginas; n++) {
+        puntos +=
+          '<button class="gdf-pag-punto' + (n === pagina ? ' activo' : '') + '"' +
+          ' data-action="irAPaginaArriendo" data-pagina="' + n + '"' +
+          ' aria-label="Página ' + (n + 1) + ' de ' + totalPaginas + '"' +
+          (n === pagina ? ' aria-current="true"' : '') + '></button>';
+      }
+      paginacionHtml =
+        '<div class="gdf-paginacion">' +
+        '<button class="gdf-pag-btn" data-action="irAPaginaArriendo" data-pagina="' + (pagina - 1) + '"' +
+        (pagina === 0 ? ' disabled' : '') + '>← Anteriores</button>' +
+        '<div class="gdf-pag-puntos">' + puntos + '</div>' +
+        '<button class="gdf-pag-btn" data-action="irAPaginaArriendo" data-pagina="' + (pagina + 1) + '"' +
+        (pagina === totalPaginas - 1 ? ' disabled' : '') + '>Siguientes →</button>' +
+        '</div>';
+    }
+
+    var conMatch = arriendo.items.length && arriendo.items[0].porcentaje_compatibilidad != null;
+    return (
+      '<p class="gdf-match-count">' +
+      (conMatch ? 'Ordenados por compatibilidad con la zona que elegiste. ' : '') +
+      '<b>' + arriendo.items.length + ' inmuebles</b>' +
+      (totalPaginas > 1
+        ? ', de ' + (desde + 1) + ' a ' + Math.min(desde + porPagina, arriendo.items.length)
+        : '') +
+      '.</p>' +
+      '<div class="gdf-projects">' + tarjetasHtml + '</div>' +
+      paginacionHtml
+    );
+  }
+
   function resultadoArriendo(state, derived) {
     var chipsHtml = derived.perfilChips
       .map(function (c) {
@@ -758,19 +1126,24 @@
       })
       .join('');
     var firstNameA = state.nombre.trim().split(' ')[0] || 'constructor';
+    var arriendo = state.arriendo;
+
+    var cuerpoHtml;
+    if (arriendo.estado === 'cargando') cuerpoHtml = arriendoCargando();
+    else if (arriendo.estado === 'error') cuerpoHtml = arriendoError(arriendo);
+    else if (!arriendo.items.length) cuerpoHtml = arriendoVacio();
+    else cuerpoHtml = arriendoLista(state, arriendo);
+
     return (
       '<div class="gdf-screen gdf-result">' +
       '<div class="gdf-result-head">' +
       '<div class="eyebrow">ARRIENDO ✦</div>' +
-      '<h2>¡Gracias, ' + esc(firstNameA) + '!</h2>' +
+      '<h2>Esto es lo que encontramos para ti,<br>' + esc(firstNameA) + '</h2>' +
       '</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
-      '<div class="gdf-lead-badge exploring">' +
-      '<span class="icon">🚧</span>' +
-      '<div class="title">Estamos construyendo el matching de Arriendo</div>' +
-      '<div class="subcopy">Ya guardamos lo que nos contaste. Muy pronto vamos a poder recomendarte arriendos reales con este mismo perfil.</div>' +
-      '</div>' +
+      cuerpoHtml +
       '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '<p class="gdf-disclaimer">Catálogo demo de arriendo, tomado de Fincaraíz para Bogotá D.C. — no es el catálogo completo del portal.</p>' +
       '</div>'
     );
   }
@@ -996,7 +1369,11 @@
     //
     // El punto es la última red: una zona que no cruce con el vocabulario
     // —"Cuarto de residuos", "Subestación eléctrica"— se sigue leyendo.
-    var dibujado = (window.GDF.iconos && window.GDF.iconos.icono(a.label)) || '';
+    // `iconoClave` permite buscar el dibujo con un nombre distinto al que se
+    // muestra. Lo usa Arriendo, que enseña la etiqueta de Fincaraíz ("Zonas
+    // Verdes") pero busca el icono por la del vocabulario ("Zona verde").
+    // Compra no lo manda y sigue buscando por `label`, como siempre.
+    var dibujado = (window.GDF.iconos && window.GDF.iconos.icono(a.iconoClave || a.label)) || '';
     var ico = a.icon
       ? '<img src="' + esc(a.icon) + '" alt="" loading="lazy" />'
       : dibujado || '<span class="gdf-amenity-punto">•</span>';
@@ -1653,7 +2030,83 @@
   // Cierre del flujo. Elegir el proyecto y tocar "Llamar" YA es la
   // confirmación: acá no se pide otra acción para lograr lo que el usuario ya
   // pidió. Solo se cierra y se dice qué sigue.
+  /**
+   * El cierre de Arriendo. Bifurca ANTES de `confirmacion()` por lo mismo que
+   * `resultadoArriendo`: esa pantalla se apoya en `state.lead` (que Arriendo
+   * no calcula, ver `avanzarQuiz`) y en la constructora y el subsidio del
+   * proyecto, que en un arriendo no existen.
+   *
+   * Lo que sí es idéntico es el relato de la llamada: los mismos tres estados
+   * de `state.llamada` que pinta Compra, porque es el mismo POST /api/llamar.
+   */
+  function confirmacionArriendo(state, derived) {
+    var firstName = state.nombre.trim().split(' ')[0] || 'constructor';
+    var elegido = null;
+    (state.arriendo.items || []).forEach(function (item) {
+      if (String(item.id_inmueble) === String(state.chosen)) elegido = item;
+    });
+
+    var nombreInmueble = elegido ? elegido.nombre : '';
+    var foto = ((elegido && elegido.imagenes) || [])[0] || '';
+    var canon = elegido && elegido.precio_canon_cop
+      ? '$' + Math.round(elegido.precio_canon_cop).toLocaleString('es-CO') + '/mes'
+      : '';
+
+    var proyectoHtml = elegido
+      ? '<div class="gdf-confirm-proyecto">' +
+        (foto ? '<div class="gdf-confirm-foto" style="background-image:url(\'' + esc(foto) + '\')"></div>' : '') +
+        '<div class="gdf-confirm-proyecto-info">' +
+        '<div class="gdf-confirm-proyecto-nombre">' + esc(nombreInmueble) + '</div>' +
+        (elegido.localidad_nombre
+          ? '<div class="gdf-confirm-proyecto-loc">📍 ' + esc(elegido.localidad_nombre) + '</div>' : '') +
+        (canon
+          ? '<div class="gdf-confirm-proyecto-precio">Arriendo ' + esc(canon) +
+            (elegido.area_m2 ? ' · ' + elegido.area_m2 + ' m²' : '') + '</div>' : '') +
+        '</div></div>'
+      : '';
+
+    var chipsHtml = derived.perfilChips
+      .map(function (c) {
+        return '<span class="gdf-chip' + (c.hi ? ' hi' : '') + '">' + esc(c.text) + '</span>';
+      })
+      .join('');
+
+    var llamada = state.llamada;
+    var extra = '';
+    if (llamada.estado === 'cargando') {
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">📡 Conectando con Manuela…' +
+        '<br /><small>Puede tardar unos segundos si el servidor estaba dormido.</small></div>';
+    } else if (llamada.estado === 'lista') {
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">📞 ' + esc(llamada.mensaje) + '</div>';
+    } else if (llamada.estado === 'error') {
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">⚠️ ' + esc(llamada.mensaje) +
+        '<button class="gdf-reco-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';
+    }
+
+    return (
+      '<div class="gdf-screen gdf-confirmacion">' +
+      '<div class="gdf-confirm-hero gdf-confirm-hero--ok">' +
+      '<span class="gdf-confirm-check">✓</span>' +
+      '<h2>¡Gracias por tu interés, ' + esc(firstName) + '!</h2>' +
+      '<p>Te interesa <strong>' + esc(nombreInmueble) + '</strong>. Te llamamos para confirmar ' +
+      'disponibilidad y coordinar la visita.</p>' +
+      '</div>' +
+      proyectoHtml +
+      '<div class="gdf-confirm-contacto">' +
+      '<div class="gdf-confirm-contacto-avatar">📞</div>' +
+      '<div class="gdf-confirm-contacto-info">' +
+      '<div class="gdf-confirm-contacto-titulo">Te contactamos por llamada</div>' +
+      '<div class="gdf-confirm-contacto-tel">' + esc(state.telefono.trim()) + '</div>' +
+      '</div></div>' +
+      extra +
+      '<div class="gdf-chips">' + chipsHtml + '</div>' +
+      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '</div>'
+    );
+  }
+
   function confirmacion(state, derived) {
+    if (state.answers.operacion === 'arriendo') return confirmacionArriendo(state, derived);
     var lead = state.lead;
     var firstName = state.nombre.trim().split(' ')[0] || 'constructor';
 
@@ -1791,6 +2244,47 @@
     );
   }
 
+  /**
+   * Visor de fotos a pantalla completa. Se pinta por ENCIMA de la pantalla
+   * que haya, no en lugar de ella: `state.screen` no cambia, así que al
+   * cerrarlo la lista sigue en la misma página y con el mismo pliego abierto.
+   *
+   * EL FONDO ES LA MISMA FOTO, ampliada y desenfocada. Un velo negro plano
+   * funciona, pero deja la foto flotando en el vacío; con el desenfoque
+   * detrás, el color de la propia imagen llena la pantalla y el inmueble se
+   * sigue leyendo aunque la foto sea vertical y ocupe media pantalla.
+   */
+  function visorFotos(state) {
+    var v = state.visor;
+    if (!v) return '';
+    var url = v.fotos[v.i];
+    var varias = v.fotos.length > 1;
+    var flecha = function (paso, clase, signo, etiqueta) {
+      return (
+        '<button class="gdf-visor-flecha ' + clase + '" data-action="visorMover" data-paso="' + paso +
+        '" aria-label="' + etiqueta + '">' + signo + '</button>'
+      );
+    };
+    return (
+      // El clic en el fondo cierra; el marco de adentro lleva `noop` para que
+      // tocar la foto o las flechas no lo cierre por burbujeo.
+      '<div class="gdf-visor" data-action="cerrarVisor">' +
+      '<div class="gdf-visor-fondo" style="background-image:url(\'' + esc(url) + '\')"></div>' +
+      '<button class="gdf-visor-cerrar" data-action="cerrarVisor" aria-label="Cerrar">✕</button>' +
+      '<div class="gdf-visor-marco" data-action="noop">' +
+      (varias ? flecha('-1', 'izq', '‹', 'Foto anterior') : '') +
+      '<img class="gdf-visor-foto" src="' + esc(url) + '" alt="' +
+      esc(v.nombre || 'Foto del inmueble') + ' — foto ' + (v.i + 1) + '">' +
+      (varias ? flecha('1', 'der', '›', 'Foto siguiente') : '') +
+      '</div>' +
+      '<div class="gdf-visor-pie" data-action="noop">' +
+      (v.nombre ? '<span class="gdf-visor-nombre">' + esc(v.nombre) + '</span>' : '') +
+      '<span class="gdf-visor-contador">' + (v.i + 1) + ' / ' + v.fotos.length + '</span>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
   function renderApp(state, derived) {
     var screenHtml;
     switch (state.screen) {
@@ -1819,7 +2313,8 @@
     // invierte la escena y el panel tiene que poder leerlo en el mismo
     // elemento sobre el que aplica.
     return (
-      '<div class="gdf-shell"' + (window.GDF_EMBED ? ' data-embed' : '') + '>' + screenHtml + '</div>'
+      '<div class="gdf-shell"' + (window.GDF_EMBED ? ' data-embed' : '') + '>' + screenHtml + '</div>' +
+      visorFotos(state)
     );
   }
 

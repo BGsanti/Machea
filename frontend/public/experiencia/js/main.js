@@ -240,6 +240,23 @@
       entornoSearch.addEventListener('click', filtrarEntorno);
     }
 
+    // Variante SIN buscador (estilo de vida de Arriendo, `q.min` en
+    // data.js): el botón reemplaza al input de arriba y solo abre/cierra el
+    // mismo '.gdf-multi-opt-list' -- no hay texto que filtrar, así que no
+    // reusa filtrarEntorno(). Elegir una opción NO lo cierra (toggleEntornoValor
+    // no toca 'abierto'): es un multiselect, se espera elegir varias seguidas.
+    // El cierre por "clic afuera" lo cubre cerrarEntornoSiTocaAfuera(), que ya
+    // recorre todos los '.gdf-entorno-combo' de la pantalla.
+    var entornoToggle = document.getElementById('entornoToggle');
+    if (entornoToggle) {
+      entornoToggle.addEventListener('click', function () {
+        var lista = document.getElementById('entornoOpciones');
+        if (!lista) return;
+        var abierta = lista.classList.toggle('abierto');
+        entornoToggle.setAttribute('aria-expanded', abierta ? 'true' : 'false');
+      });
+    }
+
     // El buscador de la pregunta 'zona' —barrios y lugares en el mismo campo—.
     // Igual que el de arriba: solo aparece con texto escrito, y la selección
     // en curso se reinicia porque este código solo corre tras un render que
@@ -906,6 +923,12 @@
       updateTipologiaDOM(dataset);
       return;
     }
+    // Pasar de foto parchea el visor en vez de repintar la app (ver
+    // updateVisorDOM: es lo que quita el parpadeo entre una foto y la otra).
+    if (action === 'visorMover') {
+      updateVisorDOM();
+      return;
+    }
     if (action === 'setDetalleAbierto') return; // el <details> ya se pintó solo
     // Se acaba de elegir el apartamento: se pide su plano ya, para que la
     // primera pieza que caiga no lo haga contra un hueco en blanco.
@@ -923,15 +946,19 @@
     render();
 
     // PASO 1 del contrato. El quiz termina y entra a 'result' exactamente una
-    // vez por partida (desde selectOption, al contestar la última pregunta):
-    // ese es el primer momento en que existen TODOS los campos requeridos.
-    // Arriendo nunca llega hasta aquí: pinta 'result' desde 'answerEstiloVida'
-    // (ver state.js) y no desde 'selectOption', así que este `if` no lo
-    // alcanzaría de todos modos -- el chequeo queda explícito igual, para que
-    // no dependa de ese detalle si el flujo cambia más adelante.
-    if (prevScreen !== 'result' && state.screen === 'result' && state.answers.operacion !== 'arriendo') {
-      cargarRecomendaciones();
+    // vez por partida: ese es el primer momento en que existen TODOS los
+    // campos requeridos. Compra llega aquí desde 'selectOption' (última
+    // pregunta); Arriendo puede llegar desde 'selectOption' también -- para
+    // Oficinas/Bodegas, que terminan justo al elegir tipo_propiedad (ver
+    // qListFor en state.js) -- o desde 'answerEstiloVida' para Vivienda.
+    if (prevScreen !== 'result' && state.screen === 'result') {
+      if (state.answers.operacion === 'arriendo') cargarArriendo();
+      else cargarRecomendaciones();
     }
+
+    // Al abrir el visor se bajan ya las fotos de al lado, para que la primera
+    // flecha tampoco tenga que esperar a la red.
+    if (action === 'abrirVisor') precargarVecinas();
 
     // PASO 2 del contrato. Ya no hace falta un botón de "Confirmar": tocar
     // "Llamar" en la tarjeta (llamarProyecto) ES la confirmación, así
@@ -1136,6 +1163,23 @@
     window.GDF.state.applyAction(state, 'recoCargando', {});
     render();
     window.GDF.recommender.recomendar(state, onRecoResuelta);
+  }
+
+  // Resultado de GET /api/arriendo (ver js/arriendo.js). Mismo patrón que
+  // onRecoResuelta, en su propio campo de estado -- Arriendo no guarda
+  // consulta en Supabase todavía (ver el comentario de qListFor en state.js).
+  function onArriendoResuelta(resultado) {
+    window.GDF.state.applyAction(state, 'arriendoResuelta', resultado);
+    render();
+  }
+
+  // GET /api/arriendo. Se dispara al entrar a 'result' con operacion ===
+  // 'arriendo' (ver dispatch() arriba) -- para Oficinas/Bodegas eso pasa sin
+  // preguntas de por medio, justo tras elegir el tipo de propiedad.
+  function cargarArriendo() {
+    window.GDF.state.applyAction(state, 'arriendoCargando', {});
+    render();
+    window.GDF.arriendoApi.cargar(state, onArriendoResuelta);
   }
 
   // Salida de emergencia cuando el backend no responde: se muestran los
@@ -2007,13 +2051,85 @@
       if (combos[i].contains(e.target)) continue;
       var lista = combos[i].querySelector('.gdf-multi-opt-list');
       if (lista) lista.classList.remove('abierto');
+      // Solo la variante con botón (estilo de vida de Arriendo) tiene este
+      // atributo; la del buscador no, y aquí no pasa nada si no existe.
+      var toggle = combos[i].querySelector('.gdf-entorno-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
     }
+  }
+
+  /**
+   * Cambia la foto del visor SIN pasar por render().
+   *
+   * EL PARPADEO QUE ESTO RESUELVE tenía dos causas, y las dos nacían de
+   * reconstruir `#root` entero en cada flecha:
+   *   1. El <img> se destruía y se creaba de nuevo, así que entre que
+   *      desaparecía el viejo y pintaba el nuevo quedaba un fotograma vacío.
+   *   2. `.gdf-visor` entra con una animación de opacidad; al recrearse el
+   *      nodo, esa animación se disparaba OTRA VEZ en cada foto, y el visor
+   *      entero hacía un fundido desde transparente.
+   *
+   * Mismo patrón que `updateTipologiaDOM`: el estado ya cambió en
+   * `applyAction`, aquí solo se parchea lo que se ve.
+   */
+  function updateVisorDOM() {
+    var v = state.visor;
+    if (!v) return;
+    var caja = root.querySelector('.gdf-visor');
+    if (!caja) { render(); return; }
+
+    var url = v.fotos[v.i];
+    var contador = caja.querySelector('.gdf-visor-contador');
+    if (contador) contador.textContent = (v.i + 1) + ' / ' + v.fotos.length;
+
+    // La foto nueva se pone cuando YA está cargada; hasta entonces se queda
+    // la anterior. Cambiar el `src` a secas deja el hueco mientras baja, que
+    // es el mismo parpadeo por otra vía.
+    var precarga = new Image();
+    precarga.onload = function () {
+      // Si para cuando carga ya se movió otra vez, esta foto perdió su turno.
+      if (!state.visor || state.visor.fotos[state.visor.i] !== url) return;
+      var img = caja.querySelector('.gdf-visor-foto');
+      var fondo = caja.querySelector('.gdf-visor-fondo');
+      if (img) {
+        img.src = url;
+        img.alt = (v.nombre || 'Foto del inmueble') + ' — foto ' + (v.i + 1);
+      }
+      if (fondo) fondo.style.backgroundImage = "url('" + url + "')";
+    };
+    precarga.src = url;
+    precargarVecinas();
+  }
+
+  /** Las fotos de al lado, para que la siguiente flecha sea instantánea. */
+  function precargarVecinas() {
+    var v = state.visor;
+    if (!v || v.fotos.length < 2) return;
+    [1, -1].forEach(function (paso) {
+      var vecina = new Image();
+      vecina.src = v.fotos[(v.i + paso + v.fotos.length) % v.fotos.length];
+    });
+  }
+
+  function onTeclaVisor(e) {
+    if (!state.visor) return;
+    if (e.key === 'Escape') dispatch('cerrarVisor', {});
+    else if (e.key === 'ArrowRight') dispatch('visorMover', { paso: '1' });
+    else if (e.key === 'ArrowLeft') dispatch('visorMover', { paso: '-1' });
+    else return;
+    // Solo se frena la tecla que SÍ se usó: con el visor abierto, Escape no
+    // puede llegar al modal de la landing que contiene este iframe.
+    e.preventDefault();
   }
 
   function boot() {
     root = document.getElementById('root');
     root.addEventListener('click', onRootClick);
     document.addEventListener('click', cerrarEntornoSiTocaAfuera);
+    // Teclado del visor de fotos. Va en `document` y una sola vez: el visor se
+    // repinta con cada render y un listener suyo propio se duplicaría en cada
+    // flecha. No hace nada mientras el visor está cerrado.
+    document.addEventListener('keydown', onTeclaVisor);
     // El fondo AI Signal. Va ANTES del primer render y una sola vez: cuelga
     // del <body>, así que los re-renders de #root no lo tocan y la red sigue
     // corriendo igual al pasar de la escarapela al quiz. Se monta solo con la
