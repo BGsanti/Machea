@@ -108,7 +108,6 @@
   function attachInputListeners() {
     var nombreInput = document.getElementById('nombreInput');
     var apellidoInput = document.getElementById('apellidoInput');
-    var cedulaInput = document.getElementById('cedulaInput');
     var correoInput = document.getElementById('correoInput');
     var telefonoInput = document.getElementById('telefonoInput');
 
@@ -130,12 +129,6 @@
       apellidoInput.addEventListener('input', function (e) {
         state.apellido = e.target.value;
         refreshCarnetName();
-        updateStartButton();
-      });
-    }
-    if (cedulaInput) {
-      cedulaInput.addEventListener('input', function (e) {
-        state.cedula = e.target.value;
         updateStartButton();
       });
     }
@@ -896,12 +889,9 @@
     var btn = document.querySelector('.gdf-btn-primary');
     if (!btn) return;
     var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-    var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
     var canStart = !!(
       state.nombre.trim() &&
       state.apellido.trim() &&
-      state.cedula.trim() &&
-      isValidCedula &&
       state.correo.trim() &&
       isValidEmail &&
       state.telefono.trim() &&
@@ -1204,23 +1194,26 @@
   }
 
   // Se intercepta 'startQuiz' (ver onRootClick) para, ANTES de arrancar el
-  // cuestionario, mirar si esta cédula+teléfono ya tiene una consulta
-  // guardada (ver js/datos.js) y saltarse las 7 preguntas directo a los
-  // resultados de esa vez. Nunca bloquea: buscarResultados() siempre
-  // resuelve (con match, sin match, o con timeout) y en cualquier caso que
-  // no sea un match se sigue el camino normal por dispatch('startQuiz').
+  // cuestionario, mirar si la persona ya tiene una consulta guardada (ver
+  // js/datos.js) y saltarse las preguntas directo a los resultados de esa vez.
+  //
+  // DESACTIVADA DESDE QUE LA CÉDULA NO SE PIDE (decisión de Diego,
+  // 2026-10-04). La búsqueda era por cédula + teléfono, y el módulo que la
+  // hace (js/datos.js, de la base de leads de Santiago) no está en el repo:
+  // hoy no corría nunca. Para reactivarla, `buscarResultados` tiene que
+  // identificar por teléfono y correo; entonces se cambia `BUSQUEDA_ACTIVA`
+  // y la llamada de abajo. Mientras tanto se arranca el quiz directamente.
+  var BUSQUEDA_ACTIVA = false;
   function iniciarQuizConBusqueda() {
     // Mismo criterio de canStart que templates.js/state.js: sin esto no
     // vale la pena ni intentar la consulta.
     var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-    var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
     var camposValidos = !!(
       state.nombre.trim() && state.apellido.trim() &&
-      state.cedula.trim() && isValidCedula &&
       state.correo.trim() && isValidEmail &&
       state.telefono.trim() && state.consent
     );
-    if (!camposValidos || !window.GDF.datos) {
+    if (!BUSQUEDA_ACTIVA || !camposValidos || !window.GDF.datos) {
       // dispatch() vuelve a validar por su cuenta; si falta algo, no hace
       // nada -- mismo comportamiento que antes de este cambio.
       dispatch('startQuiz', {});
@@ -1234,7 +1227,9 @@
       boton.style.pointerEvents = 'none';
     }
 
-    window.GDF.datos.buscarResultados(state.cedula, state.telefono, function (r) {
+    // FIRMA POR ACORDAR con Santiago: antes era (cedula, telefono, cb). No se
+    // ejecuta mientras BUSQUEDA_ACTIVA sea false.
+    window.GDF.datos.buscarResultados(state.telefono, state.correo, function (r) {
       if (r && r.encontrado) {
         restaurarConsultaGuardada(r);
         return; // pantalla nueva: el botón de la escarapela ya no existe
@@ -2054,7 +2049,7 @@
     // que el 3D y el estado arrancan igual que en una partida nueva.
     if (el.dataset.action === 'buscarCompra') {
       var conserva = {};
-      ['gender', 'nombre', 'apellido', 'cedula', 'correo', 'telefono', 'afiliado', 'consent'].forEach(function (k) {
+      ['gender', 'nombre', 'apellido', 'correo', 'telefono', 'afiliado', 'consent'].forEach(function (k) {
         conserva[k] = state[k];
       });
       dispatch('restart');

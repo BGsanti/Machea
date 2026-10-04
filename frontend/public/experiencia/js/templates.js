@@ -227,18 +227,10 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   }
 
-  // Mismo rango que el check de la tabla `leads` (ver
-  // supabase/migrations/): solo dígitos, 5 a 15 de largo.
-  function isValidCedula(v) {
-    return /^[0-9]{5,15}$/.test(v.replace(/\D/g, ''));
-  }
-
   function escarapela(state) {
     var canStart = !!(
       state.nombre.trim() &&
       state.apellido.trim() &&
-      state.cedula.trim() &&
-      isValidCedula(state.cedula.trim()) &&
       state.correo.trim() &&
       isValidEmail(state.correo.trim()) &&
       state.telefono.trim() &&
@@ -306,8 +298,6 @@
       '<input class="gdf-input" id="nombreInput" placeholder="Ej: Ana" value="' + esc(state.nombre) + '" />' +
       '<label class="gdf-field-label">Apellidos</label>' +
       '<input class="gdf-input" id="apellidoInput" placeholder="Ej: Ruiz Gómez" value="' + esc(state.apellido) + '" />' +
-      '<label class="gdf-field-label">Cédula</label>' +
-      '<input class="gdf-input" id="cedulaInput" inputmode="numeric" placeholder="Ej: 1020304050" value="' + esc(state.cedula) + '" />' +
       '<label class="gdf-field-label">Correo electrónico</label>' +
       '<input class="gdf-input" id="correoInput" type="email" placeholder="Ej: ana.ruiz@correo.com" value="' + esc(state.correo) + '" />' +
       '<label class="gdf-field-label">Teléfono (WhatsApp)</label>' +
@@ -323,7 +313,7 @@
       '</span>' +
       '</label>' +
       '<button class="gdf-btn-primary' + (canStart ? ' enabled' : '') + '" data-action="startQuiz">Empezar a construir ' + ic('flecha-derecha') + '</button>' +
-      '<p class="gdf-hint">Completa nombres, apellidos, cédula, correo, teléfono y consentimiento para continuar.</p>' +
+      '<p class="gdf-hint">Completa nombres, apellidos, correo, teléfono y consentimiento para continuar.</p>' +
       '</div>'
     );
   }

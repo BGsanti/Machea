@@ -23,7 +23,6 @@
       gender: 'x', // 'f' | 'm' | 'x'
       nombre: '',
       apellido: '',
-      cedula: '',
       correo: '',
       telefono: '',
       afiliado: null,
@@ -329,15 +328,12 @@
         break;
 
       case 'startQuiz': {
+        // La cédula ya no se pide (decisión de Diego, 2026-10-04): la persona
+        // se identifica con su teléfono y su correo.
         var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-        // Mismo rango que el check de la tabla `leads` (ver
-        // supabase/migrations/): solo dígitos, 5 a 15 de largo.
-        var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
         var canStart = !!(
           state.nombre.trim() &&
           state.apellido.trim() &&
-          state.cedula.trim() &&
-          isValidCedula &&
           state.correo.trim() &&
           isValidEmail &&
           state.telefono.trim() &&
