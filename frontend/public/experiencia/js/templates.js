@@ -36,6 +36,15 @@
     return window.GDF_MARCA || {};
   }
 
+  /** Aviso bajo la confirmación de la llamada cuando es una demo con marca: Manuela se
+   *  presentará como asistente de esa empresa, y tiene que quedar dicho que es una demostración. */
+  function notaDemo() {
+    var d = marca().demo;
+    if (!d) return '';
+    return '<p class="gdf-demo-nota">Esta llamada es una demostración: Manuela se presentará como la asistente virtual que Machea configuró para <strong>' +
+      esc(d.nombre) + '</strong>.</p>';
+  }
+
   // Textos de Machea fijados en el código (T11, TEXTOS.md sección 4): su
   // manifiesto (tenants/machea/marca.js) es generado y todavía dice
   // "Demostración" y "Ver ficha oficial ↗". Ganan sobre el manifiesto solo en
@@ -278,10 +287,18 @@
       { campo: 'telefono', id: 'telefonoInput', rotulo: 'Teléfono (WhatsApp)', tipo: 'tel', modo: 'tel', auto: 'tel-national', ejemplo: '300 123 4567', error: 'Escribe un celular de 10 dígitos.' },
     ];
     var valores = { nombre: state.nombre, apellido: state.apellido, correo: state.correo, telefono: state.telefono };
+    // En una demo con marca ("Pruébalo con tu marca") va el logo de la empresa, o su
+    // nombre escrito si no hay logo. Un logo claro (casi blanco) se pone sobre el color
+    // de la marca: sobre el blanco del formulario desaparecería.
+    var demoActiva = marca().demo;
+    var logoRegistro = demoActiva
+      ? '<div class="gdf-registro-logo gdf-registro-logo--demo' + (demoActiva.fondoLogo === 'oscuro' ? ' sobre-marca' : '') +
+        '" role="img" aria-label="' + esc(nombreMarca()) + '">' + logoHtml('gdf-registro-logo-img') + '</div>'
+      : '<div class="gdf-registro-logo" role="img" aria-label="Machea">' + ISOTIPO_MACHEA + '<span aria-hidden="true">machea</span></div>';
     return (
       '<div class="gdf-screen gdf-escarapela gdf-registro">' +
       '<div class="gdf-registro-caja">' +
-      '<div class="gdf-registro-logo" role="img" aria-label="Machea">' + ISOTIPO_MACHEA + '<span aria-hidden="true">machea</span></div>' +
+      logoRegistro +
       '<p class="eyebrow">Tus datos</p>' +
       '<h2>Cuéntanos quién eres</h2>' +
       '<p class="gdf-registro-sub">Después te hacemos unas preguntas sobre la vivienda que buscas.</p>' +
@@ -2298,7 +2315,7 @@
       extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">' + ic('senal') +
         ' Conectando con Manuela, nuestra asistente. Puede tardar unos segundos.</div>';
     } else if (llamada.estado === 'lista') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">' + ic('telefono') + ' ' + esc(llamada.mensaje) + '</div>';
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">' + ic('telefono') + ' ' + esc(llamada.mensaje) + '</div>' + notaDemo();
     } else if (llamada.estado === 'error') {
       extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">' + ic('alerta') + ' ' + esc(llamada.mensaje) +
         ' <button class="gdf-llamada-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';
@@ -2442,7 +2459,7 @@
       extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">' + ic('senal') +
         ' Conectando con Manuela, nuestra asistente. Puede tardar unos segundos.</div>';
     } else if (llamada.estado === 'lista') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">' + ic('telefono') + ' ' + esc(llamada.mensaje) + '</div>';
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">' + ic('telefono') + ' ' + esc(llamada.mensaje) + '</div>' + notaDemo();
     } else if (llamada.estado === 'error') {
       extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">' + ic('alerta') + ' ' + esc(llamada.mensaje) +
         ' <button class="gdf-llamada-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';

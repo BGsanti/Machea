@@ -5299,7 +5299,7 @@ html[data-marca='machea'] .gdf-btn-primary {
 html[data-marca='machea'] .gdf-btn-primary.enabled {
   background: var(--acento);
   color: var(--sobre-acento);
-  box-shadow: 0 8px 20px rgba(252, 70, 51, 0.22);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--acento) 22%, transparent);
   transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 html[data-marca='machea'] .gdf-btn-primary.enabled:hover {
@@ -5505,7 +5505,7 @@ html[data-marca='machea'] .gdf-confirm-check::before {
 }
 html[data-marca='machea'] .gdf-confirm-check.err {
   background: var(--marca);
-  box-shadow: 0 10px 24px rgba(252, 70, 51, 0.25);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--marca) 25%, transparent);
 }
 html[data-marca='machea'] .gdf-confirm-contacto,
 html[data-marca='machea'] .gdf-confirm-contacto-avatar {
@@ -6392,7 +6392,7 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
 }
 .gdf-reg-campo.con-error .gdf-input {
   border-color: var(--marca-texto);
-  box-shadow: 0 0 0 3px rgba(252, 70, 51, 0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--marca-texto) 12%, transparent);
 }
 .gdf-reg-error {
   display: none;
@@ -6450,4 +6450,127 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
    color de marca; en los chips de estilo de vida van del color del texto. */
 .gdf-estilo-chip .gdf-icono {
   color: inherit;
+}
+
+
+/* ---------------------------------------------------------------------------
+   "Pruébalo con tu marca" (js/demo.js): el formulario de Machea con el nombre y el
+   logo de otra empresa. El color entra por tokens (tema.js); aquí solo lo que es forma.
+   ------------------------------------------------------------------------ */
+.gdf-registro-logo--demo {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+.gdf-registro-logo-img {
+  display: block;
+  max-height: 44px;
+  max-width: 200px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+/* Un logo casi blanco (el de una cabecera oscura) se apoya sobre el color de la marca. */
+.gdf-registro-logo--demo.sobre-marca {
+  width: fit-content;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--marca);
+}
+.gdf-registro-logo--demo .gdf-logo-texto {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--tinta);
+}
+.gdf-registro-logo--demo.sobre-marca .gdf-logo-texto {
+  color: var(--sobre-marca);
+}
+.gdf-demo-badge {
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100vw - 24px);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #1f2e42;
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
+  opacity: 0.92;
+  box-shadow: 0 6px 18px rgba(31, 46, 66, 0.25);
+  pointer-events: none;
+}
+.gdf-demo-nota {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--papel-2);
+  color: var(--tinta-media);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* En una demo, TODO texto que usaba el color de marca pasa al tono oscurecido hasta
+   cumplir el contraste (tema.js: --marca-texto). Con el rojo de Machea no hacía falta; con
+   un amarillo o un verde claro, sí. */
+html[data-demo='1'] .gdf-hero-pill,
+html[data-demo='1'] .gdf-hero-main h1,
+html[data-demo='1'] .gdf-hero-lead strong,
+html[data-demo='1'] .gdf-hero-badge,
+html[data-demo='1'] .gdf-escarapela .kicker .eyebrow,
+html[data-demo='1'] .gdf-compat-row,
+html[data-demo='1'] .gdf-multi-opt.selected,
+html[data-demo='1'] .gdf-zona-eco strong,
+html[data-demo='1'] .gdf-mapa-real .leaflet-control-zoom a:hover,
+html[data-demo='1'] .gdf-entorno-chip,
+html[data-demo='1'] .gdf-entorno-chip-x,
+html[data-demo='1'] .gdf-result-head .eyebrow,
+html[data-demo='1'] .gdf-lead-note,
+html[data-demo='1'] .gdf-chip,
+html[data-demo='1'] .gdf-chip.hi,
+html[data-demo='1'] .gdf-project-precio strong,
+html[data-demo='1'] .gdf-project-entorno.destacado .gdf-entorno-titulo,
+html[data-demo='1'] .gdf-amenity svg,
+html[data-demo='1'] .gdf-amenity.coincide .gdf-amenity-label,
+html[data-demo='1'] .gdf-amenity-punto,
+html[data-demo='1'] .gdf-icono,
+html[data-demo='1'] .gdf-project-ficha,
+html[data-demo='1'] .gdf-tour360-texto,
+html[data-demo='1'] .gdf-tour360-flecha,
+html[data-demo='1'] .gdf-btn-secundario:hover,
+html[data-demo='1'] .gdf-project-detalle > summary,
+html[data-demo='1'] .gdf-tipo-tab:hover,
+html[data-demo='1'] .gdf-espacio-punto,
+html[data-demo='1'] .gdf-confirm-proyecto-precio,
+html[data-demo='1'] .gdf-confirm-contacto-tel,
+html[data-demo='1'] .gdf-restart-btn,
+html[data-demo='1'] .gdf-project-aviso::before {
+  color: var(--marca-texto);
+}
+
+/* En una demo la marca NUNCA decide el color de un error: con un verde o un azul, un campo
+   inválido no se leería como error. Rojo fijo, con contraste sobre blanco de 5,6:1. */
+html[data-demo='1'] .gdf-reg-campo.con-error .gdf-input {
+  border-color: #c62828;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.12);
+}
+html[data-demo='1'] .gdf-reg-campo.con-error .gdf-consent { border-color: #c62828; }
+html[data-demo='1'] .gdf-reg-error,
+html[data-demo='1'] .gdf-lead-submit.error { color: #b3261e; }
+html[data-demo='1'] .gdf-reco-aviso.error {
+  border-color: #c62828;
+  background: #fdecea;
+}
+html[data-demo='1'] .gdf-confirm-hero--error { border-color: #c62828; }
+html[data-demo='1'] .gdf-confirm-check.err {
+  background: #c62828;
+  box-shadow: 0 10px 24px rgba(198, 40, 40, 0.25);
+}
+html[data-demo='1'] .gdf-confirm-llamada--error {
+  border-color: #c62828;
+  background: #fdecea;
+  color: #b3261e;
 }

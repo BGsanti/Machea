@@ -289,6 +289,19 @@
     return (hi + 0.05) / (lo + 0.05);
   }
 
+  /**
+   * El color de marca OSCURECIDO hasta que sirva de TEXTO sobre blanco (4,5:1).
+   * Un amarillo #fed141 como letra es ilegible; su versión honda sí se lee y
+   * sigue siendo "el amarillo de la marca".
+   */
+  function oscurecerParaTexto(hex) {
+    var c = hex;
+    for (var k = 0; k <= 0.85 && contraste(c, '#ffffff') < 4.5; k += 0.05) {
+      c = mezclar(hex, -k);
+    }
+    return c;
+  }
+
   function aplicar() {
     var M = window.GDF_MARCA || {};
     var esMachea = M.slug === 'machea';
@@ -296,7 +309,12 @@
     // aqui el estandar naranja no aplica y manda la paleta del manual de
     // Machea, fijada arriba (PALETA_MACHEA) y no leída de su marca.js.
     var usaEstandar = ESTANDAR && !esMachea;
-    var paleta = esMachea ? PALETA_MACHEA : usaEstandar ? {} : (M.paleta || {});
+    // "Pruébalo con tu marca" (js/demo.js): Machea vestido con el color de otra
+    // empresa. Es UN solo acento, como en Machea: el color principal de la marca.
+    var demo = esMachea && M.demo && M.demo.primario ? M.demo : null;
+    var paleta = demo
+      ? { primario: demo.primario, acento: demo.primario, tinta: PALETA_MACHEA.tinta }
+      : esMachea ? PALETA_MACHEA : usaEstandar ? {} : (M.paleta || {});
     var base = {
       primario: paleta.primario || (usaEstandar ? ESTANDAR.primario : BASE.primario),
       acento: paleta.acento || (usaEstandar ? ESTANDAR.acento : BASE.acento),
@@ -389,9 +407,27 @@
       Object.keys(TOKENS_MACHEA).forEach(function (k) {
         tokens[k] = TOKENS_MACHEA[k];
       });
-      tokens['--sobre-marca'] = '#ffffff';
-      tokens['--sobre-acento'] = '#ffffff';
-      tokens['--texto-cta'] = '#ffffff';
+      if (demo) {
+        // Los cuatro tokens fijos de arriba son ROJOS del manual de Machea; en la
+        // demo se rehacen desde el color de la empresa. Y como una marca puede
+        // traer un amarillo o un verde claro, TODO texto sobre ese color se decide
+        // por contraste (WCAG 4,5:1), no por gusto.
+        var P = base.primario;
+        var oscuro = SUPERFICIE_MACHEA.tinta;
+        var textoSobre = contraste(P, '#ffffff') >= 4.5 ? '#ffffff' : oscuro;
+        tokens['--marca-texto'] = oscurecerParaTexto(P);
+        tokens['--marca-velo-fuerte'] = mezclar(P, 0.9);
+        tokens['--acento-tinte'] = mezclar(P, 0.9);
+        tokens['--acento-oscuro'] = mezclar(P, -0.14);
+        tokens['--sobre-marca'] = textoSobre;
+        tokens['--sobre-acento'] = textoSobre;
+        tokens['--texto-cta'] = textoSobre;
+        raiz.dataset.demo = '1';
+      } else {
+        tokens['--sobre-marca'] = '#ffffff';
+        tokens['--sobre-acento'] = '#ffffff';
+        tokens['--texto-cta'] = '#ffffff';
+      }
     }
 
     Object.keys(tokens).forEach(function (k) {

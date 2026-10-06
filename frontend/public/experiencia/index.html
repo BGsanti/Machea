@@ -25,7 +25,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="css/styles.css?v=129" />
+    <link rel="stylesheet" href="css/styles.css?v=133" />
   </head>
   <body>
     <div id="root"></div>
@@ -77,8 +77,11 @@
       })();
     </script>
     <!-- traduce la paleta de la marca a las custom properties del :root -->
-    <script src="js/tema.js?v=110"></script>
     <script src="js/config.js?v=131"></script>
+    <!-- "Pruébalo con tu marca": funde nombre/logo/textos de la demo en GDF_MARCA.
+         Va tras config.js (MACHEA_BASE) y antes de tema.js (que pinta al cargar). -->
+    <script src="js/demo.js?v=2"></script>
+    <script src="js/tema.js?v=111"></script>
     <!-- Generado por tools/generar_mapa.py: las 20 localidades como anillos
          [lon, lat] para GeoJSON y el indice de 1.256 barrios del buscador.
          ANTES que data.js, que es quien arma la pregunta de ubicacion con
@@ -121,7 +124,7 @@
          cada pantalla — ver la cabecera de senal.js. -->
     <script src="js/senal.js?v=109"></script>
     <!-- Paso 2 del contrato: dispara la llamada de Manuela vía api.py -->
-    <script src="js/llamada.js?v=109"></script>
+    <script src="js/llamada.js?v=110"></script>
     <!-- el contrato del modelo de recomendacion (Machea) -->
     <script src="js/iconos.js?v=109"></script>
     <!-- los iconos de la interfaz (telefono, alerta, flechas...): sustituyen a
@@ -129,7 +132,7 @@
     <script src="js/iconos-ui.js?v=111"></script>
     <script src="js/machea.js?v=108"></script>
     <script src="js/arriendo.js?v=1"></script>
-    <script src="js/templates.js?v=124"></script>
+    <script src="js/templates.js?v=125"></script>
     <script src="js/state.js?v=116"></script>
     <!-- plano 3D. El bundle de three va aparte porque la app no tiene bundler,
          y TODOS estos van despues del document.write de arriba: moverlo o

@@ -134,6 +134,10 @@
       cb({ estado: 'error', mensaje: 'No se pudo armar la llamada: falta el proyecto elegido.' });
       return;
     }
+    // De qué formulario viene el lead y, si es una demo con marca, el token firmado: el
+    // servidor lo verifica; uno falso o vencido se ignora y Manuela habla como Machea.
+    payload.marca = (window.GDF_MARCA || {}).slug || 'machea';
+    if (window.GDF_DEMO && window.GDF_DEMO.token) payload.demo = window.GDF_DEMO.token;
 
     fetch(base.replace(/\/$/, '') + '/api/llamar', {
       method: 'POST',
