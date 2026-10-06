@@ -252,6 +252,11 @@ class TestSolicitarDemo(BaseApi):
         self.assertIn("Abrir mi demo", enviados[0]["html"])
         self.assertIn("demo=", enviados[0]["html"])
 
+    def test_el_tope_por_ip_por_defecto_es_12(self):
+        for i in range(12):
+            self.assertEqual(self.pedir(correo=f"q{i}@x.test").status_code, 200)
+        self.assertEqual(self.pedir(correo="q99@x.test").status_code, 429)
+
     def test_validaciones(self):
         self.assertEqual(self.pedir(correo="no-es-correo").status_code, 400)
         self.assertEqual(self.pedir(tipo="banco").status_code, 400)
@@ -270,6 +275,8 @@ class TestSolicitarDemo(BaseApi):
         e.assert_not_called()
 
     def test_tope_por_ip_y_por_correo(self):
+        os.environ["DEMO_SOLICITUDES_POR_IP_HORA"] = "5"
+        self.addCleanup(os.environ.pop, "DEMO_SOLICITUDES_POR_IP_HORA", None)
         for i in range(5):
             self.assertEqual(self.pedir(correo=f"p{i}@x.test").status_code, 200)
         self.assertEqual(self.pedir(correo="p9@x.test").status_code, 429)

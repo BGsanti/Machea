@@ -49,7 +49,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 from api import ssrf
-from api.limites import HORA, DIA, Rechazo, ip_del_cliente, limites
+from api.limites import HORA, DIA, Rechazo, entero_env, ip_del_cliente, limites
 
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
@@ -360,7 +360,9 @@ def solicitar_demo(payload: SolicitudDemo, request: Request, tareas: BackgroundT
         raise HTTPException(400, "Pega el link de tu sitio web.")
 
     ip = ip_del_cliente(request)
-    _tope(f"demo-ip:{ip}", 5, HORA, "Pediste varias demos seguidas. Intenta de nuevo en {m} minutos.")
+    # 12 por hora y no 5: en una oficina o en un evento varias personas comparten la IP.
+    _tope(f"demo-ip:{ip}", entero_env("DEMO_SOLICITUDES_POR_IP_HORA", 12), HORA,
+          "Hay muchas demos pedidas desde esta conexión. Intenta de nuevo en {m} minutos.")
     _tope(f"demo-correo:{correo}", 3, DIA, "Ya te enviamos varias demos a este correo hoy. Revisa tu bandeja.")
     _tope("demo-global", 60, HORA, "Hay muchas solicitudes ahora. Intenta de nuevo en {m} minutos.")
 

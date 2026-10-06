@@ -30,3 +30,5 @@ services:
         sync: false
       - key: LIMITE_TELEFONOS_EXENTOS   # números del equipo que no se topan (coma); para probar
         sync: false
+      - key: DEMO_SOLICITUDES_POR_IP_HORA   # demos con marca por conexión y hora (por defecto 12)
+        sync: false

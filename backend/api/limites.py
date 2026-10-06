@@ -17,6 +17,7 @@ QUÉ TOPA (todo configurable por variable de entorno):
     DEMO_LLAMADAS_TOTAL_DIA      30    de las anteriores, las de demo con marca
     LIMITE_TELEFONOS_EXENTOS     ""    números del equipo que no se topan
                                        (separados por coma), para probar
+    DEMO_SOLICITUDES_POR_IP_HORA 12    pedidos de demo con marca por conexión (api/demo.py)
 
 EN MEMORIA, A PROPÓSITO. Es un solo proceso en Render: no hace falta una base
 para esto, y al reiniciar el servicio los contadores vuelven a cero (a lo sumo
@@ -43,7 +44,7 @@ DIA = 86400
 _MAX_LLAVES = 5000          # tope de memoria: pasado esto se podan las llaves vacías
 
 
-def _entero(nombre: str, defecto: int) -> int:
+def entero_env(nombre: str, defecto: int) -> int:
     try:
         valor = int(os.environ.get(nombre, defecto))
     except ValueError:
@@ -120,10 +121,10 @@ class Limites:
 
     def reservar_llamada(self, *, telefono: str, ip: str, demo: bool = False) -> Reserva:
         """Aplica los topes de una llamada. Lanza `Rechazo` si alguno se pasó."""
-        por_tel = _entero("LLAMADAS_POR_TELEFONO_HORA", 1)
-        por_ip = _entero("LLAMADAS_POR_IP_HORA", 5)
-        total = _entero("LLAMADAS_TOTAL_DIA", 100)
-        total_demo = _entero("DEMO_LLAMADAS_TOTAL_DIA", 30)
+        por_tel = entero_env("LLAMADAS_POR_TELEFONO_HORA", 1)
+        por_ip = entero_env("LLAMADAS_POR_IP_HORA", 5)
+        total = entero_env("LLAMADAS_TOTAL_DIA", 100)
+        total_demo = entero_env("DEMO_LLAMADAS_TOTAL_DIA", 30)
 
         tel = _solo_digitos(telefono)[-10:]
         exento = tel in _exentos()
