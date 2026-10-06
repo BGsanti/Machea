@@ -23,7 +23,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from typing import Any, List, Optional
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -33,6 +33,7 @@ logger = logging.getLogger("uvicorn.error")
 # `Model` no sería importable sin esto.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from Model.arriendo import PRESUPUESTOS, TIPOS_ARRIENDO, parsear_zonas, recomendar_arriendo
 from Model.catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES, indice_localidad
 from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
 from Model.pipeline import recomendar, respuesta_json
@@ -147,6 +148,62 @@ def barrios(localidad: int):
     }
 
 
+@app.get("/api/arriendo")
+def api_arriendo(
+    tipo_inmueble: str,
+    zona: List[str] = Query(default=[]),
+    presupuesto: Optional[str] = None,
+    habitaciones: Optional[int] = None,
+    banos: Optional[int] = None,
+    estrato: Optional[int] = None,
+    parqueaderos: Optional[int] = None,
+    estilo_vida: List[str] = Query(default=[]),
+):
+    """Match de Arriendo (vivienda/oficina/bodega) sobre el catálogo demo de
+    scraper_arriendo.py, con porcentaje de compatibilidad -- ver
+    `Model/arriendo.py` para la mezcla del score.
+
+    Usa la misma cercanía, el mismo k-NN de perfil y la misma normalización de
+    porcentajes que Compra, pero NO el componente colaborativo ni la cota de
+    precio de `modelo.py`: esos se alimentan de un histórico de compras y de
+    la cuota de una hipoteca, y arriendo no tiene ni lo uno ni lo otro.
+
+    `zona` se repite una vez por sector elegido en el mapa, como `<localidad>`
+    o `<localidad>:<barrio>`. Bodega/oficina solo mandan zona; Vivienda manda
+    además presupuesto y las cuatro preferencias del contador del quiz.
+    """
+    tipo_inmueble = tipo_inmueble.strip().lower()
+    if tipo_inmueble not in TIPOS_ARRIENDO:
+        raise HTTPException(
+            status_code=400,
+            detail=f"tipo_inmueble debe ser uno de: {', '.join(TIPOS_ARRIENDO)}",
+        )
+    if presupuesto is not None and presupuesto not in PRESUPUESTOS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"presupuesto debe ser uno de: {', '.join(PRESUPUESTOS)}",
+        )
+
+    zonas = parsear_zonas(zona)
+    if zona and not zonas:
+        raise HTTPException(status_code=400, detail="Ninguna zona se reconoció (localidad 1 a 20)")
+
+    preferencias = None
+    if habitaciones is not None and banos is not None and estrato is not None:
+        preferencias = {
+            "habitaciones": habitaciones,
+            "banos": banos,
+            "estrato": estrato,
+            "parqueaderos": parqueaderos or 0,
+        }
+
+    inmuebles = recomendar_arriendo(
+        tipo_inmueble, zonas=zonas, presupuesto=presupuesto, preferencias=preferencias,
+        estilo_vida=estilo_vida,
+    )
+    return {"tipo_inmueble": tipo_inmueble, "total": len(inmuebles), "inmuebles": inmuebles}
+
+
 @app.post("/api/recomendar")
 def api_recomendar(payload: FormularioUsuario):
     data = payload.model_dump(exclude_none=True)
@@ -197,9 +254,18 @@ class SolicitudLlamada(BaseModel):
     telefono: str
     afiliado: bool
     rango_ingreso: str
-    edad: int
+    # Opcional desde que Arriendo también llama: su recorrido no pregunta la
+    # edad (ver QUESTIONS_ARRIENDO en data.js), y mandar un 0 para cumplir el
+    # contrato le diría a Manuela que tiene delante a alguien de cero años.
+    edad: Optional[int] = None
     personas_a_cargo: int
     entorno_deseado: str
+    # "compra" (por defecto, el recorrido de siempre) o "arriendo". Decide qué
+    # le decimos a Manuela que está vendiendo: un canon mensual no se habla
+    # como una cuota de hipoteca.
+    tipo_operacion: str = "compra"
+    # Solo Arriendo: vivienda | oficina | bodega. Compra siempre es vivienda.
+    tipo_inmueble: Optional[str] = None
     apartamento: ApartamentoLlamada
 
 
@@ -213,8 +279,10 @@ def api_llamar(payload: SolicitudLlamada):
         )
 
     apto = payload.apartamento
+    es_arriendo = payload.tipo_operacion == "arriendo"
+    # En arriendo no hay subsidio de caja que estimar: es de compra de vivienda.
     subsidio_estimado: float = (
-        30 * SMMLV_COP if (apto.aplica_subsidio_caja and payload.afiliado) else 0
+        30 * SMMLV_COP if (not es_arriendo and apto.aplica_subsidio_caja and payload.afiliado) else 0
     )
 
     payload_dapta: dict[str, Any] = {
@@ -227,14 +295,21 @@ def api_llamar(payload: SolicitudLlamada):
         "rango_ingreso": payload.rango_ingreso,
         "zona_interes": apto.localidad,
         "urgencia": "alta",
-        "edad": payload.edad,
+        # Lo que el recorrido no preguntó va declarado como tal, no como un 0.
+        "edad": payload.edad if payload.edad is not None else "No informada",
         "entorno_deseado": payload.entorno_deseado or "Sin preferencia declarada",
         "personas_a_cargo": payload.personas_a_cargo,
         "piso_preferido": "Sin preferencia",
-        "tipo_inmueble": "apartamento",
+        "tipo_operacion": payload.tipo_operacion,
+        "tipo_inmueble": payload.tipo_inmueble or "apartamento",
         "proyecto_recomendado": apto.nombre_proyecto,
-        "cuota_estimada_mensual": apto.cuota_mensual_estimada_cop or 0,
-        "valor_estimado_vivienda": apto.precio_desde_cop,
+        # En arriendo el canon ES el pago mensual, y no hay un valor de compra
+        # que estimar: dejarlo en `valor_estimado_vivienda` haría que Manuela
+        # hablara de un apartamento de $4 millones.
+        "cuota_estimada_mensual": (
+            apto.precio_desde_cop if es_arriendo else (apto.cuota_mensual_estimada_cop or 0)
+        ),
+        "valor_estimado_vivienda": 0 if es_arriendo else apto.precio_desde_cop,
         "subsidio_estimado": subsidio_estimado,
         "external_lead_id": f"gofest-{int(datetime.now(TZ_BOGOTA).timestamp())}",
     }

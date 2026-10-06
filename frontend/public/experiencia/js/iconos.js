@@ -117,6 +117,32 @@
     'Cancha múltiple': '<rect x="3" y="5" width="18" height="14" rx="1.5"/>' +
                        '<path d="M12 5v14"/><circle cx="12" cy="12" r="2.6"/>' +
                        '<path d="M3 9h2.6v6H3M21 9h-2.6v6H21"/>',
+
+    // --- Vocabulario de Arriendo ------------------------------------------
+    // Las fichas de Fincaraíz nombran cosas que el catálogo de Compra no
+    // tiene (ver ICONO_POR_COMODIDAD en templates.js, que traduce sus
+    // etiquetas a estas claves). Van aquí y no en un archivo aparte para que
+    // siga habiendo UN solo vocabulario de iconos.
+
+    // Caja del ascensor con las dos flechas.
+    'Ascensor': '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 3v18"/>' +
+                '<path d="M8 10.5 9.5 8l1.5 2.5"/><path d="M13 13.5 14.5 16l1.5-2.5"/>',
+    // Baranda vista de frente, sobre la losa.
+    'Balcón': '<path d="M3 9h18"/><path d="M5 9v8M19 9v8"/><path d="M9 9v8M15 9v8"/>' +
+              '<path d="M3 13h18"/><path d="M2 17h20"/>',
+    // Cajas apiladas.
+    'Depósito': '<rect x="3" y="12" width="8" height="8" rx="1"/>' +
+                '<rect x="13" y="12" width="8" height="8" rx="1"/>' +
+                '<rect x="8" y="4" width="8" height="8" rx="1"/><path d="M12 4v8"/>',
+    // Birrete.
+    'Colegios': '<path d="M12 5 2.5 9.5 12 14l9.5-4.5Z"/>' +
+                '<path d="M6.5 11.8V17c0 1.4 2.5 2.6 5.5 2.6s5.5-1.2 5.5-2.6v-5.2"/>' +
+                '<path d="M21.5 9.5v5"/>',
+    // Portería: el mostrador con la campana ya es `Lobby`; aquí la silueta
+    // tras la ventanilla, que es como se reconoce una recepción con vigilancia.
+    'Portería': '<path d="M3 20V9l9-5 9 5v11"/><path d="M3 20h18"/>' +
+                '<circle cx="12" cy="11.5" r="2"/>' +
+                '<path d="M8.5 17.5a3.5 3.5 0 0 1 7 0"/>',
   };
 
   // Sin tildes y en minúsculas, igual que hace machea.js para cruzar el

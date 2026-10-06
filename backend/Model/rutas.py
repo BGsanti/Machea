@@ -73,6 +73,11 @@ RUTA_BARRIOS_GRAFO = os.path.join(DIR_DATA_PROJECTS, "barrios_bogota.json")
 RUTA_USUARIO_DEMO = os.path.join(DIR_DATA_PROJECTS, "usuario_ejemplo.json")
 RUTA_USUARIO_MINIMO = os.path.join(DIR_DATA_PROJECTS, "usuario_minimo.json")
 
+# Catálogo DEMO de arriendo (vivienda/oficina/bodega), separado a propósito
+# del catálogo de venta: no comparten contrato (arriendo no tiene VIS ni
+# cuota de hipoteca) y uno no debe poder pisar al otro.
+RUTA_ARRIENDO = os.path.join(DIR_DATA_PROJECTS, "inmuebles_arriendo_bogota.json")
+
 # --- Salidas (regeneradas en cada consulta) --------------------------------
 RUTA_LLAMATIVOS = os.path.join(DIR_SALIDAS, "proyectos_listos_llamativos.json")
 RUTA_RESPUESTA = os.path.join(DIR_SALIDAS, "respuesta.json")

@@ -39,7 +39,51 @@
     return isNaN(n) ? 0 : n;
   }
 
+  // El inmueble de Arriendo que se eligió, o null. Es una lista aparte
+  // (`state.arriendo.items`) con otro contrato: lo que allá es `precioCop` y
+  // `vis`, aquí es un canon mensual y un tipo de inmueble.
+  function elegidoArriendo(state) {
+    var items = (state.arriendo && state.arriendo.items) || [];
+    for (var i = 0; i < items.length; i++) {
+      if (String(items[i].id_inmueble) === String(state.chosen)) return items[i];
+    }
+    return null;
+  }
+
+  // El texto que Manuela usa para decir QUÉ está ofreciendo. En compra es la
+  // categoría legal (VIS / No VIS); en arriendo esa categoría no existe.
+  var TIPO_LEGIBLE = { vivienda: 'Vivienda en arriendo', oficina: 'Oficina en arriendo',
+                       bodega: 'Bodega en arriendo' };
+
+  function construirPayloadArriendo(state) {
+    var elegido = elegidoArriendo(state);
+    if (!elegido) return null;
+    return {
+      nombre: [state.nombre, state.apellido].filter(Boolean).join(' ').trim(),
+      telefono: state.telefono.trim(),
+      afiliado: false,
+      rango_ingreso: labelDe('ingresos', state.answers.ingresos),
+      // `edad` se omite a propósito: el recorrido de Arriendo no la pregunta
+      // y el backend la acepta ausente (ver SolicitudLlamada en api/app.py).
+      personas_a_cargo: personasNumero(state),
+      entorno_deseado: (state.answers.estilo_vida || []).join(', '),
+      tipo_operacion: 'arriendo',
+      tipo_inmueble: elegido.tipo_inmueble || 'vivienda',
+      apartamento: {
+        nombre_proyecto: elegido.nombre || '',
+        localidad: elegido.localidad_nombre || '',
+        tipo_vivienda: TIPO_LEGIBLE[elegido.tipo_inmueble] || 'Arriendo',
+        // El canon mensual. El backend sabe que en arriendo este número es el
+        // pago mensual y no el valor del inmueble.
+        precio_desde_cop: elegido.precio_canon_cop || 0,
+        aplica_subsidio_caja: false,
+      },
+    };
+  }
+
   function construirPayload(state) {
+    if (state.answers.operacion === 'arriendo') return construirPayloadArriendo(state);
+
     var elegido = null;
     state.reco.items.forEach(function (vm) {
       if (vm.id === state.chosen) elegido = vm;
