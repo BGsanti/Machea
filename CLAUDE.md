@@ -1348,6 +1348,40 @@ la agente de voz que corre en un flow de Dapta (Flow Studio).
 export DAPTA_FLOW_WEBHOOK_URL="https://..."   # antes de levantar uvicorn
 ```
 
+
+### 5.4 Topes, demo con marca y seguimiento por WhatsApp
+
+**Topes (`api/limites.py`).** `/api/llamar` llama de verdad a un móvil, sin login y con CORS abierto;
+sin topes, cualquiera puede acosar a un tercero o vaciar los créditos de Dapta (~666 por minuto de
+llamada). Por defecto: 1 llamada por teléfono por hora, 5 por IP por hora, 100 al día en total y 30 de
+demo con marca. Responde 429 con `Retry-After` y un mensaje en español que el front muestra tal cual. Si
+Dapta falla, el cupo se devuelve; el modo mock no gasta cupo. Contadores en memoria (una sola instancia).
+Configurables con `LLAMADAS_POR_TELEFONO_HORA`, `LLAMADAS_POR_IP_HORA`, `LLAMADAS_TOTAL_DIA`,
+`DEMO_LLAMADAS_TOTAL_DIA`; `LIMITE_TELEFONOS_EXENTOS` deja probar al equipo.
+
+**Demo con marca (`api/demo.py`).** "Pruébalo con tu marca": una empresa pega el link de su sitio y recibe
+el formulario vestido con su nombre, colores y logo. `POST /api/demo/solicitar` usa
+`features/scrap_identity` (la función de Santi) y devuelve un enlace con un **token firmado** (HMAC) que lleva
+nombre, tipo, color y origen del logo; el front (`js/demo.js`) solo lo lee para pintar, y el servidor lo
+verifica en cada llamada: un token falso o vencido se ignora y Manuela habla como Machea. En demo, a Dapta
+viajan `modo_demo`, `nombre_marca` y `tipo_cliente`, y el prompt de Manuela (`dapta/prompt-manuela.md`)
+se presenta como "la asistente virtual que Machea configuró para <empresa> — esto es una demostración".
+`GET /api/marca/logo?d=<token>` sirve el logo saneado. Si `DAPTA_EMAIL_FLOW_URL` está puesta, se envía el
+enlace al correo registrado y se avisa al equipo (`CORREO_EQUIPO`).
+
+**Seguridad de lo anterior.** (1) `api/ssrf.py`: la extracción baja páginas de terceros; solo http/https
+a los puertos 80/443, toda IP resuelta debe ser pública, cada redirección se revalida y hay tope de tamaño y
+de tiempo. Reemplaza el `_get` de `scrap_identity` al importar `api.demo`. Límite conocido: DNS rebinding.
+(2) El nombre de la marca y el del lead se limpian antes de llegar al prompt de Manuela (inyección de
+instrucciones). (3) El secreto de la firma es `DEMO_SECRET`, o se deriva de `DAPTA_API_KEY`.
+
+**Seguimiento por WhatsApp (`api/seguimiento.py`).** El receptor del webhook post-llamada clasifica la
+llamada (`no_contesto`, `colgo`, `completa`) y, si `DAPTA_WHATSAPP_FLOW_URL` existe, dispara un flow de
+Dapta que envía una **plantilla** aprobada por Meta (el primer mensaje fuera de las 24 h tiene que serlo).
+Un envío por llamada y 2 al día por teléfono. Sin la variable no hace nada.
+
+**El webhook de Dapta llega ANIDADO**: `{"data": {...llamada...}, "call": {...}}`. El receptor lee `data`.
+
 ---
 
 ## 6. Resolución de localidad por dirección

@@ -23,7 +23,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from typing import Any, List, Optional
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -39,6 +39,7 @@ from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
 from Model.pipeline import recomendar, respuesta_json
 
 from api import demo as demo_mod
+from api import seguimiento
 from api.limites import Rechazo, ip_del_cliente, limites
 
 app = FastAPI(title="Machea Recomendador API", version="0.1")
@@ -416,7 +417,7 @@ def _texto(valor: Any) -> Optional[str]:
 
 
 @app.post("/webhooks/dapta/resultado")
-async def webhook_resultado_llamada(request: Request):
+async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     """Receptor del webhook post-call de Dapta (agente Manuela — Machea).
 
     Dapta manda la llamada ANIDADA: el cuerpo trae las claves `data` y `call`,
@@ -479,6 +480,14 @@ async def webhook_resultado_llamada(request: Request):
         if valor in (None, "") and previo.get(clave) not in (None, ""):
             nuevo[clave] = previo[clave]
     RESULTADOS_LLAMADAS[telefono_e164] = nuevo
+
+    # Seguimiento por WhatsApp (api/seguimiento.py): si no contestó, colgó antes de calificar
+    # o la llamada salió completa. Solo si el flow de envío está configurado, y solo para
+    # llamadas salientes (en una entrante, `to_number` es el nuestro, no el del lead).
+    if os.environ.get("DAPTA_WHATSAPP_FLOW_URL") and str(llamada.get("direction") or "outbound") != "inbound":
+        pedido = seguimiento.preparar(llamada, telefono_e164)
+        if pedido:
+            tareas.add_task(seguimiento.enviar, pedido)
     return {"status": "ok"}
 
 
