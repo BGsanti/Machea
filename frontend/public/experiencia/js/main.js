@@ -375,7 +375,7 @@
     var nodos = root.querySelectorAll('.gdf-match-cifra[data-hasta]');
     if (!nodos.length) { ultimaTandaContadores = ''; return; }
     var tanda = Array.prototype.map.call(nodos, function (n) { return n.dataset.hasta; }).join(',') +
-      '|' + (state.recoPagina || 0);
+      '|' + (state.recoPagina || 0) + '|' + (state.arriendoPagina || 0);
     if (tanda === ultimaTandaContadores) return;
     ultimaTandaContadores = tanda;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -978,8 +978,10 @@
     // Oficinas/Bodegas, que terminan justo al elegir tipo_propiedad (ver
     // qListFor en state.js) -- o desde 'answerEstiloVida' para Vivienda.
     if (prevScreen !== 'result' && state.screen === 'result') {
-      if (state.answers.operacion === 'arriendo') cargarArriendo();
-      else cargarRecomendaciones();
+      if (state.answers.operacion !== 'arriendo') cargarRecomendaciones();
+      // Volver desde la confirmación ("Cambiar mi selección") no repite la
+      // búsqueda de Arriendo: la lista que ya estaba sigue sirviendo.
+      else if (prevScreen !== 'confirmacion' || state.arriendo.estado !== 'listo') cargarArriendo();
     }
 
     // Al abrir el visor se bajan ya las fotos de al lado, para que la primera
@@ -1936,6 +1938,10 @@
     // un cambio de estado puro, sino el disparo de una llamada de red.
     if (el.dataset.action === 'reintentarReco') {
       cargarRecomendaciones();
+      return;
+    }
+    if (el.dataset.action === 'reintentarArriendo') {
+      cargarArriendo();
       return;
     }
     if (el.dataset.action === 'usarLocalAproximado') {

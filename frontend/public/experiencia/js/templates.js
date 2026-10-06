@@ -808,26 +808,34 @@
   // esta entrega, la misma tarjeta (`projectCardArriendo`, calcada de
   // `projectCard` de Compra): el pedido fue justamente que Arriendo se vea
   // igual, con foto y todo. Sin mapa: Compra tampoco lo tiene en resultados.
+  // Los tres usan el mismo marcado que Compra (esqueleto y `.gdf-reco-aviso`)
+  // para que Arriendo herede su diseño sin CSS propio.
   function arriendoCargando() {
-    return '<p class="gdf-match-count">Buscando inmuebles en arriendo…</p>';
+    return recoCargando().replace('Buscando proyectos para ti…', 'Buscando inmuebles en arriendo…');
   }
 
   function arriendoError(arriendo) {
     return (
-      '<div class="gdf-lead-badge exploring">' +
-      '<span class="icon">⚠️</span>' +
-      '<div class="title">No pudimos cargar el catálogo de arriendo</div>' +
-      '<div class="subcopy">' + esc(arriendo.error || 'Intenta de nuevo en un momento.') + '</div>' +
+      '<div class="gdf-reco-aviso error">' +
+      '<div class="icono">' + ic('alerta') + '</div>' +
+      '<h3>No pudimos cargar los inmuebles en arriendo</h3>' +
+      '<p>' + esc(arriendo.error || 'Hubo un problema de conexión.') + '</p>' +
+      '<div class="acciones">' +
+      '<button class="gdf-btn-primary enabled" data-action="reintentarArriendo">Reintentar</button>' +
+      '</div>' +
       '</div>'
     );
   }
 
   function arriendoVacio() {
     return (
-      '<div class="gdf-lead-badge exploring">' +
-      '<span class="icon">🔍</span>' +
-      '<div class="title">Todavía no tenemos inmuebles de este tipo</div>' +
-      '<div class="subcopy">Es un catálogo demo -- vuelve a intentarlo más adelante o ajusta tu búsqueda.</div>' +
+      '<div class="gdf-reco-aviso vacio">' +
+      '<div class="icono">' + ic('buscar') + '</div>' +
+      '<h3>Todavía no tenemos inmuebles de este tipo</h3>' +
+      '<p>Prueba con otra zona o vuelve a intentarlo más adelante.</p>' +
+      '<div class="acciones">' +
+      '<button class="gdf-btn-primary enabled" data-action="goBack">' + ic('flecha-izquierda') + ' Cambiar mis respuestas</button>' +
+      '</div>' +
       '</div>'
     );
   }
@@ -937,7 +945,7 @@
       ' data-action="noop" data-proyecto="' + esc(id) + '">' +
       '<summary><span class="gdf-detalle-titulo">' +
       (total > 1 ? 'Ver las ' + total + ' fotos y los detalles' : 'Ver los detalles') +
-      '</span><span class="gdf-detalle-chevron">▾</span></summary>' +
+      '</span><span class="gdf-detalle-chevron">' + ic('chevron-abajo') + '</span></summary>' +
       '<div class="gdf-detalle-body">' +
       (miniaturas ? '<div class="gdf-arriendo-galeria">' + miniaturas + '</div>' : '') +
       (total > fotos.length
@@ -1017,7 +1025,7 @@
       .join('');
     return (
       '<div class="gdf-project-entorno destacado">' +
-      '<div class="gdf-entorno-titulo">Tiene lo que buscas ✓</div>' +
+      '<div class="gdf-entorno-titulo">Tiene lo que buscas ' + ic('check') + '</div>' +
       '<div class="gdf-project-amenities">' + items + '</div>' +
       '</div>'
     );
@@ -1034,33 +1042,39 @@
       (item.localidad_nombre ? ' (' + item.localidad_nombre + ')' : '') +
       '. ¿Sigue disponible? Vengo de Machea' + (quien ? ', mi nombre es ' + quien : '') + '.';
     var url = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(mensaje);
+    // Mismos textos y pesos que en Compra (T9): la principal dispara la
+    // llamada de Manuela, la secundaria es un enlace.
     return (
       '<div class="gdf-project-acciones">' +
       '<button class="gdf-btn-primary enabled gdf-project-llamar" data-action="llamarProyecto" data-value="' +
       esc(item.id_inmueble) + '">' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6.2 6.2l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>' +
-      'Llamar</button>' +
+      ic('telefono') + 'Hablar con un asesor</button>' +
       '<a class="gdf-project-whatsapp" data-action="whatsapp" href="' + esc(url) + '" target="_blank" rel="noopener">' +
       '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>' +
-      'WhatsApp</a>' +
+      'Escribir por WhatsApp</a>' +
       '</div>'
     );
   }
 
+  var ICONO_TIPO_ARRIENDO = { vivienda: 'casa', oficina: 'edificio', bodega: 'bodega' };
+
   function projectCardArriendo(item, i, state) {
     var foto = (item.imagenes || [])[0] || '';
-    var fondo = 'linear-gradient(135deg,var(--marca),var(--marca-medio))';
+    // Mismo fondo sin foto que Compra: Machea lo cambia por un color liso.
+    var fondo = 'var(--fondo-sin-foto, linear-gradient(135deg,var(--marca),var(--marca-medio)))';
     var headerStyle = foto
       ? "background:url('" + foto + "') center/cover no-repeat, " + fondo
       : 'background:' + fondo;
-    var emoji = item.tipo_inmueble === 'vivienda' ? '🏠' : '🏢';
-    var emojiHtml = foto ? '' : '<span class="emoji">' + emoji + '</span>';
+    var emojiHtml = foto ? '' : '<span class="emoji">' + ic(ICONO_TIPO_ARRIENDO[item.tipo_inmueble] || 'casa') + '</span>';
     // El % lo calcula Model/arriendo.py (cercanía a la zona elegida, y en
     // Vivienda también presupuesto y perfil). Sin zona no hay % que defender
     // y llega null: ahí se muestra la posición, como Compra sin score.
+    // `.gdf-match-cifra` es la que anima el contador al entrar (ver main.js).
+    var pct = item.porcentaje_compatibilidad;
     var badge =
-      item.porcentaje_compatibilidad != null
-        ? '<span class="gdf-project-badge">' + item.porcentaje_compatibilidad + '% match</span>'
+      pct != null
+        ? '<span class="gdf-project-badge"><span class="gdf-match-cifra" data-hasta="' + esc(pct) + '">' +
+          esc(pct) + '</span>% match</span>'
         : '<span class="gdf-project-badge">#' + (i + 1) + '</span>';
 
     var precioHtml = item.precio_canon_cop
@@ -1086,9 +1100,12 @@
     var accionesHtml = accionesContactoArriendo(item, state) +
       (item.link_origen
         ? '<a class="gdf-project-ficha" href="' + esc(item.link_origen) +
-          '" target="_blank" rel="noopener noreferrer">Ver ficha en Fincaraíz ↗</a>'
+          '" target="_blank" rel="noopener noreferrer">Ver ficha en Fincaraíz ' + ic('enlace-externo') + '</a>'
         : '');
 
+    // Mismo orden que la tarjeta de Compra (T9): primero se entiende el
+    // inmueble (datos, por qué quedó aquí y lo que coincide) y después se
+    // actúa. El detalle va al final porque al abrirse empujaría los botones.
     return (
       '<div class="gdf-project-card">' +
       '<div class="gdf-project-header" style="' + headerStyle + '">' +
@@ -1098,14 +1115,14 @@
       '<div class="gdf-project-body">' +
       '<div class="gdf-project-name">' + esc(item.nombre || 'Inmueble') + '</div>' +
       precioHtml +
-      (item.localidad_nombre ? '<div class="gdf-project-loc">📍 ' + esc(item.localidad_nombre) + '</div>' : '') +
+      (item.localidad_nombre ? '<div class="gdf-project-loc">' + ic('ubicacion') + ' ' + esc(item.localidad_nombre) + '</div>' : '') +
       (item.direccion ? '<div class="gdf-project-dir">' + esc(item.direccion) + '</div>' : '') +
       '<div class="gdf-project-tags">' + tags + '</div>' +
-      accionesHtml +
       // Por qué quedó en esta posición, redactado por el modelo con los mismos
       // criterios del score (mismo rol que `vm.razon` en Compra).
-      (item.razon ? '<p class="gdf-project-razon">' + esc(item.razon) + '</p>' : '') +
+      (item.razon ? '<div class="gdf-project-razon"><p class="gdf-razon-texto">' + esc(item.razon) + '</p></div>' : '') +
       estiloCoincideArriendo(item) +
+      accionesHtml +
       galeriaArriendo(item, state) +
       '</div>' +
       '</div>'
@@ -1140,10 +1157,10 @@
       paginacionHtml =
         '<div class="gdf-paginacion">' +
         '<button class="gdf-pag-btn" data-action="irAPaginaArriendo" data-pagina="' + (pagina - 1) + '"' +
-        (pagina === 0 ? ' disabled' : '') + '>← Anteriores</button>' +
+        (pagina === 0 ? ' disabled' : '') + '>' + ic('flecha-izquierda') + ' Anteriores</button>' +
         '<div class="gdf-pag-puntos">' + puntos + '</div>' +
         '<button class="gdf-pag-btn" data-action="irAPaginaArriendo" data-pagina="' + (pagina + 1) + '"' +
-        (pagina === totalPaginas - 1 ? ' disabled' : '') + '>Siguientes →</button>' +
+        (pagina === totalPaginas - 1 ? ' disabled' : '') + '>Siguientes ' + ic('flecha-derecha') + '</button>' +
         '</div>';
     }
 
@@ -1184,7 +1201,7 @@
       '</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
       cuerpoHtml +
-      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '<button class="gdf-restart-btn" data-action="restart">' + ic('reiniciar') + ' Empezar de nuevo</button>' +
       '<p class="gdf-disclaimer">Catálogo demo de arriendo, tomado de Fincaraíz para Bogotá D.C. — no es el catálogo completo del portal.</p>' +
       '</div>'
     );
@@ -2134,10 +2151,10 @@
         '<div class="gdf-confirm-proyecto-info">' +
         '<div class="gdf-confirm-proyecto-nombre">' + esc(nombreInmueble) + '</div>' +
         (elegido.localidad_nombre
-          ? '<div class="gdf-confirm-proyecto-loc">📍 ' + esc(elegido.localidad_nombre) + '</div>' : '') +
+          ? '<div class="gdf-confirm-proyecto-loc">' + ic('ubicacion') + ' ' + esc(elegido.localidad_nombre) + '</div>' : '') +
         (canon
           ? '<div class="gdf-confirm-proyecto-precio">Arriendo ' + esc(canon) +
-            (elegido.area_m2 ? ' · ' + elegido.area_m2 + ' m²' : '') + '</div>' : '') +
+            (elegido.area_m2 ? ' · ' + esc(elegido.area_m2) + ' m²' : '') + '</div>' : '') +
         '</div></div>'
       : '';
 
@@ -2147,36 +2164,48 @@
       })
       .join('');
 
+    // Los mismos tres estados y textos que la confirmación de Compra (T10).
     var llamada = state.llamada;
     var extra = '';
     if (llamada.estado === 'cargando') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">📡 Conectando con Manuela…' +
-        '<br /><small>Puede tardar unos segundos si el servidor estaba dormido.</small></div>';
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--cargando">' + ic('senal') +
+        ' Conectando con Manuela, nuestra asistente. Puede tardar unos segundos.</div>';
     } else if (llamada.estado === 'lista') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">📞 ' + esc(llamada.mensaje) + '</div>';
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--ok">' + ic('telefono') + ' ' + esc(llamada.mensaje) + '</div>';
     } else if (llamada.estado === 'error') {
-      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">⚠️ ' + esc(llamada.mensaje) +
-        '<button class="gdf-reco-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';
+      extra = '<div class="gdf-confirm-llamada gdf-confirm-llamada--error">' + ic('alerta') + ' ' + esc(llamada.mensaje) +
+        ' <button class="gdf-llamada-reintentar" data-action="reintentarLlamada">Reintentar</button></div>';
     }
 
-    return (
-      '<div class="gdf-screen gdf-confirmacion">' +
-      '<div class="gdf-confirm-hero gdf-confirm-hero--ok">' +
-      '<span class="gdf-confirm-check">✓</span>' +
-      '<h2>¡Gracias por tu interés, ' + esc(firstName) + '!</h2>' +
-      '<p>Te interesa <strong>' + esc(nombreInmueble) + '</strong>. Te llamamos para confirmar ' +
-      'disponibilidad y coordinar la visita.</p>' +
-      '</div>' +
-      proyectoHtml +
+    var contactoHtml =
       '<div class="gdf-confirm-contacto">' +
-      '<div class="gdf-confirm-contacto-avatar">📞</div>' +
+      '<div class="gdf-confirm-contacto-avatar">' + ic('telefono') + '</div>' +
       '<div class="gdf-confirm-contacto-info">' +
       '<div class="gdf-confirm-contacto-titulo">Te contactamos por llamada</div>' +
       '<div class="gdf-confirm-contacto-tel">' + esc(state.telefono.trim()) + '</div>' +
-      '</div></div>' +
+      '</div></div>';
+
+    // Mismo orden que Compra: lo que pasa, por dónde te contactamos, el
+    // resumen de la llamada cuando llegue, el inmueble y tu perfil. Sin el
+    // bloque de calificación del lead, que Arriendo no calcula.
+    return (
+      '<div class="gdf-screen gdf-confirmacion">' +
+      '<div class="gdf-confirm-hero gdf-confirm-hero--ok">' +
+      '<div class="gdf-confirm-icon"><span class="gdf-confirm-check">' + ic('check') + '</span></div>' +
+      '<h2>¡Gracias por tu interés, ' + esc(firstName) + '!</h2>' +
+      '<p>Te interesa <strong>' + esc(nombreInmueble) + '</strong>. Te llamamos para confirmar ' +
+      'disponibilidad y coordinar la visita.</p>' +
       extra +
+      '</div>' +
+      contactoHtml +
+      resumenLlamadaHtml(state.resumen) +
+      proyectoHtml +
+      '<div class="gdf-confirm-bloque">' +
+      '<h3>Tu perfil</h3>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
-      '<button class="gdf-restart-btn" data-action="restart">↺ Empezar de nuevo</button>' +
+      '</div>' +
+      '<button class="gdf-back-btn" data-action="goSeleccion">' + ic('flecha-izquierda') + ' Cambiar mi selección</button>' +
+      '<button class="gdf-restart-btn" data-action="restart">' + ic('reiniciar') + ' Empezar de nuevo</button>' +
       '</div>'
     );
   }
@@ -2347,12 +2376,12 @@
       // tocar la foto o las flechas no lo cierre por burbujeo.
       '<div class="gdf-visor" data-action="cerrarVisor">' +
       '<div class="gdf-visor-fondo" style="background-image:url(\'' + esc(url) + '\')"></div>' +
-      '<button class="gdf-visor-cerrar" data-action="cerrarVisor" aria-label="Cerrar">✕</button>' +
+      '<button class="gdf-visor-cerrar" data-action="cerrarVisor" aria-label="Cerrar">' + ic('cerrar', { tam: 18 }) + '</button>' +
       '<div class="gdf-visor-marco" data-action="noop">' +
-      (varias ? flecha('-1', 'izq', '‹', 'Foto anterior') : '') +
+      (varias ? flecha('-1', 'izq', ic('flecha-izquierda', { tam: 22 }), 'Foto anterior') : '') +
       '<img class="gdf-visor-foto" src="' + esc(url) + '" alt="' +
       esc(v.nombre || 'Foto del inmueble') + ' — foto ' + (v.i + 1) + '">' +
-      (varias ? flecha('1', 'der', '›', 'Foto siguiente') : '') +
+      (varias ? flecha('1', 'der', ic('flecha-derecha', { tam: 22 }), 'Foto siguiente') : '') +
       '</div>' +
       '<div class="gdf-visor-pie" data-action="noop">' +
       (v.nombre ? '<span class="gdf-visor-nombre">' + esc(v.nombre) + '</span>' : '') +

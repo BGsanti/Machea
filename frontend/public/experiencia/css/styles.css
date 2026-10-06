@@ -6192,3 +6192,28 @@ html[data-marca='machea'] .gdf-escarapela .kicker .eyebrow {
 html[data-marca='machea'] .gdf-disclaimer {
   color: var(--tinta-suave);
 }
+
+/* ============ ARRIENDO (union con la rama de Santiago) ============
+   Las tarjetas, avisos y confirmacion de Arriendo reusan el marcado de
+   Compra (T9 y T10) y heredan su diseno. Aqui solo lo propio de Arriendo. */
+/* El motivo de Arriendo llega redactado como un parrafo, no como lista. */
+.gdf-razon-texto {
+  margin: 0;
+}
+/* Las flechas del visor ya son iconos SVG: sin el ajuste del simbolo. */
+.gdf-visor-flecha {
+  padding-bottom: 0;
+}
+html[data-marca='machea'] .gdf-visor-flecha,
+html[data-marca='machea'] .gdf-visor-cerrar {
+  color: var(--tinta);
+}
+/* Rotulos de la ficha y de las comodidades: el gris tenue no es para texto
+   que haya que leer (ver el bloque de contraste de T12). */
+html[data-marca='machea'] .gdf-detalle-titulo-bloque,
+html[data-marca='machea'] .gdf-comodidad-grupo-nombre {
+  color: var(--tinta-suave);
+}
+html[data-marca='machea'] .gdf-arriendo-foto {
+  border-radius: var(--radio-interior);
+}
