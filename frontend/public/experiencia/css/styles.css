@@ -6231,3 +6231,20 @@ html[data-marca='machea'] .gdf-arriendo-foto {
 html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
   background: #bd3220;
 }
+
+/* ============ T11: COPY ============ */
+/* "Dirección por confirmar": la dirección que la ficha publica como
+   provisional. Discreta, al lado de la dirección y sin color de alerta. */
+.gdf-dir-confirmar {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 7px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--tinta-suave);
+  white-space: nowrap;
+  vertical-align: 1px;
+}

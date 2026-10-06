@@ -254,19 +254,33 @@
 
     var a = state.answers;
     var perfilChips = [];
+    // Cómo se lee una respuesta en el resumen: el `chip` de la opción en
+    // data.js ("Mudanza en 1 mes"), no el valor que viaja al backend ("1_mes").
+    function chipDe(id, v) {
+      var preg = qList.filter(function (x) { return x.id === id; })[0];
+      var op = preg && (preg.options || []).filter(function (o) { return o.v === v; })[0];
+      return (op && op.chip) || v;
+    }
+    function cuenta(n, uno, varios) {
+      return n + ' ' + (Number(n) === 1 ? uno : varios);
+    }
     // Arriendo: además de 'ingresos' y 'zona(s)' (ya cubiertos abajo, mismas
     // claves que Compra), sus propias preguntas.
     if (a.operacion === 'arriendo') {
-      if (a.tipo_propiedad) perfilChips.push({ text: a.tipo_propiedad, hi: true });
-      if (a.presupuesto) perfilChips.push({ text: a.presupuesto, hi: false });
-      if (a.mudanza) perfilChips.push({ text: a.mudanza, hi: false });
+      if (a.tipo_propiedad) perfilChips.push({ text: chipDe('tipo_propiedad', a.tipo_propiedad), hi: true });
+      if (a.presupuesto) perfilChips.push({ text: chipDe('presupuesto', a.presupuesto), hi: false });
+      if (a.mudanza) perfilChips.push({ text: chipDe('mudanza', a.mudanza), hi: false });
       if (a.preferencias) {
-        perfilChips.push({ text: a.preferencias.habitaciones + ' hab · ' + a.preferencias.banos + ' baños', hi: false });
+        var p = a.preferencias;
+        var partes = [cuenta(p.habitaciones, 'habitación', 'habitaciones'), cuenta(p.banos, 'baño', 'baños')];
+        if (Number(p.parqueaderos) > 0) partes.push(cuenta(p.parqueaderos, 'parqueadero', 'parqueaderos'));
+        if (p.estrato) partes.push('Estrato ' + p.estrato);
+        perfilChips.push({ text: partes.join(' · '), hi: false });
       }
     }
-    if (a.tipo) perfilChips.push({ text: a.tipo, hi: true });
-    if (a.ingresos) perfilChips.push({ text: a.ingresos, hi: false });
-    if (a.habitaciones && a.operacion !== 'arriendo') perfilChips.push({ text: a.habitaciones + ' hab', hi: false });
+    if (a.tipo) perfilChips.push({ text: chipDe('tipo', a.tipo), hi: true });
+    if (a.ingresos) perfilChips.push({ text: chipDe('ingresos', a.ingresos), hi: false });
+    if (a.habitaciones && a.operacion !== 'arriendo') perfilChips.push({ text: chipDe('habitaciones', a.habitaciones), hi: false });
     // UN CHIP POR ZONA, no solo la primera. `a.zona` es unicamente la inicial;
     // en el mapa se pueden marcar varios sectores y el resumen mostraba una
     // sola, dando a entender que se recomendo sobre ella nada mas. No es asi:

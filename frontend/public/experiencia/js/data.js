@@ -89,8 +89,8 @@
       sub: 'Esto define a qué proyectos y subsidios puedes acceder.',
       cols: 1,
       options: [
-        { v: 'VIS', label: 'VIS', hint: 'Vivienda de interés social · aplica subsidio' },
-        { v: 'No VIS', label: 'No VIS', hint: 'Financiación flexible · sin subsidio' },
+        { v: 'VIS', label: 'VIS', chip: 'Vivienda VIS', hint: 'Vivienda de interés social · aplica subsidio' },
+        { v: 'No VIS', label: 'No VIS', chip: 'Vivienda No VIS', hint: 'Financiación flexible · sin subsidio' },
       ],
     },
     {
@@ -101,10 +101,10 @@
       options: [
         // Las cifras salen del SMMLV que usa js/simulador.js (SUPUESTOS.smmlv,
         // 2026): moverlo allá obliga a rehacer estas pistas.
-        { v: '≤2 SMMLV', label: 'Hasta 2 SMMLV', hint: '≈ hasta $3.5M al mes' },
-        { v: '2–4 SMMLV', label: '2 a 4 SMMLV', hint: '≈ $3.5M – $7.0M' },
-        { v: '4–8 SMMLV', label: '4 a 8 SMMLV', hint: '≈ $7.0M – $14.0M' },
-        { v: '8+ SMMLV', label: 'Más de 8 SMMLV', hint: '≈ más de $14.0M' },
+        { v: '≤2 SMMLV', label: 'Hasta 2 SMMLV', chip: 'Ingresos hasta 2 SMMLV', hint: '≈ hasta $3.5M al mes' },
+        { v: '2–4 SMMLV', label: '2 a 4 SMMLV', chip: 'Ingresos 2 a 4 SMMLV', hint: '≈ $3.5M – $7.0M' },
+        { v: '4–8 SMMLV', label: '4 a 8 SMMLV', chip: 'Ingresos 4 a 8 SMMLV', hint: '≈ $7.0M – $14.0M' },
+        { v: '8+ SMMLV', label: 'Más de 8 SMMLV', chip: 'Ingresos de más de 8 SMMLV', hint: '≈ más de $14.0M' },
       ],
     },
     {
@@ -126,9 +126,9 @@
       sub: 'Así ajustamos el tamaño de tu hogar.',
       cols: 3,
       options: [
-        { v: '1', label: '1' },
-        { v: '2', label: '2' },
-        { v: '3+', label: '3+' },
+        { v: '1', label: '1', chip: '1 habitación' },
+        { v: '2', label: '2', chip: '2 habitaciones' },
+        { v: '3+', label: '3+', chip: '3 o más habitaciones' },
       ],
     },
     // `entorno_deseado` es OPCIONAL en el contrato del modelo, pero se
@@ -249,13 +249,12 @@
     // (ni siquiera se sabe si es vivienda): mismo `escena: 'vacio'` que esa
     // pregunta, por la misma razón — ver el comentario de OPERACION arriba.
     escena: 'vacio',
-    // `v` igual al `label` a propósito, mismo criterio que la pregunta
-    // 'tipo' de Compra (v:'VIS', label:'VIS'): el chip del resumen
-    // (perfilChips en state.js) muestra el valor crudo, sin traducirlo.
+    // `chip` es como se lee la respuesta en el resumen (perfilChips en
+    // state.js); `v` es lo que viaja al backend y no se toca.
     options: [
-      { v: 'Vivienda', label: 'Vivienda' },
-      { v: 'Oficinas', label: 'Oficinas' },
-      { v: 'Bodegas', label: 'Bodegas' },
+      { v: 'Vivienda', label: 'Vivienda', chip: 'Vivienda' },
+      { v: 'Oficinas', label: 'Oficinas', chip: 'Oficina' },
+      { v: 'Bodegas', label: 'Bodegas', chip: 'Bodega' },
     ],
   };
 
@@ -265,10 +264,10 @@
     sub: 'Canon mensual que estás dispuesto a pagar.',
     cols: 1,
     options: [
-      { v: '<1M', label: 'Menos de $1.000.000' },
-      { v: '1-2M', label: '$1.000.000 – $2.000.000' },
-      { v: '2-3.5M', label: '$2.000.000 – $3.500.000' },
-      { v: '>3.5M', label: 'Más de $3.500.000' },
+      { v: '<1M', label: 'Menos de $1.000.000', chip: 'Hasta $1.000.000' },
+      { v: '1-2M', label: '$1.000.000 – $2.000.000', chip: '$1.000.000 a $2.000.000' },
+      { v: '2-3.5M', label: '$2.000.000 – $3.500.000', chip: '$2.000.000 a $3.500.000' },
+      { v: '>3.5M', label: 'Más de $3.500.000', chip: 'Más de $3.500.000' },
     ],
   };
 
@@ -278,10 +277,10 @@
     sub: 'Así priorizamos disponibilidad con los asesores.',
     cols: 1,
     options: [
-      { v: 'inmediato', label: 'Inmediato' },
-      { v: '1_mes', label: 'En 1 mes' },
-      { v: '2_3_meses', label: 'En 2 a 3 meses' },
-      { v: '+3_meses', label: 'Más de 3 meses' },
+      { v: 'inmediato', label: 'Inmediato', chip: 'Mudanza inmediata' },
+      { v: '1_mes', label: 'En 1 mes', chip: 'Mudanza en 1 mes' },
+      { v: '2_3_meses', label: 'En 2 a 3 meses', chip: 'Mudanza en 2 a 3 meses' },
+      { v: '+3_meses', label: 'Más de 3 meses', chip: 'Mudanza en más de 3 meses' },
     ],
   };
 

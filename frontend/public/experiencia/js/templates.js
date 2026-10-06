@@ -36,8 +36,21 @@
     return window.GDF_MARCA || {};
   }
 
+  // Textos de Machea fijados en el código (T11, TEXTOS.md sección 4): su
+  // manifiesto (tenants/machea/marca.js) es generado y todavía dice
+  // "Demostración" y "Ver ficha oficial ↗". Ganan sobre el manifiesto solo en
+  // Machea; las constructoras siguen leyendo el suyo.
+  var COPY_MACHEA = {
+    fichaOficial: 'Ver ficha oficial del proyecto',
+    sinPlanos: 'Aún no tenemos los planos de este proyecto.',
+    disclaimerCatalogo:
+      'Datos de área, habitaciones, baños y precio tomados de las fichas publicadas por cada constructora. ' +
+      'Precios y disponibilidad pueden cambiar: confírmalos con el asesor.',
+  };
+
   /** Un texto del manifiesto, o el de Colsubsidio si la marca no lo declara. */
   function txt(clave, porDefecto) {
+    if (marca().slug === 'machea' && COPY_MACHEA[clave] != null) return COPY_MACHEA[clave];
     var c = marca().copy || {};
     return c[clave] != null ? c[clave] : porDefecto;
   }
@@ -1116,7 +1129,7 @@
       '<div class="gdf-project-name">' + esc(item.nombre || 'Inmueble') + '</div>' +
       precioHtml +
       (item.localidad_nombre ? '<div class="gdf-project-loc">' + ic('ubicacion') + ' ' + esc(item.localidad_nombre) + '</div>' : '') +
-      (item.direccion ? '<div class="gdf-project-dir">' + esc(item.direccion) + '</div>' : '') +
+      direccionHtml(item.direccion) +
       '<div class="gdf-project-tags">' + tags + '</div>' +
       // Por qué quedó en esta posición, redactado por el modelo con los mismos
       // criterios del score (mismo rol que `vm.razon` en Compra).
@@ -1166,13 +1179,13 @@
 
     var conMatch = arriendo.items.length && arriendo.items[0].porcentaje_compatibilidad != null;
     return (
-      '<p class="gdf-match-count">' +
-      (conMatch ? 'Ordenados por compatibilidad con la zona que elegiste. ' : '') +
-      '<b>' + arriendo.items.length + ' inmuebles</b>' +
+      '<p class="gdf-match-count"><b>' + arriendo.items.length +
+      (arriendo.items.length === 1 ? ' inmueble' : ' inmuebles') + '</b>' +
+      (conMatch ? ' ordenados por compatibilidad con la zona que elegiste.' : '.') +
       (totalPaginas > 1
-        ? ', de ' + (desde + 1) + ' a ' + Math.min(desde + porPagina, arriendo.items.length)
+        ? ' Mostrando del ' + (desde + 1) + ' al ' + Math.min(desde + porPagina, arriendo.items.length) + '.'
         : '') +
-      '.</p>' +
+      '</p>' +
       '<div class="gdf-projects">' + tarjetasHtml + '</div>' +
       paginacionHtml
     );
@@ -1184,7 +1197,7 @@
         return '<span class="gdf-chip' + (c.hi ? ' hi' : '') + '">' + esc(c.text) + '</span>';
       })
       .join('');
-    var firstNameA = state.nombre.trim().split(' ')[0] || 'constructor';
+    var firstNameA = state.nombre.trim().split(' ')[0];
     var arriendo = state.arriendo;
 
     var cuerpoHtml;
@@ -1197,7 +1210,7 @@
       '<div class="gdf-screen gdf-result">' +
       '<div class="gdf-result-head">' +
       '<div class="eyebrow">Arriendo</div>' +
-      '<h2>Esto es lo que encontramos para ti,<br>' + esc(firstNameA) + '</h2>' +
+      '<h2>Esto es lo que encontramos para ti' + (firstNameA ? ',<br>' + esc(firstNameA) : '') + '</h2>' +
       '</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
       cuerpoHtml +
@@ -1238,7 +1251,7 @@
       '<div class="gdf-lead-notes">' + notesHtml + '</div>' +
       '</div>';
 
-    var firstName = state.nombre.trim().split(' ')[0] || 'constructor';
+    var firstName = state.nombre.trim().split(' ')[0];
     var reco = state.reco;
 
     // El cuerpo cambia según en qué punto va el paso 1 del contrato. Solo el
@@ -1253,7 +1266,7 @@
       '<div class="gdf-screen gdf-result">' +
       '<div class="gdf-result-head">' +
       '<div class="eyebrow">Tus proyectos recomendados</div>' +
-      '<h2>Esto es lo que encaja contigo,<br>' + esc(firstName) + '</h2>' +
+      '<h2>Esto es lo que encaja contigo' + (firstName ? ',<br>' + esc(firstName) : '') + '</h2>' +
       '</div>' +
       '<div class="gdf-chips">' + chipsHtml + '</div>' +
       cuerpoHtml +
@@ -1631,7 +1644,7 @@
       // sus zonas es esta. Debajo la direccion exacta, en tono mas bajo:
       // interesa cuando ya decidio mirar el proyecto, no antes.
       (vm.ubicacion ? '<div class="gdf-project-loc">' + ic('ubicacion') + ' ' + esc(vm.ubicacion) + '</div>' : '') +
-      (vm.direccion ? '<div class="gdf-project-dir">' + esc(vm.direccion) + '</div>' : '') +
+      direccionHtml(vm.direccion) +
       '<div class="gdf-project-tags">' + especificaciones + '</div>' +
       avisoHab +
       // Por qué quedó en esta posición. Lo arma js/recommender.js con los
@@ -1646,6 +1659,23 @@
       accionesContacto(vm, state) +
       detalleProyecto(vm, state) +
       '</div>' +
+      '</div>'
+    );
+  }
+
+  /**
+   * La dirección exacta de la tarjeta. Algunas fichas la publican con
+   * "(Dirección provisional)" pegado al texto: se quita el paréntesis y se
+   * dice con una etiqueta aparte, que se lee ordenada y sigue siendo honesta.
+   */
+  var RE_DIR_PROVISIONAL = /\s*\(\s*direcci[oó]n provisional\s*\)\s*/i;
+  function direccionHtml(direccion) {
+    if (!direccion) return '';
+    var provisional = RE_DIR_PROVISIONAL.test(direccion);
+    var limpia = String(direccion).replace(RE_DIR_PROVISIONAL, ' ').replace(/\s+,/g, ',').replace(/\s{2,}/g, ' ').trim();
+    return (
+      '<div class="gdf-project-dir">' + esc(limpia) +
+      (provisional ? ' <span class="gdf-dir-confirmar">Dirección por confirmar</span>' : '') +
       '</div>'
     );
   }
@@ -2133,7 +2163,7 @@
    * de `state.llamada` que pinta Compra, porque es el mismo POST /api/llamar.
    */
   function confirmacionArriendo(state, derived) {
-    var firstName = state.nombre.trim().split(' ')[0] || 'constructor';
+    var firstName = state.nombre.trim().split(' ')[0];
     var elegido = null;
     (state.arriendo.items || []).forEach(function (item) {
       if (String(item.id_inmueble) === String(state.chosen)) elegido = item;
@@ -2192,7 +2222,7 @@
       '<div class="gdf-screen gdf-confirmacion">' +
       '<div class="gdf-confirm-hero gdf-confirm-hero--ok">' +
       '<div class="gdf-confirm-icon"><span class="gdf-confirm-check">' + ic('check') + '</span></div>' +
-      '<h2>¡Gracias por tu interés, ' + esc(firstName) + '!</h2>' +
+      '<h2>¡Gracias por tu interés' + (firstName ? ', ' + esc(firstName) : '') + '!</h2>' +
       '<p>Te interesa <strong>' + esc(nombreInmueble) + '</strong>. Te llamamos para confirmar ' +
       'disponibilidad y coordinar la visita.</p>' +
       extra +
@@ -2213,7 +2243,7 @@
   function confirmacion(state, derived) {
     if (state.answers.operacion === 'arriendo') return confirmacionArriendo(state, derived);
     var lead = state.lead;
-    var firstName = state.nombre.trim().split(' ')[0] || 'constructor';
+    var firstName = state.nombre.trim().split(' ')[0];
 
     var sim = window.GDF.simulador;
     var elegido = null;
@@ -2305,7 +2335,7 @@
     var llamada = state.llamada;
     var heroClase = 'gdf-confirm-hero--ok';
     var heroIcono = '<span class="gdf-confirm-check">' + ic('check') + '</span>';
-    var heroTitulo = '¡Gracias por tu interés, ' + esc(firstName) + '!';
+    var heroTitulo = '¡Gracias por tu interés' + (firstName ? ', ' + esc(firstName) : '') + '!';
     var heroTexto =
       'Elegiste <strong>' + esc(nombreProyecto) + '</strong>. Un asesor de vivienda de ' +
       esc(bonita(duenaProyecto) || nombreMarca()) + ' te acompaña desde acá.';
