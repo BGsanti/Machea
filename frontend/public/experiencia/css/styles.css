@@ -5705,6 +5705,13 @@ html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom-out {
   .gdf-entorno-combo #entornoOpciones {
     max-height: min(280px, 24dvh);
   }
+  /* La lista plegable de estilo de vida (Arriendo) trae `overflow: visible`:
+     con el tope de arriba, las opciones se salian de la caja y quedaban
+     encima de "Continuar", que dejaba de recibir el clic. Aqui hace scroll
+     por dentro, como la de amenidades. */
+  .gdf-entorno-combo #entornoOpciones.gdf-multi-opt-list--plegable {
+    overflow-y: auto;
+  }
 }
 
 /* ============ PANTALLAS DE PREGUNTA (T5, variante B "lista sobria") ============
@@ -6216,4 +6223,11 @@ html[data-marca='machea'] .gdf-comodidad-grupo-nombre {
 }
 html[data-marca='machea'] .gdf-arriendo-foto {
   border-radius: var(--radio-interior);
+}
+/* "Hablar con un asesor" va a 13,5-15 px: el hover general del boton
+   principal (#E03A28) es MAS CLARO que su fondo y baja el blanco a 4,37:1.
+   Al pasar el mouse se oscurece en vez de aclararse (5,8:1). Vale para
+   Compra y Arriendo. */
+html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
+  background: #bd3220;
 }
