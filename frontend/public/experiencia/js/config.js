@@ -15,7 +15,7 @@ window.GDF_CONFIG = {
   // Bogotá) con sus fotos. No es el modelo —son reglas— y lo dice en el campo
   // `motor` de cada respuesta, que sale por consola:
   //   python integracion/fake_machea.py     -> escucha en el mismo puerto
-  MACHEA_BASE: 'https://machea.onrender.com/api',
+  MACHEA_BASE: 'https://machea-api.onrender.com/api',
 
   // De dónde salen los proyectos recomendados (ver js/recommender.js):
   //   'machea' -> las 7 respuestas viajan al modelo, que devuelve el Top 6 con
@@ -39,7 +39,7 @@ window.GDF_CONFIG = {
   // SIN_BACKEND:true — ese flag solo apaga el cálculo de recomendaciones, no
   // la llamada de Manuela, que no puede hacerse desde el navegador porque
   // necesita la API key de Dapta, y esa nunca puede viajar al cliente.
-  DAPTA_LLAMADA_BASE: 'https://machea.onrender.com',
+  DAPTA_LLAMADA_BASE: 'https://machea-api.onrender.com',
 
   // El número al que escribe el botón "WhatsApp" de la tarjeta elegida, en
   // formato internacional y sin "+" (57 + celular de 10 dígitos). Vacío, el
