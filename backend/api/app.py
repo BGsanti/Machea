@@ -367,23 +367,30 @@ def _texto(valor: Any) -> Optional[str]:
 async def webhook_resultado_llamada(request: Request):
     """Receptor del webhook post-call de Dapta (agente Manuela — Machea).
 
-    Escrito a la defensiva: el payload exacto no está documentado en público
-    y no se puede probar sin disparar una llamada real, así que se guarda el
-    cuerpo crudo completo (para depurar si algún campo no cruza donde se
-    esperaba) y se intentan varias rutas conocidas para cada dato, sacadas de
-    lo que sí se ve en list_calls: `custom_analysis_data` puede llegar como
-    dict ya parseado o como string JSON dentro de `call_analysis`.
+    Dapta manda la llamada ANIDADA: el cuerpo trae las claves `data` y `call`,
+    y `to_number`, `call_status` y `call_analysis` viven dentro de `data` (se
+    comprobó con un envío real, 2026-10-06). Por eso se busca la llamada en
+    `data`, luego en `call` y por último en el nivel superior. El cuerpo crudo
+    se sigue registrando, por si Dapta cambia la forma otra vez.
+    `custom_analysis_data` puede llegar como dict o como string JSON.
     """
     body = await request.json()
     logger.info("webhook post-call de Dapta: %s", json.dumps(body, ensure_ascii=False)[:4000])
 
-    telefono = _texto(body.get("to_number") or body.get("telefono") or body.get("phone"))
-    telefono_e164 = normalizar_telefono_e164(telefono) or telefono
-    if not telefono_e164:
+    def _con_telefono(d: Any) -> bool:
+        return isinstance(d, dict) and any(d.get(k) for k in ("to_number", "telefono", "phone"))
+
+    llamada = next(
+        (c for c in (body.get("data"), body.get("call"), body) if _con_telefono(c)), None
+    )
+    if llamada is None:
         logger.warning("webhook post-call sin to_number reconocible: %s", list(body.keys()))
         return {"status": "ignorado", "detalle": "sin to_number"}
 
-    analisis = body.get("call_analysis")
+    telefono = _texto(llamada.get("to_number") or llamada.get("telefono") or llamada.get("phone"))
+    telefono_e164 = normalizar_telefono_e164(telefono) or telefono
+
+    analisis = llamada.get("call_analysis") or body.get("call_analysis")
     if isinstance(analisis, str):
         try:
             analisis = json.loads(analisis)
@@ -391,18 +398,18 @@ async def webhook_resultado_llamada(request: Request):
             analisis = {}
     analisis = analisis or {}
 
-    datos = analisis.get("custom_analysis_data") or body.get("custom_analysis_data") or {}
+    datos = analisis.get("custom_analysis_data") or llamada.get("custom_analysis_data") or {}
     if isinstance(datos, str):
         try:
             datos = json.loads(datos)
         except ValueError:
             datos = {}
 
-    RESULTADOS_LLAMADAS[telefono_e164] = {
+    nuevo = {
         "listo": True,
         "recibido_en": datetime.now(TZ_BOGOTA).isoformat(),
-        "call_status": body.get("call_status"),
-        "disconnection_reason": body.get("disconnection_reason"),
+        "call_status": llamada.get("call_status"),
+        "disconnection_reason": llamada.get("disconnection_reason"),
         "temperatura_lead": datos.get("temperatura_lead"),
         "resumen_llamada": datos.get("resumen_llamada") or analisis.get("call_summary"),
         "recomendacion_asesor": datos.get("recomendacion_asesor"),
@@ -413,6 +420,13 @@ async def webhook_resultado_llamada(request: Request):
         "fecha_de_seguimiento": datos.get("fecha_de_seguimiento"),
         "objecion_principal": datos.get("objecion_principal"),
     }
+    # Si Dapta manda más de un evento por llamada, uno sin análisis no debe
+    # borrar los datos que dejó el anterior.
+    previo = RESULTADOS_LLAMADAS.get(telefono_e164) or {}
+    for clave, valor in nuevo.items():
+        if valor in (None, "") and previo.get(clave) not in (None, ""):
+            nuevo[clave] = previo[clave]
+    RESULTADOS_LLAMADAS[telefono_e164] = nuevo
     return {"status": "ok"}
 
 
