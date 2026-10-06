@@ -240,15 +240,78 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   }
 
-  function escarapela(state) {
-    var canStart = !!(
-      state.nombre.trim() &&
-      state.apellido.trim() &&
-      state.correo.trim() &&
-      isValidEmail(state.correo.trim()) &&
-      state.telefono.trim() &&
-      state.consent
+  // El isotipo de Machea (el dibujo de Santiago, mismo que favicon y landing)
+  // en el rojo del manual, con la palabra al lado.
+  var ISOTIPO_MACHEA =
+    '<svg viewBox="3 3 50.5 33.7" aria-hidden="true" focusable="false">' +
+    '<g fill="none" stroke="#FC4633" stroke-width="6" stroke-linejoin="miter" stroke-miterlimit="10">' +
+    '<path d="M6 25.6 24.4 7.2 33.6 16.4"/><path d="M12 19.6V36.7"/><path d="M20.5 23.3 26.7 29.5 47.6 11.6"/></g>' +
+    '<path fill="#FC4633" d="M41.25 7.9 53.3 6 51 18.75Z M40 25 45.8 20.9V36.7H40Z"/></svg>';
+
+  /** Un campo del registro de Machea: rótulo, input y su mensaje de error. */
+  function campoRegistro(c, valor) {
+    return (
+      '<div class="gdf-reg-campo" data-campo="' + c.campo + '">' +
+      '<label class="gdf-field-label" for="' + c.id + '">' + c.rotulo + '</label>' +
+      '<input class="gdf-input" id="' + c.id + '" type="' + c.tipo + '"' +
+      (c.modo ? ' inputmode="' + c.modo + '"' : '') +
+      ' autocomplete="' + c.auto + '" placeholder="' + c.ejemplo + '"' +
+      ' aria-describedby="' + c.id + 'Error" value="' + esc(valor) + '" />' +
+      '<p class="gdf-reg-error" id="' + c.id + 'Error">' + ic('alerta', { tam: 14 }) + '<span>' + c.error + '</span></p>' +
+      '</div>'
     );
+  }
+
+  /**
+   * El registro de Machea, variante B "formulario limpio" (T4b; mockup en
+   * design/formulario-rediseno/mockups/registro.html, textos de TEXTOS.md
+   * sección 1). Sin carné, sin avatar y sin cédula. La validación en vivo la
+   * pinta updateStartButton() en main.js sin repintar la pantalla, para no
+   * perder el foco; aquí solo sale el estado inicial.
+   */
+  function registroMachea(state) {
+    var v = window.GDF.state.validarRegistro(state);
+    var campos = [
+      { campo: 'nombre', id: 'nombreInput', rotulo: 'Nombres', tipo: 'text', auto: 'given-name', ejemplo: 'Ej: Ana', error: 'Escribe tu nombre.' },
+      { campo: 'apellido', id: 'apellidoInput', rotulo: 'Apellidos', tipo: 'text', auto: 'family-name', ejemplo: 'Ej: Ruiz', error: 'Escribe tus apellidos.' },
+      { campo: 'correo', id: 'correoInput', rotulo: 'Correo electrónico', tipo: 'email', modo: 'email', auto: 'email', ejemplo: 'ana.ruiz@correo.com', error: 'Revisa el correo: debe verse como nombre@dominio.com' },
+      { campo: 'telefono', id: 'telefonoInput', rotulo: 'Teléfono (WhatsApp)', tipo: 'tel', modo: 'tel', auto: 'tel-national', ejemplo: '300 123 4567', error: 'Escribe un celular de 10 dígitos.' },
+    ];
+    var valores = { nombre: state.nombre, apellido: state.apellido, correo: state.correo, telefono: state.telefono };
+    return (
+      '<div class="gdf-screen gdf-escarapela gdf-registro">' +
+      '<div class="gdf-registro-caja">' +
+      '<div class="gdf-registro-logo" role="img" aria-label="Machea">' + ISOTIPO_MACHEA + '<span aria-hidden="true">machea</span></div>' +
+      '<p class="eyebrow">Tus datos</p>' +
+      '<h2>Cuéntanos quién eres</h2>' +
+      '<p class="gdf-registro-sub">Después te hacemos unas preguntas sobre la vivienda que buscas.</p>' +
+      '<div class="gdf-registro-fila">' +
+      campoRegistro(campos[0], valores.nombre) +
+      campoRegistro(campos[1], valores.apellido) +
+      '</div>' +
+      campoRegistro(campos[2], valores.correo) +
+      campoRegistro(campos[3], valores.telefono) +
+      '<div class="gdf-reg-campo" data-campo="consent">' +
+      '<label class="gdf-consent" data-action="toggleConsent" role="checkbox" tabindex="0"' +
+      ' aria-checked="' + (state.consent ? 'true' : 'false') + '" aria-describedby="consentError">' +
+      '<span class="box' + (state.consent ? ' checked' : '') + '">' + (state.consent ? ic('check') : '') + '</span>' +
+      '<span class="text">' +
+      txt('habeasData', 'Autorizo el tratamiento de mis datos personales para recibir información de vivienda (Habeas Data).') +
+      '</span>' +
+      '</label>' +
+      '<p class="gdf-reg-error" id="consentError">' + ic('alerta', { tam: 14 }) + '<span>Necesitamos tu autorización para continuar.</span></p>' +
+      '</div>' +
+      '<button class="gdf-btn-primary' + (v.ok ? ' enabled' : '') + '" data-action="startQuiz" aria-disabled="' + (v.ok ? 'false' : 'true') + '">' +
+      'Empezar ' + ic('flecha-derecha') + '</button>' +
+      '<p class="gdf-hint" aria-live="polite">' + (v.ok ? 'Todo listo.' : 'Completa los campos para continuar.') + '</p>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  function escarapela(state) {
+    if (marca().slug === 'machea') return registroMachea(state);
+    var canStart = window.GDF.state.validarRegistro(state).ok;
 
     var affiliateBadge =
       pideAfiliacion() && state.afiliado !== null

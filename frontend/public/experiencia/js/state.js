@@ -31,6 +31,10 @@
       // (Supabase sin configurar, o si falló al guardar) no bloquea nada.
       consultaId: null,
       consent: false,
+      // Campos del registro que la persona ya dejó (blur): solo esos muestran
+      // su error. Vive en el estado para que el error no se borre cuando un
+      // clic (el consentimiento) repinta la pantalla.
+      tocados: {},
       qi: 0,
       answers: {},
       // El barrio elegido en la pregunta de ubicacion. Vive FUERA de `answers`
@@ -381,16 +385,7 @@
       case 'startQuiz': {
         // La cédula ya no se pide (decisión de Diego, 2026-10-04): la persona
         // se identifica con su teléfono y su correo.
-        var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-        var canStart = !!(
-          state.nombre.trim() &&
-          state.apellido.trim() &&
-          state.correo.trim() &&
-          isValidEmail &&
-          state.telefono.trim() &&
-          state.consent
-        );
-        if (!canStart) return false;
+        if (!validarRegistro(state).ok) return false;
         state.answers = { afiliado: state.afiliado };
         state.qi = 0;
         state.screen = 'quiz';
@@ -671,8 +666,43 @@
     return true;
   }
 
+  /**
+   * EL ÚNICO criterio del registro. Lo usan la plantilla, la validación en
+   * vivo de main.js y 'startQuiz'; antes eran cuatro copias de la misma
+   * condición. Devuelve cada campo por separado (para pintar su error) y `ok`.
+   *
+   * Machea (T4b) exige formato: nombre y apellidos de 2 letras o más, correo
+   * con dominio (nombre@dominio.com) y un celular de 10 dígitos. Las
+   * constructoras siguen con la regla de siempre (campos no vacíos y correo
+   * con @ y punto), para no cambiarles el comportamiento.
+   */
+  function validarRegistro(state) {
+    var estricto = (window.GDF_MARCA || {}).slug === 'machea';
+    var nombre = state.nombre.trim();
+    var apellido = state.apellido.trim();
+    var correo = state.correo.trim();
+    var digitos = state.telefono.replace(/\D/g, '');
+    var v = estricto
+      ? {
+          nombre: nombre.length >= 2,
+          apellido: apellido.length >= 2,
+          correo: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo),
+          telefono: digitos.length === 10,
+        }
+      : {
+          nombre: !!nombre,
+          apellido: !!apellido,
+          correo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo),
+          telefono: !!state.telefono.trim(),
+        };
+    v.consent = !!state.consent;
+    v.ok = v.nombre && v.apellido && v.correo && v.telefono && v.consent;
+    return v;
+  }
+
   window.GDF = window.GDF || {};
   window.GDF.state = {
+    validarRegistro: validarRegistro,
     createInitial: createInitial,
     computeDerived: computeDerived,
     applyAction: applyAction,

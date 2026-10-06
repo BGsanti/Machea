@@ -6248,3 +6248,147 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
   white-space: nowrap;
   vertical-align: 1px;
 }
+
+/* ============ REGISTRO DE MACHEA (T4b, variante B "formulario limpio") ============
+   Mockup: design/formulario-rediseno/mockups/registro.html (pestaña B).
+   Solo Machea pinta .gdf-registro; las constructoras siguen con el carné. */
+.gdf-registro {
+  align-items: center;
+  padding: 40px 22px 32px;
+  background: var(--papel);
+}
+.gdf-registro-caja {
+  width: 100%;
+  max-width: 460px;
+}
+.gdf-registro-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  color: var(--tinta);
+}
+.gdf-registro-logo svg {
+  display: block;
+  width: auto;
+  height: 26px;
+}
+.gdf-registro-logo span {
+  font-family: var(--fuente-titulos);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.gdf-registro .eyebrow {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.gdf-registro h2 {
+  margin: 0 0 8px;
+  font-family: var(--fuente-titulos);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: var(--tinta);
+}
+.gdf-registro-sub {
+  margin: 0 0 22px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--tinta-media);
+}
+.gdf-registro-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.gdf-reg-campo {
+  min-width: 0;
+  margin-bottom: 14px;
+}
+.gdf-registro .gdf-field-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--tinta);
+  margin-bottom: 6px;
+}
+.gdf-registro .gdf-input {
+  margin-bottom: 0;
+  height: 46px;
+  padding: 0 14px;
+  border-width: 1px;
+  background: var(--papel);
+  font-weight: 500;
+}
+.gdf-registro .gdf-input::placeholder {
+  color: var(--tinta-tenue);
+  font-weight: 400;
+}
+.gdf-registro .gdf-input:hover {
+  border-color: #c4cbd3;
+}
+/* Valido = navy (estado aprobado en T1); con error = rojo hondo, legible. */
+.gdf-reg-campo.valido .gdf-input {
+  border-color: var(--tinta);
+}
+.gdf-reg-campo.con-error .gdf-input {
+  border-color: var(--marca-texto);
+  box-shadow: 0 0 0 3px rgba(252, 70, 51, 0.1);
+}
+.gdf-reg-error {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--marca-texto);
+}
+.gdf-reg-error .gdf-icono-ui {
+  flex: none;
+}
+.gdf-reg-campo.con-error .gdf-reg-error {
+  display: flex;
+}
+.gdf-registro .gdf-consent {
+  margin: 6px 0 0;
+  padding: 13px 14px;
+  background: var(--papel);
+}
+.gdf-registro .gdf-consent:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(31, 46, 66, 0.28);
+}
+.gdf-reg-campo.con-error .gdf-consent {
+  border-color: var(--marca-texto);
+}
+.gdf-registro .gdf-consent .text {
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.gdf-registro .gdf-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.gdf-registro .gdf-hint {
+  font-size: 12px;
+}
+@media (max-width: 420px) {
+  .gdf-registro {
+    padding: 28px 18px 28px;
+  }
+  .gdf-registro-logo {
+    margin-bottom: 24px;
+  }
+  .gdf-registro h2 {
+    font-size: 28px;
+  }
+}

@@ -146,6 +146,27 @@
         updateStartButton();
       });
     }
+    var consentimiento = document.querySelector('.gdf-registro .gdf-consent');
+    if (consentimiento) {
+      consentimiento.addEventListener('keydown', function (e) {
+        if (e.key !== ' ' && e.key !== 'Enter') return;
+        e.preventDefault();
+        dispatch('toggleConsent', {});
+        var nuevo = document.querySelector('.gdf-registro .gdf-consent');
+        if (nuevo) nuevo.focus();
+      });
+    }
+    // Registro de Machea (T4b): el error de un campo aparece al salir de él
+    // (blur), no mientras se escribe; desde ahí se actualiza en vivo.
+    [['nombre', nombreInput], ['apellido', apellidoInput], ['correo', correoInput], ['telefono', telefonoInput]]
+      .forEach(function (par) {
+        if (!par[1] || !document.querySelector('.gdf-registro')) return;
+        par[1].addEventListener('blur', function () {
+          state.tocados[par[0]] = true;
+          updateStartButton();
+        });
+      });
+    updateStartButton();
 
     var quizNumberInput = document.getElementById('quizNumberInput');
     if (quizNumberInput) {
@@ -903,18 +924,27 @@
   }
 
   function updateStartButton() {
-    var btn = document.querySelector('.gdf-btn-primary');
+    var btn = document.querySelector('[data-action="startQuiz"]');
     if (!btn) return;
-    var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-    var canStart = !!(
-      state.nombre.trim() &&
-      state.apellido.trim() &&
-      state.correo.trim() &&
-      isValidEmail &&
-      state.telefono.trim() &&
-      state.consent
-    );
-    btn.classList.toggle('enabled', canStart);
+    var v = window.GDF.state.validarRegistro(state);
+    btn.classList.toggle('enabled', v.ok);
+    // Registro de Machea: errores por campo, botón y ayuda. El botón no lleva
+    // `disabled` sino `aria-disabled`: así un clic con algo pendiente puede
+    // mostrar todos los errores (ver 'startQuiz' en onRootClick).
+    var reg = document.querySelector('.gdf-registro');
+    if (!reg) return;
+    btn.setAttribute('aria-disabled', v.ok ? 'false' : 'true');
+    ['nombre', 'apellido', 'correo', 'telefono', 'consent'].forEach(function (k) {
+      var campo = reg.querySelector('[data-campo="' + k + '"]');
+      if (!campo) return;
+      var mal = !!state.tocados[k] && !v[k];
+      campo.classList.toggle('con-error', mal);
+      campo.classList.toggle('valido', k !== 'consent' && v[k]);
+      var input = campo.querySelector('input');
+      if (input) input.setAttribute('aria-invalid', mal ? 'true' : 'false');
+    });
+    var ayuda = reg.querySelector('.gdf-hint');
+    if (ayuda) ayuda.textContent = v.ok ? 'Todo listo.' : 'Completa los campos para continuar.';
   }
 
   // El botón de la pregunta numérica del quiz (edad) empieza deshabilitado
@@ -1255,12 +1285,14 @@
   function iniciarQuizConBusqueda() {
     // Mismo criterio de canStart que templates.js/state.js: sin esto no
     // vale la pena ni intentar la consulta.
-    var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-    var camposValidos = !!(
-      state.nombre.trim() && state.apellido.trim() &&
-      state.correo.trim() && isValidEmail &&
-      state.telefono.trim() && state.consent
-    );
+    var camposValidos = window.GDF.state.validarRegistro(state).ok;
+    if (!camposValidos && document.querySelector('.gdf-registro')) {
+      ['nombre', 'apellido', 'correo', 'telefono', 'consent'].forEach(function (k) { state.tocados[k] = true; });
+      updateStartButton();
+      var primero = document.querySelector('.gdf-registro .con-error input');
+      if (primero) primero.focus();
+      return;
+    }
     if (!BUSQUEDA_ACTIVA || !camposValidos || !window.GDF.datos) {
       // dispatch() vuelve a validar por su cuenta; si falta algo, no hace
       // nada -- mismo comportamiento que antes de este cambio.
