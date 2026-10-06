@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pantallas de pregunta - propuestas (T5)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup de T5: tres maneras de componer la pantalla de pregunta con el
+     manual de marca (T1) y los iconos de T2. No es codigo del producto. */
+  :root {
+    --rojo: #fc4633; --rojo-texto: #d13a26; --navy: #1f2e42; --gris: #f5f6f8;
+    --media: #4a5666; --suave: #6b7684; --tenue: #a7adb5; --linea: #dce1e7;
+    --sombra: 0 12px 30px rgba(31, 46, 66, .08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font: 500 14px/1.45 'Inter', sans-serif; color: var(--navy); background: #e9ecf0; }
+  header.top { position: sticky; top: 0; z-index: 9; background: #fff; border-bottom: 1px solid var(--linea);
+    padding: 14px 24px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  header.top h1 { font-size: 16px; font-weight: 800; }
+  .tabs { display: flex; gap: 8px; }
+  .tabs button { font: 700 13px 'Inter'; border: 1.5px solid var(--linea); background: #fff; color: var(--navy);
+    border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+  .tabs button.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .nota { color: var(--suave); font-size: 13px; max-width: 760px; }
+  main { padding: 28px 24px 80px; display: flex; flex-direction: column; gap: 28px; align-items: flex-start; }
+  .rotulo { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--suave); margin-bottom: 8px; }
+
+  /* Marcos */
+  .esc { width: 1200px; height: 750px; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(31,46,66,.14);
+    display: grid; grid-template-columns: 1fr 1.3fr; }
+  .esc.sin3d { grid-template-columns: 1fr; }
+  .esc .escena { background: #fff center/cover no-repeat; border-left: 1px solid var(--linea); }
+  .mov { width: 390px; height: 780px; background: #fff; border-radius: 28px; overflow: hidden; box-shadow: 0 20px 50px rgba(31,46,66,.14);
+    display: flex; flex-direction: column; border: 8px solid #111820; }
+  .mov .escena { height: 220px; flex: none; background: #fff center 40%/cover no-repeat; border-bottom: 1px solid var(--linea); }
+  .fila-marcos { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+
+  .panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .esc .panel { padding: 28px 40px 32px; }
+  .mov .panel { padding: 16px 18px 20px; flex: 1; }
+  .esc.sin3d .panel { padding: 28px 40px 40px; }
+
+  /* Piezas comunes */
+  h2 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+  .mov h2 { font-size: 22px; }
+  .sub { color: var(--suave); margin-top: 8px; font-size: 15px; }
+  .mov .sub { font-size: 13px; }
+  .paso { font-size: 12px; font-weight: 700; color: var(--suave); }
+  .afinidad { font-size: 12px; font-weight: 700; color: var(--suave); display: inline-flex; gap: 6px; align-items: baseline; }
+  .afinidad b { color: var(--rojo-texto); font-weight: 800; }
+  .atras { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; color: var(--media);
+    font: 700 14px 'Inter'; cursor: pointer; padding: 6px 0; }
+  .atras:hover { color: var(--navy); }
+  .barra { height: 4px; background: var(--gris); border-radius: 999px; overflow: hidden; }
+  .barra i { display: block; height: 100%; background: var(--rojo); border-radius: 999px; }
+  .ico { width: 1em; height: 1em; flex: none; vertical-align: -.15em; }
+
+  /* Opciones: fila (label + hint) */
+  .op { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer;
+    background: #fff; border: 1.5px solid var(--linea); border-radius: 14px; padding: 15px 18px; font: inherit; color: inherit;
+    transition: border-color .15s, background .15s, box-shadow .15s; }
+  .op:hover { border-color: var(--navy); background: var(--gris); }
+  .op.sel { border: 2px solid var(--navy); background: var(--gris); padding: 14.5px 17.5px; }
+  .op .txt { flex: 1; display: flex; flex-direction: column; }
+  .op .lb { font-size: 16px; font-weight: 700; }
+  .op .hn { font-size: 13px; color: var(--suave); margin-top: 2px; }
+  .op .radio { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--tenue); flex: none; display: grid; place-items: center; }
+  .op.sel .radio { border: none; background: var(--navy); color: #fff; font-size: 13px; }
+  .op .chev { color: var(--tenue); font-size: 18px; }
+  .lista { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Opciones: tarjeta grande con icono */
+  .tarjetas { display: grid; gap: 14px; }
+  .tarjeta { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; text-align: left; cursor: pointer;
+    background: #fff; border: 1.5px solid var(--linea); border-radius: 18px; padding: 24px; font: inherit; color: inherit;
+    box-shadow: var(--sombra); transition: border-color .15s, transform .15s; min-height: 170px; }
+  .tarjeta:hover { border-color: var(--navy); transform: translateY(-2px); }
+  .tarjeta .circ { width: 52px; height: 52px; border-radius: 14px; background: var(--gris); display: grid; place-items: center; font-size: 26px; }
+  .tarjeta .lb { font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+  .tarjeta .hn { font-size: 13px; color: var(--suave); margin-top: -10px; }
+  .mov .tarjeta { min-height: 0; padding: 18px; gap: 12px; flex-direction: row; align-items: center; box-shadow: none; }
+  .mov .tarjeta .circ { width: 44px; height: 44px; font-size: 22px; }
+  .mov .tarjeta .lb { font-size: 17px; }
+
+  /* ===== Variante A: encabezado fijo arriba (Atras + paso + barra) ===== */
+  .vA .cab { display: flex; flex-direction: column; gap: 10px; }
+  .vA .cab .fila { display: flex; justify-content: space-between; align-items: center; }
+  .vA .cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+  .vA .pie { display: flex; justify-content: flex-end; }
+  .vA.sin3d .cuerpo { align-self: center; width: 100%; max-width: 760px; }
+  .vA.sin3d .cab { align-self: stretch; }
+  .mov .vA .cuerpo, .mov.vA .cuerpo { justify-content: flex-start; padding-top: 18px; }
+
+  /* ===== Variante B: barra por pasos, Atras al pie del contenido ===== */
+  .vB .segs { display: grid; gap: 4px; }
+  .vB .segs i { height: 4px; border-radius: 999px; background: var(--gris); }
+  .vB .segs i.ok { background: var(--rojo); }
+  .vB .meta { display: flex; justify-content: space-between; margin-top: 10px; }
+  .vB .cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+  .vB.sin3d .cuerpo { align-self: center; width: 100%; max-width: 640px; }
+  .mov.vB .cuerpo { justify-content: flex-start; padding-top: 18px; }
+
+  /* ===== Variante C: todo centrado ===== */
+  .vC .puntos { display: flex; gap: 6px; justify-content: center; }
+  .vC .puntos i { width: 8px; height: 8px; border-radius: 50%; background: var(--linea); }
+  .vC .puntos i.ok { background: var(--rojo); }
+  .vC .puntos i.ya { background: var(--navy); }
+  .vC .cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 22px; }
+  .vC .cuerpo > * { width: 100%; max-width: 520px; }
+  .vC .tarjeta { align-items: center; text-align: center; }
+  .vC .tarjeta .hn { margin-top: -10px; }
+  .mov.vC .cuerpo { justify-content: flex-start; padding-top: 14px; }
+  .mov.vC .tarjeta { flex-direction: row; text-align: left; }
+
+  .variante { display: none; flex-direction: column; gap: 28px; }
+  .variante.on { display: flex; }
+  .desc { background: #fff; border-radius: 14px; padding: 16px 18px; max-width: 1200px; box-shadow: var(--sombra); }
+  .desc b { font-weight: 800; }
+  .desc ul { margin: 8px 0 0 18px; color: var(--media); }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Pantallas de pregunta (T5)</h1>
+  <div class="tabs" id="tabs"></div>
+  <p class="nota">Tres propuestas sobre el manual de marca (T1) y los iconos (T2). Las preguntas, sus ids y sus valores no cambian. La escena 3D es una captura real.</p>
+</header>
+<main id="main"></main>
+
+<script src="iconos-ui.js"></script>
+<script>
+  // Iconos de opcion que el set de T2 no tiene; se agregarian a iconos-ui.js
+  // solo si se elige una variante con tarjetas.
+  var T = window.GDF.iconosUI.TRAZOS;
+  T['llave'] = '<circle cx="8" cy="15" r="4.5"/><path d="M11.2 11.8 20 3"/><path d="M16.5 6.5l2.5 2.5"/><path d="M14 9l2 2"/>';
+  T['contrato'] = '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h4"/>';
+  T['casa'] = '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>';
+  T['bodega'] = '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7"/><path d="M7 16h10"/><path d="M3 20h18"/>';
+  var ic = function (n) { return window.GDF.iconosUI.icono(n, { clase: 'ico' }); };
+
+  var OPERACION = { paso: 1, total: 8, titulo: '¿Qué estás buscando?', sub: 'Elige cómo quieres encontrar tu próximo hogar.',
+    ops: [{ lb: 'Comprar', ic: 'llave' }, { lb: 'Arrendar', ic: 'contrato' }] };
+  var PROPIEDAD = { paso: 2, total: 9, titulo: '¿Qué propiedad estás buscando?', sub: 'Esto nos ayuda a mostrarte las opciones correctas.',
+    ops: [{ lb: 'Vivienda', ic: 'casa' }, { lb: 'Oficinas', ic: 'edificio' }, { lb: 'Bodegas', ic: 'bodega' }] };
+  var TIPO = { paso: 3, total: 8, afin: 59, titulo: '¿Qué tipo de vivienda buscas?', sub: 'Esto define a qué proyectos y subsidios puedes acceder.',
+    ops: [{ lb: 'VIS', hn: 'Vivienda de interés social · aplica subsidio' }, { lb: 'No VIS', hn: 'Financiación flexible · sin subsidio', sel: true }] };
+  var INGRESOS = { paso: 4, total: 8, afin: 61, titulo: '¿Cuánto ganan en tu hogar al mes?', sub: 'Suma los ingresos mensuales de todas las personas que aportan en tu hogar.',
+    ops: [{ lb: 'Hasta 2 SMMLV', hn: '≈ hasta $3.5M al mes' }, { lb: '2 a 4 SMMLV', hn: '≈ $3.5M – $7.0M', sel: true },
+          { lb: '4 a 8 SMMLV', hn: '≈ $7.0M – $14.0M' }, { lb: 'Más de 8 SMMLV', hn: '≈ más de $14.0M' }] };
+
+  function atras() { return '<button class="atras">' + ic('flecha-izquierda') + ' Atrás</button>'; }
+  function afin(p) { return p.afin ? '<span class="afinidad">Afinidad con el catálogo <b>' + p.afin + '%</b></span>' : '<span></span>'; }
+  function filas(p, conIcono) {
+    return '<div class="lista">' + p.ops.map(function (o) {
+      var izq = conIcono && o.ic ? '<span style="font-size:22px;display:inline-flex">' + ic(o.ic) + '</span>' : '';
+      var der = o.ic && conIcono ? '<span class="chev">' + ic('flecha-derecha') + '</span>'
+        : '<span class="radio">' + (o.sel ? ic('check') : '') + '</span>';
+      return '<button class="op' + (o.sel ? ' sel' : '') + '">' + izq + '<span class="txt"><span class="lb">' + o.lb + '</span>' +
+        (o.hn ? '<span class="hn">' + o.hn + '</span>' : '') + '</span>' + der + '</button>';
+    }).join('') + '</div>';
+  }
+  function tarjetas(p, cols) {
+    return '<div class="tarjetas" style="grid-template-columns:repeat(' + cols + ',1fr)">' + p.ops.map(function (o) {
+      return '<button class="tarjeta"><span class="circ">' + ic(o.ic) + '</span><span class="lb">' + o.lb + '</span></button>';
+    }).join('') + '</div>';
+  }
+  function enunciado(p) { return '<div><h2>' + p.titulo + '</h2><p class="sub">' + p.sub + '</p></div>'; }
+
+  // Cada variante sabe pintar un panel para una pregunta.
+  var VARIANTES = {
+    A: {
+      nombre: 'A. Encabezado fijo',
+      desc: '<b>Atrás y el paso arriba</b>, en una franja fija con la barra de progreso real (paso 3 de 8). La afinidad va debajo, como dato secundario y solo en Compra. <b>Operación y tipo de propiedad</b> con tarjetas grandes con icono. El resto de preguntas, en filas con indicador de selección a la derecha.',
+      panel: function (p, movil) {
+        var opciones = p.ops[0].ic ? (movil ? tarjetas(p, 1) : tarjetas(p, p.ops.length)) : filas(p);
+        return '<div class="cab"><div class="fila">' + atras() + '<span class="paso">Pregunta ' + p.paso + ' de ' + p.total + '</span></div>' +
+          '<div class="barra"><i style="width:' + (100 * p.paso / p.total) + '%"></i></div>' +
+          (p.afin ? '<div style="display:flex;justify-content:flex-end">' + afin(p) + '</div>' : '') + '</div>' +
+          '<div class="cuerpo">' + enunciado(p) + opciones + '</div>';
+      }
+    },
+    B: {
+      nombre: 'B. Lista sobria',
+      desc: '<b>Barra por pasos</b> (un segmento por pregunta) con el paso y la afinidad debajo. <b>Todas las opciones en filas</b>, también Comprar/Arrendar (con icono a la izquierda y flecha a la derecha). <b>Atrás justo debajo de las opciones</b>, alineado con el contenido.',
+      panel: function (p) {
+        var segs = ''; for (var i = 1; i <= p.total; i++) segs += '<i class="' + (i <= p.paso ? 'ok' : '') + '"></i>';
+        return '<div><div class="segs" style="grid-template-columns:repeat(' + p.total + ',1fr)">' + segs + '</div>' +
+          '<div class="meta"><span class="paso">Pregunta ' + p.paso + ' de ' + p.total + '</span>' + afin(p) + '</div></div>' +
+          '<div class="cuerpo">' + enunciado(p) + filas(p, true) + '<div>' + atras() + '</div></div>';
+      }
+    },
+    C: {
+      nombre: 'C. Centrado',
+      desc: '<b>Todo centrado</b>, con el progreso en puntos (rojo = la pregunta actual, navy = las ya contestadas). Tarjetas con icono centradas para operación y propiedad; filas para el resto. <b>Atrás centrado debajo</b>. La afinidad, junto al paso.',
+      panel: function (p, movil) {
+        var pts = ''; for (var i = 1; i <= p.total; i++) pts += '<i class="' + (i < p.paso ? 'ya' : i === p.paso ? 'ok' : '') + '"></i>';
+        var opciones = p.ops[0].ic ? (movil ? tarjetas(p, 1) : tarjetas(p, p.ops.length)) : filas(p);
+        return '<div class="puntos">' + pts + '</div>' +
+          '<div class="cuerpo"><div><span class="paso">Pregunta ' + p.paso + ' de ' + p.total + '</span>' +
+          (p.afin ? ' <span style="color:var(--linea)">·</span> ' + afin(p) : '') + '</div>' +
+          enunciado(p) + opciones + '<div>' + atras() + '</div></div>';
+      }
+    }
+  };
+
+  function marco(v, p, tipo, escena) {
+    var k = 'v' + v;
+    if (tipo === 'mov') {
+      return '<div class="mov ' + k + '">' + (escena ? '<div class="escena" style="background-image:url(' + escena + ')"></div>' : '') +
+        '<div class="panel ' + k + '">' + VARIANTES[v].panel(p, true) + '</div></div>';
+    }
+    return '<div class="esc ' + k + (escena ? '' : ' sin3d') + '"><div class="panel ' + k + (escena ? '' : ' sin3d') + '">' +
+      VARIANTES[v].panel(p, false) + '</div>' + (escena ? '<div class="escena" style="background-image:url(' + escena + ')"></div>' : '') + '</div>';
+  }
+
+  var main = document.getElementById('main');
+  var tabs = document.getElementById('tabs');
+  Object.keys(VARIANTES).forEach(function (v, i) {
+    var V = VARIANTES[v];
+    var b = document.createElement('button'); b.textContent = V.nombre; b.dataset.v = v; if (!i) b.className = 'on';
+    tabs.appendChild(b);
+    var s = document.createElement('section'); s.className = 'variante' + (i ? '' : ' on'); s.id = 'var-' + v;
+    s.innerHTML =
+      '<div class="desc">' + V.desc + '</div>' +
+      '<div><div class="rotulo">Escritorio · ¿Qué estás buscando? (sin 3D)</div>' + marco(v, OPERACION, 'esc', null) + '</div>' +
+      '<div><div class="rotulo">Escritorio · ¿Qué tipo de vivienda? (con 3D, una opción elegida)</div>' + marco(v, TIPO, 'esc', 'escena_obra.png') + '</div>' +
+      '<div><div class="rotulo">Escritorio · Ingresos (cuatro opciones)</div>' + marco(v, INGRESOS, 'esc', 'escena_casa.png') + '</div>' +
+      '<div><div class="rotulo">Móvil</div><div class="fila-marcos">' + marco(v, OPERACION, 'mov', null) + marco(v, PROPIEDAD, 'mov', null) +
+      marco(v, TIPO, 'mov', 'escena_obra.png') + '</div></div>';
+    main.appendChild(s);
+  });
+  tabs.addEventListener('click', function (e) {
+    var v = e.target.dataset.v; if (!v) return;
+    tabs.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
+    main.querySelectorAll('.variante').forEach(function (s) { s.classList.toggle('on', s.id === 'var-' + v); });
+  });
+</script>
+</body>
+</html>

@@ -76,6 +76,7 @@
     // initialized". Es no-op si no habia mapa.
     if (window.GDF.mapa) window.GDF.mapa.desmontar();
     root.innerHTML = window.GDF.templates.renderApp(state, derived);
+    animarContadores();
     if (sameScreen) {
       var screenEl = root.querySelector('.gdf-screen');
       if (screenEl) {
@@ -107,7 +108,6 @@
   function attachInputListeners() {
     var nombreInput = document.getElementById('nombreInput');
     var apellidoInput = document.getElementById('apellidoInput');
-    var cedulaInput = document.getElementById('cedulaInput');
     var correoInput = document.getElementById('correoInput');
     var telefonoInput = document.getElementById('telefonoInput');
 
@@ -132,12 +132,6 @@
         updateStartButton();
       });
     }
-    if (cedulaInput) {
-      cedulaInput.addEventListener('input', function (e) {
-        state.cedula = e.target.value;
-        updateStartButton();
-      });
-    }
     if (correoInput) {
       correoInput.addEventListener('input', function (e) {
         state.correo = e.target.value;
@@ -152,6 +146,27 @@
         updateStartButton();
       });
     }
+    var consentimiento = document.querySelector('.gdf-registro .gdf-consent');
+    if (consentimiento) {
+      consentimiento.addEventListener('keydown', function (e) {
+        if (e.key !== ' ' && e.key !== 'Enter') return;
+        e.preventDefault();
+        dispatch('toggleConsent', {});
+        var nuevo = document.querySelector('.gdf-registro .gdf-consent');
+        if (nuevo) nuevo.focus();
+      });
+    }
+    // Registro de Machea (T4b): el error de un campo aparece al salir de él
+    // (blur), no mientras se escribe; desde ahí se actualiza en vivo.
+    [['nombre', nombreInput], ['apellido', apellidoInput], ['correo', correoInput], ['telefono', telefonoInput]]
+      .forEach(function (par) {
+        if (!par[1] || !document.querySelector('.gdf-registro')) return;
+        par[1].addEventListener('blur', function () {
+          state.tocados[par[0]] = true;
+          updateStartButton();
+        });
+      });
+    updateStartButton();
 
     var quizNumberInput = document.getElementById('quizNumberInput');
     if (quizNumberInput) {
@@ -277,10 +292,21 @@
       preferenciasActual = {};
       qContador.campos.forEach(function (c) {
         preferenciasActual[c.id] = previo && previo[c.id] != null ? previo[c.id] : c.inicial;
-        var span = document.getElementById('contadorValor-' + c.id);
-        if (span) span.textContent = preferenciasActual[c.id];
+        pintarContador(c, preferenciasActual[c.id]);
       });
     }
+  }
+
+  // El número de un contador de Arriendo y sus extremos: el − se apaga en el
+  // mínimo y el + en el máximo (T8). Solo pinta; el valor vive en
+  // `preferenciasActual`.
+  function pintarContador(campo, valor) {
+    var span = document.getElementById('contadorValor-' + campo.id);
+    if (span) span.textContent = valor;
+    var menos = document.querySelector('[data-action="ajustarContador"][data-campo="' + campo.id + '"][data-delta="-1"]');
+    var mas = document.querySelector('[data-action="ajustarContador"][data-campo="' + campo.id + '"][data-delta="1"]');
+    if (menos) menos.disabled = valor <= campo.min;
+    if (mas) mas.disabled = valor >= campo.max;
   }
 
   // ------------------------------------------------ scroll de los resultados
@@ -353,6 +379,41 @@
   // generado, no de la maquetación.
   function esc(s) {
     return window.GDF.templates.esc(s);
+  }
+
+  // EL "% MATCH" CUENTA DESDE CERO (M04 del manual: contador, ~1 s). Solo
+  // cuando cambia lo que se ve —otra tanda de tarjetas u otra página—: un
+  // repintado de la misma pantalla no puede volver a contar, se leería como
+  // un parpadeo. Quien pide menos movimiento ve el número final de una vez.
+  var ultimaTandaContadores = '';
+  function animarContadores() {
+    var nodos = root.querySelectorAll('.gdf-match-cifra[data-hasta]');
+    if (!nodos.length) { ultimaTandaContadores = ''; return; }
+    var tanda = Array.prototype.map.call(nodos, function (n) { return n.dataset.hasta; }).join(',') +
+      '|' + (state.recoPagina || 0) + '|' + (state.arriendoPagina || 0);
+    if (tanda === ultimaTandaContadores) return;
+    ultimaTandaContadores = tanda;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var DURACION = 900;
+    var inicio = null;
+    function paso(t) {
+      if (inicio === null) inicio = t;
+      var k = Math.min(1, (t - inicio) / DURACION);
+      var suave = 1 - Math.pow(1 - k, 3);
+      for (var i = 0; i < nodos.length; i++) {
+        if (!nodos[i].isConnected) continue;
+        nodos[i].textContent = Math.round(Number(nodos[i].dataset.hasta) * suave);
+      }
+      if (k < 1) requestAnimationFrame(paso);
+    }
+    requestAnimationFrame(paso);
+  }
+
+  // Un icono de js/iconos-ui.js (la × de los chips, por ejemplo). Ver ic() en
+  // templates.js: el formulario no pinta emojis ni símbolos tipográficos.
+  function iconoUI(nombre, opciones) {
+    var I = window.GDF.iconosUI;
+    return I ? I.icono(nombre, opciones) : '';
   }
 
   // Nombre de localidad a partir del id 1..20 del índice de barrios.
@@ -776,7 +837,7 @@
           '<button type="button" class="gdf-entorno-chip-x" data-action="quitarZona"' +
           ' data-loc="' + esc(sector.localidad) + '"' +
           ' data-barrio="' + esc(sector.barrio || '') + '"' +
-          ' aria-label="Quitar ' + esc(etiqueta) + '">×</button>' +
+          ' aria-label="Quitar ' + esc(etiqueta) + '">' + iconoUI('cerrar') + '</button>' +
           '</span>'
         );
       })
@@ -795,10 +856,13 @@
     var idx = entornoSeleccion.indexOf(valor);
     if (idx > -1) entornoSeleccion.splice(idx, 1);
     else entornoSeleccion.push(valor);
-    var botones = document.querySelectorAll('#entornoOpciones .gdf-multi-opt');
+    var botones = document.querySelectorAll('#entornoOpciones [data-action="toggleEntorno"]');
     for (var i = 0; i < botones.length; i++) {
       if (botones[i].dataset.value === valor) {
-        botones[i].classList.toggle('selected', entornoSeleccion.indexOf(valor) > -1);
+        var marcado = entornoSeleccion.indexOf(valor) > -1;
+        botones[i].classList.toggle('selected', marcado);
+        // Los chips de estilo de vida (T8) son botones de alternar.
+        if (botones[i].hasAttribute('aria-pressed')) botones[i].setAttribute('aria-pressed', marcado ? 'true' : 'false');
       }
     }
     renderEntornoChips();
@@ -816,7 +880,6 @@
 
   function renderEntornoChips() {
     var cont = document.getElementById('entornoChips');
-    if (!cont) return;
     // El barrio 3D reacciona a cada chip, no al pulsar "Continuar": cada
     // amenidad elegida cae en el lote alrededor de la casa (plano3d/entorno.js).
     //
@@ -835,13 +898,24 @@
       window.GDF3D.seleccionarEntorno(paraEscena);
     }
     var q = findQuestionById('entorno_deseado');
-    cont.innerHTML = entornoSeleccion
+    // Estilo de vida de Arriendo (T8): no hay fila de chips aparte -- los
+    // propios chips se marcan -- sino un contador "Elegiste N de 3".
+    var cuenta = document.querySelector('.gdf-estilo-cuenta');
+    if (cuenta) {
+      var nCuenta = entornoSeleccion.length;
+      var numero = cuenta.querySelector('.n');
+      if (numero) numero.textContent = nCuenta;
+      var marcas = cuenta.querySelectorAll('.puntos i');
+      for (var m = 0; m < marcas.length; m++) marcas[m].classList.toggle('on', m < nCuenta);
+      cuenta.classList.toggle('completo', q && q.min ? nCuenta >= q.min : false);
+    }
+    if (cont) cont.innerHTML = entornoSeleccion
       .map(function (valor) {
         var opt = q && q.options.filter(function (o) { return o.v === valor; })[0];
         var label = opt ? opt.label : valor;
         return (
           '<span class="gdf-entorno-chip">' + label +
-          '<button type="button" class="gdf-entorno-chip-x" data-action="quitarEntorno" data-value="' + valor + '" aria-label="Quitar ' + label + '">×</button>' +
+          '<button type="button" class="gdf-entorno-chip-x" data-action="quitarEntorno" data-value="' + valor + '" aria-label="Quitar ' + label + '">' + iconoUI('cerrar') + '</button>' +
           '</span>'
         );
       })
@@ -857,21 +931,27 @@
   }
 
   function updateStartButton() {
-    var btn = document.querySelector('.gdf-btn-primary');
+    var btn = document.querySelector('[data-action="startQuiz"]');
     if (!btn) return;
-    var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-    var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
-    var canStart = !!(
-      state.nombre.trim() &&
-      state.apellido.trim() &&
-      state.cedula.trim() &&
-      isValidCedula &&
-      state.correo.trim() &&
-      isValidEmail &&
-      state.telefono.trim() &&
-      state.consent
-    );
-    btn.classList.toggle('enabled', canStart);
+    var v = window.GDF.state.validarRegistro(state);
+    btn.classList.toggle('enabled', v.ok);
+    // Registro de Machea: errores por campo, botón y ayuda. El botón no lleva
+    // `disabled` sino `aria-disabled`: así un clic con algo pendiente puede
+    // mostrar todos los errores (ver 'startQuiz' en onRootClick).
+    var reg = document.querySelector('.gdf-registro');
+    if (!reg) return;
+    btn.setAttribute('aria-disabled', v.ok ? 'false' : 'true');
+    ['nombre', 'apellido', 'correo', 'telefono', 'consent'].forEach(function (k) {
+      var campo = reg.querySelector('[data-campo="' + k + '"]');
+      if (!campo) return;
+      var mal = !!state.tocados[k] && !v[k];
+      campo.classList.toggle('con-error', mal);
+      campo.classList.toggle('valido', k !== 'consent' && v[k]);
+      var input = campo.querySelector('input');
+      if (input) input.setAttribute('aria-invalid', mal ? 'true' : 'false');
+    });
+    var ayuda = reg.querySelector('.gdf-hint');
+    if (ayuda) ayuda.textContent = v.ok ? 'Todo listo.' : 'Completa los campos para continuar.';
   }
 
   // El botón de la pregunta numérica del quiz (edad) empieza deshabilitado
@@ -906,6 +986,12 @@
       updateTipologiaDOM(dataset);
       return;
     }
+    // Pasar de foto parchea el visor en vez de repintar la app (ver
+    // updateVisorDOM: es lo que quita el parpadeo entre una foto y la otra).
+    if (action === 'visorMover') {
+      updateVisorDOM();
+      return;
+    }
     if (action === 'setDetalleAbierto') return; // el <details> ya se pintó solo
     // Se acaba de elegir el apartamento: se pide su plano ya, para que la
     // primera pieza que caiga no lo haga contra un hueco en blanco.
@@ -923,15 +1009,21 @@
     render();
 
     // PASO 1 del contrato. El quiz termina y entra a 'result' exactamente una
-    // vez por partida (desde selectOption, al contestar la última pregunta):
-    // ese es el primer momento en que existen TODOS los campos requeridos.
-    // Arriendo nunca llega hasta aquí: pinta 'result' desde 'answerEstiloVida'
-    // (ver state.js) y no desde 'selectOption', así que este `if` no lo
-    // alcanzaría de todos modos -- el chequeo queda explícito igual, para que
-    // no dependa de ese detalle si el flujo cambia más adelante.
-    if (prevScreen !== 'result' && state.screen === 'result' && state.answers.operacion !== 'arriendo') {
-      cargarRecomendaciones();
+    // vez por partida: ese es el primer momento en que existen TODOS los
+    // campos requeridos. Compra llega aquí desde 'selectOption' (última
+    // pregunta); Arriendo puede llegar desde 'selectOption' también -- para
+    // Oficinas/Bodegas, que terminan justo al elegir tipo_propiedad (ver
+    // qListFor en state.js) -- o desde 'answerEstiloVida' para Vivienda.
+    if (prevScreen !== 'result' && state.screen === 'result') {
+      if (state.answers.operacion !== 'arriendo') cargarRecomendaciones();
+      // Volver desde la confirmación ("Cambiar mi selección") no repite la
+      // búsqueda de Arriendo: la lista que ya estaba sigue sirviendo.
+      else if (prevScreen !== 'confirmacion' || state.arriendo.estado !== 'listo') cargarArriendo();
     }
+
+    // Al abrir el visor se bajan ya las fotos de al lado, para que la primera
+    // flecha tampoco tenga que esperar a la red.
+    if (action === 'abrirVisor') precargarVecinas();
 
     // PASO 2 del contrato. Ya no hace falta un botón de "Confirmar": tocar
     // "Llamar" en la tarjeta (llamarProyecto) ES la confirmación, así
@@ -964,13 +1056,27 @@
   // solo se retrasa ESE llamado lo que dura la animación, nada de state.js
   // cambia. Si el 3D no está activo (sin WebGL, gama baja), solo queda el
   // confeti y el salto es casi inmediato.
+  //
+  // UNA SOLA VEZ AUNQUE SE PULSE VARIAS. Entre el clic y el salto pasan ~1,3 s
+  // sin que nada cambie en pantalla, y es justo cuando la gente vuelve a
+  // pulsar "Continuar". Cada clic agendaba su propio salto: el primero
+  // llevaba a resultados y el segundo, ya allí, volvía a contestar la última
+  // pregunta y dejaba la pantalla en "Buscando proyectos…" para siempre.
+  // `finalEnCurso` deja pasar solo el primero; y el salto no se hace si para
+  // entonces la pregunta en pantalla ya no es la última (se pulsó "Atrás").
+  var finalEnCurso = false;
   function finalizarQuizConFiesta(qid, valor) {
+    if (finalEnCurso) return;
+    finalEnCurso = true;
     lanzarConfeti();
     var DURACION_CAMARA = 900;
     var yaTermino = false;
     var saltarAResultado = function () {
       if (yaTermino) return;   // por si el callback y el watchdog coinciden
       yaTermino = true;
+      finalEnCurso = false;
+      var actual = state.screen === 'quiz' ? window.GDF.state.computeDerived(state).q : null;
+      if (!actual || actual.id !== qid) return;
       dispatch('selectOption', { qid: qid, value: valor });
     };
     if (window.GDF3D && window.GDF3D.activo && window.GDF3D.activo()) {
@@ -1004,6 +1110,14 @@
 
     // Colores de marca: naranja/dorado de la app, no un arcoíris genérico.
     var COLORES = ['#ff7a18', '#ff9d3f', '#e6bd00', '#ffbe8c', '#e7ebf0'];
+    // Machea lleva los de su manual (rojo, navy y grises), leídos de los
+    // tokens que fija js/tema.js para no repetir los hex aquí.
+    if (document.documentElement.dataset.marca === 'machea') {
+      var css = getComputedStyle(document.documentElement);
+      COLORES = ['--marca', '--tinta', '--tinta-tenue', '--borde', '--marca-velo-fuerte']
+        .map(function (t) { return css.getPropertyValue(t).trim(); })
+        .filter(Boolean);
+    }
     var GRAVEDAD = 260;
     var DURACION = 1600;
     var piezas = [];
@@ -1138,6 +1252,23 @@
     window.GDF.recommender.recomendar(state, onRecoResuelta);
   }
 
+  // Resultado de GET /api/arriendo (ver js/arriendo.js). Mismo patrón que
+  // onRecoResuelta, en su propio campo de estado -- Arriendo no guarda
+  // consulta en Supabase todavía (ver el comentario de qListFor en state.js).
+  function onArriendoResuelta(resultado) {
+    window.GDF.state.applyAction(state, 'arriendoResuelta', resultado);
+    render();
+  }
+
+  // GET /api/arriendo. Se dispara al entrar a 'result' con operacion ===
+  // 'arriendo' (ver dispatch() arriba) -- para Oficinas/Bodegas eso pasa sin
+  // preguntas de por medio, justo tras elegir el tipo de propiedad.
+  function cargarArriendo() {
+    window.GDF.state.applyAction(state, 'arriendoCargando', {});
+    render();
+    window.GDF.arriendoApi.cargar(state, onArriendoResuelta);
+  }
+
   // Salida de emergencia cuando el backend no responde: se muestran los
   // proyectos del catálogo local marcados como aproximados. Nunca se hace en
   // silencio — `aproximado: true` pinta un aviso permanente en la lista.
@@ -1146,23 +1277,30 @@
   }
 
   // Se intercepta 'startQuiz' (ver onRootClick) para, ANTES de arrancar el
-  // cuestionario, mirar si esta cédula+teléfono ya tiene una consulta
-  // guardada (ver js/datos.js) y saltarse las 7 preguntas directo a los
-  // resultados de esa vez. Nunca bloquea: buscarResultados() siempre
-  // resuelve (con match, sin match, o con timeout) y en cualquier caso que
-  // no sea un match se sigue el camino normal por dispatch('startQuiz').
+  // cuestionario, mirar si la persona ya tiene una consulta guardada (ver
+  // js/datos.js) y saltarse las preguntas directo a los resultados de esa vez.
+  //
+  // APAGADA mientras la base de leads no esté encendida. Ya identifica por
+  // teléfono + correo (la cédula no se pide desde 2026-10-04). Para
+  // encenderla, en este orden:
+  //   1. aplicar supabase/migrations/20261006120000_leads_por_telefono_y_correo.sql;
+  //   2. poner SUPABASE_URL y SUPABASE_ANON_KEY en js/config.js;
+  //   3. cargar js/datos.js en index.html (hoy no se carga);
+  //   4. poner `BUSQUEDA_ACTIVA` en true.
+  // Mientras tanto se arranca el quiz directamente.
+  var BUSQUEDA_ACTIVA = false;
   function iniciarQuizConBusqueda() {
     // Mismo criterio de canStart que templates.js/state.js: sin esto no
     // vale la pena ni intentar la consulta.
-    var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-    var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
-    var camposValidos = !!(
-      state.nombre.trim() && state.apellido.trim() &&
-      state.cedula.trim() && isValidCedula &&
-      state.correo.trim() && isValidEmail &&
-      state.telefono.trim() && state.consent
-    );
-    if (!camposValidos || !window.GDF.datos) {
+    var camposValidos = window.GDF.state.validarRegistro(state).ok;
+    if (!camposValidos && document.querySelector('.gdf-registro')) {
+      ['nombre', 'apellido', 'correo', 'telefono', 'consent'].forEach(function (k) { state.tocados[k] = true; });
+      updateStartButton();
+      var primero = document.querySelector('.gdf-registro .con-error input');
+      if (primero) primero.focus();
+      return;
+    }
+    if (!BUSQUEDA_ACTIVA || !camposValidos || !window.GDF.datos) {
       // dispatch() vuelve a validar por su cuenta; si falta algo, no hace
       // nada -- mismo comportamiento que antes de este cambio.
       dispatch('startQuiz', {});
@@ -1176,7 +1314,7 @@
       boton.style.pointerEvents = 'none';
     }
 
-    window.GDF.datos.buscarResultados(state.cedula, state.telefono, function (r) {
+    window.GDF.datos.buscarResultados(state.telefono, state.correo, function (r) {
       if (r && r.encontrado) {
         restaurarConsultaGuardada(r);
         return; // pantalla nueva: el botón de la escarapela ya no existe
@@ -1841,6 +1979,10 @@
       cargarRecomendaciones();
       return;
     }
+    if (el.dataset.action === 'reintentarArriendo') {
+      cargarArriendo();
+      return;
+    }
     if (el.dataset.action === 'usarLocalAproximado') {
       usarLocalAproximado();
       return;
@@ -1863,8 +2005,7 @@
       var actual = preferenciasActual[campo.id] != null ? preferenciasActual[campo.id] : campo.inicial;
       var nuevo = Math.min(campo.max, Math.max(campo.min, actual + delta));
       preferenciasActual[campo.id] = nuevo;
-      var spanValor = document.getElementById('contadorValor-' + campo.id);
-      if (spanValor) spanValor.textContent = nuevo;
+      pintarContador(campo, nuevo);
       return;
     }
     if (el.dataset.action === 'answerPreferencias') {
@@ -2010,10 +2151,111 @@
     }
   }
 
+  // Escape cierra cualquier lista desplegable de un buscador (amenidades o
+  // zona) y suelta el foco del campo, para que no se reabra sola: abrirla es
+  // lo que hacen 'focus' y 'click' sobre el input (ver attachInputListeners).
+  function cerrarListasConEscape(e) {
+    if (e.key !== 'Escape') return;
+    var abiertas = document.querySelectorAll('.gdf-entorno-combo .gdf-multi-opt-list.abierto');
+    if (!abiertas.length) return;
+    for (var i = 0; i < abiertas.length; i++) abiertas[i].classList.remove('abierto');
+    var activo = document.activeElement;
+    if (activo && activo.closest && activo.closest('.gdf-entorno-combo')) activo.blur();
+  }
+
+  /**
+   * Cambia la foto del visor SIN pasar por render().
+   *
+   * EL PARPADEO QUE ESTO RESUELVE tenía dos causas, y las dos nacían de
+   * reconstruir `#root` entero en cada flecha:
+   *   1. El <img> se destruía y se creaba de nuevo, así que entre que
+   *      desaparecía el viejo y pintaba el nuevo quedaba un fotograma vacío.
+   *   2. `.gdf-visor` entra con una animación de opacidad; al recrearse el
+   *      nodo, esa animación se disparaba OTRA VEZ en cada foto, y el visor
+   *      entero hacía un fundido desde transparente.
+   *
+   * Mismo patrón que `updateTipologiaDOM`: el estado ya cambió en
+   * `applyAction`, aquí solo se parchea lo que se ve.
+   */
+  function updateVisorDOM() {
+    var v = state.visor;
+    if (!v) return;
+    var caja = root.querySelector('.gdf-visor');
+    if (!caja) { render(); return; }
+
+    var url = v.fotos[v.i];
+    var contador = caja.querySelector('.gdf-visor-contador');
+    if (contador) contador.textContent = (v.i + 1) + ' / ' + v.fotos.length;
+
+    // La foto nueva se pone cuando YA está cargada; hasta entonces se queda
+    // la anterior. Cambiar el `src` a secas deja el hueco mientras baja, que
+    // es el mismo parpadeo por otra vía.
+    var precarga = new Image();
+    precarga.onload = function () {
+      // Si para cuando carga ya se movió otra vez, esta foto perdió su turno.
+      if (!state.visor || state.visor.fotos[state.visor.i] !== url) return;
+      var img = caja.querySelector('.gdf-visor-foto');
+      var fondo = caja.querySelector('.gdf-visor-fondo');
+      if (img) {
+        img.src = url;
+        img.alt = (v.nombre || 'Foto del inmueble') + ' — foto ' + (v.i + 1);
+      }
+      if (fondo) fondo.style.backgroundImage = "url('" + url + "')";
+    };
+    precarga.src = url;
+    precargarVecinas();
+  }
+
+  /** Las fotos de al lado, para que la siguiente flecha sea instantánea. */
+  function precargarVecinas() {
+    var v = state.visor;
+    if (!v || v.fotos.length < 2) return;
+    [1, -1].forEach(function (paso) {
+      var vecina = new Image();
+      vecina.src = v.fotos[(v.i + paso + v.fotos.length) % v.fotos.length];
+    });
+  }
+
+  function onTeclaVisor(e) {
+    if (!state.visor) return;
+    if (e.key === 'Escape') dispatch('cerrarVisor', {});
+    else if (e.key === 'ArrowRight') dispatch('visorMover', { paso: '1' });
+    else if (e.key === 'ArrowLeft') dispatch('visorMover', { paso: '-1' });
+    else return;
+    // Solo se frena la tecla que SÍ se usó: con el visor abierto, Escape no
+    // puede llegar al modal de la landing que contiene este iframe.
+    e.preventDefault();
+  }
+
+  // Un botón principal sin `.enabled` se ve gris y su acción no avanza,
+  // pero sigue siendo un <button> clicable (cada acción valida por su
+  // cuenta; el registro de Machea lo aprovecha para mostrar los errores). Se
+  // marca con aria-disabled para que un lector de pantalla diga que está
+  // inactivo, y para que axe no lo cuente como texto de bajo contraste: WCAG
+  // exime a los controles inactivos. Un solo observador cubre todos los
+  // sitios que encienden o apagan un botón, en vez de repetirlo en cada uno.
+  function sincronizarBotonesInactivos() {
+    var botones = root.querySelectorAll('.gdf-btn-primary');
+    for (var i = 0; i < botones.length; i++) {
+      var valor = botones[i].classList.contains('enabled') ? 'false' : 'true';
+      if (botones[i].getAttribute('aria-disabled') !== valor) botones[i].setAttribute('aria-disabled', valor);
+    }
+  }
+
   function boot() {
     root = document.getElementById('root');
     root.addEventListener('click', onRootClick);
+    if (window.MutationObserver) {
+      new MutationObserver(sincronizarBotonesInactivos).observe(root, {
+        subtree: true, childList: true, attributes: true, attributeFilter: ['class'],
+      });
+    }
     document.addEventListener('click', cerrarEntornoSiTocaAfuera);
+    document.addEventListener('keydown', cerrarListasConEscape);
+    // Teclado del visor de fotos. Va en `document` y una sola vez: el visor se
+    // repinta con cada render y un listener suyo propio se duplicaría en cada
+    // flecha. No hace nada mientras el visor está cerrado.
+    document.addEventListener('keydown', onTeclaVisor);
     // El fondo AI Signal. Va ANTES del primer render y una sola vez: cuelga
     // del <body>, así que los re-renders de #root no lo tocan y la red sigue
     // corriendo igual al pasar de la escarapela al quiz. Se monta solo con la

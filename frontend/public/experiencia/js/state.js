@@ -23,7 +23,6 @@
       gender: 'x', // 'f' | 'm' | 'x'
       nombre: '',
       apellido: '',
-      cedula: '',
       correo: '',
       telefono: '',
       afiliado: null,
@@ -32,6 +31,10 @@
       // (Supabase sin configurar, o si falló al guardar) no bloquea nada.
       consultaId: null,
       consent: false,
+      // Campos del registro que la persona ya dejó (blur): solo esos muestran
+      // su error. Vive en el estado para que el error no se borre cuando un
+      // clic (el consentimiento) repinta la pantalla.
+      tocados: {},
       qi: 0,
       answers: {},
       // El barrio elegido en la pregunta de ubicacion. Vive FUERA de `answers`
@@ -49,6 +52,25 @@
       zonaSectores: [],
       matches: [],
       lead: null, // resultado de computeLeadQualification
+
+      // Resultado de GET /api/arriendo (ver js/arriendo.js). Independiente
+      // de `reco`: Arriendo no pasa por el modelo de compra, y mezclar los
+      // dos shapes en un solo campo obligaría a los dos lados a entender el
+      // contrato del otro para nada.
+      arriendo: {
+        estado: 'idle', // idle | cargando | listo | error
+        items: [],
+        error: null,
+      },
+      // Visor de fotos a pantalla completa (ver `visorFotos` en templates.js).
+      // null = cerrado. Guarda la lista entera y en cuál va, para que las
+      // flechas y el teclado puedan moverse sin volver a buscar el inmueble.
+      visor: null, // | { id, nombre, fotos: [url], i }
+      // Mismo rol que `recoPagina`, para la grilla de tarjetas de Arriendo
+      // (ver `arriendoLista` en templates.js) -- un campo aparte porque
+      // `reco`/`recoPagina` son de Compra y pueden tener su propia página
+      // activa al mismo tiempo (aunque hoy nunca conviven en pantalla).
+      arriendoPagina: 0,
       // Selección ÚNICA: guarda el `id` del view-model elegido (id_proyecto si
       // vino del backend). El contrato manda un solo `proyecto_elegido`, así
       // que marcar uno desmarca el anterior.
@@ -118,9 +140,27 @@
   // enteros distintos (ver QUESTIONS_COMPRA/QUESTIONS_ARRIENDO en data.js).
   // Antes de contestar 'operacion' (answers.operacion aún undefined) se
   // asume Compra, que es el recorrido de siempre.
+  // Oficinas y Bodegas no tienen ni habitaciones ni "estilo de vida": son
+  // las mismas preguntas de Vivienda (ver PREFERENCIAS_ARRIENDO/ESTILO_VIDA
+  // en data.js) pensadas para una persona, no para un inmueble comercial.
+  // Por eso ese recorrido se corta ahí, pero SÍ conserva 'zona' (el mapa de
+  // localidades) -- es el mismo objeto de pregunta que usa Compra/Vivienda,
+  // en la misma posición (QUESTIONS_ARRIENDO[2]), así que entra tal cual.
+  // Elegir una zona ahí es lo que le da a `/api/arriendo` un `localidad` con
+  // el que ordenar los resultados por cercanía (ver `arriendo.js` y el
+  // endpoint en backend/api/app.py) -- sin zona, se listan sin ordenar por
+  // cercanía. Después de 'zona' salta directo a 'result'.
+  var TIPOS_PROPIEDAD_SIN_PREGUNTAS = { Oficinas: true, Bodegas: true };
+
   function qListFor(answers) {
     var d = window.GDF.data;
-    if (answers && answers.operacion === 'arriendo') return d.QUESTIONS_ARRIENDO;
+    if (answers && answers.operacion === 'arriendo') {
+      if (answers.tipo_propiedad && TIPOS_PROPIEDAD_SIN_PREGUNTAS[answers.tipo_propiedad]) {
+        // OPERACION, TIPO_PROPIEDAD, ZONA
+        return d.QUESTIONS_ARRIENDO.slice(0, 3);
+      }
+      return d.QUESTIONS_ARRIENDO;
+    }
     return d.QUESTIONS_COMPRA || d.QUESTIONS;
   }
 
@@ -218,19 +258,33 @@
 
     var a = state.answers;
     var perfilChips = [];
+    // Cómo se lee una respuesta en el resumen: el `chip` de la opción en
+    // data.js ("Mudanza en 1 mes"), no el valor que viaja al backend ("1_mes").
+    function chipDe(id, v) {
+      var preg = qList.filter(function (x) { return x.id === id; })[0];
+      var op = preg && (preg.options || []).filter(function (o) { return o.v === v; })[0];
+      return (op && op.chip) || v;
+    }
+    function cuenta(n, uno, varios) {
+      return n + ' ' + (Number(n) === 1 ? uno : varios);
+    }
     // Arriendo: además de 'ingresos' y 'zona(s)' (ya cubiertos abajo, mismas
     // claves que Compra), sus propias preguntas.
     if (a.operacion === 'arriendo') {
-      if (a.tipo_propiedad) perfilChips.push({ text: a.tipo_propiedad, hi: true });
-      if (a.presupuesto) perfilChips.push({ text: a.presupuesto, hi: false });
-      if (a.mudanza) perfilChips.push({ text: a.mudanza, hi: false });
+      if (a.tipo_propiedad) perfilChips.push({ text: chipDe('tipo_propiedad', a.tipo_propiedad), hi: true });
+      if (a.presupuesto) perfilChips.push({ text: chipDe('presupuesto', a.presupuesto), hi: false });
+      if (a.mudanza) perfilChips.push({ text: chipDe('mudanza', a.mudanza), hi: false });
       if (a.preferencias) {
-        perfilChips.push({ text: a.preferencias.habitaciones + ' hab · ' + a.preferencias.banos + ' baños', hi: false });
+        var p = a.preferencias;
+        var partes = [cuenta(p.habitaciones, 'habitación', 'habitaciones'), cuenta(p.banos, 'baño', 'baños')];
+        if (Number(p.parqueaderos) > 0) partes.push(cuenta(p.parqueaderos, 'parqueadero', 'parqueaderos'));
+        if (p.estrato) partes.push('Estrato ' + p.estrato);
+        perfilChips.push({ text: partes.join(' · '), hi: false });
       }
     }
-    if (a.tipo) perfilChips.push({ text: a.tipo, hi: true });
-    if (a.ingresos) perfilChips.push({ text: a.ingresos, hi: false });
-    if (a.habitaciones && a.operacion !== 'arriendo') perfilChips.push({ text: a.habitaciones + ' hab', hi: false });
+    if (a.tipo) perfilChips.push({ text: chipDe('tipo', a.tipo), hi: true });
+    if (a.ingresos) perfilChips.push({ text: chipDe('ingresos', a.ingresos), hi: false });
+    if (a.habitaciones && a.operacion !== 'arriendo') perfilChips.push({ text: chipDe('habitaciones', a.habitaciones), hi: false });
     // UN CHIP POR ZONA, no solo la primera. `a.zona` es unicamente la inicial;
     // en el mapa se pueden marcar varios sectores y el resumen mostraba una
     // sola, dando a entender que se recomendo sobre ella nada mas. No es asi:
@@ -244,7 +298,7 @@
     if (zonasChip.length > 3) {
       perfilChips.push({ text: '+' + (zonasChip.length - 3) + ' zonas', hi: false });
     }
-    if (a.afiliado === 'Sí') perfilChips.push({ text: 'Afiliado ✓', hi: true });
+    if (a.afiliado === 'Sí') perfilChips.push({ text: 'Afiliado', hi: true });
 
     return {
       qList: qList,
@@ -329,21 +383,9 @@
         break;
 
       case 'startQuiz': {
-        var isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.correo.trim());
-        // Mismo rango que el check de la tabla `leads` (ver
-        // supabase/migrations/): solo dígitos, 5 a 15 de largo.
-        var isValidCedula = /^[0-9]{5,15}$/.test(state.cedula.replace(/\D/g, ''));
-        var canStart = !!(
-          state.nombre.trim() &&
-          state.apellido.trim() &&
-          state.cedula.trim() &&
-          isValidCedula &&
-          state.correo.trim() &&
-          isValidEmail &&
-          state.telefono.trim() &&
-          state.consent
-        );
-        if (!canStart) return false;
+        // La cédula ya no se pide (decisión de Diego, 2026-10-04): la persona
+        // se identifica con su teléfono y su correo.
+        if (!validarRegistro(state).ok) return false;
         state.answers = { afiliado: state.afiliado };
         state.qi = 0;
         state.screen = 'quiz';
@@ -423,6 +465,24 @@
         state.reco.error = null;
         break;
 
+      // GET /api/arriendo (ver js/arriendo.js y cargarArriendo() en main.js).
+      // Mismo patrón que 'recoCargando'/'recoResuelta', en su propio campo.
+      case 'arriendoCargando':
+        state.arriendo = { estado: 'cargando', items: [], error: null };
+        // Una búsqueda nueva vuelve a la página 1 -- si no, un segundo
+        // intento con menos resultados podía dejar la vista en una página
+        // que ya no existe.
+        state.arriendoPagina = 0;
+        break;
+
+      case 'arriendoResuelta':
+        state.arriendo = {
+          estado: ds.estado,
+          items: ds.items || [],
+          error: ds.error || null,
+        };
+        break;
+
       // Paso 2: resultado de POST /api/llamar (ver js/llamada.js). `ds` es
       // el objeto que arma llamada.js: { estado, mensaje }.
       case 'llamadaCargando':
@@ -470,6 +530,11 @@
         }
         var qList = qListFor(state.answers);
         var prev = qList[state.qi - 1];
+        // Lo que se había elegido, SOLO para pintarlo marcado al volver (ver
+        // quizPanel en templates.js). La respuesta sí se deshace —el 3D y el
+        // matching retroceden con ella—; esto es memoria visual, nada lo lee
+        // para calcular.
+        state.respuestaPrevia = { qid: prev.id, v: state.answers[prev.id] };
         var nextAnswers2 = Object.assign({}, state.answers);
         delete nextAnswers2[prev.id];
         state.qi = state.qi - 1;
@@ -537,6 +602,51 @@
         break;
       }
 
+      // --- Visor de fotos de Arriendo -----------------------------------
+      case 'abrirVisor': {
+        var inmVisor = (state.arriendo.items || []).filter(function (r) {
+          return String(r.id_inmueble) === String(ds.inmueble);
+        })[0];
+        var fotos = (inmVisor && inmVisor.imagenes) || [];
+        if (!fotos.length) return false;
+        var desde = parseInt(ds.idx, 10) || 0;
+        state.visor = {
+          id: String(ds.inmueble),
+          nombre: inmVisor.nombre || '',
+          fotos: fotos,
+          i: Math.min(Math.max(desde, 0), fotos.length - 1),
+        };
+        break;
+      }
+
+      case 'cerrarVisor':
+        if (!state.visor) return false;
+        state.visor = null;
+        break;
+
+      case 'visorMover': {
+        if (!state.visor) return false;
+        // Circular: desde la última se vuelve a la primera. Con 20 fotos,
+        // toparse con una flecha muerta se siente como que algo falló.
+        var total = state.visor.fotos.length;
+        var paso = parseInt(ds.paso, 10) || 1;
+        state.visor.i = (state.visor.i + paso + total) % total;
+        break;
+      }
+
+      // Mismo patrón que 'irAPagina', para la grilla de Arriendo
+      // (`state.arriendo.items` en vez de `state.reco.items`).
+      case 'irAPaginaArriendo': {
+        var porPagA = window.GDF.recommender.POR_PAGINA || 6;
+        var cuantasA = Math.max(1, Math.ceil(((state.arriendo.items || []).length) / porPagA));
+        var destinoA = Number(ds && ds.pagina);
+        if (isNaN(destinoA)) return false;
+        destinoA = Math.min(Math.max(destinoA, 0), cuantasA - 1);
+        if (destinoA === state.arriendoPagina) return false;
+        state.arriendoPagina = destinoA;
+        break;
+      }
+
       case 'restart': {
         var fresh = createInitial();
         Object.keys(fresh).forEach(function (k) {
@@ -556,8 +666,43 @@
     return true;
   }
 
+  /**
+   * EL ÚNICO criterio del registro. Lo usan la plantilla, la validación en
+   * vivo de main.js y 'startQuiz'; antes eran cuatro copias de la misma
+   * condición. Devuelve cada campo por separado (para pintar su error) y `ok`.
+   *
+   * Machea (T4b) exige formato: nombre y apellidos de 2 letras o más, correo
+   * con dominio (nombre@dominio.com) y un celular de 10 dígitos. Las
+   * constructoras siguen con la regla de siempre (campos no vacíos y correo
+   * con @ y punto), para no cambiarles el comportamiento.
+   */
+  function validarRegistro(state) {
+    var estricto = (window.GDF_MARCA || {}).slug === 'machea';
+    var nombre = state.nombre.trim();
+    var apellido = state.apellido.trim();
+    var correo = state.correo.trim();
+    var digitos = state.telefono.replace(/\D/g, '');
+    var v = estricto
+      ? {
+          nombre: nombre.length >= 2,
+          apellido: apellido.length >= 2,
+          correo: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo),
+          telefono: digitos.length === 10,
+        }
+      : {
+          nombre: !!nombre,
+          apellido: !!apellido,
+          correo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo),
+          telefono: !!state.telefono.trim(),
+        };
+    v.consent = !!state.consent;
+    v.ok = v.nombre && v.apellido && v.correo && v.telefono && v.consent;
+    return v;
+  }
+
   window.GDF = window.GDF || {};
   window.GDF.state = {
+    validarRegistro: validarRegistro,
     createInitial: createInitial,
     computeDerived: computeDerived,
     applyAction: applyAction,

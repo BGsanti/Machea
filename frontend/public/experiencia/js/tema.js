@@ -70,20 +70,75 @@
    * misma manera: viene fija en derivar() como gris claro para consola
    * negra, así que se reemplaza aparte, a mano, con la escala de texto
    * oscuro que ya usa el resto del sitio de Machea (--color-navy).
+   *
+   * DESDE EL REDISEÑO DEL FORMULARIO (2026-10) SALE DEL MANUAL DE MARCA
+   * (Machea Motion Graphics Package v1.0): blanco y gris claro #F5F6F8, sin
+   * el beige ni el degradado rosado; navy #1F2E42 para el texto y línea
+   * #DCE1E7. La escala de tinta baja del navy con contraste medido sobre
+   * blanco: media 7,5:1 y suave 5,3:1 (4,9:1 sobre el gris #F5F6F8 de los
+   * estados hover y seleccionado; con #6B7684 ahí daba 4,3 y no cumplía); el gris
+   * #A7ADB5 del manual da 2,2:1 y por eso queda solo para la tenue
+   * (placeholders y deshabilitado), nunca para texto que haya que leer.
    */
   var SUPERFICIE_MACHEA = {
-    fondo: '#fdf6f0',
+    fondo: '#ffffff',
     papel: '#ffffff',
-    papel2: '#f5efe9',
-    borde: '#dedad8',
-    tinta: '#2d3b4e',
-    tintaMedia: '#676f7b',
-    tintaSuave: '#95999f',
-    tintaTenue: '#b6b6b9',
-    // El verde del badge de subsidio. El `:root` trae el aclarado para la
-    // consola negra (#4fd6bf); sobre blanco ese mismo verde da 2,5 de
-    // contraste, así que aquí va la versión oscura.
-    exito: '#0f6f64',
+    papel2: '#f5f6f8',
+    borde: '#dce1e7',
+    tinta: '#1f2e42',
+    tintaMedia: '#4a5666',
+    tintaSuave: '#626d7b',
+    tintaTenue: '#a7adb5',
+    // El manual no tiene verde: lo que "está bien" se dice con navy y un
+    // check, y el rojo queda para la acción y el error.
+    exito: '#1f2e42',
+  };
+
+  /**
+   * LA PALETA DE MACHEA, FIJADA AQUI Y NO EN tenants/machea/marca.js.
+   *
+   * marca.js es GENERADO por plataforma/tools/generar_tenants.py, que no está
+   * en este repo: si se editara a mano, la próxima regeneración lo pisaría
+   * (y hoy trae el coral #FF6259 y el verde #2DD4A7 de antes del manual).
+   * Un solo acento, el rojo #FC4633, para el CTA, el progreso y los datos
+   * importantes; el navy es la tinta.
+   */
+  var PALETA_MACHEA = { primario: '#fc4633', acento: '#fc4633', tinta: '#1f2e42' };
+
+  /**
+   * Los tokens de Machea que NO salen de la derivación.
+   *
+   * derivar() mezcla el primario con el fondo para los tintes y velos: con el
+   * rojo eso da rosados, que es justo el lavado que el manual quita. Aquí la
+   * superficie de chips, opciones y avisos es el gris claro, y el rojo muy
+   * suave #FFF0ED (el "fondo de icono" del manual) queda para lo poco que de
+   * verdad es de marca. Los bordes de marca pasan a la línea #DCE1E7.
+   *
+   * `--marca-texto`: el rojo del manual sobre blanco da 3,5:1, que no alcanza
+   * para texto pequeño; para letra roja se usa un rojo algo más hondo (4,8:1).
+   *
+   * Las variables de forma y de fuente las declara el `:root` de styles.css
+   * con los valores de las constructoras; Machea las reescribe aquí.
+   */
+  var TOKENS_MACHEA = {
+    '--marca-texto': '#d13a26',
+    '--marca-borde': '#dce1e7',
+    '--marca-borde-suave': '#dce1e7',
+    '--marca-tinte': '#f5f6f8',
+    '--marca-tinte-2': '#f5f6f8',
+    '--marca-velo-fuerte': '#fff0ed',
+    '--marca-velo': '#f5f6f8',
+    '--marca-velo-claro': '#f5f6f8',
+    '--acento-tinte': '#fff0ed',
+    '--acento-tinte-2': '#ffffff',
+    '--acento-velo': '#f5f6f8',
+    '--acento-oscuro': '#e03a28',
+    '--fuente-titulos': "'Inter', sans-serif",
+    '--fuente-cuerpo': "'Inter', sans-serif",
+    '--radio-tarjeta': '18px',
+    '--radio-interior': '14px',
+    '--radio-boton': '999px',
+    '--sombra-tarjeta': '0 12px 30px rgba(31, 46, 66, 0.08)',
   };
 
   function aRgb(hex) {
@@ -238,9 +293,10 @@
     var M = window.GDF_MARCA || {};
     var esMachea = M.slug === 'machea';
     // Machea es la propia marca del stand, no una constructora revendida:
-    // aqui el estandar naranja no aplica y manda la paleta de tenants/machea.
+    // aqui el estandar naranja no aplica y manda la paleta del manual de
+    // Machea, fijada arriba (PALETA_MACHEA) y no leída de su marca.js.
     var usaEstandar = ESTANDAR && !esMachea;
-    var paleta = usaEstandar ? {} : (M.paleta || {});
+    var paleta = esMachea ? PALETA_MACHEA : usaEstandar ? {} : (M.paleta || {});
     var base = {
       primario: paleta.primario || (usaEstandar ? ESTANDAR.primario : BASE.primario),
       acento: paleta.acento || (usaEstandar ? ESTANDAR.acento : BASE.acento),
@@ -248,6 +304,13 @@
     };
 
     var raiz = document.documentElement;
+
+    // LA MARCA ACTIVA COMO ATRIBUTO del <html>, para que el CSS pueda hablarle
+    // a una sola: `html[data-marca="machea"] ...`. Los tokens alcanzan para
+    // el color, pero no para lo que cambia de FORMA (botón en pastilla,
+    // selección con borde navy), y sin esto la única manera de distinguir a
+    // Machea en CSS era una clase que ponía el fondo animado de senal.js.
+    raiz.dataset.marca = M.slug || '';
 
     // La superficie clara de Machea se fija AQUI, antes de derivar(): esa
     // función lee --fondo del DOM (vía haciaFondo/fondo()) para mezclar los
@@ -312,6 +375,23 @@
         contraste('#ffffff', base.acento) >= contraste(tokens['--tinta'], base.acento)
           ? '#ffffff'
           : tokens['--tinta'];
+    }
+
+    // MACHEA: SUS TOKENS FIJOS Y EL CTA EN BLANCO, por decisión de marca.
+    //
+    // Blanco sobre el rojo #FC4633 da 3,5:1: no llega al 4,5 de la regla de
+    // arriba, que elegiría el navy. Se fuerza el blanco (es como lo pide el
+    // manual) y la etiqueta del botón va a 19 px en negrita en styles.css,
+    // que es "texto grande" para WCAG AA (14 pt en negrita = 18,67 px) y ahí
+    // 3:1 basta. OJO: 18 px NO alcanza — se midió con axe en el QA previo de
+    // T12. Si el botón vuelve a letra más pequeña, este blanco deja de cumplir.
+    if (esMachea) {
+      Object.keys(TOKENS_MACHEA).forEach(function (k) {
+        tokens[k] = TOKENS_MACHEA[k];
+      });
+      tokens['--sobre-marca'] = '#ffffff';
+      tokens['--sobre-acento'] = '#ffffff';
+      tokens['--texto-cta'] = '#ffffff';
     }
 
     Object.keys(tokens).forEach(function (k) {
