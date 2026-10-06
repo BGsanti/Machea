@@ -311,7 +311,7 @@ def api_llamar(payload: SolicitudLlamada):
         ),
         "valor_estimado_vivienda": 0 if es_arriendo else apto.precio_desde_cop,
         "subsidio_estimado": subsidio_estimado,
-        "external_lead_id": f"gofest-{int(datetime.now(TZ_BOGOTA).timestamp())}",
+        "external_lead_id": f"machea-{int(datetime.now(TZ_BOGOTA).timestamp())}",
     }
 
     if not DAPTA_FLOW_WEBHOOK_URL:
