@@ -2227,9 +2227,29 @@
     e.preventDefault();
   }
 
+  // Un botón principal sin `.enabled` se ve gris y su acción no avanza,
+  // pero sigue siendo un <button> clicable (cada acción valida por su
+  // cuenta; el registro de Machea lo aprovecha para mostrar los errores). Se
+  // marca con aria-disabled para que un lector de pantalla diga que está
+  // inactivo, y para que axe no lo cuente como texto de bajo contraste: WCAG
+  // exime a los controles inactivos. Un solo observador cubre todos los
+  // sitios que encienden o apagan un botón, en vez de repetirlo en cada uno.
+  function sincronizarBotonesInactivos() {
+    var botones = root.querySelectorAll('.gdf-btn-primary');
+    for (var i = 0; i < botones.length; i++) {
+      var valor = botones[i].classList.contains('enabled') ? 'false' : 'true';
+      if (botones[i].getAttribute('aria-disabled') !== valor) botones[i].setAttribute('aria-disabled', valor);
+    }
+  }
+
   function boot() {
     root = document.getElementById('root');
     root.addEventListener('click', onRootClick);
+    if (window.MutationObserver) {
+      new MutationObserver(sincronizarBotonesInactivos).observe(root, {
+        subtree: true, childList: true, attributes: true, attributeFilter: ['class'],
+      });
+    }
     document.addEventListener('click', cerrarEntornoSiTocaAfuera);
     document.addEventListener('keydown', cerrarListasConEscape);
     // Teclado del visor de fotos. Va en `document` y una sola vez: el visor se

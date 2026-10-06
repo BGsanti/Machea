@@ -385,6 +385,10 @@
     // asomar durante un instante el nombre del último barrio visitado.
     capaLoc.setTooltipContent(rotulo(barrio));
     globo.setOpacity(barrio ? 0.92 : 0);
+    // Vacío e invisible, el globo tampoco existe para un lector de pantalla
+    // (un role=tooltip sin texto es un error de accesibilidad).
+    var globoEl = globo.getElement && globo.getElement();
+    if (globoEl) globoEl.setAttribute('aria-hidden', barrio ? 'false' : 'true');
   }
 
   function limpiarHover() {
