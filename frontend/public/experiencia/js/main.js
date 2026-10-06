@@ -1280,15 +1280,11 @@
   // cuestionario, mirar si la persona ya tiene una consulta guardada (ver
   // js/datos.js) y saltarse las preguntas directo a los resultados de esa vez.
   //
-  // APAGADA mientras la base de leads no esté encendida. Ya identifica por
-  // teléfono + correo (la cédula no se pide desde 2026-10-04). Para
-  // encenderla, en este orden:
-  //   1. aplicar supabase/migrations/20261006120000_leads_por_telefono_y_correo.sql;
-  //   2. poner SUPABASE_URL y SUPABASE_ANON_KEY en js/config.js;
-  //   3. cargar js/datos.js en index.html (hoy no se carga);
-  //   4. poner `BUSQUEDA_ACTIVA` en true.
-  // Mientras tanto se arranca el quiz directamente.
-  var BUSQUEDA_ACTIVA = false;
+  // ENCENDIDA desde 2026-10-06: la base vive en el Supabase de Machea (proyecto
+  // machea-leads) y se identifica por teléfono + correo. Si SUPABASE_URL /
+  // SUPABASE_ANON_KEY quedan vacías en js/config.js, js/datos.js responde "sin
+  // configurar" y el quiz arranca directo, igual que con la base apagada.
+  var BUSQUEDA_ACTIVA = true;
   function iniciarQuizConBusqueda() {
     // Mismo criterio de canStart que templates.js/state.js: sin esto no
     // vale la pena ni intentar la consulta.

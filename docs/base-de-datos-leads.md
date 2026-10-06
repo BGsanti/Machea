@@ -16,7 +16,11 @@ es esconder la clave (no se puede, viaja al cliente): es que esa clave no
 sirva para nada más que las 4 operaciones exactas que necesita el
 formulario.
 
-> **Estado al 2026-10-06: apagada, e identifica por teléfono + correo.**
+> **Estado al 2026-10-06: encendida en el Supabase de Machea (proyecto
+> `machea-leads`), e identifica por teléfono + correo. Las secciones de abajo
+> describen cómo se encendió; el texto que sigue es el estado previo.**
+>
+> *(Estado previo: apagada.)*
 > El registro ya no pide la cédula (decisión de Diego), así que la
 > migración [`20261006120000_leads_por_telefono_y_correo.sql`](../supabase/migrations/20261006120000_leads_por_telefono_y_correo.sql)
 > reemplaza el esquema por cédula. La base nunca se encendió en el

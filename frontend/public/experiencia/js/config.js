@@ -53,6 +53,6 @@ window.GDF_CONFIG = {
   // ejecutar las 4 funciones SECURITY DEFINER de la migración. Vacías, la
   // app funciona igual: js/datos.js nunca bloquea el formulario si no hay
   // configuración o si Supabase no responde.
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: '',
+  SUPABASE_URL: 'https://ndfsrstnzttbmcxukixw.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kZnNyc3RuenR0Ym1jeHVraXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMDU2NzcsImV4cCI6MjEwNjg4MTY3N30.rs6s2sgh6a7v6PiNqlcmpyATmf9_byjK_ilshg6qBGQ',
 };
