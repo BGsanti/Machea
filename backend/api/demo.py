@@ -48,6 +48,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
+from api import correo as correo_mod
 from api import ssrf
 from api.limites import HORA, DIA, Rechazo, entero_env, ip_del_cliente, limites
 
@@ -261,7 +262,7 @@ def _datos_token(marca: Dict[str, Any], tipo: str) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Correo (por un flow de Dapta con Gmail; ver DAPTA_EMAIL_FLOW_URL)
+# Correo (api/correo.py: SMTP con Gmail o un flow de Dapta)
 # ---------------------------------------------------------------------------
 
 def _front_url() -> str:
@@ -287,18 +288,6 @@ def _html_demo(nombre: str, empresa: str, enlace: str) -> str:
         f'virtual que Machea configuró para {e}. El enlace funciona durante 30 días.</p>'
         '<p style="font-size:13px;color:#5d6b7c">¿Preguntas? Responde este correo o escríbenos a equipo@machea.co.</p></div>'
     )
-
-
-def _enviar_correo(payload: Dict[str, Any]) -> None:
-    url = os.environ.get("DAPTA_EMAIL_FLOW_URL")
-    if not url:
-        return
-    try:
-        import httpx
-        with httpx.Client(timeout=15.0) as c:
-            c.post(url, json=payload).raise_for_status()
-    except Exception as exc:                  # best-effort: la demo ya se entregó en pantalla
-        logger.warning("no se pudo enviar el correo de la demo: %s", exc)
 
 
 def _correo_al_prospecto(nombre: str, correo: str, empresa: str, enlace: str) -> Dict[str, Any]:
@@ -375,10 +364,10 @@ def solicitar_demo(payload: SolicitudDemo, request: Request, tareas: BackgroundT
 
     token = firmar(_datos_token(marca, tipo))
     enlace = url_demo(token)
-    hay_correo = bool(os.environ.get("DAPTA_EMAIL_FLOW_URL"))
+    hay_correo = correo_mod.configurado()
     if hay_correo:
-        tareas.add_task(_enviar_correo, _correo_al_prospecto(nombre, correo, marca["nombre"], enlace))
-        tareas.add_task(_enviar_correo, _correo_al_equipo(nombre, correo, payload.sitio, tipo, marca["nombre"], enlace))
+        tareas.add_task(correo_mod.enviar, _correo_al_prospecto(nombre, correo, marca["nombre"], enlace))
+        tareas.add_task(correo_mod.enviar, _correo_al_equipo(nombre, correo, payload.sitio, tipo, marca["nombre"], enlace))
     logger.info("demo solicitada: empresa=%s tipo=%s host=%s detectado=%s", marca["nombre"], tipo,
                 marca["host"], marca["detectado"])
 

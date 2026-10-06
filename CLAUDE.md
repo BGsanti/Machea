@@ -1366,8 +1366,12 @@ nombre, tipo, color y origen del logo; el front (`js/demo.js`) solo lo lee para 
 verifica en cada llamada: un token falso o vencido se ignora y Manuela habla como Machea. En demo, a Dapta
 viajan `modo_demo`, `nombre_marca` y `tipo_cliente`, y el prompt de Manuela (`dapta/prompt-manuela.md`)
 se presenta como "la asistente virtual que Machea configuró para <empresa> — esto es una demostración".
-`GET /api/marca/logo?d=<token>` sirve el logo saneado. Si `DAPTA_EMAIL_FLOW_URL` está puesta, se envía el
-enlace al correo registrado y se avisa al equipo (`CORREO_EQUIPO`).
+`GET /api/marca/logo?d=<token>` sirve el logo saneado. El enlace se envía al correo registrado y se avisa al
+equipo (`CORREO_EQUIPO`) por `api/correo.py`: SMTP con una cuenta de Gmail y su contraseña de aplicación
+(`SMTP_USER`, `SMTP_PASSWORD`) o, si no hay, un flow de Dapta con Gmail (`DAPTA_EMAIL_FLOW_URL`). Sin ninguno
+no se envía y la página muestra el enlace. Render bloquea el correo saliente en el plan GRATIS (puertos 25,
+465, 587); desde Starter no. `machea.co` es solo un reenvío de Namecheap, no un buzón: por eso se envía
+desde Gmail.
 
 **Seguridad de lo anterior.** (1) `api/ssrf.py`: la extracción baja páginas de terceros; solo http/https
 a los puertos 80/443, toda IP resuelta debe ser pública, cada redirección se revalida y hay tope de tamaño y

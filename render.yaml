@@ -22,7 +22,11 @@ services:
         sync: false
       - key: DEMO_SECRET                # firma de los enlaces de demo (si falta, se deriva de DAPTA_API_KEY)
         sync: false
-      - key: DAPTA_EMAIL_FLOW_URL       # flow de Dapta que envía correos (Gmail); sin él no se envía
+      - key: SMTP_USER                  # cuenta de Gmail que envía (machea.co@gmail.com)
+        sync: false
+      - key: SMTP_PASSWORD              # su "contraseña de aplicación" de Google (16 letras)
+        sync: false
+      - key: DAPTA_EMAIL_FLOW_URL       # alternativa: flow de Dapta con Gmail; sin SMTP ni esto no se envía
         sync: false
       - key: CORREO_EQUIPO              # a dónde avisa cada demo solicitada (por defecto equipo@machea.co)
         sync: false

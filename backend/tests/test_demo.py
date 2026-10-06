@@ -215,7 +215,7 @@ class TestExtraerMarca(unittest.TestCase):
 class BaseApi(unittest.TestCase):
     def setUp(self):
         limites.reiniciar(); FakeCliente.enviados, FakeCliente.falla = [], False
-        for k in ("DAPTA_EMAIL_FLOW_URL", "LLAMADAS_POR_TELEFONO_HORA", "LLAMADAS_POR_IP_HORA",
+        for k in ("DAPTA_EMAIL_FLOW_URL", "SMTP_USER", "SMTP_PASSWORD", "LLAMADAS_POR_TELEFONO_HORA", "LLAMADAS_POR_IP_HORA",
                   "LLAMADAS_TOTAL_DIA", "DEMO_LLAMADAS_TOTAL_DIA", "LIMITE_TELEFONOS_EXENTOS", "DEMO_SECRET"):
             os.environ.pop(k, None)
         for p in (mock.patch("socket.getaddrinfo", dns({})),):
@@ -240,12 +240,12 @@ class TestSolicitarDemo(BaseApi):
         from urllib.parse import unquote
         self.assertEqual(demo.verificar(unquote(token))["n"], "Casa Linda Inmobiliaria")
         self.assertIn("/experiencia/index.html?marca=machea&demo=", j["demo_url"])
-        self.assertFalse(j["correo_enviado"])                      # sin DAPTA_EMAIL_FLOW_URL
+        self.assertFalse(j["correo_enviado"])                      # sin SMTP ni flow de Dapta
 
     def test_manda_dos_correos_cuando_el_flow_esta_configurado(self):
         enviados = []
-        with mock.patch.dict(os.environ, {"DAPTA_EMAIL_FLOW_URL": "https://dapta.test/correo"}), \
-             mock.patch.object(demo, "_enviar_correo", side_effect=enviados.append):
+        with mock.patch.dict(os.environ, {"SMTP_USER": "machea.co@gmail.com", "SMTP_PASSWORD": "abcd efgh ijkl mnop"}), \
+             mock.patch.object(demo.correo_mod, "enviar", side_effect=enviados.append):
             j = self.pedir().json()
         self.assertTrue(j["correo_enviado"])
         self.assertEqual([e["to"] for e in enviados], ["laura@casalinda.test", "equipo@machea.co"])
