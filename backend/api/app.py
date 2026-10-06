@@ -38,6 +38,7 @@ from Model.catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES, indice_localidad
 from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
 from Model.pipeline import recomendar, respuesta_json
 
+from api import demo as demo_mod
 from api.limites import Rechazo, ip_del_cliente, limites
 
 app = FastAPI(title="Machea Recomendador API", version="0.1")
@@ -58,6 +59,8 @@ TZ_BOGOTA = timezone(timedelta(hours=-5))
 # Antes estaba duplicado aquí y el invariante 5 pedía actualizar los dos
 # archivos a mano; ahora desfasarlos es imposible.
 from Model.prep import SMMLV as SMMLV_COP
+
+app.include_router(demo_mod.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -242,6 +245,17 @@ def normalizar_telefono_e164(raw: str | None) -> str | None:
     return None
 
 
+# Formularios con marca propia (tenants del front) y a qué tipo de cliente
+# corresponden. Cualquier otro valor se trata como el formulario neutro de Machea.
+MARCAS_CONOCIDAS = {
+    "machea": "inmobiliaria",
+    "amarilo": "constructora",
+    "colsubsidio": "constructora",
+    "constructora-bolivar": "constructora",
+    "cusezar": "constructora",
+}
+
+
 class ApartamentoLlamada(BaseModel):
     nombre_proyecto: str
     localidad: str
@@ -268,6 +282,12 @@ class SolicitudLlamada(BaseModel):
     tipo_operacion: str = "compra"
     # Solo Arriendo: vivienda | oficina | bodega. Compra siempre es vivienda.
     tipo_inmueble: Optional[str] = None
+    # Marca del formulario desde el que llega el lead (`?marca=` del front). Hoy solo
+    # informa: Manuela sigue hablando como Machea. Un slug desconocido cae a "machea".
+    marca: Optional[str] = None
+    # Token firmado de "Pruébalo con tu marca" (ver api/demo.py). Solo si el servidor
+    # lo reconoce, Manuela se presenta como la asistente virtual de esa empresa.
+    demo: Optional[str] = None
     apartamento: ApartamentoLlamada
 
 
@@ -287,8 +307,13 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
         30 * SMMLV_COP if (not es_arriendo and apto.aplica_subsidio_caja and payload.afiliado) else 0
     )
 
+    datos_demo = demo_mod.verificar(payload.demo) if payload.demo else None
+    slug = (payload.marca or "").strip().lower()
+    slug = slug if slug in MARCAS_CONOCIDAS else "machea"
+
     payload_dapta: dict[str, Any] = {
-        "nombre": payload.nombre,
+        # El nombre llega al prompt de Manuela: se limpia de todo lo que no sea un nombre.
+        "nombre": demo_mod.limpiar_nombre_persona(payload.nombre) or "Cliente",
         "telefono": telefono_e164,
         "proyecto": apto.nombre_proyecto,
         "tipo_vivienda": apto.tipo_vivienda,
@@ -314,6 +339,12 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
         "valor_estimado_vivienda": 0 if es_arriendo else apto.precio_desde_cop,
         "subsidio_estimado": subsidio_estimado,
         "external_lead_id": f"machea-{int(datetime.now(TZ_BOGOTA).timestamp())}",
+        # Marca: informa el formulario de origen; en demo, Manuela se presenta como la
+        # asistente virtual de la empresa del prospecto Y avisa que es una demostración.
+        "marca": slug,
+        "tipo_cliente": datos_demo["t"] if datos_demo else MARCAS_CONOCIDAS[slug],
+        "modo_demo": bool(datos_demo),
+        "nombre_marca": datos_demo["n"] if datos_demo else "Machea",
     }
 
     if not DAPTA_FLOW_WEBHOOK_URL:
@@ -330,7 +361,7 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
     # llama a nadie y no hay nada que proteger (ni que gastar).
     try:
         reserva = limites.reservar_llamada(
-            telefono=telefono_e164, ip=ip_del_cliente(request), demo=False
+            telefono=telefono_e164, ip=ip_del_cliente(request), demo=bool(datos_demo)
         )
     except Rechazo as exc:
         logger.warning("llamada rechazada (%s): tel=%s ip=%s", exc.motivo, telefono_e164[-4:], ip_del_cliente(request))
