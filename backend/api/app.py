@@ -38,6 +38,8 @@ from Model.catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES, indice_localidad
 from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
 from Model.pipeline import recomendar, respuesta_json
 
+from api.limites import Rechazo, ip_del_cliente, limites
+
 app = FastAPI(title="Machea Recomendador API", version="0.1")
 
 # URL del webhook del flow de Dapta (Flow Studio) que dispara la llamada de
@@ -270,7 +272,7 @@ class SolicitudLlamada(BaseModel):
 
 
 @app.post("/api/llamar")
-def api_llamar(payload: SolicitudLlamada):
+def api_llamar(payload: SolicitudLlamada, request: Request):
     telefono_e164 = normalizar_telefono_e164(payload.telefono)
     if not telefono_e164:
         raise HTTPException(
@@ -323,15 +325,34 @@ def api_llamar(payload: SolicitudLlamada):
 
     import httpx
 
+    # TOPES (ver api/limites.py): este endpoint llama de verdad a un móvil, sin
+    # login y con CORS abierto. Se aplican solo en modo real: en mock no se
+    # llama a nadie y no hay nada que proteger (ni que gastar).
+    try:
+        reserva = limites.reservar_llamada(
+            telefono=telefono_e164, ip=ip_del_cliente(request), demo=False
+        )
+    except Rechazo as exc:
+        logger.warning("llamada rechazada (%s): tel=%s ip=%s", exc.motivo, telefono_e164[-4:], ip_del_cliente(request))
+        raise HTTPException(
+            status_code=429, detail=exc.mensaje, headers={"Retry-After": str(exc.reintentar_en)}
+        ) from exc
+
     # Se limpia cualquier resultado viejo para este número: si vuelve a llamar
     # (reintento o segunda vuelta), que el polling no devuelva el resumen de la
     # llamada anterior mientras la nueva sigue en curso.
     RESULTADOS_LLAMADAS.pop(telefono_e164, None)
 
     headers = {"x-api-key": DAPTA_API_KEY} if DAPTA_API_KEY else {}
-    with httpx.Client(timeout=20.0) as client:
-        r = client.post(DAPTA_FLOW_WEBHOOK_URL, json=payload_dapta, headers=headers)
-        r.raise_for_status()
+    try:
+        with httpx.Client(timeout=20.0) as client:
+            r = client.post(DAPTA_FLOW_WEBHOOK_URL, json=payload_dapta, headers=headers)
+            r.raise_for_status()
+    except Exception:
+        # Si Dapta no recibió el pedido, el cupo se devuelve: un fallo nuestro
+        # no puede dejar a la persona sin poder reintentar durante una hora.
+        reserva.liberar()
+        raise
     return {
         "status": "enviado",
         "detalle": f"Manuela está llamando a {telefono_e164}.",
