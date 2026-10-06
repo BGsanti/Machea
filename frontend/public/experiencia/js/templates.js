@@ -694,32 +694,32 @@
           );
         })
         .join('');
-      // Con `min` declarado (estilo de vida de Arriendo, data.js): lista
-      // corta y fija, DESPLEGABLE. Reusa '.gdf-multi-opt-list' de las
-      // amenidades de Compra para el estilo de cada fila, pero con el
-      // modificador `--plegable` (ver CSS): esa lista flota encima de lo que
-      // sigue (pensada para un buscador, que se cierra solo al elegir o al
-      // escribir), y aquí con 11 opciones fijas y min:3 el usuario elige
-      // varias seguidas sin cerrarla -- flotando le tapaba los chips y el
-      // botón Continuar mientras tanto. `--plegable` la abre empujando el
-      // resto hacia abajo en vez de flotar. El botón alterna 'abierto' a
-      // mano (ver 'entornoToggle' en main.js); el cierre por "clic afuera" lo
-      // cubre gratis cerrarEntornoSiTocaAfuera(), que ya recorre TODOS los
-      // '.gdf-entorno-combo' de la pantalla. El botón Continuar arranca
-      // deshabilitado -- toggleEntornoValor()/renderEntornoChips() en main.js
-      // lo habilitan al llegar a `min` elegidos.
+      // Con `min` declarado (estilo de vida de Arriendo, data.js): las 11
+      // opciones A LA VISTA como chips con icono y un contador "Elegiste N de
+      // 3" (T8, variante A aprobada por Diego el 2026-10-06; mockup en
+      // design/formulario-rediseno/mockups-arriendo). Antes iban en un
+      // desplegable que en el celular escondía la mayoría. La lógica no
+      // cambia: cada chip es un 'toggleEntorno' y #entornoOpciones es el
+      // contenedor que leen toggleEntornoValor()/renderEntornoChips() en
+      // main.js, que también habilitan Continuar al llegar a `min`.
       if (q.min) {
+        var puntos = '';
+        for (var pi = 0; pi < q.min; pi++) puntos += '<i></i>';
+        var chipsEstilo = q.options
+          .map(function (o) {
+            return (
+              '<button type="button" class="gdf-estilo-chip" data-action="toggleEntorno" data-value="' + esc(o.v) + '"' +
+              ' aria-pressed="false">' + iconoEstilo(o.v) + '<span>' + esc(o.label) + '</span></button>'
+            );
+          })
+          .join('');
         answerAreaHtml =
           '<div class="gdf-quiz-freeform">' +
-          '<div class="gdf-entorno-combo">' +
-          '<button type="button" class="gdf-input gdf-entorno-toggle" id="entornoToggle" ' +
-          'aria-haspopup="listbox" aria-expanded="false" aria-controls="entornoOpciones">' +
-          '<span>Elige tus preferencias (mínimo ' + q.min + ')</span>' +
-          '<span class="gdf-entorno-toggle-caret" aria-hidden="true"></span>' +
-          '</button>' +
-          '<div class="gdf-multi-opt-list gdf-multi-opt-list--plegable" id="entornoOpciones">' + multiOpts + '</div>' +
+          '<div class="gdf-estilo-cuenta" data-min="' + q.min + '">' +
+          '<span aria-live="polite">Elegiste <b class="n">0</b> de ' + q.min + ' como mínimo</span>' +
+          '<span class="puntos" aria-hidden="true">' + puntos + '</span>' +
           '</div>' +
-          '<div class="gdf-entorno-chips" id="entornoChips"></div>' +
+          '<div class="gdf-estilo-chips" id="entornoOpciones">' + chipsEstilo + '</div>' +
           '<button class="gdf-btn-primary" data-action="answerQuizMultiselect" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
           '</div>';
       } else {
@@ -745,15 +745,23 @@
       // iban en línea). Valor no controlado (igual que
       // zonaSeleccion/entornoSeleccion): +/- patchea el número en el DOM sin
       // re-render, ver ajustarContador() en main.js.
+      // T8, variante A "filas con botones grandes" (aprobada por Diego el
+      // 2026-10-06): icono por fila, una pista corta sacada de min/max y
+      // botones de 44 px. El − y el + se apagan en los extremos (los pinta
+      // pintarContador() en main.js al entrar y en cada toque).
       var filasContador = q.campos
         .map(function (c) {
+          var pista = c.min === 0 ? 'Puede ser 0'
+            : c.id === 'estrato' ? 'Del ' + c.min + ' al ' + c.max
+            : 'Mínimo ' + c.min;
           return (
             '<div class="gdf-contador">' +
-            '<span>' + esc(c.label) + '</span>' +
-            '<div class="gdf-contador-control">' +
-            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">' + ic('menos') + '</button>' +
-            '<span class="gdf-contador-valor" id="contadorValor-' + c.id + '">' + c.inicial + '</span>' +
-            '<button type="button" class="gdf-back-btn gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">' + ic('mas') + '</button>' +
+            '<span class="gdf-contador-icono">' + ic(ICONO_CONTADOR[c.id] || 'casa') + '</span>' +
+            '<span class="gdf-contador-nombre"><b id="contadorNombre-' + c.id + '">' + esc(c.label) + '</b><span>' + pista + '</span></span>' +
+            '<div class="gdf-contador-control" role="group" aria-labelledby="contadorNombre-' + c.id + '">' +
+            '<button type="button" class="gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="-1" aria-label="Menos ' + esc(c.label) + '">' + ic('menos') + '</button>' +
+            '<span class="gdf-contador-valor" id="contadorValor-' + c.id + '" aria-live="polite">' + c.inicial + '</span>' +
+            '<button type="button" class="gdf-contador-btn" data-action="ajustarContador" data-campo="' + c.id + '" data-delta="1" aria-label="Más ' + esc(c.label) + '">' + ic('mas') + '</button>' +
             '</div>' +
             '</div>'
           );
@@ -869,6 +877,32 @@
   // Iconos de las opciones que tienen uno (variante B): las dos preguntas de
   // entrada, donde la persona elige QUÉ busca. Por `v`, que es lo que no
   // cambia; los textos visibles sí pueden cambiar.
+  // T8: el icono de cada contador de Arriendo (iconos-ui.js).
+  var ICONO_CONTADOR = { habitaciones: 'cama', banos: 'ducha', parqueaderos: 'carro', estrato: 'estrato' };
+
+  // T8: el icono de cada opción de estilo de vida. Los que existen en el
+  // vocabulario de amenidades (js/iconos.js) se toman de ahí; el resto, de
+  // iconos-ui.js. Sin icono, el chip va solo con el texto.
+  var ICONO_ESTILO = {
+    vivo_solo: ['ui', 'usuario'],
+    vivo_ninos: ['amenidad', 'Zona kids'],
+    vivo_mascotas: ['amenidad', 'Zona pet'],
+    discapacidad: ['ui', 'discapacidad'],
+    biciusuario: ['amenidad', 'Taller de bicicletas'],
+    gimnasio_personal: ['amenidad', 'Gimnasio'],
+    aire_libre: ['amenidad', 'Parque'],
+    balcon_terraza: ['amenidad', 'Balcón'],
+    zona_ropas: ['amenidad', 'Zona de lavandería'],
+    deposito: ['amenidad', 'Depósito'],
+    areas_sociales: ['amenidad', 'Salón social'],
+  };
+  function iconoEstilo(valor) {
+    var d = ICONO_ESTILO[valor];
+    if (!d) return '';
+    if (d[0] === 'ui') return ic(d[1]);
+    return (window.GDF.iconos && window.GDF.iconos.icono(d[1])) || '';
+  }
+
   var ICONOS_OPCION = {
     operacion: { compra: 'llave', arriendo: 'contrato' },
     tipo_propiedad: { Vivienda: 'casa', Oficinas: 'edificio', Bodegas: 'bodega' },

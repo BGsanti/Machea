@@ -327,11 +327,11 @@
     type: 'multiselect',
     min: 3,
     options: [
-      { v: 'vivo_solo', label: 'Vivo Solo' },
+      { v: 'vivo_solo', label: 'Vivo solo' },
       { v: 'vivo_ninos', label: 'Vivo con niños' },
       { v: 'vivo_mascotas', label: 'Vivo con mascotas' },
       { v: 'discapacidad', label: 'Situación de discapacidad' },
-      { v: 'biciusuario', label: 'Soy Biciusuario' },
+      { v: 'biciusuario', label: 'Soy biciusuario' },
       { v: 'gimnasio_personal', label: 'Entreno en gimnasio' },
       { v: 'aire_libre', label: 'Actividades al aire libre' },
       { v: 'balcon_terraza', label: 'Con balcón o terraza' },

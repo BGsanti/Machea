@@ -76,6 +76,18 @@
     'casa': '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/>',
     'bodega': '<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7"/><path d="M7 16h10"/><path d="M3 20h18"/>',
 
+    // --- Contadores y estilo de vida de Arriendo (T8) ----------------------
+    'cama': '<path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 15h18"/>' +
+            '<path d="M3 18v2M21 18v2"/><rect x="5.5" y="10.5" width="5" height="3" rx="1"/>',
+    'ducha': '<path d="M5 20V8a4 4 0 0 1 8 0"/><path d="M10 9h6"/>' +
+             '<path d="M11 12v.01M13 13v.01M15 12v.01M12 15v.01M14 16v.01"/><path d="M3 20h18"/>',
+    'carro': '<path d="M5 16V12l2-5h10l2 5v4"/><path d="M4 16h16v2H4z"/>' +
+             '<circle cx="7.5" cy="13.5" r=".8"/><circle cx="16.5" cy="13.5" r=".8"/><path d="M6 18v2M18 18v2"/>',
+    // Barras que suben: el estrato como escala, sin numeros.
+    'estrato': '<path d="M4 20h16"/><path d="M6 20v-4h3v4M10.5 20v-8h3v8M15 20V7h3v13"/>',
+    'discapacidad': '<circle cx="11" cy="4.5" r="1.6"/><path d="M11 7v6h5l2 5"/><path d="M11 10h4"/>' +
+                    '<path d="M8.5 11.2a5 5 0 1 0 6.3 6.3"/>',
+
     // --- Estado y avisos --------------------------------------------------
     'check': '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     'check-circulo': '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3l2.6 2.6 5-5.2"/>',

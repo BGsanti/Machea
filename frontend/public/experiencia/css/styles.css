@@ -2375,51 +2375,6 @@ a.pt-flink:hover {
   display: none;
 }
 
-/* Variante EN FLUJO de la lista de arriba (estilo de vida de Arriendo,
-   `q.min` en data.js, ver templates.js): abre empujando lo que sigue hacia
-   abajo en vez de flotar encima. La de arriba flota porque está pensada
-   para un buscador que se cierra solo al elegir o al escribir; aquí, con 11
-   opciones fijas, el usuario elige varias seguidas (min:3) y flotando le
-   taparía los chips y el botón Continuar mientras tanto. */
-.gdf-multi-opt-list--plegable {
-  position: static;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 8px;
-  max-height: none;
-  overflow: visible;
-  background: none;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-}
-
-/* Variante sin buscador de '.gdf-entorno-combo' (estilo de vida de Arriendo,
-   `q.min` en data.js): un botón hace de "campo" en vez de un <input>, mismo
-   look que '.gdf-input' (de ahí viene el fondo/borde/radio) más una flecha
-   que se invierte al abrir. El combo entero son 11 opciones fijas: no hace
-   falta escribir para filtrar, solo abrir y tocar. */
-.gdf-entorno-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  cursor: pointer;
-  text-align: left;
-}
-.gdf-entorno-toggle-caret {
-  flex: 0 0 auto;
-  width: 9px;
-  height: 9px;
-  border-right: 2px solid var(--tinta-suave);
-  border-bottom: 2px solid var(--tinta-suave);
-  transform: rotate(45deg);
-  transition: transform 0.15s;
-}
-.gdf-entorno-toggle[aria-expanded='true'] .gdf-entorno-toggle-caret {
-  transform: rotate(-135deg);
-}
-
 /* ============ PREGUNTA 'zona': BUSCADOR DE BARRIOS + MAPA ============ */
 /* Reutiliza '.gdf-entorno-combo' y '.gdf-multi-opt-list' de arriba; lo de
    aquí es solo lo propio del mapa y de la sugerencia a dos líneas.
@@ -5590,51 +5545,157 @@ html[data-marca='machea'] .gdf-temp--frio {
   border-color: var(--borde);
 }
 
-/* --- Contadores de Arriendo y estilo de vida ---------------------------
-   Antes eran estilos en linea en templates.js. Las clases sirven a todas las
-   marcas; aqui solo la forma de Machea. T8 los rediseña del todo. */
+/* --- Contadores de Arriendo (T8, variante A "filas con botones grandes") ---
+   Aprobada por Diego el 2026-10-06 (mockup: design/formulario-rediseno/
+   mockups-arriendo). Sirve a todas las marcas con sus tokens. */
 .gdf-contador {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 0;
+  gap: 12px;
+  padding: 11px 0;
   border-bottom: 1px solid var(--borde);
+}
+.gdf-contador-icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--papel-2);
+  color: var(--tinta);
+}
+.gdf-contador-icono .gdf-icono-ui {
+  width: 20px;
+  height: 20px;
+}
+.gdf-contador-nombre {
+  flex: 1;
+  min-width: 0;
+}
+.gdf-contador-nombre b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--tinta);
+}
+.gdf-contador-nombre span {
+  font-size: 12px;
+  color: var(--tinta-suave);
 }
 .gdf-contador-control {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 6px;
 }
 .gdf-contador-valor {
-  min-width: 1.5em;
+  min-width: 34px;
   text-align: center;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta);
 }
-/* Los botones - y + reusaban .gdf-back-btn tal cual, con su margin-top de
-   "Atras", y quedaban un escalon por debajo del numero. */
+/* 44 px: el minimo comodo para el dedo (antes 32). */
 .gdf-contador-btn {
-  margin-top: 0;
-  align-self: center;
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 1.5px solid var(--borde);
   border-radius: 999px;
-  font-size: 16px;
-  line-height: 1;
-}
-html[data-marca='machea'] .gdf-contador-btn {
-  color: var(--tinta);
   background: var(--papel);
+  color: var(--tinta);
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
 }
-html[data-marca='machea'] .gdf-contador-btn:hover {
+.gdf-contador-btn .gdf-icono-ui {
+  width: 18px;
+  height: 18px;
+}
+.gdf-contador-btn:hover:not(:disabled) {
   border-color: var(--tinta);
 }
-html[data-marca='machea'] .gdf-contador-valor {
-  font-weight: 700;
+.gdf-contador-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.gdf-contador-btn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.gdf-contador-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(31, 46, 66, 0.28);
+}
+
+/* --- Estilo de vida de Arriendo (T8, variante A "chips con icono") ----- */
+.gdf-estilo-cuenta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+}
+.gdf-estilo-cuenta b {
   color: var(--tinta);
+}
+.gdf-estilo-cuenta .puntos {
+  display: flex;
+  gap: 4px;
+}
+.gdf-estilo-cuenta .puntos i {
+  width: 22px;
+  height: 5px;
+  border-radius: 9px;
+  background: var(--borde);
+  transition: background 0.15s;
+}
+.gdf-estilo-cuenta .puntos i.on {
+  background: var(--tinta);
+}
+.gdf-estilo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.gdf-estilo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1.5px solid var(--borde);
+  border-radius: 999px;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--fuente-cuerpo);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.gdf-estilo-chip svg {
+  flex: none;
+  width: 17px;
+  height: 17px;
+}
+.gdf-estilo-chip:hover {
+  border-color: var(--tinta-suave);
+}
+/* Elegido = navy (estado aprobado en T1); el borde de 2 px no mueve el chip. */
+.gdf-estilo-chip.selected {
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 0.5px var(--tinta);
+  background: var(--papel-2);
+}
+.gdf-estilo-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(31, 46, 66, 0.28);
 }
 
 /* ============ ICONOS DE INTERFAZ (js/iconos-ui.js) ============
@@ -5704,13 +5765,6 @@ html[data-marca='machea'] .gdf-mapa-real .leaflet-control-zoom-out {
 @media (max-width: 899px) {
   .gdf-entorno-combo #entornoOpciones {
     max-height: min(280px, 24dvh);
-  }
-  /* La lista plegable de estilo de vida (Arriendo) trae `overflow: visible`:
-     con el tope de arriba, las opciones se salian de la caja y quedaban
-     encima de "Continuar", que dejaba de recibir el clic. Aqui hace scroll
-     por dentro, como la de amenidades. */
-  .gdf-entorno-combo #entornoOpciones.gdf-multi-opt-list--plegable {
-    overflow-y: auto;
   }
 }
 
@@ -6391,4 +6445,9 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
   .gdf-registro h2 {
     font-size: 28px;
   }
+}
+/* Los iconos del vocabulario de amenidades (.gdf-icono) se pintan en el
+   color de marca; en los chips de estilo de vida van del color del texto. */
+.gdf-estilo-chip .gdf-icono {
+  color: inherit;
 }

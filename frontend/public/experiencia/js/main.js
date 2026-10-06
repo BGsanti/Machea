@@ -255,23 +255,6 @@
       entornoSearch.addEventListener('click', filtrarEntorno);
     }
 
-    // Variante SIN buscador (estilo de vida de Arriendo, `q.min` en
-    // data.js): el botón reemplaza al input de arriba y solo abre/cierra el
-    // mismo '.gdf-multi-opt-list' -- no hay texto que filtrar, así que no
-    // reusa filtrarEntorno(). Elegir una opción NO lo cierra (toggleEntornoValor
-    // no toca 'abierto'): es un multiselect, se espera elegir varias seguidas.
-    // El cierre por "clic afuera" lo cubre cerrarEntornoSiTocaAfuera(), que ya
-    // recorre todos los '.gdf-entorno-combo' de la pantalla.
-    var entornoToggle = document.getElementById('entornoToggle');
-    if (entornoToggle) {
-      entornoToggle.addEventListener('click', function () {
-        var lista = document.getElementById('entornoOpciones');
-        if (!lista) return;
-        var abierta = lista.classList.toggle('abierto');
-        entornoToggle.setAttribute('aria-expanded', abierta ? 'true' : 'false');
-      });
-    }
-
     // El buscador de la pregunta 'zona' —barrios y lugares en el mismo campo—.
     // Igual que el de arriba: solo aparece con texto escrito, y la selección
     // en curso se reinicia porque este código solo corre tras un render que
@@ -309,10 +292,21 @@
       preferenciasActual = {};
       qContador.campos.forEach(function (c) {
         preferenciasActual[c.id] = previo && previo[c.id] != null ? previo[c.id] : c.inicial;
-        var span = document.getElementById('contadorValor-' + c.id);
-        if (span) span.textContent = preferenciasActual[c.id];
+        pintarContador(c, preferenciasActual[c.id]);
       });
     }
+  }
+
+  // El número de un contador de Arriendo y sus extremos: el − se apaga en el
+  // mínimo y el + en el máximo (T8). Solo pinta; el valor vive en
+  // `preferenciasActual`.
+  function pintarContador(campo, valor) {
+    var span = document.getElementById('contadorValor-' + campo.id);
+    if (span) span.textContent = valor;
+    var menos = document.querySelector('[data-action="ajustarContador"][data-campo="' + campo.id + '"][data-delta="-1"]');
+    var mas = document.querySelector('[data-action="ajustarContador"][data-campo="' + campo.id + '"][data-delta="1"]');
+    if (menos) menos.disabled = valor <= campo.min;
+    if (mas) mas.disabled = valor >= campo.max;
   }
 
   // ------------------------------------------------ scroll de los resultados
@@ -862,10 +856,13 @@
     var idx = entornoSeleccion.indexOf(valor);
     if (idx > -1) entornoSeleccion.splice(idx, 1);
     else entornoSeleccion.push(valor);
-    var botones = document.querySelectorAll('#entornoOpciones .gdf-multi-opt');
+    var botones = document.querySelectorAll('#entornoOpciones [data-action="toggleEntorno"]');
     for (var i = 0; i < botones.length; i++) {
       if (botones[i].dataset.value === valor) {
-        botones[i].classList.toggle('selected', entornoSeleccion.indexOf(valor) > -1);
+        var marcado = entornoSeleccion.indexOf(valor) > -1;
+        botones[i].classList.toggle('selected', marcado);
+        // Los chips de estilo de vida (T8) son botones de alternar.
+        if (botones[i].hasAttribute('aria-pressed')) botones[i].setAttribute('aria-pressed', marcado ? 'true' : 'false');
       }
     }
     renderEntornoChips();
@@ -883,7 +880,6 @@
 
   function renderEntornoChips() {
     var cont = document.getElementById('entornoChips');
-    if (!cont) return;
     // El barrio 3D reacciona a cada chip, no al pulsar "Continuar": cada
     // amenidad elegida cae en el lote alrededor de la casa (plano3d/entorno.js).
     //
@@ -902,7 +898,18 @@
       window.GDF3D.seleccionarEntorno(paraEscena);
     }
     var q = findQuestionById('entorno_deseado');
-    cont.innerHTML = entornoSeleccion
+    // Estilo de vida de Arriendo (T8): no hay fila de chips aparte -- los
+    // propios chips se marcan -- sino un contador "Elegiste N de 3".
+    var cuenta = document.querySelector('.gdf-estilo-cuenta');
+    if (cuenta) {
+      var nCuenta = entornoSeleccion.length;
+      var numero = cuenta.querySelector('.n');
+      if (numero) numero.textContent = nCuenta;
+      var marcas = cuenta.querySelectorAll('.puntos i');
+      for (var m = 0; m < marcas.length; m++) marcas[m].classList.toggle('on', m < nCuenta);
+      cuenta.classList.toggle('completo', q && q.min ? nCuenta >= q.min : false);
+    }
+    if (cont) cont.innerHTML = entornoSeleccion
       .map(function (valor) {
         var opt = q && q.options.filter(function (o) { return o.v === valor; })[0];
         var label = opt ? opt.label : valor;
@@ -1998,8 +2005,7 @@
       var actual = preferenciasActual[campo.id] != null ? preferenciasActual[campo.id] : campo.inicial;
       var nuevo = Math.min(campo.max, Math.max(campo.min, actual + delta));
       preferenciasActual[campo.id] = nuevo;
-      var spanValor = document.getElementById('contadorValor-' + campo.id);
-      if (spanValor) spanValor.textContent = nuevo;
+      pintarContador(campo, nuevo);
       return;
     }
     if (el.dataset.action === 'answerPreferencias') {
@@ -2142,10 +2148,6 @@
       if (combos[i].contains(e.target)) continue;
       var lista = combos[i].querySelector('.gdf-multi-opt-list');
       if (lista) lista.classList.remove('abierto');
-      // Solo la variante con botón (estilo de vida de Arriendo) tiene este
-      // atributo; la del buscador no, y aquí no pasa nada si no existe.
-      var toggle = combos[i].querySelector('.gdf-entorno-toggle');
-      if (toggle) toggle.setAttribute('aria-expanded', 'false');
     }
   }
 
@@ -2157,9 +2159,6 @@
     var abiertas = document.querySelectorAll('.gdf-entorno-combo .gdf-multi-opt-list.abierto');
     if (!abiertas.length) return;
     for (var i = 0; i < abiertas.length; i++) abiertas[i].classList.remove('abierto');
-    // La variante con botón (estilo de vida de Arriendo) marca su estado.
-    var toggles = document.querySelectorAll('.gdf-entorno-toggle');
-    for (var t = 0; t < toggles.length; t++) toggles[t].setAttribute('aria-expanded', 'false');
     var activo = document.activeElement;
     if (activo && activo.closest && activo.closest('.gdf-entorno-combo')) activo.blur();
   }
