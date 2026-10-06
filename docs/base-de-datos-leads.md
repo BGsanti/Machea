@@ -16,24 +16,32 @@ es esconder la clave (no se puede, viaja al cliente): es que esa clave no
 sirva para nada más que las 4 operaciones exactas que necesita el
 formulario.
 
+> **Estado al 2026-10-06: apagada, e identifica por teléfono + correo.**
+> El registro ya no pide la cédula (decisión de Diego), así que la
+> migración [`20261006120000_leads_por_telefono_y_correo.sql`](../supabase/migrations/20261006120000_leads_por_telefono_y_correo.sql)
+> reemplaza el esquema por cédula. La base nunca se encendió en el
+> formulario: `js/datos.js` no se carga en `index.html` y `config.js` no
+> tiene credenciales. Para encenderla, ver la sección 5.
+
 ## 1. Dónde vive cada cosa
 
 | Qué | Dónde |
 |---|---|
-| Esquema real aplicado | [`supabase/migrations/20260928184500_leads_consultas_intereses.sql`](../supabase/migrations/20260928184500_leads_consultas_intereses.sql) — el `.sql` tal cual se corrió, no una descripción |
+| Esquema | [`supabase/migrations/20260928184500_leads_consultas_intereses.sql`](../supabase/migrations/20260928184500_leads_consultas_intereses.sql) (por cédula, ya aplicada) y [`20261006120000_leads_por_telefono_y_correo.sql`](../supabase/migrations/20261006120000_leads_por_telefono_y_correo.sql) (la reemplaza; falta aplicarla) |
 | El único módulo que habla con Supabase | [`frontend/public/experiencia/js/datos.js`](../frontend/public/experiencia/js/datos.js) |
 | Credenciales (URL + clave publicable) | [`frontend/public/experiencia/js/config.js`](../frontend/public/experiencia/js/config.js) — campos `SUPABASE_URL` / `SUPABASE_ANON_KEY` |
-| Dónde se engancha en el formulario | `js/main.js`: `iniciarQuizConBusqueda` / `restaurarConsultaGuardada`, `onRecoResuelta`, y los dos `if (window.GDF.datos) ...` dentro de `dispatch()` e `iniciarPolling()` |
-| Campo nuevo en la escarapela | `js/templates.js` (`escarapela()`) y `js/state.js` (`cedula`, `consultaId` en `createInitial()`) |
+| Dónde se engancha en el formulario | `js/main.js`: `BUSQUEDA_ACTIVA`, `iniciarQuizConBusqueda` / `restaurarConsultaGuardada`, `onRecoResuelta`, y los dos `if (window.GDF.datos) ...` dentro de `dispatch()` e `iniciarPolling()` |
+| Identidad | El teléfono y el correo del registro (`state.telefono`, `state.correo`); `consultaId` en `createInitial()` de `js/state.js` |
 
 ## 2. Esquema
 
 Tres tablas, sin nada más:
 
-- **`leads`** — una fila por cédula: nombre, apellido, correo, teléfono.
-  El teléfono se fija en la primera consulta y `guardar_consulta()` **nunca**
-  lo sobreescribe después: evita que alguien reclame la cédula de otra
-  persona con su propio número en una visita posterior.
+- **`leads`** — una fila por teléfono: correo, nombre y apellido. El
+  correo se fija en la primera consulta y **ninguna** función lo
+  sobreescribe: teléfono y correo tienen que coincidir para leer o escribir,
+  así que nadie puede tocar el historial de otra persona sabiendo solo su
+  número.
 - **`consultas`** — una fila por cada vez que el quiz completo calculó
   resultados nuevos: `respuestas` (`state.answers`, jsonb) y `resultados`
   (`state.reco` — items, catálogo, si es aproximado —, jsonb).
@@ -44,10 +52,10 @@ Tres tablas, sin nada más:
   `fecha_seguimiento` trae un valor — es la señal de que Manuela agendó una
   cita real en la llamada, no solo que se pidió el contacto.
 
-Cédula y teléfono se comparan **siempre por sus dígitos**
-(`regexp_replace(valor, '\D', '', 'g')`), nunca tal cual se escriben:
-`"300 123 4567"` y `"3001234567"` son el mismo teléfono. Se normalizan
-igual al guardarlos, así que las columnas ya quedan solo con dígitos.
+El teléfono se compara **siempre por sus dígitos**
+(`regexp_replace(valor, '\D', '', 'g')`): `"300 123 4567"` y
+`"3001234567"` son el mismo teléfono. El correo, sin espacios y en
+minúscula. Se normalizan igual al guardarlos.
 
 ## 3. Por qué queda seguro sin login
 
@@ -59,13 +67,17 @@ igual al guardarlos, así que las columnas ya quedan solo con dígitos.
   tampoco los herede por accidente).
 - **El único acceso es a través de 4 funciones `SECURITY DEFINER`**, y son
   las únicas con `GRANT EXECUTE` a `anon`:
-  - `guardar_consulta(cedula, nombre, apellido, correo, telefono, respuestas, resultados)`
-  - `buscar_resultados(cedula, telefono)` — exige los **dos** datos a la
-    vez; si no coinciden (la cédula no existe, o existe con otro teléfono)
+  - `guardar_consulta(nombre, apellido, correo, telefono, respuestas, resultados)`
+    — si el teléfono ya existe con otro correo, no guarda nada.
+  - `buscar_resultados(telefono, correo)` — exige los **dos** datos a la
+    vez; si no coinciden (el teléfono no existe, o existe con otro correo)
     devuelve cero filas **en los dos casos por igual** — la respuesta nunca
-    delata si una cédula existe.
-  - `marcar_interes(cedula, telefono, proyecto, consulta_id)`
-  - `marcar_intencion(cedula, telefono, proyecto, fecha_seguimiento, temperatura)`
+    delata si un teléfono existe.
+  - `marcar_interes(telefono, correo, proyecto, consulta_id)`
+  - `marcar_intencion(telefono, correo, proyecto, fecha_seguimiento, temperatura)`
+
+  Las cuatro comparan el par con `lead_coincide()`, que es interna: `anon`
+  no la puede llamar.
   
   Una función `SECURITY DEFINER` corre con los privilegios de quien la
   creó, y el dueño de una tabla en Postgres siempre atraviesa su propio RLS
@@ -98,8 +110,9 @@ igual al guardarlos, así que las columnas ya quedan solo con dígitos.
 
 Los 4 puntos de enganche, en el orden en que ocurren durante una visita:
 
-1. **Antes de arrancar el quiz** (clic en "Empezar a construir"):
-   `iniciarQuizConBusqueda()` en `main.js` llama a `buscarResultados`. Si
+1. **Antes de arrancar el quiz** (clic en "Empezar a construir"), solo si
+   `BUSQUEDA_ACTIVA` está en true: `iniciarQuizConBusqueda()` en `main.js`
+   llama a `buscarResultados`. Si
    hay match, `restaurarConsultaGuardada()` salta las 7 preguntas y pinta
    directo la pantalla de resultados con lo que se guardó la vez anterior.
    Sin match (o si Supabase no responde a tiempo), sigue el quiz normal.
@@ -117,7 +130,19 @@ Los 4 puntos de enganche, en el orden en que ocurren durante una visita:
    payload de `/api/llamar/resultado` (ver `backend/api/app.py`, el
    webhook `/webhooks/dapta/resultado`).
 
-## 5. Configurar un clon nuevo
+## 5. Encenderla
+
+En este orden:
+
+1. Aplicar `supabase/migrations/20261006120000_leads_por_telefono_y_correo.sql`
+   en el proyecto de Supabase. Solo corre con las tablas vacías: si hay
+   datos, se detiene sin tocar nada.
+2. Llenar las credenciales en `js/config.js` (abajo).
+3. Cargar `js/datos.js` en `experiencia/index.html`, antes de `main.js`.
+4. Poner `BUSQUEDA_ACTIVA` en true en `js/main.js`.
+
+Hoy solo Compra guarda consultas e intereses: Arriendo todavía no escribe
+en la base.
 
 En `js/config.js`, llenar `SUPABASE_URL` (la Project URL) y
 `SUPABASE_ANON_KEY` (la clave publicable/`anon`, **nunca** la

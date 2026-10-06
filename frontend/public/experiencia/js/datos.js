@@ -2,6 +2,10 @@
 // (Supabase). Ver docs/base-de-datos-leads.md para el esquema real
 // aplicado y supabase/migrations/ para el SQL exacto.
 //
+// La persona se identifica con TELÉFONO + CORREO, sin cédula (decisión de
+// Diego, 2026-10-06; ver 20261006120000_leads_por_telefono_y_correo.sql).
+// Los dos tienen que coincidir en todas las funciones.
+//
 // TRES REGLAS DURAS:
 //   1. Nunca usa la service_role key -- solo la clave PUBLICABLE/anon de
 //      config.js, la misma que puede viajar al navegador sin riesgo: las
@@ -74,13 +78,13 @@
   }
 
   /**
-   * ¿Ya existe una consulta guardada para esta cédula+teléfono? Se llama
+   * ¿Ya existe una consulta guardada para este teléfono+correo? Se llama
    * antes de arrancar el cuestionario. SIEMPRE resuelve -- con match o sin
    * él, nunca dejando el botón "Empezar a construir" colgado.
    * cb({ encontrado, consultaId, respuestas, resultados }).
    */
-  function buscarResultados(cedula, telefono, cb) {
-    rpc('buscar_resultados', { p_cedula: cedula, p_telefono: telefono }, function (datos, error) {
+  function buscarResultados(telefono, correo, cb) {
+    rpc('buscar_resultados', { p_telefono: telefono, p_correo: correo }, function (datos, error) {
       if (error) {
         console.warn('[GDF/datos] buscar_resultados:', error);
         cb({ encontrado: false });
@@ -105,7 +109,6 @@
    */
   function guardarConsulta(state, resultado, cb) {
     rpc('guardar_consulta', {
-      p_cedula: state.cedula,
       p_nombre: state.nombre,
       p_apellido: state.apellido,
       p_correo: state.correo,
@@ -139,8 +142,8 @@
     var proyecto = proyectoElegido(state);
     if (!proyecto) return;
     rpc('marcar_interes', {
-      p_cedula: state.cedula,
       p_telefono: state.telefono,
+      p_correo: state.correo,
       p_proyecto: proyecto,
       p_consulta_id: state.consultaId || null,
     }, function (datos, error) {
@@ -160,8 +163,8 @@
     if (!proyecto) return;
     var d = datosResumen || {};
     rpc('marcar_intencion', {
-      p_cedula: state.cedula,
       p_telefono: state.telefono,
+      p_correo: state.correo,
       p_proyecto: proyecto,
       p_fecha_seguimiento: d.fecha_de_seguimiento || null,
       p_temperatura: d.temperatura_lead || null,

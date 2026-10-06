@@ -1243,12 +1243,14 @@
   // cuestionario, mirar si la persona ya tiene una consulta guardada (ver
   // js/datos.js) y saltarse las preguntas directo a los resultados de esa vez.
   //
-  // DESACTIVADA DESDE QUE LA CÉDULA NO SE PIDE (decisión de Diego,
-  // 2026-10-04). La búsqueda era por cédula + teléfono, y el módulo que la
-  // hace (js/datos.js, de la base de leads de Santiago) no está en el repo:
-  // hoy no corría nunca. Para reactivarla, `buscarResultados` tiene que
-  // identificar por teléfono y correo; entonces se cambia `BUSQUEDA_ACTIVA`
-  // y la llamada de abajo. Mientras tanto se arranca el quiz directamente.
+  // APAGADA mientras la base de leads no esté encendida. Ya identifica por
+  // teléfono + correo (la cédula no se pide desde 2026-10-04). Para
+  // encenderla, en este orden:
+  //   1. aplicar supabase/migrations/20261006120000_leads_por_telefono_y_correo.sql;
+  //   2. poner SUPABASE_URL y SUPABASE_ANON_KEY en js/config.js;
+  //   3. cargar js/datos.js en index.html (hoy no se carga);
+  //   4. poner `BUSQUEDA_ACTIVA` en true.
+  // Mientras tanto se arranca el quiz directamente.
   var BUSQUEDA_ACTIVA = false;
   function iniciarQuizConBusqueda() {
     // Mismo criterio de canStart que templates.js/state.js: sin esto no
@@ -1273,8 +1275,6 @@
       boton.style.pointerEvents = 'none';
     }
 
-    // FIRMA POR ACORDAR con Santiago: antes era (cedula, telefono, cb). No se
-    // ejecuta mientras BUSQUEDA_ACTIVA sea false.
     window.GDF.datos.buscarResultados(state.telefono, state.correo, function (r) {
       if (r && r.encontrado) {
         restaurarConsultaGuardada(r);
