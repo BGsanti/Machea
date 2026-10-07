@@ -414,7 +414,9 @@
         // por contraste (WCAG 4,5:1), no por gusto.
         var P = base.primario;
         var oscuro = SUPERFICIE_MACHEA.tinta;
-        var textoSobre = contraste(P, '#ffffff') >= 4.5 ? '#ffffff' : oscuro;
+        // El que MÁS contraste dé, no «blanco si llega a 4,5, si no navy»: con un rojo
+        // intermedio (#e53935) el blanco da 4,2 y el navy 3,3, y esa regla elegía el peor.
+        var textoSobre = contraste(P, '#ffffff') >= contraste(P, oscuro) ? '#ffffff' : oscuro;
         tokens['--marca-texto'] = oscurecerParaTexto(P);
         tokens['--marca-velo-fuerte'] = mezclar(P, 0.9);
         tokens['--acento-tinte'] = mezclar(P, 0.9);

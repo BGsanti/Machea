@@ -6462,12 +6462,15 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
   align-items: center;
   min-height: 44px;
 }
+/* ALTURA EXPLÍCITA, no `height:auto`: un SVG con viewBox pero sin width/height (el de
+   Constructora Capital, exportado de Illustrator) no tiene medida intrínseca y, dentro de
+   una cápsula que se ajusta al contenido, se calculaba en 0x0 y no se veía. Con la altura
+   fija el ancho sale de su proporción; `contain` evita deformar uno muy ancho. */
 .gdf-registro-logo-img {
   display: block;
-  max-height: 44px;
-  max-width: 200px;
+  height: 44px;
   width: auto;
-  height: auto;
+  max-width: 200px;
   object-fit: contain;
 }
 /* Un logo casi blanco (el de una cabecera oscura) se apoya sobre el color de la marca. */
