@@ -165,8 +165,17 @@ def _elegir_colores(ident: Dict[str, Any]) -> tuple:
     return primario.lower(), (acento.lower() if acento else None), True
 
 
+_PREFIJOS_GENERICOS = ("constructora", "inmobiliaria", "urbanizadora", "promotora", "grupo")
+
+
 def _nombre_desde_host(host: str) -> str:
+    """"constructoracapital" -> "Constructora Capital"; "casa-linda" -> "Casa Linda"."""
     base = (host or "").lower().replace("www.", "").split(".")[0]
+    for prefijo in _PREFIJOS_GENERICOS:
+        resto = base[len(prefijo):]
+        if base.startswith(prefijo) and len(resto) >= 3 and not resto.startswith("-"):
+            base = f"{prefijo} {resto}"
+            break
     return limpiar_nombre_marca(base.replace("-", " ").title())
 
 
@@ -193,7 +202,7 @@ def _logo_cacheado(logo_id: Optional[str]) -> Optional[str]:
         return svg
 
 
-def extraer_marca(url: str, nombre_dado: Optional[str] = None) -> Dict[str, Any]:
+def extraer_marca(url: str, nombre_dado: Optional[str] = None, color_dado: Optional[str] = None) -> Dict[str, Any]:
     """Link -> {nombre, primario, acento, logo_id, logo_origen, fondo_logo, host, detectado}.
 
     Lanza `ssrf.UrlNoPermitida` / `ValueError` si el link no es utilizable. Si el
@@ -229,6 +238,13 @@ def extraer_marca(url: str, nombre_dado: Optional[str] = None) -> Dict[str, Any]
 
     detectado = ident is not None
     primario, acento, hubo_color = _elegir_colores(ident or {})
+    # Si la persona eligió un color, manda: sabe cuál es el de su marca, y hay sitios
+    # (detrás de Cloudflare, p. ej.) que no dejan leerlos desde el servidor.
+    color_dado = (color_dado or "").strip().lower()
+    if RE_HEX.match(color_dado):
+        primario, hubo_color = color_dado, True
+        if acento == primario:
+            acento = None
     nombre = (limpiar_nombre_marca(nombre_dado)
               or (limpiar_nombre_marca((ident or {}).get("empresa")) if detectado else "")
               or _nombre_desde_host(host) or "Tu empresa")
@@ -249,6 +265,7 @@ def extraer_marca(url: str, nombre_dado: Optional[str] = None) -> Dict[str, Any]
         "logo_id": logo_id, "logo_origen": logo_origen,
         "fondo_logo": logo.get("fondo_recomendado") or "claro",
         "detectado": detectado and hubo_color,
+        "color_elegido": bool(RE_HEX.match(color_dado)),
     }
 
 
@@ -320,6 +337,7 @@ class SolicitudDemo(BaseModel):
     sitio: str
     tipo: str = "inmobiliaria"
     empresa: Optional[str] = None
+    color: Optional[str] = None              # "#rrggbb" opcional: se usa si el sitio no deja leer los colores
     website: Optional[str] = None            # señuelo anti-bots: un humano no lo ve ni lo llena
 
 
@@ -356,7 +374,7 @@ def solicitar_demo(payload: SolicitudDemo, request: Request, tareas: BackgroundT
     _tope("demo-global", 60, HORA, "Hay muchas solicitudes ahora. Intenta de nuevo en {m} minutos.")
 
     try:
-        marca = extraer_marca(payload.sitio, payload.empresa)
+        marca = extraer_marca(payload.sitio, payload.empresa, payload.color)
     except ssrf.UrlNoPermitida as exc:
         raise HTTPException(400, f"No pudimos usar ese link: {exc}") from exc
     except ValueError as exc:
@@ -380,8 +398,10 @@ def solicitar_demo(payload: SolicitudDemo, request: Request, tareas: BackgroundT
             "acento": marca["acento"], "tiene_logo": bool(marca["logo_id"] or marca["logo_origen"]),
             "detectado": marca["detectado"],
         },
-        "aviso": None if marca["detectado"] else
-                 "No pudimos leer los colores de tu sitio; armamos la demo con tu nombre y los colores de Machea.",
+        "aviso": None if marca["detectado"] else (
+            "No pudimos leer el logo de tu sitio; armamos la demo con tu nombre y el color que elegiste."
+            if marca["color_elegido"] else
+            "No pudimos leer los colores de tu sitio; armamos la demo con tu nombre y los colores de Machea."),
     }
 
 

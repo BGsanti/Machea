@@ -201,6 +201,32 @@ class TestExtraerMarca(unittest.TestCase):
             r = demo.extraer_marca("https://www.casa-linda.test/")
         self.assertEqual((r["nombre"], r["primario"], r["detectado"]), ("Casa Linda", demo.CORAL_MACHEA, False))
 
+    def test_el_color_elegido_manda_sobre_el_detectado(self):
+        with mock.patch.object(scrap, "extraer_colores", falso_extraer(["#fed141", "#00843d", None])):
+            r = demo.extraer_marca("casalinda.test", None, "#179BA7")
+        self.assertEqual((r["primario"], r["acento"]), ("#179ba7", "#00843d"))
+
+    def test_color_elegido_cuando_el_sitio_no_responde(self):
+        with mock.patch.object(scrap, "extraer_colores", side_effect=RuntimeError("403")):
+            r = demo.extraer_marca("https://www.constructoracapital.com/", None, "#179ba7")
+        self.assertEqual((r["nombre"], r["primario"], r["acento"]), ("Constructora Capital", "#179ba7", None))
+        self.assertFalse(r["detectado"])
+        self.assertTrue(r["color_elegido"])
+
+    def test_un_color_invalido_se_ignora(self):
+        with mock.patch.object(scrap, "extraer_colores", side_effect=RuntimeError("403")):
+            for malo in ("rojo", "#12", "javascript:1", "#gggggg", "#179ba7; x"):
+                r = demo.extraer_marca("casalinda.test", None, malo)
+                self.assertEqual(r["primario"], demo.CORAL_MACHEA, malo)
+                self.assertFalse(r["color_elegido"])
+
+    def test_nombre_legible_desde_el_dominio(self):
+        for host, esperado in [("www.constructoracapital.com", "Constructora Capital"),
+                               ("inmobiliariax.co", "Inmobiliariax"),
+                               ("www.casa-linda.test", "Casa Linda"), ("constructora.co", "Constructora"),
+                               ("grupo-orbe.com", "Grupo Orbe"), ("amarilo.com.co", "Amarilo")]:
+            self.assertEqual(demo._nombre_desde_host(host), esperado, host)
+
     def test_link_interno_se_rechaza_antes_de_descargar(self):
         with mock.patch.object(scrap, "extraer_colores") as e:
             with self.assertRaises(ssrf.UrlNoPermitida):
@@ -251,6 +277,17 @@ class TestSolicitarDemo(BaseApi):
         self.assertEqual([e["to"] for e in enviados], ["laura@casalinda.test", "equipo@machea.co"])
         self.assertIn("Abrir mi demo", enviados[0]["html"])
         self.assertIn("demo=", enviados[0]["html"])
+
+    def test_color_opcional_en_la_solicitud(self):
+        with mock.patch.object(scrap, "extraer_colores", side_effect=RuntimeError("403")):
+            j = self.pedir(sitio="https://www.constructoracapital.com/", tipo="constructora", color="#179ba7").json()
+        self.assertEqual((j["marca"]["nombre"], j["marca"]["primario"], j["marca"]["detectado"]),
+                         ("Constructora Capital", "#179ba7", False))
+        self.assertIn("el color que elegiste", j["aviso"])
+        with mock.patch.object(scrap, "extraer_colores", side_effect=RuntimeError("403")):
+            j = self.pedir(ip="9.9.9.9", sitio="https://www.constructoracapital.com/", tipo="constructora").json()
+        self.assertEqual(j["marca"]["primario"], demo.CORAL_MACHEA)
+        self.assertIn("colores de Machea", j["aviso"])
 
     def test_el_tope_por_ip_por_defecto_es_12(self):
         for i in range(12):

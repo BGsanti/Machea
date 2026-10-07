@@ -1373,6 +1373,13 @@ no se envía y la página muestra el enlace. Render bloquea el correo saliente e
 465, 587); desde Starter no. `machea.co` es solo un reenvío de Namecheap, no un buzón: por eso se envía
 desde Gmail.
 
+**Sitios que no dejan leerlos (Cloudflare y similares).** La extracción corre desde la IP de datacenter de
+Render, y hay sitios (p. ej. constructoracapital.com) que le responden 403 aunque desde una IP residencial
+abran bien. No se rompe: la demo sale con el nombre sacado del dominio ("Constructora Capital") y los
+colores de Machea, más un aviso. Para esos casos el formulario trae un **color opcional** (`color`, "#rrggbb";
+el selector solo se envía si la persona lo toca) que manda sobre el detectado. El motivo exacto queda en el
+log de Render: "extracción de marca falló en <host>: ...".
+
 **Seguridad de lo anterior.** (1) `api/ssrf.py`: la extracción baja páginas de terceros; solo http/https
 a los puertos 80/443, toda IP resuelta debe ser pública, cada redirección se revalida y hay tope de tamaño y
 de tiempo. Reemplaza el `_get` de `scrap_identity` al importar `api.demo`. Límite conocido: DNS rebinding.
