@@ -29,7 +29,9 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 from email.utils import formataddr
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
+
+from api.metricas import metricas
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -89,5 +91,48 @@ def enviar(payload: Dict[str, Any]) -> None:
         else:
             return
         logger.info("correo enviado a ...%s (%s)", str(payload.get("to"))[-12:], payload.get("subject", "")[:40])
+        metricas.registrar("correo_enviado", "Correo enviado", "ok")
     except Exception as exc:                  # la demo ya se entregó en pantalla
         logger.warning("no se pudo enviar el correo: %s: %s", type(exc).__name__, exc)
+        metricas.registrar("correo_error", f"No se pudo enviar el correo ({type(exc).__name__})", "error")
+
+
+def modo() -> str:
+    """"smtp", "flow" o "ninguno": por dónde saldría un correo hoy."""
+    if _smtp_configurado():
+        return "smtp"
+    return "flow" if os.environ.get("DAPTA_EMAIL_FLOW_URL") else "ninguno"
+
+
+def probar() -> Tuple[bool, str]:
+    """Inicia sesión en el SMTP SIN enviar nada: comprueba la contraseña de aplicación.
+
+    Devuelve (ok, mensaje para mostrar). Nunca incluye la contraseña ni lanza.
+    """
+    if not _smtp_configurado():
+        if os.environ.get("DAPTA_EMAIL_FLOW_URL"):
+            return False, "El correo sale por un flow de Dapta: no se puede probar sin enviar un mensaje."
+        return False, "Falta configurar SMTP_USER y SMTP_PASSWORD en Render."
+    usuario = os.environ["SMTP_USER"].strip()
+    clave = os.environ["SMTP_PASSWORD"].replace(" ", "").strip()
+    host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    try:
+        puerto = int(os.environ.get("SMTP_PORT", "465"))
+    except ValueError:
+        return False, "SMTP_PORT no es un número."
+    contexto = ssl.create_default_context()
+    try:
+        if puerto == 465:
+            with smtplib.SMTP_SSL(host, puerto, timeout=12, context=contexto) as s:
+                s.login(usuario, clave)
+        else:
+            with smtplib.SMTP(host, puerto, timeout=12) as s:
+                s.starttls(context=contexto)
+                s.login(usuario, clave)
+    except smtplib.SMTPAuthenticationError:
+        return False, "El servidor rechazó el usuario o la contraseña de aplicación."
+    except (OSError, smtplib.SMTPException) as exc:
+        return False, f"No se pudo conectar con {host}:{puerto} ({type(exc).__name__})."
+    arroba = usuario.find("@")
+    visible = usuario[:2] + "•••" + usuario[arroba:] if arroba > 2 else "•••"
+    return True, f"Inicio de sesión correcto en {host} como {visible}."

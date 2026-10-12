@@ -175,6 +175,24 @@ class Limites:
                 raise Rechazo("tope", mensaje.format(m=max(1, math.ceil(espera / 60))), espera)
             v.append(ahora)
 
+    def uso(self) -> dict:
+        """Cuánto cupo diario se ha gastado, sin descontar nada (lo lee el panel de administración)."""
+        ahora = time.time()
+        with self._lock:
+            out = {}
+            for llave in ("total", "demo"):
+                v = self._ventanas.get(llave)
+                if v:
+                    self._podar(v, ahora, DIA)
+                out[llave] = len(v) if v else 0
+        return {
+            "total": out["total"], "tope_total": entero_env("LLAMADAS_TOTAL_DIA", 100),
+            "demo": out["demo"], "tope_demo": entero_env("DEMO_LLAMADAS_TOTAL_DIA", 30),
+            "tope_por_telefono_hora": entero_env("LLAMADAS_POR_TELEFONO_HORA", 1),
+            "tope_por_ip_hora": entero_env("LLAMADAS_POR_IP_HORA", 5),
+            "tope_demos_por_ip_hora": entero_env("DEMO_SOLICITUDES_POR_IP_HORA", 12),
+        }
+
     def reiniciar(self) -> None:
         """Solo para pruebas."""
         with self._lock:

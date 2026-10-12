@@ -36,3 +36,12 @@ services:
         sync: false
       - key: DEMO_SOLICITUDES_POR_IP_HORA   # demos con marca por conexión y hora (por defecto 12)
         sync: false
+      # --- Panel de administración (/admin/ en el front). Apagado hasta definir ADMIN_PASSWORD. ---
+      - key: ADMIN_PASSWORD             # 16+ caracteres; es la llave de entrada al panel
+        sync: false
+      - key: ADMIN_TOTP_SECRET          # opcional pero recomendado: segundo factor (base32)
+        sync: false
+      - key: SUPABASE_ANON_KEY          # la clave anónima (pública) para que el panel pruebe la base
+        sync: false
+      - key: ADMIN_SESION_MINUTOS       # duración de la sesión (por defecto 60)
+        sync: false

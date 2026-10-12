@@ -38,9 +38,11 @@ from Model.catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES, indice_localidad
 from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
 from Model.pipeline import recomendar, respuesta_json
 
+from api import admin as admin_mod
 from api import demo as demo_mod
 from api import seguimiento
 from api.limites import Rechazo, ip_del_cliente, limites
+from api.metricas import enmascarar_telefono, metricas
 
 app = FastAPI(title="Machea Recomendador API", version="0.1")
 
@@ -62,6 +64,36 @@ TZ_BOGOTA = timezone(timedelta(hours=-5))
 from Model.prep import SMMLV as SMMLV_COP
 
 app.include_router(demo_mod.router)
+app.include_router(admin_mod.router)
+
+# Frases para la actividad del panel de administración (api/admin.py): sin jerga de Dapta.
+_MOTIVO_TOPE = {
+    "telefono": "ya se pidió una llamada a ese número hace poco",
+    "ip": "demasiadas desde la misma conexión",
+    "total": "se llegó al cupo diario",
+    "demo": "se llegó al cupo diario de demos",
+}
+_MOTIVO_COLGAR = {
+    "user_hangup": "la persona colgó", "agent_hangup": "Manuela terminó la llamada", "voicemail_reached": "cayó en buzón de voz",
+    "dial_no_answer": "no contestó", "dial_busy": "línea ocupada", "dial_failed": "no se pudo marcar",
+    "invalid_destination": "número inválido", "concurrency_limit_reached": "Dapta sin canal libre",
+    "call_transfer": "transferida a un asesor", "inactivity": "silencio prolongado", "max_duration_reached": "duración máxima",
+}
+
+@app.middleware("http")
+async def _cabeceras_del_panel(request: Request, call_next):
+    """Todo lo de /api/admin (también los errores 401/404/429) sale sin caché ni indexación.
+
+    No basta con ponerlas en cada ruta: al lanzar una HTTPException, FastAPI descarta las
+    cabeceras de la respuesta inyectada.
+    """
+    respuesta = await call_next(request)
+    if request.url.path.startswith("/api/admin"):
+        respuesta.headers["Cache-Control"] = "no-store"
+        respuesta.headers["X-Robots-Tag"] = "noindex, nofollow"
+        respuesta.headers["X-Content-Type-Options"] = "nosniff"
+    return respuesta
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -366,6 +398,8 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
         )
     except Rechazo as exc:
         logger.warning("llamada rechazada (%s): tel=%s ip=%s", exc.motivo, telefono_e164[-4:], ip_del_cliente(request))
+        metricas.registrar("llamada_rechazada", f"Llamada rechazada: {_MOTIVO_TOPE.get(exc.motivo, exc.motivo)} · "
+                           f"{enmascarar_telefono(telefono_e164)}", "aviso")
         raise HTTPException(
             status_code=429, detail=exc.mensaje, headers={"Retry-After": str(exc.reintentar_en)}
         ) from exc
@@ -384,7 +418,10 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
         # Si Dapta no recibió el pedido, el cupo se devuelve: un fallo nuestro
         # no puede dejar a la persona sin poder reintentar durante una hora.
         reserva.liberar()
+        metricas.registrar("llamada_error", f"Dapta no aceptó el pedido de llamada · {enmascarar_telefono(telefono_e164)}", "error")
         raise
+    metricas.registrar("llamada_enviada", f"Llamada de Manuela pedida a Dapta · {enmascarar_telefono(telefono_e164)}"
+                       + (" · demo con marca" if datos_demo else ""), "ok")
     return {
         "status": "enviado",
         "detalle": f"Manuela está llamando a {telefono_e164}.",
@@ -480,6 +517,10 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
         if valor in (None, "") and previo.get(clave) not in (None, ""):
             nuevo[clave] = previo[clave]
     RESULTADOS_LLAMADAS[telefono_e164] = nuevo
+    motivo = nuevo.get("disconnection_reason")
+    metricas.registrar("resultado_recibido", "Resultado de llamada recibido: "
+                       f"{_MOTIVO_COLGAR.get(motivo, motivo or nuevo.get('call_status') or 'sin detalle')} · "
+                       f"{enmascarar_telefono(telefono_e164)}", "ok")
 
     # Seguimiento por WhatsApp (api/seguimiento.py): si no contestó, colgó antes de calificar
     # o la llamada salió completa. Solo si el flow de envío está configurado, y solo para

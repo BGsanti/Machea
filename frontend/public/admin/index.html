@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Machea · Centro de control</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+<!-- Política estricta: ni un script ni un estilo en línea, y solo se habla con la API de Machea.
+     (Las cabeceras de frontend/vercel.json la refuerzan y añaden frame-ancestors.) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://machea-api.onrender.com http://127.0.0.1:8100 http://localhost:8100; base-uri 'none'; form-action 'none'">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
+<link rel="stylesheet" href="admin.css?v=6">
+</head>
+<body>
+
+<!-- Íconos y logo (mismo dibujo que la landing). Sin atributos style: los pinta admin.css. -->
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <symbol id="logo-mark" viewBox="3 3 50.5 33.7"><g class="lm-line"><path d="M6 25.6 24.4 7.2 33.6 16.4"/><path d="M12 19.6V36.7"/><path d="M20.5 23.3 26.7 29.5 47.6 11.6"/></g><path class="lm-fill" d="M41.25 7.9 53.3 6 51 18.75Z M40 25 45.8 20.9V36.7H40Z"/></symbol>
+    <symbol id="logo-lockup" viewBox="0 0 155.6 33.7"><use href="#logo-mark" x="0" y="0" width="50.5" height="33.7"/><path fill="currentColor" transform="translate(69 25.64) scale(0.011565)" d="M1440 0V-638Q1440 -745 1389.5 -804.5Q1339 -864 1250 -864Q1193 -864 1151.0 -837.5Q1109 -811 1085.5 -763.5Q1062 -716 1062 -654L948 -730Q948 -841 1000.5 -926.0Q1053 -1011 1141.5 -1058.5Q1230 -1106 1338 -1106Q1523 -1106 1617.5 -996.5Q1712 -887 1712 -710V0ZM138 0V-1080H378V-722H412V0ZM790 0V-638Q790 -745 739.5 -804.5Q689 -864 600 -864Q515 -864 463.5 -805.5Q412 -747 412 -654L298 -734Q298 -840 351.0 -924.0Q404 -1008 493.5 -1057.0Q583 -1106 694 -1106Q821 -1106 902.5 -1052.0Q984 -998 1023.0 -908.0Q1062 -818 1062 -710V0Z M2222.0 30Q2106.0 30 2025.5 -14.5Q1945.0 -59 1903.5 -133.5Q1862.0 -208 1862.0 -298Q1862.0 -373 1885.0 -435.0Q1908.0 -497 1959.5 -544.5Q2011.0 -592 2098.0 -624Q2158.0 -646 2241.0 -663.0Q2324.0 -680 2429.0 -695.5Q2534.0 -711 2660.0 -730L2562.0 -676Q2562.0 -772 2516.0 -817.0Q2470.0 -862 2362.0 -862Q2302.0 -862 2237.0 -833.0Q2172.0 -804 2146.0 -730L1900.0 -808Q1941.0 -942 2054.0 -1026.0Q2167.0 -1110 2362.0 -1110Q2505.0 -1110 2616.0 -1066.0Q2727.0 -1022 2784.0 -914Q2816.0 -854 2822.0 -794.0Q2828.0 -734 2828.0 -660V0H2590.0V-222L2624.0 -176Q2545.0 -67 2453.5 -18.5Q2362.0 30 2222.0 30ZM2280.0 -184Q2355.0 -184 2406.5 -210.5Q2458.0 -237 2488.5 -271.0Q2519.0 -305 2530.0 -328Q2551.0 -372 2554.5 -430.5Q2558.0 -489 2558.0 -528L2638.0 -508Q2517.0 -488 2442.0 -474.5Q2367.0 -461 2321.0 -450.0Q2275.0 -439 2240.0 -426Q2200.0 -410 2175.5 -391.5Q2151.0 -373 2139.5 -351.0Q2128.0 -329 2128.0 -302Q2128.0 -265 2146.5 -238.5Q2165.0 -212 2199.0 -198.0Q2233.0 -184 2280.0 -184Z M3514.0 30Q3346.0 30 3226.0 -45.0Q3106.0 -120 3042.0 -249.0Q2978.0 -378 2978.0 -540Q2978.0 -704 3044.5 -833.0Q3111.0 -962 3232.0 -1036.0Q3353.0 -1110 3518.0 -1110Q3709.0 -1110 3838.5 -1013.5Q3968.0 -917 4004.0 -750L3732.0 -678Q3708.0 -762 3648.5 -809.0Q3589.0 -856 3514.0 -856Q3428.0 -856 3373.0 -814.5Q3318.0 -773 3292.0 -701.5Q3266.0 -630 3266.0 -540Q3266.0 -399 3328.5 -311.5Q3391.0 -224 3514.0 -224Q3606.0 -224 3654.0 -266.0Q3702.0 -308 3726.0 -386L4004.0 -328Q3958.0 -156 3830.0 -63.0Q3702.0 30 3514.0 30Z M4890.0 0V-510Q4890.0 -547 4886.0 -604.5Q4882.0 -662 4861.0 -720.0Q4840.0 -778 4792.5 -817.0Q4745.0 -856 4658.0 -856Q4623.0 -856 4583.0 -845.0Q4543.0 -834 4508.0 -802.5Q4473.0 -771 4450.5 -710.0Q4428.0 -649 4428.0 -548L4272.0 -622Q4272.0 -750 4324.0 -862.0Q4376.0 -974 4480.5 -1043.0Q4585.0 -1112 4744.0 -1112Q4871.0 -1112 4951.0 -1069.0Q5031.0 -1026 5075.5 -960.0Q5120.0 -894 5139.0 -822.5Q5158.0 -751 5162.0 -692.0Q5166.0 -633 5166.0 -606V0ZM4152.0 0V-1440H4394.0V-700H4428.0V0Z M5878.0 30Q5712.0 30 5585.5 -41.5Q5459.0 -113 5387.5 -238.5Q5316.0 -364 5316.0 -526Q5316.0 -703 5386.0 -834.0Q5456.0 -965 5579.0 -1037.5Q5702.0 -1110 5862.0 -1110Q6032.0 -1110 6151.0 -1030.0Q6270.0 -950 6327.0 -805.0Q6384.0 -660 6367.0 -464H6098.0V-564Q6098.0 -729 6045.5 -801.5Q5993.0 -874 5874.0 -874Q5735.0 -874 5669.5 -789.5Q5604.0 -705 5604.0 -540Q5604.0 -389 5669.5 -306.5Q5735.0 -224 5862.0 -224Q5942.0 -224 5999.0 -259.0Q6056.0 -294 6086.0 -360L6358.0 -282Q6297.0 -134 6165.5 -52.0Q6034.0 30 5878.0 30ZM5520.0 -464V-666H6236.0V-464Z M6842.0 30Q6726.0 30 6645.5 -14.5Q6565.0 -59 6523.5 -133.5Q6482.0 -208 6482.0 -298Q6482.0 -373 6505.0 -435.0Q6528.0 -497 6579.5 -544.5Q6631.0 -592 6718.0 -624Q6778.0 -646 6861.0 -663.0Q6944.0 -680 7049.0 -695.5Q7154.0 -711 7280.0 -730L7182.0 -676Q7182.0 -772 7136.0 -817.0Q7090.0 -862 6982.0 -862Q6922.0 -862 6857.0 -833.0Q6792.0 -804 6766.0 -730L6520.0 -808Q6561.0 -942 6674.0 -1026.0Q6787.0 -1110 6982.0 -1110Q7125.0 -1110 7236.0 -1066.0Q7347.0 -1022 7404.0 -914Q7436.0 -854 7442.0 -794.0Q7448.0 -734 7448.0 -660V0H7210.0V-222L7244.0 -176Q7165.0 -67 7073.5 -18.5Q6982.0 30 6842.0 30ZM6900.0 -184Q6975.0 -184 7026.5 -210.5Q7078.0 -237 7108.5 -271.0Q7139.0 -305 7150.0 -328Q7171.0 -372 7174.5 -430.5Q7178.0 -489 7178.0 -528L7258.0 -508Q7137.0 -488 7062.0 -474.5Q6987.0 -461 6941.0 -450.0Q6895.0 -439 6860.0 -426Q6820.0 -410 6795.5 -391.5Q6771.0 -373 6759.5 -351.0Q6748.0 -329 6748.0 -302Q6748.0 -265 6766.5 -238.5Q6785.0 -212 6819.0 -198.0Q6853.0 -184 6900.0 -184Z"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3Z"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></symbol>
+  <symbol id="i-flow" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="15" y="15" width="6" height="6" rx="1.5"/><path d="M6 9v3a3 3 0 0 0 3 3h6"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 5v14M15 8v8M19 10v4M21 12h0"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3ZM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4 4 0 0 1-.5 8.5H7Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.8 19.5h18.4L12 4ZM12 10v4.5M12 17.5h.01"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.3L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.3 4.3L20 15.5M20 20v-4.5h-4.5"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4 10.5 13.5M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6L12 3Z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+</svg>
+
+<!-- ===================== ACCESO ===================== -->
+<main class="login" id="vistaLogin" hidden>
+  <section class="login-card" aria-labelledby="tituloLogin">
+    <svg class="login-logo" viewBox="0 0 155.6 33.7" aria-label="Machea" role="img"><use href="#logo-lockup"/></svg>
+    <p class="eyebrow"><svg class="ic"><use href="#i-shield"/></svg>Acceso restringido</p>
+    <h1 id="tituloLogin">Centro de control</h1>
+    <p class="login-sub">Estado en vivo de la plataforma. Solo para el equipo de Machea.</p>
+
+    <form id="formLogin" autocomplete="on" novalidate>
+      <label class="campo" for="inClave"><span>Clave de administrador</span>
+        <span class="campo-fila">
+          <input id="inClave" name="clave" type="password" autocomplete="current-password" required maxlength="200" spellcheck="false" autocapitalize="off">
+          <button type="button" class="ojo" id="btnOjo" aria-label="Mostrar la clave" aria-pressed="false"><svg class="ic"><use href="#i-eye"/></svg></button>
+        </span>
+      </label>
+      <label class="campo" for="inCodigo" id="campoCodigo" hidden><span>Código de verificación</span>
+        <input id="inCodigo" name="codigo" type="text" inputmode="numeric" pattern="[0-9 ]*" autocomplete="one-time-code" maxlength="8" spellcheck="false" placeholder="6 dígitos de tu app">
+      </label>
+      <p class="aviso aviso-error" id="avisoLogin" role="alert" hidden></p>
+      <button type="submit" class="btn btn-primario" id="btnEntrar"><span>Entrar</span></button>
+    </form>
+
+    <p class="login-nota"><svg class="ic"><use href="#i-lock"/></svg>Conexión cifrada. Los intentos fallidos se registran y bloquean la IP temporalmente.</p>
+  </section>
+</main>
+
+<!-- ===================== PANEL ===================== -->
+<div id="vistaPanel" hidden>
+  <header class="barra">
+    <div class="barra-in">
+      <a class="marca" href="./" aria-label="Machea, centro de control">
+        <svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
+        <span class="marca-sep" aria-hidden="true"></span><span class="marca-txt">Centro de control</span>
+      </a>
+      <div class="barra-acc">
+        <span class="vivo" id="vivo" role="status" aria-live="off"><i class="vivo-punto" aria-hidden="true"></i><span id="vivoTxt">Conectando…</span></span>
+        <button type="button" class="btn btn-suave btn-icono" id="btnTema" aria-label="Cambiar entre tema claro y oscuro"><svg class="ic"><use href="#i-moon"/></svg></button>
+        <button type="button" class="btn btn-suave btn-icono" id="btnActualizar" aria-label="Actualizar ahora"><svg class="ic"><use href="#i-refresh"/></svg></button>
+        <button type="button" class="btn btn-suave" id="btnSalir" aria-label="Cerrar sesión"><svg class="ic"><use href="#i-out"/></svg><span>Salir</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="panel" id="contenido">
+    <!-- Estado global -->
+    <section class="global" id="global" data-estado="cargando" aria-live="polite" aria-labelledby="globalTitulo">
+      <span class="global-ico" aria-hidden="true"><svg class="ic"><use id="globalIco" href="#i-minus"/></svg></span>
+      <div class="global-txt">
+        <p class="eyebrow">Estado de la plataforma</p>
+        <h1 id="globalTitulo">Verificando…</h1>
+        <p id="globalResumen">Comprobando cada servicio.</p>
+      </div>
+      <ul class="global-cuenta" id="globalCuenta" aria-label="Resumen por estado"></ul>
+    </section>
+
+    <!-- Indicadores -->
+    <section class="kpis" aria-label="Indicadores" id="kpis"></section>
+
+    <div id="avisoRed" class="aviso aviso-error" role="alert" hidden></div>
+
+    <!-- Servicios por grupo -->
+    <section class="grupo" aria-labelledby="g-app"><h2 id="g-app">Aplicación</h2><div class="rejilla" id="grupo-app"></div></section>
+    <section class="grupo" aria-labelledby="g-datos"><h2 id="g-datos">Datos</h2><div class="rejilla" id="grupo-datos"></div></section>
+    <section class="grupo" aria-labelledby="g-voz"><h2 id="g-voz">Voz e inteligencia artificial</h2><div class="rejilla" id="grupo-voz"></div></section>
+    <section class="grupo" aria-labelledby="g-ia"><h2 id="g-ia">Otros modelos de IA</h2><div class="rejilla" id="grupo-ia"></div></section>
+    <section class="grupo" aria-labelledby="g-com"><h2 id="g-com">Comunicación</h2><div class="rejilla" id="grupo-comunicacion"></div></section>
+
+    <section class="grupo" aria-labelledby="g-nube">
+      <h2 id="g-nube">Nube y proveedores</h2>
+      <p class="grupo-nota">Lo que reportan las páginas de estado públicas. Un proveedor con avisos no implica que Machea esté caída.</p>
+      <ul class="proveedores" id="proveedores"></ul>
+    </section>
+
+    <!-- Actividad -->
+    <section class="dos" aria-label="Actividad y límites">
+      <div class="tarjeta" id="tarjetaActividad">
+        <div class="tarjeta-cab"><h2>Actividad reciente</h2><span class="tarjeta-nota" id="actividadDesde"></span></div>
+        <ol class="eventos" id="eventos"></ol>
+        <p class="vacio" id="eventosVacio" hidden>Todavía no hay actividad desde el último reinicio del servidor.</p>
+      </div>
+      <div class="columna">
+        <div class="tarjeta">
+          <div class="tarjeta-cab"><h2>Límites de uso (24 h)</h2></div>
+          <div id="medidores"></div>
+          <p class="tarjeta-nota" id="limitesNota"></p>
+        </div>
+        <div class="tarjeta">
+          <div class="tarjeta-cab"><h2>Accesos al panel</h2></div>
+          <ul class="accesos" id="accesos"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuración -->
+    <section class="tarjeta" aria-labelledby="g-cfg">
+      <div class="tarjeta-cab"><h2 id="g-cfg">Configuración del servidor</h2><span class="tarjeta-nota">Solo se indica si cada variable existe; nunca su valor.</span></div>
+      <div class="tabla-envuelta"><table class="tabla" id="tablaCfg"><thead><tr><th scope="col">Variable</th><th scope="col">Necesidad</th><th scope="col">Estado</th><th scope="col">Para qué sirve</th></tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <footer class="pie">
+      <p><svg class="ic"><use href="#i-shield"/></svg><span id="pieSesion">Sesión activa.</span> <span id="pieSeg"></span></p>
+      <p>Los contadores y la actividad viven en la memoria del servidor: se reinician con cada despliegue. Este panel no muestra datos de leads.</p>
+    </footer>
+  </main>
+</div>
+
+<script src="admin.js?v=5"></script>
+</body>
+</html>

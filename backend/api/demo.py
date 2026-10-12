@@ -51,6 +51,7 @@ from pydantic import BaseModel
 from api import correo as correo_mod
 from api import ssrf
 from api.limites import HORA, DIA, Rechazo, entero_env, ip_del_cliente, limites
+from api.metricas import metricas
 
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
@@ -388,6 +389,9 @@ def solicitar_demo(payload: SolicitudDemo, request: Request, tareas: BackgroundT
         tareas.add_task(correo_mod.enviar, _correo_al_equipo(nombre, correo, payload.sitio, tipo, marca["nombre"], enlace))
     logger.info("demo solicitada: empresa=%s tipo=%s host=%s detectado=%s", marca["nombre"], tipo,
                 marca["host"], marca["detectado"])
+    metricas.registrar("demo_creada", f"Demo con marca creada: {marca['nombre']} · {tipo}"
+                       + ("" if marca["detectado"] else " · no se leyeron sus colores"),
+                       "ok" if marca["detectado"] else "aviso")
 
     return {
         "ok": True,

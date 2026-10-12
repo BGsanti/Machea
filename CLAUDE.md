@@ -1395,6 +1395,35 @@ Un envío por llamada y 2 al día por teléfono. Sin la variable no hace nada.
 
 ---
 
+### 5.5 Panel de administración (`/admin/`) — estado en vivo
+
+Un tablero para el equipo: salud del backend, del sitio (Vercel), de la base (Supabase), de Dapta (cuenta,
+créditos, flow, Manuela), del correo, de WhatsApp y de otras IA, más lo que reportan las páginas de estado de
+Render, Vercel, Supabase y Cloudflare; actividad reciente, topes de uso y qué variables faltan en Render.
+
+- **Front:** `frontend/public/admin/` (HTML + CSS + JS sueltos, sin librerías y sin código en línea, para poder
+  usar una CSP estricta). URL: `/admin/`. Consulta `GET /api/admin/estado` cada 10 s (en pausa si la pestaña
+  está oculta). `frontend/vercel.json` le pone CSP, `X-Frame-Options: DENY`, `no-store` y `noindex`.
+- **Back:** `api/admin.py` (acceso + comprobaciones) y `api/metricas.py` (contadores y eventos EN MEMORIA, sin
+  datos personales: teléfonos como "…3915", IPs como "203.0.113.•"). Se reinician con cada despliegue.
+- **Acceso:** apagado hasta definir `ADMIN_PASSWORD` (16+ caracteres; sin ella todo responde 404). Opcional pero
+  recomendado: `ADMIN_TOTP_SECRET` (base32) para pedir además el código de una app de autenticación. Sesión de
+  60 min (`ADMIN_SESION_MINUTOS`), token firmado en `Authorization: Bearer`, guardado solo en `sessionStorage`;
+  5 fallos por IP en 15 min bloquean esa IP; "Salir" revoca el token; cambiar la clave invalida todas las sesiones.
+- **Nunca** se devuelve el valor de una variable ni un dato de un lead: solo "configurada sí/no". Las rutas no
+  salen en `/docs`. Para ver leads hará falta otra capa de acceso (CRM por fases), no este panel.
+- **Variables:** `ADMIN_PASSWORD`, `ADMIN_TOTP_SECRET`, `ADMIN_SESION_MINUTOS`, `ADMIN_SECRET` (opcional: llave
+  de firma propia, 32+ caracteres), `SUPABASE_ANON_KEY` (la anónima pública; con ella el panel hace una consulta
+  de prueba real a la base), `SUPABASE_URL`, `DAPTA_MCP_URL`, `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` (solo para
+  comprobar su conexión si Machea llega a usarlos).
+- **Generar el secreto del segundo factor** (se agrega en la app de autenticación con "ingresar clave de configuración"):
+  `python3 -c "import base64,secrets;print(base64.b32encode(secrets.token_bytes(20)).decode())"`
+- **Agregar una comprobación:** una función `_chk_xxx()` que devuelva `_res(...)` y una fila en `CHEQUEOS`
+  (`api/admin.py`); el front la dibuja sola si su `id` está en `SERVICIOS` de `admin.js` (o la crea con un ícono genérico).
+- **El flow de Dapta se prueba con `OPTIONS`**, nunca con `POST`: un POST dispararía una llamada real.
+- **Dapta (cuenta/créditos)** se consulta por su MCP (`https://mcp.dapta.ai/mcp`, `whoami` + `get_my_balance`) con la
+  misma `DAPTA_API_KEY`; si la clave no sirve para eso, se muestra "con avisos" sin tumbar nada.
+
 ## 6. Resolución de localidad por dirección
 
 La función nueva del catálogo, en `scraping/scraper_projects.py`. Es la pieza que
