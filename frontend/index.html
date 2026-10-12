@@ -660,6 +660,8 @@ svg { display: block; }
 .colorrow label { font-size: 14px; line-height: 1.35; color: var(--ink); cursor: pointer; }
 .colorrow small { display: block; margin-top: 2px; font-size: 13px; color: var(--ink-2); }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.demo-botones { display: flex; flex-wrap: wrap; gap: 10px; }
+.demo-botones [hidden] { display: none; }
 .demo-aviso { margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: var(--paper); color: var(--ink-2); font-size: 14px; line-height: 1.45; }
 .demo-aviso:empty { display: none; }
 .form-ok .ok-i { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; }
@@ -1246,7 +1248,10 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
         <span class="ok-i"><svg><use href="#i-check"/></svg></span>
         <h3 id="demoOkTitle">Tu demo está lista.</h3>
         <p id="demoOkText"></p>
-        <a class="btn btn-coral" id="demoLink" href="#" target="_blank" rel="noopener">Abrir mi demo<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
+        <div class="demo-botones">
+          <a class="btn btn-coral" id="demoLink" href="#" target="_blank" rel="noopener">Abrir mi demo<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
+          <a class="btn btn-ghost" id="demoAcceso" href="#" target="_blank" rel="noopener" hidden>Ver cómo se vería tu acceso<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
+        </div>
         <p class="demo-aviso" id="demoAviso"></p>
       </div>
     </div>
@@ -2962,6 +2967,12 @@ window.MacheaCity = (function () {
           return;
         }
         $('#demoLink').href = j.demo_url;
+        // La pantalla de acceso (prototipo) se viste con el mismo enlace firmado de la demo.
+        try {
+          const tk = new URL(j.demo_url).searchParams.get('demo');
+          $('#demoAcceso').hidden = !tk;
+          if (tk) $('#demoAcceso').href = '/acceso/?demo=' + encodeURIComponent(tk);
+        } catch (_) { $('#demoAcceso').hidden = true; }
         $('#demoOkTitle').textContent = `Tu demo con la marca de ${j.marca.nombre} está lista.`;
         $('#demoOkText').textContent = j.correo_enviado
           ? `Ábrela ahora. También te enviamos el enlace a ${mail}; funciona durante 30 días.`

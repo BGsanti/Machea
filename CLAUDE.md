@@ -1815,6 +1815,35 @@ de este bundle del invariante 1.
 
 ---
 
+### 8.4 `public/acceso/` — la pantalla de acceso con marca propia (PROTOTIPO)
+
+Referencia de diseño: el login de YAVE CRM (pantalla dividida: formulario claro a la izquierda y un panel de
+marca con degradado y entrada animada a la derecha). La de Machea es para los **próximos clientes**: cada uno
+ve su propio nombre, logo y colores, con "Con tecnología Machea" discreto.
+
+- **URL:** `/acceso/`. Tres archivos sueltos (`index.html`, `acceso.css`, `acceso.js`), sin librerías ni código en línea.
+- **NO inicia sesión todavía.** El formulario valida, muestra un aviso honesto, borra lo escrito y no envía nada: la CSP
+  (`form-action 'none'`, `connect-src 'none'`) lo impide. Hasta que haya acceso real (Supabase Auth con `tenant_id` y RLS)
+  no debe pedir credenciales de verdad. Está en `noindex`.
+- **De dónde sale la marca:** `?demo=<token>` (el enlace firmado de "Pruébalo con tu marca": nombre, tipo, color y logo del
+  prospecto), `?marca=<slug>` (machea, amarilo, colsubsidio, constructora-bolivar, cusezar) o Machea por defecto. Un token
+  vencido o inválido cae en Machea. **Nunca** se aceptan nombres o colores libres por la dirección (alguien armaría un
+  enlace con el nombre de un banco). `?editor=1` abre un editor local para probar marcas, sin tocar la dirección.
+- **Contraste garantizado (`derivar()` en `acceso.js`):** de uno o dos colores salen todos los tokens. El botón y el color
+  central del panel se oscurecen lo justo (hasta un 40 %) para que el texto blanco pase AA; si el color es claro
+  (amarillos, pasteles) el texto pasa a oscuro. Los enlaces se oscurecen hasta 4,5:1 sobre el fondo. Medido en 14 marcas
+  (incluidos amarillo, casi blanco, negro y pastel). Machea usa coral para la marca y navy para el panel (`panel`).
+- **Animación (solo escritorio y sin `prefers-reduced-motion`):** 1,5 s de entrada (la marca atraviesa la pantalla entre
+  siluetas de inmuebles que caen), título que se escribe letra a letra y tarjetas de vidrio que entran una por una. En
+  móvil el panel pasa a una franja de marca arriba, sin animación. Durante el arranque no hay transiciones (`.preparando`):
+  así el cliente no ve un destello del color por defecto.
+- **Desde la landing:** al armar una demo, el botón "Ver cómo se vería tu acceso" abre `/acceso/?demo=<el mismo token>`.
+- **Límite conocido (para el login real):** el navegador decodifica el token sin verificar la firma (igual que
+  `experiencia/js/demo.js`). Hoy es inocuo porque la página no captura nada; con login real la marca debe resolverla el
+  SERVIDOR a partir del cliente (slug/dominio) y no de un enlace.
+- **Siguiente:** Supabase Auth (correo + contraseña y Google; Apple queda fuera por el costo de la cuenta de desarrollador),
+  tabla de clientes con sus colores/logo, `cliente.machea.co`, y panel de leads por cliente.
+
 ## 9. Invariantes que no se pueden romper
 
 1. **`Model/catalogos.py` es la única fuente de los ids.** Los índices de
