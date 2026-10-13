@@ -1843,7 +1843,9 @@ El contrato está en `design/login/CONTRATO_AUTH.md`.
   - El botón rojo lleva letra de 18,67 px en negrita, que cuenta como "texto grande" (3:1).
   - El texto rojo pequeño va con `--red-texto` (`#c0341f`).
   - axe AA da 0 hallazgos.
-- **Google:** botón oficial de Google Identity Services, en popup/FedCM, con nonce.
+- **Google: apagado por ahora (D19, 2026-10-13).** Google exige política de privacidad, página de inicio y términos
+  de servicio publicados para toda app externa en producción, y Machea aún no está constituida. El código queda listo.
+- **Google, cuando se active:** botón oficial de Google Identity Services, en popup/FedCM, con nonce.
   - Aparece solo si `VITE_GOOGLE_CLIENT_ID` tiene valor.
   - El ID token lo verifica el proveedor en el servidor.
   - Requiere `Referrer-Policy: strict-origin-when-cross-origin` (con `no-referrer` no funciona) y la CSP abierta a

@@ -28,6 +28,7 @@ acceso en `/acceso/`. Es solo diseño: no inicia sesión.
 | D16 | 2026-10-13 | *Por defecto, a falta de respuesta (se puede cambiar):* el tipo constructora/inmobiliaria **lo marca Machea al aprobar**; **colores del manual** (Inter, #FC4633, #1F2E42); usuario **sin espacios** (`constructora-andes`). La pregunta de los textos del panel se cae: la B no tiene panel. |
 | D17 | 2026-10-13 | **`/admin` → Cuentas se construye ya** contra el contrato HTTP. El backend `api/cuentas.py` responde 503 hasta que se conecte el almacén de la nube; en local se aprueba con el panel "Prueba". |
 | D18 | 2026-10-13 | **Correo de contacto** para una cuenta rechazada: `equipo@machea.co`. |
+| D19 | 2026-10-13 | **Se lanza sin Google por ahora:** solo correo y contraseña. Google exige política de privacidad, página de inicio y términos de servicio para cualquier app externa en producción (con el botón oficial o con la redirección), y Machea aún no está constituida. El código de Google se queda en la rama y se activa con `VITE_GOOGLE_CLIENT_ID` cuando esos documentos estén publicados. |
 
 Consecuencias:
 - D3: el botón lo dibuja Google. La página tiene que mandar `Referrer-Policy: strict-origin-when-cross-origin`

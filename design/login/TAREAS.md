@@ -26,5 +26,8 @@ No lleva la etiqueta Autónoma.
 - [x] L6. CSP y cabeceras en `vercel.json` (abiertas a Google GIS, `strict-origin-when-cross-origin`); botón de la demo
   quitado de la landing; prototipo `public/acceso/` retirado (queda en el commit `6203cbf`).
 - [ ] L7. QA final y PR de `login` a `main` (con el visto bueno de Diego).
-- [ ] Antes de publicar: política de privacidad en `/privacidad/` (hoy el enlace del login no lleva a nada), proveedor
-  de la nube y cliente OAuth de Google.
+- [ ] Antes de publicar el login: el proveedor de la nube y la página `/privacidad/`. El registro pide aceptar la
+  política y hoy ese enlace no lleva a nada; además, el formulario ya guarda datos de leads y la Ley 1581 pide la
+  política de todas formas.
+- [ ] Más adelante (D19): Google, cuando estén publicados la política y los términos de servicio. Se activa poniendo
+  `VITE_GOOGLE_CLIENT_ID` en Vercel y creando el cliente OAuth en una cuenta de Machea.
