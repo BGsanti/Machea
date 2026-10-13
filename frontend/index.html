@@ -351,13 +351,59 @@ svg { display: block; }
 .st-frame { position: absolute; inset: 0; overflow: hidden; will-change: clip-path; }
 .st-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
 #stF1 > img { will-change: transform, filter, opacity; }
-#stF1 > img.st-plan, #stF1 > img.st-disc { visibility: hidden; }
-#stF1 > img.st-disc { border-radius: 14px; }
+#stF1 > img.st-plan { visibility: hidden; }
+/* Fondo animado de las etapas sin imagen (01, 03, 04 y 05): manchas de color que
+   derivan despacio y una rejilla de puntos en movimiento. Es solo CSS (sin imágenes,
+   sin JS por cuadro) y va por encima de los marcos pero por debajo de todo el texto
+   (copy z6, notas/perfil/línea z4). El JS de la historia lo enciende y apaga. */
+.st-ambient { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; opacity: 0; }
+/* La rejilla y cada mancha tienen un envoltorio (.dots, .bw) que mueve el JS con el scroll en
+   cada cambio de etapa; la deriva constante de las manchas (<i>) sigue siendo CSS. Así GSAP y
+   la animación CSS no se pelean por la misma propiedad `transform`. */
+/* Capa del mouse: cada pieza del fondo se desplaza un poco según dónde esté el cursor, y cada una a
+   una profundidad distinta (data-d; negativo = va al revés), así el fondo se siente con relieve.
+   Va POR FUERA de .bw/.dots para no pelear con GSAP ni con las animaciones CSS, que usan `transform`. */
+.st-ambient .mp { position: absolute; inset: 0; will-change: transform; }
+/* Resplandor que sigue al puntero (coral, así que entra junto con lo anaranjado) */
+.st-ambient .gl { position: absolute; inset: 0; pointer-events: none; }
+.st-ambient .gl em { position: absolute; left: 0; top: 0; width: 560px; height: 560px; margin: -280px 0 0 -280px; border-radius: 50%; opacity: 0; will-change: transform, opacity;
+  background: radial-gradient(closest-side, rgba(255, 98, 89, .20), rgba(255, 98, 89, .07) 55%, transparent 100%); }
+@media (max-width: 860px) { .st-ambient .gl em { width: 360px; height: 360px; margin: -180px 0 0 -180px; } }
+.st-ambient .dots { position: absolute; inset: -440px; will-change: transform; }
+.st-ambient .dots::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 1px 1px, rgba(45, 59, 78, .11) 1px, transparent 0) 0 0 / 26px 26px; animation: ambDots 20s linear infinite; }
+.st-ambient .bw { position: absolute; inset: 0; will-change: transform; }
+/* Franja de luz que cruza la pantalla en cada cambio de etapa */
+.st-ambient .sw { position: absolute; top: -10%; bottom: -10%; left: 0; width: 55%; opacity: 0; will-change: transform;
+  background: linear-gradient(105deg, transparent 0%, rgba(255, 98, 89, .10) 50%, transparent 100%); }
+.st-ambient i { position: absolute; border-radius: 50%; will-change: transform; }
+.st-ambient .b1 { width: 64vw; height: 40vw; left: -14vw; top: 2vh; background: radial-gradient(closest-side, rgba(255, 98, 89, .20), transparent 100%); animation: ambA 13s ease-in-out infinite alternate; }
+.st-ambient .b2 { width: 70vw; height: 44vw; right: -20vw; bottom: -24vh; background: radial-gradient(closest-side, rgba(255, 138, 132, .19), transparent 100%); animation: ambB 16s ease-in-out infinite alternate; }
+.st-ambient .b3 { width: 46vw; height: 46vw; left: 30vw; top: -18vh; background: radial-gradient(closest-side, rgba(45, 59, 78, .14), transparent 100%); animation: ambC 18s ease-in-out infinite alternate; }
+.st-ambient .b4 { width: 52vw; height: 30vw; left: 8vw; bottom: -16vh; background: radial-gradient(closest-side, rgba(255, 98, 89, .16), transparent 100%); animation: ambD 11s ease-in-out infinite alternate; }
+.st-ambient .b5 { width: 34vw; height: 54vw; right: 6vw; top: -12vh; background: radial-gradient(closest-side, rgba(255, 176, 150, .20), transparent 100%); animation: ambE 14s ease-in-out infinite alternate; }
+@keyframes ambA { from { transform: translate3d(0, 0, 0) rotate(-8deg) scale(1); } to { transform: translate3d(24vw, 18vh, 0) rotate(16deg) scale(1.35); } }
+@keyframes ambB { from { transform: translate3d(0, 0, 0) rotate(6deg) scale(1.15); } to { transform: translate3d(-26vw, -20vh, 0) rotate(-14deg) scale(.88); } }
+@keyframes ambC { from { transform: translate3d(0, 0, 0) rotate(0deg) scale(.9); } to { transform: translate3d(-22vw, 22vh, 0) rotate(24deg) scale(1.3); } }
+@keyframes ambD { from { transform: translate3d(-6vw, 4vh, 0) rotate(-10deg) scale(1); } to { transform: translate3d(28vw, -22vh, 0) rotate(12deg) scale(1.4); } }
+@keyframes ambE { from { transform: translate3d(8vw, 0, 0) rotate(10deg) scale(1.1); } to { transform: translate3d(-24vw, 24vh, 0) rotate(-18deg) scale(.85); } }
+@keyframes ambDots { to { background-position: 52px 104px; } }
+@media (max-width: 860px) {
+  .st-ambient .b1, .st-ambient .b4 { width: 120vw; height: 80vw; }
+  .st-ambient .b2 { width: 130vw; height: 90vw; }
+  .st-ambient .b3 { width: 90vw; height: 90vw; left: 5vw; }
+  .st-ambient .b5 { width: 70vw; height: 110vw; }
+}
+@media (prefers-reduced-motion: reduce) { .st-ambient .dots::before, .st-ambient i { animation: none; } .st-ambient .sw { display: none; } }
 @media (max-width: 860px) { #stF1 > img.st-plan, .st-pieces img { object-position: 66% 50%; } }
 /* Perfilamiento: la sala se acopla por piezas, una por cada preferencia */
 .st-pieces { position: absolute; inset: 0; pointer-events: none; }
 .st-pieces .pc { position: absolute; inset: 0; overflow: hidden; visibility: hidden; will-change: transform, clip-path; }
 .st-frame .shade { position: absolute; inset: 0; background: #fff; pointer-events: none; }
+/* Etapas 03-05: sin imágenes ni fondos decorativos. Los marcos (#stF2, #stF3)
+   siguen en el DOM porque el recorte y las escalas de la historia los usan,
+   pero van en blanco y sin el filete de 1px, así que no se ve ningún panel. */
+.st-bg { position: absolute; inset: 0; background: #fff; }
+#stF2, #stF3 { box-shadow: none; }
 .st-frame + .st-frame { box-shadow: 0 0 0 1px var(--hair-2); }
 .st-grad { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0;
   background: linear-gradient(90deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.78) 30%, rgba(255,255,255,.12) 60%, transparent 78%); }
@@ -370,15 +416,27 @@ svg { display: block; }
 .st-sub { margin-top: 30px; color: var(--ink-2); max-width: 40ch; }
 .st-running { position: absolute; left: var(--gutter); top: calc(var(--nav-h) + 20px); z-index: 5; color: var(--ink-2); white-space: nowrap; margin: 0; font-size: 13px; font-weight: 500; line-height: 1.4; letter-spacing: 0; }
 .st-running b { color: var(--coral-ink); margin-right: 14px; }
+/* El encabezado corrido y la leyenda "Imagen conceptual" se quitaron de la vista. Siguen en el DOM
+   porque el JS de la historia mide con el encabezado (`run.offsetLeft`); `visibility` conserva su
+   espacio, a diferencia de `display: none`, que dejaría ese margen en 0 y movería todo. */
+.st-running, .st-cap { visibility: hidden !important; }
 
-.st-copy { position: absolute; left: var(--gutter); top: 50%; width: min(400px, 30vw); z-index: 6; }
-.st-copy article { position: absolute; left: 0; top: 0; transform: translateY(-50%); width: 100%; visibility: hidden; }
+/* `.st-copy` ocupa todo el ancho para poder centrar el título de la etapa 01; los demás
+   artículos conservan su columna a la izquierda (left + width propios). */
+.st-copy { position: absolute; left: 0; right: 0; top: 50%; width: auto; z-index: 6; }
+.st-copy article { position: absolute; left: var(--gutter); top: 0; transform: translateY(-50%); width: min(400px, 30vw); visibility: hidden; }
 .st-copy .t-label { color: var(--coral-ink); display: flex; gap: 12px; align-items: baseline; }
 .st-copy .t-label i { font-style: normal; color: var(--ink-3); }
 .st-copy h3 { font-size: clamp(1.6rem, 2.3vw, 2.35rem); font-weight: 540; font-stretch: 94%; letter-spacing: -.028em; line-height: 1.06; margin-top: 18px; color: var(--navy); }
 .st-copy p { margin-top: 18px; color: var(--ink-2); max-width: 38ch; }
 .st-copy .tag { margin-top: 22px; display: inline-flex; align-items: center; gap: 10px; color: var(--coral-ink); }
 .st-copy .tag::before { content: ""; width: 18px; height: 1.5px; background: currentColor; }
+/* 01 · Captura interactiva: título centrado. Primero se anima el fondo y luego aparece el texto. */
+.st-copy article[data-s="0"] { left: 50%; transform: translate(-50%, -50%); width: min(780px, 86vw); text-align: center; }
+.st-copy article[data-s="0"] .t-label { justify-content: center; }
+.st-copy article[data-s="0"] h3 { font-size: clamp(2.4rem, 5.2vw, 4.8rem); line-height: 1.02; }
+.st-copy article[data-s="0"] p { margin-inline: auto; max-width: 44ch; font-size: clamp(1.05rem, 1.5vw, 1.3rem); }
+.st-copy article[data-s="0"] .tag { justify-content: center; }
 
 .st-rail { position: absolute; left: var(--gutter); right: var(--gutter); bottom: calc(26px + env(safe-area-inset-bottom, 0px)); z-index: 6; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; margin: 0; padding: 0; }
 .st-rail li { list-style: none; position: relative; padding-top: 14px; color: var(--ink-3); transition: color .6s var(--ease); }
@@ -403,13 +461,13 @@ svg { display: block; }
 .st-notes .note.left .lb { border-left: 0; border-right: 2px solid var(--navy); text-align: right; }
 
 /* 03 · perfil */
-.st-profile { position: absolute; left: 0; top: 0; z-index: 4; width: 320px; color: var(--navy); }
+.st-profile { position: absolute; left: 0; top: 0; z-index: 4; width: 380px; color: var(--navy); }
 .st-profile .hd { display: flex; justify-content: space-between; color: var(--ink-3); padding-bottom: 10px; border-bottom: 1.5px solid var(--navy); }
 .st-profile .row { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--hair-2); }
 .st-profile .row small { color: var(--ink-3); }
-.st-profile .row b { font-weight: 600; font-size: 15px; }
+.st-profile .row b { font-weight: 600; font-size: 16px; }
 .st-profile .score { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-top: 18px; }
-.st-profile .score .t-num { font-size: 88px; color: var(--coral-ink); }
+.st-profile .score .t-num { font-size: 104px; color: var(--coral-ink); }
 .st-profile .score p { color: var(--ink-2); font-size: 13px; line-height: 1.45; max-width: 18ch; text-align: right; }
 .st-chain { position: absolute; left: 0; top: 0; z-index: 4; display: flex; align-items: center; gap: 16px; color: var(--ink-4); }
 .st-chain span { color: var(--navy); }
@@ -438,10 +496,14 @@ svg { display: block; }
 .st-result > * { pointer-events: auto; }
 .st-result > .t-label { color: var(--coral-ink); }
 .st-result > .t-label i { font-style: normal; }
+@media (min-width: 861px) {
+  /* sin imagen detrás, el resultado ocupa el centro en vez de quedar a la izquierda con el resto vacío */
+  .st-result { left: var(--gutter); right: var(--gutter); width: auto; align-items: center; text-align: center; }
+  .st-result > p { max-width: 46ch; }
+}
 .st-result h3 { color: var(--navy); margin-top: clamp(12px, 2.2vh, 22px); font-size: clamp(2rem, min(3.5vw, 6.4vh), 3.6rem); }
 .st-result h3 .ln + .ln { color: var(--coral-ink); }
 .st-result > p { color: var(--ink-2); margin-top: clamp(10px, 2vh, 22px); max-width: 42ch; }
-.st-result .btn { margin-top: clamp(18px, 3.4vh, 30px); flex: none; }
 .st-foot { position: absolute; z-index: 6; right: var(--gutter); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); max-width: 40ch; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; text-align: right;
   background: rgba(255,255,255,.88); padding: 12px 14px; border-radius: 12px; box-shadow: 0 0 0 1px var(--hair); }
 
@@ -558,25 +620,6 @@ svg { display: block; }
 /* ==========================================================================
    BENEFICIOS
    ========================================================================== */
-.benefits { padding: clamp(64px, 7vh, 90px) 0; background: var(--paper); }
-.ben-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 90px); margin-top: clamp(40px, 7vh, 80px); align-items: start; }
-.ben-list { list-style: none; margin: 0; padding: 0; }
-.ben-item { border-top: 1px solid var(--hair-2); }
-.ben-item:last-child { border-bottom: 1px solid var(--hair-2); }
-.ben-item button { width: 100%; display: grid; grid-template-columns: 48px minmax(0, 1fr) 22px; gap: 12px; align-items: center; text-align: left; background: none; border: 0; padding: clamp(20px, 3vh, 28px) 0; color: var(--ink-3); transition: color .4s var(--ease); }
-.ben-item .n { font-size: 12px; font-weight: 600; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
-.ben-item h3 { font-size: clamp(1.2rem, 1.8vw, 1.7rem); font-weight: 540; letter-spacing: -.022em; line-height: 1.15; }
-.ben-item .ar { width: 18px; height: 18px; transition: transform .5s var(--ease); }
-.ben-item.on button, .ben-item button:hover { color: var(--navy); }
-.ben-item.on .n { color: var(--coral-ink); }
-.ben-item.on .ar { transform: rotate(45deg); color: var(--coral); }
-.ben-item .mob { display: none; }
-.ben-panel { position: sticky; top: calc(var(--nav-h) + 40px); min-height: 400px; border-radius: var(--r-lg); background: #fff; box-shadow: 0 0 0 1px var(--hair), var(--shadow-1); padding: clamp(26px, 3vw, 40px); display: flex; flex-direction: column; }
-.ben-panel .bp-idx { font-size: 12px; font-weight: 600; letter-spacing: .12em; color: var(--ink-3); }
-.ben-panel h4 { font-size: clamp(1.4rem, 2vw, 1.9rem); font-weight: 560; letter-spacing: -.025em; line-height: 1.1; margin-top: 18px; max-width: 18ch; }
-.ben-panel p { color: var(--ink-2); margin-top: 14px; max-width: 40ch; }
-.ben-panel .bp-extra { margin-top: 24px; }
-.ben-panel .bp-foot { margin-top: auto; padding-top: 24px; color: var(--ink-3); font-size: 13.5px; border-top: 1px solid var(--hair); }
 .mm { display: flex; align-items: flex-end; gap: 18px; padding: 16px 18px; border-radius: 12px; background: var(--coral-soft); }
 .mm .t-num { font-size: 64px; font-weight: 300; font-stretch: 72%; letter-spacing: -.05em; line-height: .8; color: var(--coral-ink); }
 .mm .t-num small { font-size: .5em; }
@@ -618,6 +661,10 @@ svg { display: block; }
   background: radial-gradient(50% 60% at 30% 100%, rgba(255, 177, 153, .55), transparent 70%), radial-gradient(40% 50% at 75% 100%, rgba(255, 98, 89, .18), transparent 70%); }
 .offer-grid { position: relative; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 90px); align-items: start; }
 .offer .h-sec { margin-top: 18px; max-width: 18ch; }
+/* Con los pasos quitados, la columna de texto es solo titulo + una linea: se
+   centra contra el formulario en vez de quedar arriba con el resto en blanco. */
+.offer-grid > div:first-child { align-self: center; }
+.offer .h-sec + .lead { margin-top: 22px; }
 .stack { margin-top: clamp(32px, 5vh, 52px); max-width: 600px; }
 .stack .it { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 20px 0; border-top: 1px solid var(--hair-2); }
 .stack .it:last-child { border-bottom: 1px solid var(--hair-2); }
@@ -673,15 +720,25 @@ svg { display: block; }
 /* ==========================================================================
    FOOTER
    ========================================================================== */
-.footer { background: var(--beige); color: var(--navy); padding-block: clamp(52px, 6vh, 70px) calc(30px + env(safe-area-inset-bottom, 0px)); }
-.footer .top { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 32px; align-items: end; padding-bottom: 40px; border-bottom: 1px solid var(--hair-2); }
-.footer .big { font-size: clamp(2.2rem, 5vw, 4.4rem); font-weight: 540; font-stretch: 92%; letter-spacing: -.04em; line-height: 1; max-width: 13ch; }
-.footer .big em { font-style: normal; color: var(--coral); }
-.footer nav { display: grid; gap: 8px; justify-self: end; }
-.footer nav a { text-decoration: none; color: var(--ink-2); font-size: 15px; }
-.footer nav a:hover { color: var(--navy); }
-.footer .bot { display: flex; justify-content: space-between; align-items: center; gap: 16px 28px; flex-wrap: wrap; padding-top: 28px; color: var(--ink-3); font-size: 13px; }
-.footer .bot .brand svg { height: 26px; }
+.footer { background: var(--navy-d); color: #fff; padding-block: clamp(52px, 8vh, 84px) calc(30px + env(safe-area-inset-bottom, 0px)); }
+/* Columnas de enlaces: marca + contacto a la izquierda y tres listas. */
+.footer .cols { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); gap: 32px clamp(24px, 4vw, 64px); padding-bottom: clamp(36px, 6vh, 56px); border-bottom: 1px solid rgba(255, 255, 255, .14); }
+.footer .col { display: flex; flex-direction: column; align-items: flex-start; }
+.footer .col h4 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; color: #fff; margin: 0 0 14px; }
+.footer .col a { text-decoration: none; color: rgba(255, 255, 255, .7); font-size: 15px; padding: 6px 0; }
+.footer .col a:hover { color: var(--coral-l); }
+.footer .brand { color: #fff; }
+.footer .col-brand .brand svg { height: 32px; }
+.footer .f-contact { margin: 22px 0 0; color: rgba(255, 255, 255, .55); font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.footer .f-contact a { padding: 0; color: #fff; font-weight: 560; font-size: 16px; text-decoration: none; }
+.footer .f-contact a:hover { color: var(--coral-l); }
+.footer .f-seguir { margin: 26px 0 0; color: rgba(255, 255, 255, .55); font-size: 14px; }
+.footer .col .social { display: flex; gap: 12px; margin-top: 12px; }
+.footer .col .social a { width: 42px; height: 42px; padding: 0; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: rgba(255, 255, 255, .09); transition: background .25s, transform .25s, color .25s; }
+.footer .col .social a:hover { background: var(--coral); color: #fff; transform: translateY(-2px); }
+.footer .col .social svg { width: 20px; height: 20px; }
+.footer .bot { display: flex; justify-content: space-between; align-items: center; gap: 16px 28px; flex-wrap: wrap; padding-top: 28px; color: rgba(255, 255, 255, .5); font-size: 13px; }
 
 /* ---------- Estados iniciales (solo con JS) ---------- */
 .js .rv { opacity: 0; transform: translateY(20px); }
@@ -726,21 +783,12 @@ svg { display: block; }
   .q-rooms button small .hs { display: inline; }
   .pr-cap { display: none; }
   .q-actions .btn { flex: 1 1 auto; justify-content: space-between; }
-  .ben-grid { grid-template-columns: 1fr; }
-  .ben-panel { display: none; }
-  .ben-item button { grid-template-columns: 36px minmax(0, 1fr) 22px; }
-  .ben-item .mob { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s var(--ease); }
-  .ben-item.on .mob { grid-template-rows: 1fr; }
-  .ben-item .mob > div { overflow: hidden; }
-  .ben-item .mob .in { padding: 0 0 24px 48px; }
-  .ben-item .mob p { color: var(--ink-2); }
-  .ben-item .mob .mm { margin-top: 16px; }
   .faq-grid { grid-template-columns: 1fr; }
   .faq-grid .left { position: static; }
   .offer-grid { grid-template-columns: 1fr; }
   .form-card { position: static; }
-  .footer .top { grid-template-columns: 1fr; }
-  .footer nav { justify-self: start; }
+  .footer .cols { grid-template-columns: 1fr 1fr; }
+  .footer .col-brand { grid-column: 1 / -1; }
 }
 /* Película e historia: pantallas bajas y móvil */
 @media (max-height: 820px) and (min-width: 861px) {
@@ -805,7 +853,11 @@ svg { display: block; }
   .st-running { font-size: 12px; right: var(--gutter); white-space: normal; }
   .st-running b { display: block; margin: 0 0 4px; }
   .st-copy { left: var(--gutter); right: var(--gutter); width: auto; top: auto; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
-  .st-copy article { top: auto; bottom: 0; transform: none; }
+  .st-copy article { top: auto; bottom: 0; transform: none; left: 0; width: 100%; }
+  /* etapa 01 en celular: centrado también en vertical (su base queda a media pantalla y se baja la mitad de su alto) */
+  .st-copy article[data-s="0"] { left: 0; width: 100%; bottom: calc(50dvh - 96px - env(safe-area-inset-bottom, 0px)); transform: translateY(50%); }
+  .st-copy article[data-s="0"] h3 { font-size: clamp(2rem, 9vw, 2.8rem); margin-top: 12px; }
+  .st-copy article[data-s="0"] p { font-size: 15px; }
   .st-copy h3 { font-size: 1.5rem; margin-top: 12px; }
   .st-copy p { font-size: 14.5px; margin-top: 10px; }
   .st-copy .tag { margin-top: 12px; }
@@ -822,10 +874,22 @@ svg { display: block; }
   .st-result h3 { font-size: clamp(1.9rem, 8vw, 2.6rem); }
   .st-result h3 { margin-top: 14px; }
   .st-result > p { margin-top: 14px; font-size: 14.5px; }
-  .st-result .btn { margin-top: 20px; }
   .st-profile { width: min(320px, calc(100vw - 2 * var(--gutter))); }
-  .st-profile .row { padding: 8px 0; }
-  .st-profile .score .t-num { font-size: 64px; }
+  /* compacta: en celular la tarjeta comparte pantalla con el texto de la etapa y
+     antes el "97%" se montaba sobre el título */
+  .st-profile .hd { padding-bottom: 6px; }
+  .st-profile .row { padding: 5px 0; }
+  .st-profile .row b { font-size: 15px; }
+  .st-profile .score { padding-top: 8px; }
+  .st-profile .score .t-num { font-size: 52px; }
+  .st-profile .score p { font-size: 12px; }
+}
+@media (max-width: 860px) and (max-height: 700px) {
+  /* teléfonos bajos (≈640-664px): un poco más compacta todavía */
+  .st-profile .row { padding: 3px 0; }
+  .st-profile .score { padding-top: 4px; }
+  .st-profile .score .t-num { font-size: 44px; }
+  .st-profile .score p { font-size: 11px; line-height: 1.3; }
   .st-line .val { font-size: 16px; }
   .st-line .sm { font-size: 12px; }
   .st-notes .note .ld { width: 36px; }
@@ -898,10 +962,9 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
       <a href="#como-funciona">Cómo funciona</a>
       <a href="#demo">Demo en vivo</a>
       <a href="#pruebalo">Con tu marca</a>
-      <a href="#beneficios">Beneficios</a>
       <a href="#faq">Preguntas</a>
     </nav>
-    <a class="btn btn-coral nav-cta" href="#oferta">Solicitar auditoría gratis<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
+    <a class="btn btn-coral nav-cta" href="#pruebalo">Pruébalo con tu marca<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
     <button class="nav-burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
   </div>
 </header>
@@ -910,10 +973,9 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
     <a href="#como-funciona"><small>01</small>Cómo funciona</a>
     <a href="#demo"><small>02</small>Demo en vivo</a>
     <a href="#pruebalo"><small>03</small>Con tu marca</a>
-    <a href="#beneficios"><small>04</small>Beneficios</a>
-    <a href="#faq"><small>05</small>Preguntas</a>
+    <a href="#faq"><small>04</small>Preguntas</a>
   </nav>
-  <a class="btn btn-coral" href="#oferta">Solicitar auditoría gratis<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
+  <a class="btn btn-coral" href="#pruebalo">Pruébalo con tu marca<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
 </div>
 
 <main>
@@ -932,7 +994,7 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
             <h1 class="h-hero" id="heroTitle">Machea te ayuda a contactar y perfilar tus leads en segundos.</h1>
             <p class="hero-sub" data-hero>Perfilamos a cada lead con una experiencia interactiva y lo contactamos con IA, para que tus asesores reciban solo los que están listos para comprar.</p>
             <div class="hero-ctas" data-hero>
-              <a class="btn btn-coral btn-lg" href="#oferta">Solicitar auditoría gratis<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
+              <a class="btn btn-coral btn-lg" href="#pruebalo">Pruébalo con tu marca<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
               <a class="btn btn-ghost btn-lg" href="#demo">Probar la demo<span class="ar down"><svg><use href="#i-down"/></svg><svg><use href="#i-down"/></svg></span></a>
             </div>
           </div>
@@ -1050,10 +1112,11 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
 <!-- ================= HISTORIA END-TO-END ================= -->
 <section class="story" id="como-funciona" aria-label="Cómo funciona: un sistema end-to-end">
   <div class="st-stage" id="stStage">
-    <div class="st-frame" id="stF1"><img src="media/sala.webp" alt="Render conceptual de una sala con luz de tarde" decoding="async"><img class="st-disc" src="media/descubrimiento.webp" alt="Ilustración: el catálogo web de la inmobiliaria recibe leads de la pauta y el formulario genérico se reemplaza por un plano interactivo" decoding="async"><img class="st-plan" src="media/vis-engativa.webp" alt="Ilustración: apartamento VIS de 2 habitaciones en una torre de ladrillo en Engativá, Bogotá" decoding="async"><div class="st-pieces" aria-hidden="true"><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div></div><div class="shade"></div></div>
-    <div class="st-frame" id="stF2"><img src="media/escalera.webp" alt="Render conceptual de una escalera de concreto con luz lateral" decoding="async"><div class="shade"></div></div>
-    <div class="st-frame" id="stF3"><img src="media/fachada.webp" alt="Render conceptual de una fachada residencial" decoding="async"><div class="shade"></div></div>
+    <div class="st-frame" id="stF1"><img src="media/sala.webp" alt="Render conceptual de una sala con luz de tarde" decoding="async"><img class="st-plan" src="media/vis-engativa.webp" alt="Ilustración: apartamento VIS de 2 habitaciones en una torre de ladrillo en Engativá, Bogotá" decoding="async"><div class="st-pieces" aria-hidden="true"><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div><div class="pc"><img src="media/vis-engativa.webp" alt="" decoding="async"></div></div><div class="shade"></div></div>
+    <div class="st-frame" id="stF2"><div class="st-bg" aria-hidden="true"></div><div class="shade"></div></div>
+    <div class="st-frame" id="stF3"><div class="st-bg" aria-hidden="true"></div><div class="shade"></div></div>
     <div class="st-grad" aria-hidden="true"></div>
+    <div class="st-ambient" aria-hidden="true"><span class="mp" data-d=".5"><span class="dots"></span></span><span class="mp" data-d="1.3"><span class="bw"><i class="b1"></i></span></span><span class="mp" data-d="-1"><span class="bw"><i class="b2"></i></span></span><span class="mp" data-d=".8"><span class="bw"><i class="b3"></i></span></span><span class="mp" data-d="1.7"><span class="bw"><i class="b4"></i></span></span><span class="mp" data-d="-1.4"><span class="bw"><i class="b5"></i></span></span><span class="gl"><em></em></span><span class="sw"></span></div>
     <span class="st-cap t-label" id="stCap">Imagen conceptual · no es un proyecto real</span>
 
     <p class="st-running" id="stRun" aria-hidden="true"><b class="t-label">Cómo funciona</b><span id="stRunS">Un sistema end-to-end, nacido de un caso real en Colombia.</span></p>
@@ -1118,7 +1181,6 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
       <span class="t-label rule"><i>05</i>&nbsp;Conversión</span>
       <h3 class="t-h1"><span class="ln"><span>Una oportunidad</span></span><span class="ln"><span>mejor calificada.</span></span></h3>
       <p class="t-body">Solo si hay match real, el asesor recibe la ficha completa por WhatsApp o CRM para cerrar la conversación.</p>
-      <a class="btn btn-coral" href="#oferta">Solicitar auditoría gratis<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
     </div>
     <p class="st-foot" id="stFoot">Resultados verificables desde el primer piloto, con tu catálogo y tu pauta de hoy.</p>
 
@@ -1164,7 +1226,7 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
             <span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span>
           </a>
           <div class="q-actions">
-            <a class="btn btn-coral" href="#oferta">Solicitar auditoría gratis<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
+            <a class="btn btn-coral" href="#pruebalo">Pruébalo con tu marca<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
           </div>
         </div>
         <div class="pr-stage" id="prStage">
@@ -1175,23 +1237,6 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
           <div class="pr-nogl"><p>La vista 3D necesita WebGL. Puedes contestar igual: la lista muestra los espacios que se arman.</p></div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= BENEFICIOS ================= -->
-<section class="benefits" id="beneficios" aria-label="Beneficios">
-  <div class="wrap">
-    <div class="sec-head split">
-      <div>
-        <p class="eyebrow rule">Beneficios</p>
-        <h2 class="h-sec" data-split>Por qué funciona para cualquier inmobiliaria.</h2>
-      </div>
-      <p class="lead rv">El formulario es uno solo — el mismo que usaría cualquier inmobiliaria que hace pauta.</p>
-    </div>
-    <div class="ben-grid">
-      <ul class="ben-list" id="benList"></ul>
-      <div class="ben-panel" id="benPanel" aria-live="polite"></div>
     </div>
   </div>
 </section>
@@ -1213,17 +1258,13 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
   <div class="wrap offer-grid">
     <div>
       <p class="eyebrow rule">Pruébalo con tu marca</p>
-      <h2 class="h-sec">Mira cómo se vería el formulario con tu nombre, tus colores y tu logo.</h2>
-      <div class="stack">
-        <div class="it rv"><span class="k">01</span><div><h4>Pega el link de tu sitio</h4><p>Leemos tu nombre, tus colores y tu logo. No instalas nada ni nos das acceso a tu web.</p></div></div>
-        <div class="it rv"><span class="k">02</span><div><h4>Recibes tu demo al instante</h4><p>El formulario interactivo ya vestido con tu marca. Se abre en el momento y el enlace te sirve durante 30 días.</p></div></div>
-        <div class="it rv"><span class="k">03</span><div><h4>Pide la llamada de Manuela</h4><p>Te llama a ti, presentándose como la asistente virtual de tu empresa, y avisa que es una demostración.</p></div></div>
-      </div>
+      <h2 class="h-sec">Mira el formulario con tu marca.</h2>
+      <p class="lead">Pega el link de tu sitio y recibe tu demo al instante.</p>
     </div>
     <div class="form-card rv" id="demoCard">
       <form id="demoForm" novalidate>
         <h3>Armar mi demo</h3>
-        <p class="sub">Tarda menos de un minuto y no necesitas tarjeta.</p>
+        <p class="sub">Tarda menos de un minuto.</p>
         <div class="field"><input id="dName" name="nombre" type="text" placeholder=" " autocomplete="name" required><label for="dName">Tu nombre</label></div>
         <div class="field"><input id="dMail" name="correo" type="email" placeholder=" " autocomplete="email" required><label for="dMail">Tu correo</label></div>
         <div class="field"><input id="dSite" name="sitio" type="text" inputmode="url" placeholder=" " autocomplete="url" required><label for="dSite">Link de tu sitio web</label></div>
@@ -1240,7 +1281,7 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
         <div class="hp" aria-hidden="true"><label>No llenes este campo<input id="dWeb" name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
         <p class="f-err" id="dErr" role="alert"></p>
         <button class="btn btn-coral btn-lg" type="submit"><span class="lbl">Armar mi demo</span><span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></button>
-        <p class="f-note"><svg><use href="#i-lock"/></svg>Sin tarjeta, sin compromiso. Solo leemos lo público de tu sitio.</p>
+        <p class="f-note"><svg><use href="#i-lock"/></svg>Solo leemos lo público de tu sitio.</p>
       </form>
       <div class="form-ok" id="demoOk" aria-live="polite">
         <span class="ok-i"><svg><use href="#i-check"/></svg></span>
@@ -1253,62 +1294,46 @@ html:not(.js) .st-result, html.no-story .st-result { margin-top: 64px; }
   </div>
 </section>
 
-<!-- ================= OFERTA / CTA ================= -->
-<section class="offer" id="oferta" aria-label="Auditoría gratuita y piloto">
-  <div class="offer-glow" aria-hidden="true"></div>
-  <div class="wrap offer-grid">
-    <div>
-      <p class="eyebrow rule">Auditoría gratuita + Piloto Machea</p>
-      <h2 class="h-sec" data-split>Antes de pedirte que cambies nada, te mostramos cuánto estás perdiendo hoy.</h2>
-      <div class="stack">
-        <div class="it rv"><span class="k">01</span><div><h4>Auditoría gratuita de tu proceso actual</h4><p>Con tus propios datos: te mostramos cuánto estás perdiendo por demora de respuesta — en menos de 48 horas.</p></div></div>
-        <div class="it rv"><span class="k">02</span><div><h4>Piloto sin fricción</h4><p>Corremos Machea con tus primeros leads. No tocamos tu sitio web actual ni tu CRM.</p></div></div>
-        <div class="it rv"><span class="k">03</span><div><h4>Acompañamiento cercano</h4><p>Cupos limitados este trimestre, para darle seguimiento de cerca a cada implementación.</p></div></div>
-      </div>
-      <div class="guarantee rv">
-        <span class="gi"><svg><use href="#i-shield"/></svg></span>
-        <div><h4>Garantía Machea</h4><p>Si Manuela no califica y agenda leads más rápido que tu proceso actual, no pagas el piloto.</p></div>
-      </div>
-    </div>
-    <div class="form-card rv" id="formCard">
-      <form id="auditForm" novalidate>
-        <h3>Solicitar auditoría gratis</h3>
-        <p class="sub">En menos de 48 horas te mostramos los números reales de tu proceso actual.</p>
-        <div class="field"><input id="fName" name="nombre" type="text" placeholder=" " autocomplete="name" required><label for="fName">Tu nombre</label></div>
-        <div class="field"><input id="fMail" name="correo" type="email" placeholder=" " autocomplete="email" required><label for="fMail">Tu correo</label></div>
-        <div class="field"><input id="fSite" name="sitio" type="url" placeholder=" " autocomplete="url"><label for="fSite">Sitio web de tu inmobiliaria (opcional)</label></div>
-        <p class="f-err" id="fErr" role="alert"></p>
-        <button class="btn btn-coral btn-lg" type="submit">Solicitar auditoría gratis<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></button>
-        <p class="f-note"><svg><use href="#i-lock"/></svg>Sin tarjeta, sin compromiso. Trato B2B directo.</p>
-      </form>
-      <div class="form-ok" id="formOk" aria-live="polite">
-        <span class="ok-i"><svg><use href="#i-check"/></svg></span>
-        <h3>Tu solicitud está lista para enviar.</h3>
-        <p id="okText">Ábrela en tu correo o escríbenos directamente — respondemos con la auditoría en menos de 48 horas.</p>
-        <a class="btn btn-coral" id="mailLink" href="mailto:equipo@machea.co">Abrir en mi correo<span class="ar"><svg><use href="#i-ne"/></svg><svg><use href="#i-ne"/></svg></span></a>
-        <div class="mailbox"><code id="mailAddr">equipo@machea.co</code><button type="button" id="copyMail">Copiar</button></div>
-      </div>
-    </div>
-  </div>
-</section>
 </main>
 
 <footer class="footer">
   <div class="wrap">
-    <div class="top">
-      <p class="big">El fin de los <em>formularios muertos.</em></p>
-      <nav aria-label="Pie de página">
+    <div class="cols">
+      <div class="col col-brand">
+        <a class="brand" href="#inicio" aria-label="Machea, volver al inicio"><svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg></a>
+        <p class="f-contact">Escríbenos<a href="mailto:equipo@machea.co">equipo@machea.co</a></p>
+        <p class="f-seguir">Síguenos</p>
+        <div class="social">
+          <a href="https://www.instagram.com/machea.col" target="_blank" rel="noopener" aria-label="Instagram de Machea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r=".9" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.tiktok.com/@machea.ia" target="_blank" rel="noopener" aria-label="TikTok de Machea"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.3 2.3 1.7 3.9 4 4.1v3.2c-1.5 0-2.9-.5-4-1.3v6.1a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v3.3a2.4 2.4 0 1 0 1.5 2.2V3h3.2z"/></svg></a>
+          <a href="https://www.linkedin.com/company/machea" target="_blank" rel="noopener" aria-label="LinkedIn de Machea"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.8h4V21H3V9.8zm6.5 0h3.8v1.6h.06c.53-1 1.83-2 3.77-2 4.03 0 4.77 2.65 4.77 6.1V21h-4v-5.2c0-1.24-.02-2.84-1.73-2.84-1.73 0-2 1.35-2 2.75V21h-4V9.8z"/></svg></a>
+        </div>
+      </div>
+      <nav class="col" aria-label="Producto">
+        <h4>Producto</h4>
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#demo">Demo en vivo</a>
         <a href="#pruebalo">Pruébalo con tu marca</a>
-        <a href="#beneficios">Beneficios</a>
-        <a href="#faq">Preguntas</a>
-        <a href="#oferta">Solicitar auditoría gratis</a>
+        <a href="#faq">Preguntas frecuentes</a>
+      </nav>
+      <nav class="col" aria-label="Para quién">
+        <h4>Para quién</h4>
+        <a href="#pruebalo">Inmobiliarias</a>
+        <a href="#pruebalo">Constructoras</a>
+        <a href="#demo">Proyectos VIS y No VIS</a>
+      </nav>
+      <nav class="col" aria-label="Conversemos">
+        <h4>Conversemos</h4>
+        <a href="mailto:equipo@machea.co">Escribir al equipo</a>
+        <a href="#pruebalo">Armar mi demo</a>
+        <a href="https://www.instagram.com/machea.col" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.linkedin.com/company/machea" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.tiktok.com/@machea.ia" target="_blank" rel="noopener">TikTok</a>
+        <a href="#inicio">Volver al inicio</a>
       </nav>
     </div>
     <div class="bot">
-      <a class="brand" href="#inicio" aria-label="Machea, volver al inicio"><svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg></a>
-      <span>Imágenes y modelos 3D ilustrativos, creados para esta página. No representan proyectos reales.</span>
+      <span>Imágenes y modelos 3D ilustrativos, no son proyectos reales.</span>
       <span>© 2026 Machea Proptech. Todos los derechos reservados.</span>
     </div>
   </div>
@@ -1365,24 +1390,10 @@ window.MACHEA = {
     { id: 'edad', title: '¿Cuántos años tienes?', sub: 'Algunos proyectos tienen condiciones especiales según tu edad.', type: 'number', min: 18, max: 99, placeholder: 'Ej: 31' }
   ],
 
-  benefits: [
-    { id: 'match-real', title: 'Match real, no un formulario genérico',
-      text: 'El motor compara cada lead contra proyectos reales de tu catálogo y devuelve un % de compatibilidad — no una lista fija de preguntas sin salida.', compat: true },
-    { id: 'segundos', title: 'Calificación en segundos, no en 24 horas',
-      text: 'Manuela llama y califica mientras el interés del lead sigue caliente, no al día siguiente.' },
-    { id: 'solo-listos', title: 'Solo los leads listos llegan a tu asesor',
-      text: 'Si no hay capacidad de compra hoy, el lead va a nutrición automática — no a la bandeja de tu equipo comercial.' },
-    { id: 'sin-migrar', title: 'Se acopla a lo que ya tienes',
-      text: 'Sin migrar tu CRM ni reconstruir tu sitio web — nos integramos a cualquier CRM para que los datos de tus leads lleguen directo a tu equipo comercial.' },
-    { id: 'cualquier-inmobiliaria', title: 'Funciona para cualquier inmobiliaria con pauta',
-      text: 'VIS, No VIS, un proyecto o cien: el motor se adapta a tu catálogo y a tu presupuesto de medios, con confidencialidad de datos garantizada por anonimización.' }
-  ],
-
   faq: [
-    { q: '¿Necesito cambiar mi sitio web o mi CRM?', a: 'No. Machea se acopla a lo que ya tienes — leemos tu catálogo actual y conectamos con tu CRM o WhatsApp, sin pedirte una migración ni un rediseño.' },
-    { q: '¿Cuánto cuesta el piloto?', a: 'Empieza con una auditoría gratuita: te mostramos, con tus propios datos, cuánto estás perdiendo por demora de respuesta. El costo del piloto se confirma según el volumen de leads de tu operación.' },
-    { q: '¿Qué pasa si Manuela no funciona para mi inmobiliaria?', a: 'Si Manuela no califica y agenda leads más rápido que tu proceso actual, no pagas el piloto.' },
-    { q: '¿Cómo empiezo?', a: 'Solicitas la auditoría gratis, en menos de 48 horas te mostramos los números reales de tu proceso actual, y decides si avanzas al piloto — sin compromiso desde el primer paso.' }
+    { q: '¿Necesito cambiar mi sitio web o mi CRM?', a: 'No. Nos acoplamos a lo que ya tienes.' },
+    { q: '¿Cuánto cuesta el piloto?', a: 'Empiezas con una auditoría gratuita. El costo depende de tu volumen de leads.' },
+    { q: '¿Y si no funciona?', a: 'Si Manuela no agenda más rápido que tu proceso actual, no pagas el piloto.' }
   ],
 
   // Flujo real del lead (etapa "Automatización" de la historia).
@@ -2180,19 +2191,22 @@ window.MacheaCity = (function () {
   const Story = (function () {
     const sec = $('#como-funciona'), st = $('#stStage');
     const F = ['#stF1', '#stF2', '#stF3'].map(s => $(s));
-    const FI = F.map(f => $('img', f)), FS = F.map(f => $('.shade', f));
+    const FI = F.map(f => $('img', f) || $('.st-bg', f)), FS = F.map(f => $('.shade', f));
     const PC = $$('.st-pieces .pc', st), PI = PC.map(p => $('img', p)), PLAN = $('.st-plan', st);
     const ILL = [PLAN, ...PI]; // la ilustración (plano base + piezas)
     const grad = $('.st-grad', st), cap = $('#stCap');
     const eyebrow = $('#stEyebrow'), title = $('#stTitle'), tLines = $$('.ln > span', title), sub = $('#stSub');
     const run = $('#stRun'), runS = $('#stRunS');
-    const DISC = $('.st-disc', st); // ilustración de Descubrimiento
+    const amb = $('.st-ambient', st); // fondo animado
+    const ambBw = $$('.st-ambient .bw', st), ambDots = $('.st-ambient .dots', st), ambSw = $('.st-ambient .sw', st);
+    const ambNaranja = [0, 1, 3, 4].map(i => ambBw[i]); // lo anaranjado del fondo: entra DESPUÉS de que el fondo ya se mueve
+    ambNaranja.push($('.st-ambient .gl', st)); // el resplandor del puntero también es coral: entra con lo anaranjado
     const notes = $$('.note', st);
     const chain = $('#stChain'), chainW = $$('span', chain), chainI = $$('i', chain);
     const prof = $('#stProfile'), profHd = $('.hd', prof), rows = $$('.row', prof), score = $('.score', prof), scoreN = $('#stScore');
     const lineSvg = $('#stLine');
     const arts = $$('#stCopy article');
-    const res = $('#stResult'), resLabel = $('.t-label', res), resLines = $$('h3 .ln > span', res), resP = $('p.t-body', res), resBtn = $('.btn', res);
+    const res = $('#stResult'), resLabel = $('.t-label', res), resLines = $$('h3 .ln > span', res), resP = $('p.t-body', res);
     const foot = $('#stFoot');
     const railLi = $$('#stRail li'), railI = railLi.map(li => $('i', li));
     const rail = $('#stRail');
@@ -2209,7 +2223,8 @@ window.MacheaCity = (function () {
     // un momento de esa escala al tiempo real con las pausas ya metidas.
     const HOLDS = [
       [10.4, 34],  // título + subtítulo de la apertura
-      [20.4, 30],  // 01 Descubrimiento
+      [16.0, 11],  // 01: el fondo ya está en movimiento y se aprecia solo, antes de que entre el texto
+      [24.8, 30],  // 01 Descubrimiento
       [45, 30],    // 02 Perfilamiento, con las cuatro notas ya puestas
       [64.6, 30],  // 03 Inteligencia, con el % ya calculado
       [86, 30],    // 04 Automatización, con la línea completa
@@ -2241,7 +2256,7 @@ window.MacheaCity = (function () {
         Lx.Z = { x: zx, y: zy, w: W - g - zx, h: zh };
         Lx.copyR = copyR;
       } else {
-        let artH = 0; arts.forEach(a => { artH = Math.max(artH, a.offsetHeight); });
+        let artH = 0; arts.forEach((a, i) => { if (i) artH = Math.max(artH, a.offsetHeight); }); // el 01 va centrado: no reserva espacio abajo
         const zy = navH + 70, zb = H - 96 - artH - 26;
         Lx.Z = { x: g, y: zy, w: W - 2 * g, h: Math.max(200, zb - zy) };
         Lx.copyR = 0;
@@ -2258,7 +2273,9 @@ window.MacheaCity = (function () {
         const bandB = Z.y + Z.h * .34;
         Lx.p3 = box(Z.y, W - Z.x - Z.w, H - bandB, Z.x);
         Lx.p3from = box(Z.y, W - Z.x, H - bandB, Z.x);
-        Lx.lineBox = { x: Z.x, y: bandB + 36, w: Z.w, h: Z.y + Z.h - bandB - 36 };
+        // sin banda de foto arriba: la línea conserva su alto y se centra en la zona
+        const lh = Z.y + Z.h - bandB - 36;
+        Lx.lineBox = { x: Z.x, y: Z.y + (Z.h - lh) / 2, w: Z.w, h: lh };
       } else {
         Lx.p1 = box(Z.y, g, H - Z.y - Z.h, g);
         Lx.p2 = Lx.full; Lx.p2from = box(0, 0, H, 0); Lx.p2out = box(H, 0, 0, 0);
@@ -2292,10 +2309,12 @@ window.MacheaCity = (function () {
       });
       const phh = prof.offsetHeight;
       if (!small) {
-        Lx.prof = { x: Z.x, y: Z.y + (Z.h - phh) / 2 + 26 };
-        Lx.chain = { x: Z.x, y: Lx.prof.y - 64 };
+        // sin panel de foto a la derecha: el perfil se centra en la zona
+        const px0 = Z.x + (Z.w - prof.offsetWidth) / 2;
+        Lx.prof = { x: px0, y: Z.y + (Z.h - phh) / 2 + 26 };
+        Lx.chain = { x: px0, y: Lx.prof.y - 64 };
       } else {
-        Lx.prof = { x: Z.x, y: Z.y + 44 };
+        Lx.prof = { x: Z.x, y: Z.y + 32 };
         Lx.chain = { x: Z.x, y: Z.y + 2 };
       }
       Lx.rows = rows.map(r => ({ y: Lx.prof.y + r.offsetTop + r.offsetHeight / 2 }));
@@ -2392,9 +2411,9 @@ window.MacheaCity = (function () {
       if (!G) { root.classList.add('no-story'); return; }
       const prog = tl ? tl.progress() : 0;
       if (tl) tl.kill();
-      const all = [...F, ...FI, ...FS, ...PC, ...PI, PLAN, grad, cap, eyebrow, title, ...tLines, sub, run, DISC, ...notes, ...$$('.pin, .ld, .lb', st),
+      const all = [...F, ...FI, ...FS, ...PC, ...PI, PLAN, grad, amb, ...ambBw, ambDots, ambSw, cap, eyebrow, title, ...tLines, sub, run, ...notes, ...$$('.pin, .ld, .lb', st),
         chain, ...chainW, ...chainI, prof, profHd, ...rows, score, lineSvg, ...arts, ...$$('#stCopy article > *'), ...$$('#stCopy .ln > span'),
-        resLabel, ...resLines, resP, resBtn, foot, rail, ...railI];
+        resLabel, ...resLines, resP, foot, rail, ...railI];
       G.set(all, { clearProps: 'all' });
       L = measure();
       const P = buildLine();
@@ -2412,10 +2431,10 @@ window.MacheaCity = (function () {
       if (L.p2rect) G.set(FI[1], { left: L.p2rect.left, top: L.p2rect.top, width: L.p2rect.width, height: L.p2rect.height, right: 'auto', bottom: 'auto' });
       G.set(FI[1], { scale: 1.14 }); G.set(FI[2], { scale: 1.12 });
       G.set(FS, { opacity: 0 }); G.set(FS[1], { opacity: small ? .55 : 0 }); G.set(FS[2], { opacity: small ? .6 : .04 });
-      G.set([grad, cap, eyebrow, sub, run, rail, foot], { autoAlpha: 0 });
+      G.set([grad, amb, cap, eyebrow, sub, run, rail, foot], { autoAlpha: 0 });
+      G.set(ambNaranja, { opacity: 0 });
       G.set(tLines, { yPercent: 108 });
       G.set(title, { transformOrigin: '0 0', force3D: false });
-      G.set(DISC, { left: L.p1rect.left, top: L.p1rect.top, width: L.p1rect.width, height: L.p1rect.height, right: 'auto', bottom: 'auto', autoAlpha: 0, scale: 1.06, transformOrigin: '50% 50%' });
       notes.forEach((n, i) => G.set(n, { x: L.notes[i].x, y: L.notes[i].y, autoAlpha: 0 }));
       G.set($$('.pin', st), { scale: 0 });
       G.set($$('.ld', st), { scaleX: 0 });
@@ -2433,7 +2452,7 @@ window.MacheaCity = (function () {
       G.set(arts, { autoAlpha: 0 });
       G.set($$('#stCopy article > *'), { autoAlpha: 0, y: 16 });
       G.set($$('#stCopy .ln > span'), { yPercent: 108 });
-      G.set([resLabel, resP, resBtn], { autoAlpha: 0, y: 18 });
+      G.set([resLabel, resP], { autoAlpha: 0, y: 18 });
       G.set(resLines, { yPercent: 108 });
       G.set(railI, { scaleX: 0 });
       proxy.score = 0; proxy.pkt = 0;
@@ -2468,26 +2487,57 @@ window.MacheaCity = (function () {
 
       /* ── El título se retira al encabezado corrido; la ventana se enmarca ── */
       tl.to([eyebrow, sub], { autoAlpha: 0, y: -10, duration: 1.8, stagger: .15, ease: 'power2.in' }, 11);
-      tl.to(title, { x: L.shrink.x, y: L.shrink.y, scale: L.shrink.s, duration: 5, ease: 'power3.inOut' }, 11.5);
+      // el título ya no se encoge hacia un encabezado corrido (se quitó): sube un poco mientras se desvanece
+      tl.to(title, { y: -26, duration: 2.8, ease: 'power2.in' }, 11.5);
       // sin cruce de textos: el título se va antes de que aparezca el encabezado corrido
       tl.to(title, { autoAlpha: 0, duration: 1.1, ease: 'power2.in' }, 13.9);
-      tl.to(run, { autoAlpha: 1, duration: 1.2 }, 15.4);
       tl.to(F[0], { clipPath: L.p1, duration: 6, ease: 'power3.inOut' }, 11.8);
       if (small) tl.to([FI[0], ...ILL], { yPercent: -16, duration: 6, ease: 'power3.inOut' }, 11.8).to([FI[0], ...ILL], { yPercent: 0, duration: 5, ease: 'power3.inOut' }, 29);
       tl.to(FS[0], { opacity: small ? .25 : 0, duration: 5, ease: 'power2.inOut' }, 12.2);
       tl.to(FI[0], { filter: 'blur(0px)', duration: 4.6, ease: 'power2.inOut' }, 12);
       tl.to([FI[0], ...ILL], { scale: 1.1, duration: 36, ease: 'none' }, 12);
-      tl.to(cap, { autoAlpha: 1, duration: 2 }, 15);
+      tl.to(amb, { autoAlpha: 1, duration: 3, ease: 'power2.inOut' }, 12.8);
+      // fase inicial: solo se ve la rejilla y la mancha gris azulada moviéndose; la rejilla llega girando y encogiendo
+      tl.fromTo(ambDots, { scale: 1.6, rotation: -10 }, { scale: 1, rotation: 0, duration: 4.5, ease: 'power3.out' }, 12.8);
+      // ráfaga de entrada: cada mancha llega desde un lado, girando y creciendo
+      ambBw.forEach((el, k) => tl.fromTo(el, { scale: .45, rotation: k % 2 ? 40 : -40, x: (k % 2 ? 1 : -1) * .18 * L.W, y: (k % 3 ? 1 : -1) * .12 * L.H },
+        { scale: 1, rotation: 0, x: 0, y: 0, duration: 4, ease: 'power3.out' }, 12.8 + k * .25));
+      tl.to(amb, { autoAlpha: 0, duration: 3.5, ease: 'power2.inOut' }, 30.5);
+
+      /* ── Transiciones del fondo: en cada cambio de etapa las manchas y la rejilla se
+         reacomodan y una franja de luz cruza la pantalla. Va atada al scroll (se ve al
+         avanzar y se deshace al volver). `E[i]` es la pose del fondo en la etapa i. ── */
+      {
+        const Wd = L.W, Ht = L.H;
+        const Pz = (x, y, sc, r) => ({ x: x * Wd, y: y * Ht, scale: sc, rotation: r });
+        const Z0 = Pz(0, 0, 1, 0);
+        const E = [
+          [Z0, Z0, Z0, Z0, Z0, { x: 0, y: 0 }],
+          [Pz(.18, .16, 1.25, 14), Pz(-.20, -.14, .85, -12), Pz(-.14, .20, 1.2, 10), Pz(.22, -.12, 1.3, -16), Pz(-.16, .14, .9, 12), { x: -90, y: 70 }],
+          [Pz(-.10, -.18, .88, -14), Pz(.18, .12, 1.2, 13), Pz(.20, -.12, 1.3, -9), Pz(-.18, .10, .8, 15), Pz(.12, .18, 1.2, -12), { x: 70, y: 170 }],
+          [Pz(.20, .12, 1.3, 17), Pz(-.12, -.20, 1.05, -15), Pz(-.20, .22, .9, 11), Pz(.14, -.20, 1.2, -10), Pz(-.14, .16, 1.3, 14), { x: -80, y: 260 }],
+          [Pz(-.06, .20, 1.1, -10), Pz(.12, -.06, 1.3, 14), Pz(.06, -.18, 1.15, -12), Pz(-.20, .14, 1.0, 12), Pz(.20, -.10, .85, -14), { x: 50, y: 350 }]
+        ];
+        // [momento del cambio (escala 0-100), etapa a la que se llega]
+        [[29, 1], [48, 2], [67.6, 3], [89.2, 4]].forEach(([T, i]) => {
+          ambBw.forEach((el, k) => tl.to(el, { ...E[i][k], duration: 6.5, ease: 'power2.inOut' }, T - 2.5));
+          tl.to(ambDots, { ...E[i][5], duration: 6.5, ease: 'power2.inOut' }, T - 2.5);
+          tl.fromTo(ambSw, { x: -.62 * Wd, autoAlpha: 1 }, { x: 1.05 * Wd, autoAlpha: 1, duration: 6.5, ease: 'none', immediateRender: false }, T - 2.5);
+          tl.set(ambSw, { autoAlpha: 0 }, T + 4.1);
+        });
+      }
       tl.to(rail, { autoAlpha: 1, duration: 2 }, 15.5);
 
       /* ── 01 · Descubrimiento ── */
-      artIn(arts[0], 16.8);
-      // la sala se enmarca y da paso a la ilustración: tu web recibe los leads y cambia el formulario por el plano
+      /* Orden de la etapa 01: 1) el fondo se mueve (rejilla + mancha gris), 2) aparece lo anaranjado,
+         3) aparece el título centrado. */
+      // Después de la fase inicial (que se queda en pantalla durante la pausa de scroll) entra lo anaranjado
+      // del fondo, y solo cuando ya está, el texto.
+      tl.to(ambNaranja, { opacity: 1, duration: 3.4, ease: 'power2.inOut', stagger: .5 }, 16.1);
+      artIn(arts[0], 21.2);
+      // la sala se disuelve y entra el fondo animado (sin ilustración en esta etapa)
       tl.to(FI[0], { opacity: 0, duration: 2.6, ease: 'power2.in' }, 12.2);
-      tl.fromTo(DISC, { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0, duration: 2.8, ease: 'power3.out' }, 15.2);
-      tl.to(DISC, { scale: 1, duration: 12, ease: 'power1.out' }, 15.2);
       artOut(arts[0], 27.4);
-      tl.to(DISC, { autoAlpha: 0, y: -18, duration: 1.6, ease: 'power2.in' }, 27.2);
 
       /* ── 02 · Perfilamiento: las preferencias aparecen alrededor ── */
       tl.to(F[0], { clipPath: L.full, duration: 5, ease: 'power3.inOut' }, 29);
@@ -2524,6 +2574,7 @@ window.MacheaCity = (function () {
       artOut(arts[1], 47.6);
 
       /* ── 03 · Inteligencia: la información se ordena en un perfil ── */
+      tl.to(amb, { autoAlpha: 1, duration: 3, ease: 'power2.inOut' }, 47.5);
       notes.forEach((n, i) => {
         const at = 48 + i * .7;
         const lb = $('.lb', n);
@@ -2539,7 +2590,7 @@ window.MacheaCity = (function () {
       tl.set(F[1], { autoAlpha: 1 }, 49);
       tl.to(F[1], { clipPath: L.p2, duration: 5.2, ease: 'power3.inOut' }, 49);
       tl.to(FI[1], { scale: 1, duration: 16, ease: 'power1.out' }, 49);
-      tl.to(FS[0], { opacity: small ? .86 : .93, duration: 4, ease: 'power2.inOut' }, 49);
+      tl.to(FS[0], { opacity: 1, duration: 4, ease: 'power2.inOut' }, 49);
       if (small) tl.to(FS[1], { opacity: .86, duration: 3 }, 52);
       artIn(arts[2], 52.2);
       tl.to(chain, { autoAlpha: 1, duration: 1.2 }, 55.2);
@@ -2562,7 +2613,7 @@ window.MacheaCity = (function () {
       tl.set(F[2], { autoAlpha: 1 }, 68.6);
       tl.to(F[2], { clipPath: L.p3, duration: 5.4, ease: 'power3.inOut' }, 68.6);
       tl.to(FI[2], { scale: 1.02, duration: 20, ease: 'power1.out' }, 68.6);
-      tl.to(FS[0], { opacity: .97, duration: 3 }, 68);
+      tl.to(FS[0], { opacity: 1, duration: 3 }, 68);
       artIn(arts[3], 70.4);
       tl.to(lineSvg, { autoAlpha: 1, duration: 1.2 }, 71.4);
       const D0 = 73, DD = 6.6;
@@ -2591,11 +2642,9 @@ window.MacheaCity = (function () {
       tl.to(F[2], { clipPath: L.full, duration: 5.4, ease: 'power3.inOut' }, 89.2);
       tl.to(FS[2], { opacity: small ? .6 : .2, duration: 4 }, 89.6);
       tl.to(FI[2], { scale: 1, duration: 5 }, 89.2);
-      tl.to(cap, { autoAlpha: .8, duration: .5 }, 89.2);
       tl.to(resLabel, { autoAlpha: 1, y: 0, duration: 1.8, ease: 'power3.out' }, 92.2);
       tl.to(resLines, { yPercent: 0, duration: 2.6, stagger: .6, ease: 'power4.out' }, 92.6);
       tl.to(resP, { autoAlpha: 1, y: 0, duration: 2, ease: 'power2.out' }, 94.2);
-      tl.to(resBtn, { autoAlpha: 1, y: 0, duration: 1.8, ease: 'power3.out' }, 95.2);
       if (!small) tl.to(foot, { autoAlpha: 1, duration: 2 }, 96.4);
 
       // De la última a la primera: así cada `at` sigue estando en la escala
@@ -2885,30 +2934,8 @@ window.MacheaCity = (function () {
   }
 
   /* =====================================================================
-     BENEFICIOS · FAQ · FORMULARIO
+     PREGUNTAS FRECUENTES · FORMULARIO
      ===================================================================== */
-  const B = D.benefits, benList = $('#benList'), benPanel = $('#benPanel');
-  const compatHTML = () => `<div class="mm"><span class="t-num">${D.compatEjemplo}<small>%</small></span><div><small>Compatibilidad</small><span>Ejemplo del modelo: un lead comparado contra el catálogo.</span></div></div>`;
-  benList.innerHTML = B.map((b, k) => `<li class="ben-item ${k === 0 ? 'on' : ''}" data-k="${k}">
-    <button type="button" aria-expanded="${k === 0}"><span class="n">${pad(k + 1)}</span><h3>${esc(b.title)}</h3>${ico('i-plus', 'ar')}</button>
-    <div class="mob"><div><div class="in"><p>${esc(b.text)}</p>${b.compat ? compatHTML() : ''}</div></div></div></li>`).join('');
-  let benK = -1;
-  function setBen(k) {
-    if (k === benK) return;
-    benK = k;
-    $$('.ben-item', benList).forEach((li, j) => { li.classList.toggle('on', j === k); $('button', li).setAttribute('aria-expanded', j === k); });
-    if (k < 0) return;
-    const b = B[k];
-    const html = `<span class="bp-idx">${pad(k + 1)} / ${pad(B.length)}</span><h4>${esc(b.title)}</h4><p>${esc(b.text)}</p>${b.compat ? `<div class="bp-extra">${compatHTML()}</div>` : ''}<div class="bp-foot">VIS, No VIS, un proyecto o cien — el motor se adapta a tu catálogo.</div>`;
-    // SIN ANIMACIÓN a propósito: el panel cambia de golpe. El fundido de
-    // salida y entrada que había aquí hacía que el texto se fuera y volviera
-    // cada vez que se tocaba otro beneficio, y de esta sección hacia abajo la
-    // página se quiere quieta y legible, no animada.
-    benPanel.innerHTML = html;
-  }
-  setBen(0);
-  $$('.ben-item button', benList).forEach((btn, k) => btn.addEventListener('click', () => { if (SMALL() && benK === k) { setBen(-1); return; } setBen(k); }));
-
   $('#faqList').innerHTML = D.faq.map((f, k) => `<div class="qa ${k === 0 ? 'open' : ''}"><button type="button" aria-expanded="${k === 0}" aria-controls="qa${k}"><span>${esc(f.q)}</span><i class="pm" aria-hidden="true"></i></button><div class="ans" id="qa${k}" role="region"><div><p>${esc(f.a)}</p></div></div></div>`).join('');
   $$('.qa button').forEach(b => b.addEventListener('click', () => {
     const qa = b.parentElement, open = !qa.classList.contains('open');
@@ -2916,20 +2943,6 @@ window.MacheaCity = (function () {
     if (open) { qa.classList.add('open'); b.setAttribute('aria-expanded', 'true'); }
   }));
 
-  const form = $('#auditForm'), formCard = $('#formCard');
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = $('#fName').value.trim(), mail = $('#fMail').value.trim(), site = $('#fSite').value.trim(), err = $('#fErr');
-    if (!name || !mail) { err.textContent = 'Escribe tu nombre y tu correo para preparar la solicitud.'; (name ? $('#fMail') : $('#fName')).focus(); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { err.textContent = 'Revisa el correo: parece incompleto.'; $('#fMail').focus(); return; }
-    err.textContent = '';
-    const subject = encodeURIComponent(`Solicitud de auditoría gratis — ${name}`);
-    const body = encodeURIComponent(`Nombre: ${name}\nCorreo: ${mail}\nSitio de la inmobiliaria: ${site || '(no indicado)'}\n`);
-    $('#mailLink').href = `mailto:${D.config.email}?subject=${subject}&body=${body}`;
-    $('#okText').textContent = `Listo, ${name}. Ábrela en tu correo o escríbenos directamente — respondemos con la auditoría en menos de 48 horas.`;
-    formCard.classList.add('done');
-    if (G && !RM) G.fromTo($$('#formOk > *'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .7, stagger: .07, ease: 'power3.out' });
-  });
   /* =====================================================================
      "Pruébalo con tu marca": pide la demo al backend (lee el link, firma el enlace y,
      si el correo está configurado, lo envía) y muestra el enlace para abrirla.
@@ -2978,12 +2991,43 @@ window.MacheaCity = (function () {
       }
     });
   }
-  $('#copyMail').addEventListener('click', e => {
-    const btn = e.currentTarget;
-    const ok = () => { btn.textContent = 'Copiado'; setTimeout(() => { btn.textContent = 'Copiar'; }, 1800); };
-    const fallback = () => { const r = document.createRange(); r.selectNodeContents($('#mailAddr')); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Seleccionado'; };
-    try { navigator.clipboard.writeText(D.config.email).then(ok, fallback); } catch (_) { fallback(); }
-  });
+  /* =====================================================================
+     El fondo de la historia reacciona al mouse: (1) cada pieza se desplaza según la posición del
+     cursor, a distinta profundidad (parallax), y (2) un resplandor coral sigue al puntero. Todo se
+     suaviza (lerp) para que se sienta fluido. Solo corre mientras la historia está en pantalla, y
+     con "reducir movimiento" no hace nada.
+     ===================================================================== */
+  const MouseFondo = (function () {
+    const amb = $('.st-ambient'); if (!amb || RM) return null;
+    const mps = $$('.mp', amb), glow = $('.gl em', amb), stage = $('#stStage'), sec = $('#como-funciona');
+    const m = { x: 0, y: 0, tx: 0, ty: 0 }, g = { x: 0, y: 0, tx: 0, ty: 0, a: 0, ta: 0, hay: false };
+    let raf = 0, last = 0, vis = false;
+    window.addEventListener('pointermove', e => {
+      m.tx = (e.clientX / window.innerWidth - .5) * 2; m.ty = (e.clientY / window.innerHeight - .5) * 2;
+      const r = stage.getBoundingClientRect(); g.tx = e.clientX - r.left; g.ty = e.clientY - r.top; g.ta = 1;
+      if (!g.hay) { g.x = g.tx; g.y = g.ty; g.hay = true; }
+    }, { passive: true });
+    document.addEventListener('mouseleave', () => { m.tx = m.ty = 0; g.ta = 0; });
+    function paso(t) {
+      raf = requestAnimationFrame(paso);
+      const dt = Math.min(3, last ? (t - last) / 16.7 : 1); last = t;
+      const k = 1 - Math.pow(1 - .07, dt), kg = 1 - Math.pow(1 - .12, dt);
+      m.x += (m.tx - m.x) * k; m.y += (m.ty - m.y) * k;
+      g.x += (g.tx - g.x) * kg; g.y += (g.ty - g.y) * kg; g.a += (g.ta - g.a) * k;
+      const A = SMALL() ? .5 : 1;
+      mps.forEach(el => { const d = +el.dataset.d || 1; el.style.transform = `translate3d(${(m.x * 70 * d * A).toFixed(1)}px, ${(m.y * 50 * d * A).toFixed(1)}px, 0)`; });
+      glow.style.transform = `translate3d(${g.x.toFixed(1)}px, ${g.y.toFixed(1)}px, 0)`;
+      glow.style.opacity = g.a.toFixed(3);
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(es => {
+        const v = es[0].isIntersecting;
+        if (v && !vis) { vis = true; last = 0; raf = requestAnimationFrame(paso); }
+        else if (!v && vis) { vis = false; cancelAnimationFrame(raf); }
+      }).observe(sec);
+    }
+    return {};
+  })();
 
   /* =====================================================================
      NAV, menú, anclas
