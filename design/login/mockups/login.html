@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machea - Mockups del login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --red:#FC4633; --red-ink:#D93A29; --red-soft:#FFF0ED;
+  --navy:#1F2E42; --dark:#111820; --white:#fff; --bg:#F5F6F8; --gray:#A7ADB5; --line:#DCE1E7;
+  --ink-2:#5d6876; --ink-3:#7b8592;
+  --shadow:0 12px 30px rgba(31,46,66,.08);
+  --ease:cubic-bezier(.2,.7,.1,1);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--navy);background:#e9edf1;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ---------- página de mockups ---------- */
+.page-head{max-width:1500px;margin:0 auto;padding:34px 28px 6px}
+.page-head h1{margin:0 0 6px;font-size:28px;font-weight:800;letter-spacing:-.03em}
+.page-head p{margin:0;color:var(--ink-2);font-size:14px;max-width:860px;line-height:1.55}
+.bar{max-width:1500px;margin:16px auto 0;padding:0 28px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.bar .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-right:2px}
+.group{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 15px;font-weight:600;font-size:13px;color:var(--navy)}
+.tab[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.stage{max-width:1500px;margin:14px auto 60px;padding:0 28px}
+.vnote{font-size:13.5px;color:var(--ink-2);margin:0 0 16px;max-width:900px;line-height:1.6}
+.vnote b{color:var(--navy)}
+.devices{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+.cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;font-weight:700}
+.desk{width:1080px;max-width:100%;height:660px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:0 24px 50px rgba(31,46,66,.14)}
+.phone{width:360px;height:700px;border-radius:30px;overflow:hidden;background:#fff;border:9px solid var(--dark);box-shadow:0 24px 50px rgba(31,46,66,.18)}
+.frame{height:100%;overflow:auto;container-type:inline-size;position:relative}
+
+/* ---------- marca ---------- */
+.logo{display:inline-flex;align-items:center;gap:9px;color:var(--navy);text-decoration:none}
+.logo .iso{height:22px;width:auto;display:block}
+.logo .word{height:19px;width:auto;display:block;color:currentColor}
+.logo.big .iso{height:40px}.logo.big .word{height:34px}
+.on-dark .logo,.logo.on-dark{color:#fff}
+
+/* ---------- formulario (común a las tres variantes) ---------- */
+.fbox{width:100%;max-width:380px}
+.fbox h2{margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+.fbox .sub{margin:8px 0 22px;color:var(--ink-2);font-size:14.5px;line-height:1.5}
+.gbtn{width:100%;height:44px;border-radius:999px;border:1px solid #dadce0;background:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Roboto,Arial,sans-serif;font-weight:500;font-size:14px;color:#1f1f1f;letter-spacing:.1px;transition:background .15s}
+.gbtn:hover{background:#f8faff}
+.gbtn svg{width:18px;height:18px}
+.gnote{display:block;text-align:center;font-size:10.5px;color:var(--gray);margin-top:6px}
+.sep{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--ink-3);font-size:12.5px}
+.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
+.field{margin-bottom:14px}
+.field label{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:6px}
+.field label a{font-weight:600}
+.inp{position:relative}
+.inp input{width:100%;height:46px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 14px;font:500 15px Inter;color:var(--navy);outline:none;transition:border-color .2s,box-shadow .2s}
+.inp input::placeholder{color:var(--gray);font-weight:400}
+.inp input:hover{border-color:#c4cbd3}
+.inp input:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(31,46,66,.08)}
+.inp .eye{position:absolute;right:6px;top:6px;width:34px;height:34px;border:0;background:none;border-radius:9px;color:var(--ink-3);display:grid;place-items:center}
+.inp .eye:hover{background:var(--bg);color:var(--navy)}
+.inp .eye svg{width:18px;height:18px}
+.inp.pw input{padding-right:46px}
+.hint{font-size:12px;color:var(--ink-3);margin-top:6px;display:flex;align-items:center;gap:8px}
+.meter{display:flex;gap:4px;flex:1;max-width:120px}
+.meter i{flex:1;height:4px;border-radius:4px;background:var(--line)}
+.meter.m2 i:nth-child(-n+2){background:var(--navy)}
+.row{display:flex;justify-content:space-between;align-items:center;margin:2px 0 18px;font-size:13px}
+.check{display:flex;align-items:center;gap:9px;cursor:pointer;color:var(--navy);font-weight:500}
+.check input{position:absolute;opacity:0;pointer-events:none}
+.check .box{width:18px;height:18px;border:1.5px solid #b7bfc8;border-radius:5px;display:grid;place-items:center;background:#fff;flex:none}
+.check .box svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;opacity:0}
+.check input:checked + .box{background:var(--navy);border-color:var(--navy)}
+.check input:checked + .box svg{opacity:1}
+.consent{align-items:flex-start;font-size:12.5px;line-height:1.5;color:var(--ink-2);margin:4px 0 18px}
+.consent .box{margin-top:1px}
+a,.lnk{color:var(--navy);font-weight:600;text-decoration:underline;text-decoration-color:rgba(31,46,66,.25);text-underline-offset:3px;cursor:pointer}
+a:hover,.lnk:hover{text-decoration-color:var(--navy)}
+.btn{width:100%;height:48px;border:0;border-radius:999px;background:var(--red);color:#fff;font-weight:700;font-size:15px;letter-spacing:-.01em;transition:background .15s,transform .15s;box-shadow:0 10px 22px -12px rgba(252,70,51,.7)}
+.btn:hover{background:var(--red-ink)}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{background:var(--bg)}
+.foot{margin-top:20px;text-align:center;font-size:13.5px;color:var(--ink-2)}
+.state{text-align:center}
+.state .ico{width:64px;height:64px;border-radius:50%;margin:0 auto 18px;display:grid;place-items:center;background:var(--red-soft);color:var(--red)}
+.state .ico.navy{background:#eaeef3;color:var(--navy)}
+.state .ico svg{width:28px;height:28px}
+.state .sub b{color:var(--navy)}
+.steps{list-style:none;margin:0 0 22px;padding:0;text-align:left;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.steps li{display:flex;gap:12px;align-items:center;padding:12px 14px;font-size:13.5px;color:var(--ink-2)}
+.steps li+li{border-top:1px solid var(--line)}
+.steps .dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;border:1.5px solid var(--line);color:var(--gray);font-size:11px;font-weight:700}
+.steps .ok .dot{background:var(--navy);border-color:var(--navy);color:#fff}
+.steps .ok .dot svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:3}
+.steps .now{color:var(--navy);font-weight:600}
+.steps .now .dot{border-color:var(--red);color:var(--red)}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#eaeef3;color:var(--navy);font-size:13px;line-height:1.5;margin-bottom:18px;text-align:left}
+.alert svg{width:18px;height:18px;flex:none;margin-top:1px}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:22px;cursor:pointer;background:none;border:0;padding:0}
+.back svg{width:16px;height:16px}
+.back:hover{color:var(--navy)}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- página provisional después de entrar ---------- */
+.app{min-height:100%;background:var(--bg);display:flex;flex-direction:column}
+.appbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex:none}
+.user{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+.user .out{margin-left:6px;height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:13px;color:var(--navy)}
+.appbody{flex:1;display:grid;place-items:center;padding:28px}
+.welcome{max-width:520px;text-align:center}
+.welcome .tag{display:inline-block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--red);background:var(--red-soft);padding:6px 10px;border-radius:999px;margin-bottom:16px}
+.welcome h2{margin:0 0 10px;font-size:30px;font-weight:800;letter-spacing:-.03em}
+.welcome p{margin:0 auto;color:var(--ink-2);font-size:15px;line-height:1.6;max-width:430px}
+.soonlbl{margin:26px 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-3)}
+.soon{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.soon div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);display:grid;gap:10px;justify-items:center}
+.soon svg{width:22px;height:22px;color:var(--navy)}
+@container (max-width:600px){
+  .appbar{padding:0 16px}
+  .user .name{display:none}
+  .welcome h2{font-size:25px}
+  .soon{grid-template-columns:1fr}
+  .soon div{grid-template-columns:auto 1fr;justify-items:start;align-items:center;text-align:left}
+}
+
+/* =====================================================================
+   VARIANTE A - Pantalla dividida (evolución directa del prototipo de Felipe)
+   ===================================================================== */
+.vA{display:grid;grid-template-columns:1fr 1fr;min-height:100%}
+.vA .side-form{display:flex;flex-direction:column;padding:30px 48px;background:#fff}
+.vA .side-form .top{flex:none}
+.vA .side-form .mid{flex:1;display:grid;place-items:center;padding:24px 0}
+.vA .side-form .legal{flex:none;font-size:11.5px;color:var(--gray);text-align:center}
+.vA .brand{position:relative;overflow:hidden;color:#fff;background:radial-gradient(120% 90% at 85% 10%,#2b3d56 0%,var(--navy) 45%,var(--dark) 100%);display:flex;flex-direction:column;justify-content:center;padding:48px 52px}
+.vA .brand::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(80% 80% at 70% 30%,#000 30%,transparent 100%)}
+.vA .brand::after{content:"";position:absolute;width:420px;height:420px;right:-140px;top:-120px;border-radius:50%;background:radial-gradient(circle,rgba(252,70,51,.35),transparent 65%)}
+.vA .brand > *{position:relative;z-index:1}
+.vA .eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.78);margin:0 0 14px}
+.vA .brand h3{margin:0;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.035em;max-width:420px}
+.vA .brand h3 em{font-style:normal;color:#FF8A7C}
+.vA .brand p{margin:14px 0 26px;font-size:15px;line-height:1.6;color:rgba(255,255,255,.86);max-width:400px}
+.vA .chips{list-style:none;margin:0;padding:0;display:grid;gap:10px;max-width:400px}
+.vA .chips li{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px);font-size:13.5px;font-weight:500;opacity:0;transform:translateY(10px);animation:fadeUp .5s var(--ease) forwards}
+.vA .chips li:nth-child(2){animation-delay:.12s}.vA .chips li:nth-child(3){animation-delay:.24s}
+.vA .chips .ci{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.1);display:grid;place-items:center;flex:none}
+.vA .chips svg{width:18px;height:18px}
+@keyframes fadeUp{to{opacity:1;transform:none}}
+.vA .brand .mlogo{display:none}
+@container (max-width:760px){
+  .vA{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .vA .brand{order:-1;padding:22px 20px 20px;justify-content:flex-start}
+  .vA .brand h3{font-size:21px}
+  .vA .brand p,.vA .chips,.vA .eyebrow{display:none}
+  .vA .brand .mlogo{display:block;margin-bottom:14px}
+  .vA .side-form{padding:24px 20px}
+  .vA .side-form .top{display:none}
+  .vA .side-form .mid{place-items:start center;padding:6px 0 20px}
+}
+
+/* =====================================================================
+   VARIANTE B - Tarjeta centrada (mínima, todo el foco en el formulario)
+   ===================================================================== */
+.vB{min-height:100%;background:var(--bg);display:flex;flex-direction:column;align-items:center;padding:28px 20px;position:relative;overflow:hidden}
+.vB::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(31,46,66,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(31,46,66,.045) 1px,transparent 1px);background-size:32px 32px;mask-image:radial-gradient(60% 60% at 50% 40%,#000,transparent 100%)}
+.vB::after{content:"";position:absolute;width:520px;height:520px;left:50%;top:-300px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(252,70,51,.13),transparent 65%)}
+.vB > *{position:relative;z-index:1}
+.vB .head{margin:6px 0 22px}
+.vB .card{width:100%;max-width:440px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:30px 32px 28px}
+.vB .card .fbox{max-width:none}
+.vB .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:999px;padding:4px;margin-bottom:22px}
+.vB .seg button{height:36px;border:0;border-radius:999px;background:none;font-weight:600;font-size:13.5px;color:var(--ink-2)}
+.vB .seg button[aria-pressed=true]{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(31,46,66,.12)}
+.vB .fbox h2{font-size:23px;text-align:center}
+.vB .fbox .sub{text-align:center}
+.vB .legal{margin-top:18px;font-size:11.5px;color:var(--ink-3);text-align:center;max-width:440px;line-height:1.5}
+@container (max-width:600px){
+  .vB{padding:20px 14px}
+  .vB .card{padding:24px 18px;border-radius:16px}
+}
+
+/* =====================================================================
+   VARIANTE C - Plano (fondo inmersivo navy que se dibuja, tarjeta flotante)
+   ===================================================================== */
+.vC{min-height:100%;position:relative;overflow:hidden;color:#fff;background:linear-gradient(160deg,#24364f 0%,var(--navy) 40%,var(--dark) 100%);display:grid;grid-template-columns:1.1fr minmax(380px,.9fr);align-items:center;padding:0 56px;gap:40px}
+.vC .bp{position:absolute;inset:0;pointer-events:none}
+.vC .bp svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:46%}
+.vC .bp .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:24px 24px}
+.vC .draw{fill:none;stroke:rgba(255,255,255,.22);stroke-width:1.4;stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 2.4s var(--ease) forwards}
+.vC .draw.red{stroke:var(--red);stroke-width:2;animation-delay:.9s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.vC .copy{position:relative;z-index:1;align-self:start;padding-top:44px}
+.vC .copy .logo{margin-bottom:64px}
+.vC .copy .eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.75);margin:0 0 14px}
+.vC .copy h3{margin:0;font-size:44px;line-height:1.04;font-weight:800;letter-spacing:-.04em;max-width:470px}
+.vC .copy h3 span{color:var(--red)}
+.vC .copy p{margin:16px 0 0;font-size:15.5px;line-height:1.6;color:rgba(255,255,255,.84);max-width:420px}
+.vC .card{position:relative;z-index:1;background:#fff;color:var(--navy);border-radius:20px;padding:32px 32px 26px;box-shadow:0 40px 80px -30px rgba(0,0,0,.6);animation:fadeUp .5s var(--ease) both}
+.vC .card .fbox{max-width:none}
+.vC .card .legal{margin-top:16px;font-size:11.5px;color:var(--ink-3);text-align:center}
+@container (max-width:760px){
+  .vC{grid-template-columns:1fr;padding:0;gap:0;align-items:start}
+  .vC .copy{padding:22px 20px 70px}
+  .vC .copy .logo{margin-bottom:26px}
+  .vC .copy h3{font-size:26px}
+  .vC .copy p,.vC .copy .eyebrow{display:none}
+  .vC .bp svg{height:150px;top:40px;bottom:auto}
+  .vC .card{margin:-46px 12px 18px;padding:24px 18px 20px;border-radius:18px}
+}
+</style>
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true">
+  <symbol id="iso" viewBox="0 0 1515 1038"><path fill-rule="evenodd" fill="#FC4633" d="M 652.9,89.7 C 612.2,128.8 558.5,180.2 526.1,210.9 C 492.6,242.7 384.9,343.6 353,373 C 345.6,379.9 329.4,395 317,406.5 C 304.6,418.1 284.1,437 271.5,448.5 C 258.9,460.1 244.8,473.1 240.1,477.5 C 235.4,481.9 221.8,494.3 210.1,505 C 198.3,515.7 174.2,537.7 156.6,553.9 C 138.9,570.1 117.6,589.6 109.3,597.3 C 100.9,605 94,611.5 94,611.7 C 94,612 99.5,618.2 106.3,625.4 C 113,632.7 130.9,652.3 146.1,669.1 C 161.3,685.8 176.6,702.6 180.1,706.4 L 186.5,713.3 207.4,694.9 C 219,684.8 232.2,673.2 236.9,669.1 C 241.6,665 249.6,658 254.5,653.6 C 268.2,641.2 276.6,634 277.5,634 C 277.9,634 277.9,705.6 277.5,793 L 276.7,952 346.9,952 L 417,952 417,731.1 L 417,510.3 445.2,483.9 C 460.7,469.4 480.6,450.8 489.5,442.5 C 504.8,428.2 537,398.1 624.4,316 C 645.8,295.9 664.6,278.4 666.2,277.1 L 669.1,274.8 675.8,281.1 C 679.5,284.6 716,320.5 757,361 C 858.2,461 863.9,466.5 865.5,466.5 C 866.8,466.5 894.7,439.8 945.6,389.9 L 967.8,368.2 937.6,338.4 C 853.9,255.4 810.4,212.5 746.5,149.5 C 707.9,111.5 674.8,79 672.9,77.2 L 669.3,73.9 652.9,89.7 M 1412.5,157.7 C 1408.1,158.4 1394.2,160.6 1381.5,162.5 C 1368.9,164.4 1356,166.5 1353,167 C 1350,167.5 1339.9,169.1 1330.5,170.6 C 1314.4,173 1290.7,176.7 1263,181 C 1256.1,182 1243.5,184 1235,185.4 C 1226.5,186.8 1208.7,189.5 1195.5,191.5 C 1182.3,193.5 1151.7,198.2 1127.5,202 C 1103.3,205.8 1082.2,209 1080.6,209.2 C 1078,209.5 1079.5,211 1099.7,229 C 1140,264.9 1169,291.2 1169,291.8 C 1169,292.6 1126.7,331.9 1086.9,368.1 C 1073.4,380.4 1048.2,403.5 1030.9,419.5 C 995.5,452 974.6,471.1 955.5,488.4 C 948.4,494.9 938.8,503.6 934.2,507.7 C 929.6,511.9 919.7,520.7 912.1,527.4 C 904.5,534 894.5,542.9 889.9,547.1 C 878.3,557.5 837.9,593.4 831,599.5 C 818.5,610.4 804,623.1 770,652.9 C 750.5,670 734.1,684 733.6,684 C 733.1,684 700.6,651.9 661.3,612.8 C 622,573.6 589.8,541.4 589.7,541.4 C 589.6,541.3 566.4,564 538.1,591.9 L 486.6,642.6 512.6,668 C 567.9,722.2 593.3,747.3 643.5,797 C 731.5,884.1 730.9,883.6 732.4,882.5 C 733.2,881.9 739.6,876.1 746.7,869.5 C 753.8,862.9 772.6,845.6 788.5,831 C 804.4,816.4 824,798.4 832,791 C 840,783.5 855.3,769.4 866,759.5 C 887.7,739.6 957.6,675 1019.5,617.5 C 1027.8,609.8 1042,596.8 1051.1,588.5 C 1060.1,580.3 1071.8,569.5 1077,564.5 C 1082.2,559.6 1091.5,551 1097.5,545.4 C 1110,534 1130.3,515.2 1159.5,488 C 1170.5,477.8 1187.8,461.8 1198,452.5 C 1208.2,443.2 1225.3,427.4 1236,417.4 C 1246.7,407.3 1256.7,398.2 1258.1,397.1 L 1260.7,395.1 1297.2,432.8 C 1317.2,453.5 1337.6,474.7 1342.5,479.8 C 1347.3,484.9 1351.4,488.9 1351.6,488.7 C 1352,488.3 1358.8,456 1377.5,365 C 1379.9,353.2 1383.3,337 1385,329 C 1386.7,321 1390.1,304.8 1392.5,293 C 1394.9,281.2 1398.8,262.7 1401,252 C 1403.2,241.3 1405.5,230.5 1406,228 C 1406.5,225.5 1408.9,214.1 1411.4,202.5 C 1415.9,181.8 1420.9,156.6 1420.6,156.4 C 1420.6,156.4 1416.9,156.9 1412.5,157.7 M 1179.3,558.3 C 1156.3,580 1127.8,607.1 1102.9,630.7 L 1076.3,656.1 1075.7,765.7 C 1075.3,826 1075,892.6 1075,913.7 L 1075,952 1152,952 L 1229,952 1229,773.5 L 1229,595 1218.3,582.3 C 1206,567.6 1189.9,549 1189.5,549 C 1189.3,549 1184.8,553.2 1179.3,558.3 Z"/></symbol>
+  <symbol id="word" viewBox="0 0 7448 1470"><path fill="currentColor" transform="translate(0 1440)" d="M1440 0V-638Q1440 -745 1389.5 -804.5Q1339 -864 1250 -864Q1193 -864 1151.0 -837.5Q1109 -811 1085.5 -763.5Q1062 -716 1062 -654L948 -730Q948 -841 1000.5 -926.0Q1053 -1011 1141.5 -1058.5Q1230 -1106 1338 -1106Q1523 -1106 1617.5 -996.5Q1712 -887 1712 -710V0ZM138 0V-1080H378V-722H412V0ZM790 0V-638Q790 -745 739.5 -804.5Q689 -864 600 -864Q515 -864 463.5 -805.5Q412 -747 412 -654L298 -734Q298 -840 351.0 -924.0Q404 -1008 493.5 -1057.0Q583 -1106 694 -1106Q821 -1106 902.5 -1052.0Q984 -998 1023.0 -908.0Q1062 -818 1062 -710V0Z M2222.0 30Q2106.0 30 2025.5 -14.5Q1945.0 -59 1903.5 -133.5Q1862.0 -208 1862.0 -298Q1862.0 -373 1885.0 -435.0Q1908.0 -497 1959.5 -544.5Q2011.0 -592 2098.0 -624Q2158.0 -646 2241.0 -663.0Q2324.0 -680 2429.0 -695.5Q2534.0 -711 2660.0 -730L2562.0 -676Q2562.0 -772 2516.0 -817.0Q2470.0 -862 2362.0 -862Q2302.0 -862 2237.0 -833.0Q2172.0 -804 2146.0 -730L1900.0 -808Q1941.0 -942 2054.0 -1026.0Q2167.0 -1110 2362.0 -1110Q2505.0 -1110 2616.0 -1066.0Q2727.0 -1022 2784.0 -914Q2816.0 -854 2822.0 -794.0Q2828.0 -734 2828.0 -660V0H2590.0V-222L2624.0 -176Q2545.0 -67 2453.5 -18.5Q2362.0 30 2222.0 30ZM2280.0 -184Q2355.0 -184 2406.5 -210.5Q2458.0 -237 2488.5 -271.0Q2519.0 -305 2530.0 -328Q2551.0 -372 2554.5 -430.5Q2558.0 -489 2558.0 -528L2638.0 -508Q2517.0 -488 2442.0 -474.5Q2367.0 -461 2321.0 -450.0Q2275.0 -439 2240.0 -426Q2200.0 -410 2175.5 -391.5Q2151.0 -373 2139.5 -351.0Q2128.0 -329 2128.0 -302Q2128.0 -265 2146.5 -238.5Q2165.0 -212 2199.0 -198.0Q2233.0 -184 2280.0 -184Z M3514.0 30Q3346.0 30 3226.0 -45.0Q3106.0 -120 3042.0 -249.0Q2978.0 -378 2978.0 -540Q2978.0 -704 3044.5 -833.0Q3111.0 -962 3232.0 -1036.0Q3353.0 -1110 3518.0 -1110Q3709.0 -1110 3838.5 -1013.5Q3968.0 -917 4004.0 -750L3732.0 -678Q3708.0 -762 3648.5 -809.0Q3589.0 -856 3514.0 -856Q3428.0 -856 3373.0 -814.5Q3318.0 -773 3292.0 -701.5Q3266.0 -630 3266.0 -540Q3266.0 -399 3328.5 -311.5Q3391.0 -224 3514.0 -224Q3606.0 -224 3654.0 -266.0Q3702.0 -308 3726.0 -386L4004.0 -328Q3958.0 -156 3830.0 -63.0Q3702.0 30 3514.0 30Z M4890.0 0V-510Q4890.0 -547 4886.0 -604.5Q4882.0 -662 4861.0 -720.0Q4840.0 -778 4792.5 -817.0Q4745.0 -856 4658.0 -856Q4623.0 -856 4583.0 -845.0Q4543.0 -834 4508.0 -802.5Q4473.0 -771 4450.5 -710.0Q4428.0 -649 4428.0 -548L4272.0 -622Q4272.0 -750 4324.0 -862.0Q4376.0 -974 4480.5 -1043.0Q4585.0 -1112 4744.0 -1112Q4871.0 -1112 4951.0 -1069.0Q5031.0 -1026 5075.5 -960.0Q5120.0 -894 5139.0 -822.5Q5158.0 -751 5162.0 -692.0Q5166.0 -633 5166.0 -606V0ZM4152.0 0V-1440H4394.0V-700H4428.0V0Z M5878.0 30Q5712.0 30 5585.5 -41.5Q5459.0 -113 5387.5 -238.5Q5316.0 -364 5316.0 -526Q5316.0 -703 5386.0 -834.0Q5456.0 -965 5579.0 -1037.5Q5702.0 -1110 5862.0 -1110Q6032.0 -1110 6151.0 -1030.0Q6270.0 -950 6327.0 -805.0Q6384.0 -660 6367.0 -464H6098.0V-564Q6098.0 -729 6045.5 -801.5Q5993.0 -874 5874.0 -874Q5735.0 -874 5669.5 -789.5Q5604.0 -705 5604.0 -540Q5604.0 -389 5669.5 -306.5Q5735.0 -224 5862.0 -224Q5942.0 -224 5999.0 -259.0Q6056.0 -294 6086.0 -360L6358.0 -282Q6297.0 -134 6165.5 -52.0Q6034.0 30 5878.0 30ZM5520.0 -464V-666H6236.0V-464Z M6842.0 30Q6726.0 30 6645.5 -14.5Q6565.0 -59 6523.5 -133.5Q6482.0 -208 6482.0 -298Q6482.0 -373 6505.0 -435.0Q6528.0 -497 6579.5 -544.5Q6631.0 -592 6718.0 -624Q6778.0 -646 6861.0 -663.0Q6944.0 -680 7049.0 -695.5Q7154.0 -711 7280.0 -730L7182.0 -676Q7182.0 -772 7136.0 -817.0Q7090.0 -862 6982.0 -862Q6922.0 -862 6857.0 -833.0Q6792.0 -804 6766.0 -730L6520.0 -808Q6561.0 -942 6674.0 -1026.0Q6787.0 -1110 6982.0 -1110Q7125.0 -1110 7236.0 -1066.0Q7347.0 -1022 7404.0 -914Q7436.0 -854 7442.0 -794.0Q7448.0 -734 7448.0 -660V0H7210.0V-222L7244.0 -176Q7165.0 -67 7073.5 -18.5Q6982.0 30 6842.0 30ZM6900.0 -184Q6975.0 -184 7026.5 -210.5Q7078.0 -237 7108.5 -271.0Q7139.0 -305 7150.0 -328Q7171.0 -372 7174.5 -430.5Q7178.0 -489 7178.0 -528L7258.0 -508Q7137.0 -488 7062.0 -474.5Q6987.0 -461 6941.0 -450.0Q6895.0 -439 6860.0 -426Q6820.0 -410 6795.5 -391.5Q6771.0 -373 6759.5 -351.0Q6748.0 -329 6748.0 -302Q6748.0 -265 6766.5 -238.5Q6785.0 -212 6819.0 -198.0Q6853.0 -184 6900.0 -184Z"/></symbol>
+  <symbol id="g" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2L6.4 14Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.7A9.5 9.5 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-3.2 3.9M6.4 7.4A15.6 15.6 0 0 0 2.5 12S6 18.5 12 18.5c1.4 0 2.7-.3 3.8-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12.2 20 3.5M16.5 7l2.5 2.5M14 9.5l2 2"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.4 3.5 5.2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+</svg>
+
+<header class="page-head">
+  <h1>Login de Machea: tres propuestas</h1>
+  <p>Las tres usan la marca del manual (Inter, rojo <b>#FC4633</b>, navy <b>#1F2E42</b>, radios de 18 y 14 px, botones en pastilla) y el mismo formulario. Lo que cambia es la composición alrededor. Cada propuesta tiene las 7 pantallas del flujo, en escritorio y en celular. Dentro de cada maqueta los enlaces llevan a la pantalla siguiente y el ojo muestra la contraseña. <b>El botón de Google lo dibuja Google:</b> aquí hay una réplica fiel del botón oficial.</p>
+</header>
+
+<div class="bar">
+  <div class="group" role="group" aria-label="Propuesta"><span class="lbl">Propuesta</span>
+    <button class="tab" data-v="A" aria-pressed="true">A · Dividida</button>
+    <button class="tab" data-v="B" aria-pressed="false">B · Centrada</button>
+    <button class="tab" data-v="C" aria-pressed="false">C · Plano</button>
+  </div>
+  <div class="group" role="group" aria-label="Pantalla"><span class="lbl">Pantalla</span>
+    <button class="tab" data-s="entrar" aria-pressed="true">1 Entrar</button>
+    <button class="tab" data-s="crear" aria-pressed="false">2 Crear cuenta</button>
+    <button class="tab" data-s="correo" aria-pressed="false">3 Confirma tu correo</button>
+    <button class="tab" data-s="revision" aria-pressed="false">4 En revisión</button>
+    <button class="tab" data-s="olvido" aria-pressed="false">5 Olvidé mi contraseña</button>
+    <button class="tab" data-s="nueva" aria-pressed="false">6 Nueva contraseña</button>
+    <button class="tab" data-s="inicio" aria-pressed="false">7 Después de entrar</button>
+  </div>
+</div>
+
+<main class="stage">
+  <p class="vnote" id="vnote"></p>
+  <div class="devices">
+    <div><p class="cap">Escritorio</p><div class="desk"><div class="frame" id="fDesk"></div></div></div>
+    <div><p class="cap">Celular</p><div class="phone"><div class="frame" id="fPhone"></div></div></div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var NOTAS = {
+    A: '<b>A · Dividida.</b> Es la evolución directa del prototipo de Felipe: formulario claro a la izquierda y panel de marca a la derecha, ahora en navy y rojo del manual. El panel cuenta qué hace Machea mientras la persona entra. En el celular el panel se vuelve una franja arriba. <b>A favor:</b> reusa casi todo lo que ya existe y es el patrón más conocido en herramientas B2B. <b>En contra:</b> en pantallas medianas el panel le quita espacio al formulario.',
+    B: '<b>B · Centrada.</b> Una sola tarjeta blanca sobre gris claro con una retícula tenue de plano. "Entrar" y "Crear cuenta" se cambian con un selector dentro de la tarjeta. <b>A favor:</b> es la más rápida de usar, la más liviana y la más fácil de mantener; se ve igual en todos los tamaños. <b>En contra:</b> casi no cuenta la propuesta de valor, así que depende de que la persona ya conozca Machea.',
+    C: '<b>C · Plano.</b> Fondo navy de pantalla completa donde se dibuja un perfil de edificios como un plano (animación M03 del manual, con una sola línea roja). La tarjeta del formulario flota a la derecha. En el celular el plano queda arriba y la tarjeta se monta encima. <b>A favor:</b> es la más memorable y conecta con el plano 3D del formulario. <b>En contra:</b> es la más pesada de construir, y la animación tiene que respetar "reducir movimiento".'
+  };
+
+  var I = function (id, cls) { return '<svg class="' + (cls || 'ic') + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; };
+  var LOGO = function (cls) { return '<span class="logo ' + (cls || '') + '"><svg class="iso" viewBox="0 0 1515 1038" aria-hidden="true"><use href="#iso"/></svg><svg class="word" viewBox="0 0 7448 1470" role="img" aria-label="Machea"><use href="#word"/></svg></span>'; };
+  var GBTN = function (txt) { return '<button type="button" class="gbtn">' + '<svg aria-hidden="true"><use href="#g"/></svg>' + txt + '</button><span class="gnote">Botón oficial de Google (réplica)</span>'; };
+  var PW = function (id, ph, ac) { return '<div class="inp pw"><input id="' + id + '" type="password" placeholder="' + ph + '" autocomplete="' + ac + '"><button type="button" class="eye" aria-label="Mostrar la contraseña">' + I('i-eye') + '</button></div>'; };
+
+  // Contenido de cada pantalla (igual en las tres propuestas). `seg` = si la variante B muestra el selector.
+  var PANT = {
+    entrar: function () {
+      return '<div class="fbox">' +
+        '<h2>Bienvenido de nuevo</h2><p class="sub">Entra a la cuenta de tu empresa en Machea.</p>' +
+        GBTN('Acceder con Google') +
+        '<div class="sep">o con tu correo</div>' +
+        '<div class="field"><label for="c1">Correo</label><div class="inp"><input id="c1" type="email" placeholder="tu@empresa.com" autocomplete="username"></div></div>' +
+        '<div class="field"><label for="p1">Contraseña</label>' + PW('p1', 'Tu contraseña', 'current-password') + '</div>' +
+        '<div class="row"><label class="check"><input type="checkbox" checked><span class="box">' + I('i-check', '') + '</span>Recordarme</label><span class="lnk" data-go="olvido">¿Olvidaste tu contraseña?</span></div>' +
+        '<button class="btn" data-go="inicio">Entrar</button>' +
+        '<p class="foot">¿Tu empresa aún no tiene cuenta? <span class="lnk" data-go="crear">Crear cuenta</span></p></div>';
+    },
+    crear: function () {
+      return '<div class="fbox">' +
+        '<h2>Crea la cuenta de tu empresa</h2><p class="sub">Para constructoras e inmobiliarias. Revisamos cada cuenta antes de activarla.</p>' +
+        GBTN('Registrarse con Google') +
+        '<div class="sep">o con tu correo</div>' +
+        '<div class="field"><label for="u2">Nombre de usuario</label><div class="inp"><input id="u2" type="text" placeholder="Ej.: constructora-andes" autocomplete="username"></div></div>' +
+        '<div class="field"><label for="c2">Correo</label><div class="inp"><input id="c2" type="email" placeholder="tu@empresa.com" autocomplete="email"></div></div>' +
+        '<div class="field"><label for="p2">Contraseña</label>' + PW('p2', 'Mínimo 10 caracteres', 'new-password') +
+        '<div class="hint"><span class="meter m2"><i></i><i></i><i></i><i></i></span>Aceptable: agrega más caracteres</div></div>' +
+        '<label class="check consent"><input type="checkbox"><span class="box">' + I('i-check', '') + '</span><span>Acepto la <a>Política de privacidad</a> y el tratamiento de mis datos.</span></label>' +
+        '<button class="btn" data-go="correo">Crear cuenta</button>' +
+        '<p class="foot">¿Ya tienes cuenta? <span class="lnk" data-go="entrar">Entrar</span></p></div>';
+    },
+    correo: function () {
+      return '<div class="fbox state">' +
+        '<div class="ico">' + I('i-mail') + '</div>' +
+        '<h2>Confirma tu correo</h2><p class="sub">Te enviamos un enlace a <b>ventas@constructora-andes.co</b>. Ábrelo para confirmar que el correo es tuyo.</p>' +
+        '<ul class="steps"><li class="ok"><span class="dot">' + I('i-check', '') + '</span>Cuenta creada</li><li class="now"><span class="dot">2</span>Confirma tu correo</li><li><span class="dot">3</span>Machea revisa y activa tu cuenta</li></ul>' +
+        '<button class="btn ghost">Reenviar el correo</button>' +
+        '<p class="foot">¿Te equivocaste de correo? <span class="lnk" data-go="crear">Volver al registro</span></p></div>';
+    },
+    revision: function () {
+      return '<div class="fbox state">' +
+        '<div class="ico navy">' + I('i-clock') + '</div>' +
+        '<h2>Tu cuenta está en revisión</h2><p class="sub">El equipo de Machea revisa cada empresa antes de activarla. Te avisaremos a <b>ventas@constructora-andes.co</b> cuando esté lista.</p>' +
+        '<ul class="steps"><li class="ok"><span class="dot">' + I('i-check', '') + '</span>Cuenta creada</li><li class="ok"><span class="dot">' + I('i-check', '') + '</span>Correo confirmado</li><li class="now"><span class="dot">3</span>Machea revisa y activa tu cuenta</li></ul>' +
+        '<button class="btn ghost" data-go="entrar">Salir</button></div>';
+    },
+    olvido: function () {
+      return '<div class="fbox">' +
+        '<button class="back" data-go="entrar">' + I('i-back') + 'Volver</button>' +
+        '<h2>¿Olvidaste tu contraseña?</h2><p class="sub">Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva.</p>' +
+        '<div class="field"><label for="c5">Correo</label><div class="inp"><input id="c5" type="email" placeholder="tu@empresa.com" autocomplete="username"></div></div>' +
+        '<div class="alert">' + I('i-info') + '<span>Si el correo tiene una cuenta, el enlace llega en unos minutos. Revisa también la carpeta de spam.</span></div>' +
+        '<button class="btn" data-go="nueva">Enviar enlace</button></div>';
+    },
+    nueva: function () {
+      return '<div class="fbox">' +
+        '<h2>Crea una contraseña nueva</h2><p class="sub">Para <b style="color:var(--navy)">ventas@constructora-andes.co</b>. Usa al menos 10 caracteres.</p>' +
+        '<div class="field"><label for="p6">Contraseña nueva</label>' + PW('p6', 'Mínimo 10 caracteres', 'new-password') + '</div>' +
+        '<div class="field"><label for="p7">Repítela</label>' + PW('p7', 'Escríbela otra vez', 'new-password') + '</div>' +
+        '<button class="btn" data-go="entrar">Guardar y entrar</button></div>';
+    }
+  };
+
+  var INICIO = function () {
+    return '<div class="app"><div class="appbar">' + LOGO() +
+      '<div class="user"><span class="avatar">CA</span><span class="name">constructora-andes</span><button class="out" data-go="entrar">Salir</button></div></div>' +
+      '<div class="appbody"><div class="welcome"><span class="tag">Cuenta activa</span>' +
+      '<h2>Hola, constructora-andes</h2><p>Ya tienes acceso a Machea. Aquí vivirá tu panel: estamos construyendo las herramientas para tu equipo comercial.</p>' +
+      '<p class="soonlbl">Próximamente</p><div class="soon"><div>' + I('i-users') + 'Tus leads calificados</div><div>' + I('i-phone') + 'Llamadas de Manuela</div><div>' + I('i-chart') + 'Resultados</div></div>' +
+      '</div></div></div>';
+  };
+
+  var SKY = '<svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMax slice" aria-hidden="true">' +
+    '<path class="draw" d="M0 400H1200"/>' +
+    '<path class="draw" d="M60 400V260h90v140M150 400V200h70v200M240 400V150h110v250M260 190h70M260 230h70M260 270h70M260 310h70"/>' +
+    '<path class="draw" d="M380 400V230h80v170M470 400V120l60-40 60 40v280M500 160h60M500 200h60M500 240h60M500 280h60"/>' +
+    '<path class="draw" d="M620 400V210h120v190M760 400V170h90v230M870 400V250h70v150M960 400V140h110v260M980 180h70M980 220h70M980 260h70M1090 400V230h80v170"/>' +
+    '<path class="draw red" d="M470 120l60-40 60 40"/>' +
+    '</svg>';
+
+  function legal() { return 'Al continuar aceptas la <a>Política de privacidad</a> de Machea.'; }
+
+  function shell(v, s) {
+    if (s === 'inicio') return INICIO();
+    var body = PANT[s]();
+    if (v === 'A') {
+      return '<div class="vA"><section class="side-form"><div class="top">' + LOGO() + '</div><div class="mid">' + body + '</div><p class="legal">© Machea · <a>Política de privacidad</a></p></section>' +
+        '<aside class="brand on-dark"><span class="mlogo">' + LOGO('on-dark') + '</span><p class="eyebrow">Para constructoras e inmobiliarias</p>' +
+        '<h3>Tus leads, <em>listos para comprar</em>.</h3>' +
+        '<p>Machea califica a cada interesado con una experiencia interactiva y una llamada de IA, y le entrega a tu equipo solo a quienes están listos.</p>' +
+        '<ul class="chips"><li><span class="ci">' + I('i-bolt') + '</span>Manuela llama a cada interesado por ti</li><li><span class="ci">' + I('i-target') + '</span>A tu equipo solo llegan los leads calificados</li><li><span class="ci">' + I('i-users') + '</span>Una cuenta por empresa, revisada por Machea</li></ul></aside></div>';
+    }
+    if (v === 'B') {
+      var seg = (s === 'entrar' || s === 'crear') ? '<div class="seg"><button data-go="entrar" aria-pressed="' + (s === 'entrar') + '">Entrar</button><button data-go="crear" aria-pressed="' + (s === 'crear') + '">Crear cuenta</button></div>' : '';
+      return '<div class="vB"><div class="head">' + LOGO('big') + '</div><div class="card">' + seg + body + '</div><p class="legal">' + legal() + '</p></div>';
+    }
+    return '<div class="vC on-dark"><div class="bp"><div class="grid"></div>' + SKY + '</div>' +
+      '<div class="copy">' + LOGO('on-dark') + '<p class="eyebrow">Para constructoras e inmobiliarias</p><h3>Cada lead, calificado antes de llegar a tu equipo<span>.</span></h3><p>Entra a Machea para ver a los interesados que ya pasaron por la experiencia y la llamada de Manuela.</p></div>' +
+      '<div class="card">' + body + '<p class="legal">' + legal() + '</p></div></div>';
+  }
+
+  var estado = { v: 'A', s: 'entrar' };
+  function pintar() {
+    document.getElementById('vnote').innerHTML = NOTAS[estado.v];
+    var html = shell(estado.v, estado.s);
+    ['fDesk', 'fPhone'].forEach(function (id) { var f = document.getElementById(id); f.innerHTML = html; f.scrollTop = 0; });
+    document.querySelectorAll('[data-v]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.v === estado.v); });
+    document.querySelectorAll('[data-s]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.s === estado.s); });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-v],[data-s],[data-go],.eye');
+    if (!t) return;
+    if (t.classList.contains('eye')) {
+      var inp = t.parentNode.querySelector('input'), ver = inp.type === 'password';
+      inp.type = ver ? 'text' : 'password';
+      t.innerHTML = I(ver ? 'i-eye-off' : 'i-eye');
+      t.setAttribute('aria-label', ver ? 'Ocultar la contraseña' : 'Mostrar la contraseña');
+      return;
+    }
+    e.preventDefault();
+    if (t.dataset.v) estado.v = t.dataset.v;
+    if (t.dataset.s) estado.s = t.dataset.s;
+    if (t.dataset.go) estado.s = t.dataset.go;
+    pintar();
+  });
+  pintar();
+})();
+</script>
+</body>
+</html>
