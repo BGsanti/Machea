@@ -56,6 +56,20 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
+
+/* SIN BARRA DE SCROLL EN ESCRITORIO.
+   La barra mete las ~55 pantallas de la pagina en los ~900px de su recorrido:
+   un pixel de barra son ~55 de pagina, asi que un tiron de 2cm cruza
+   capitulos enteros y la pelicula pasa volando. Eso no se puede frenar
+   -- arrastrarla salta a una posicion, no avanza a una velocidad -- y
+   suavizar la llegada tampoco alcanzo. Se quita y todos recorren con rueda,
+   trackpad o teclado, que es el ritmo que si esta ajustado.
+   La pagina SIGUE scrolleando: esto solo esconde el control, no lo bloquea.
+   Rueda, trackpad, teclado (flechas, espacio, Re/Av Pag, Inicio/Fin) y los
+   enlaces del menu funcionan igual. En tactil no cambia nada: ahi la barra
+   no se arrastra. */
+html { scrollbar-width: none; }            /* Firefox */
+html::-webkit-scrollbar { width: 0; height: 0; }   /* Chrome, Edge, Safari */
 body {
   margin: 0; background: var(--white); color: var(--ink);
   font-family: var(--f); font-size: 16px; line-height: 1.6; font-weight: 400; font-stretch: 100%;
