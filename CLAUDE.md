@@ -1855,6 +1855,14 @@ El contrato está en `design/login/CONTRATO_AUTH.md`.
   - Los mensajes no revelan si un correo tiene cuenta.
   - Cambiar la clave cierra las sesiones.
   - "Recordarme" decide entre localStorage y sessionStorage.
+- **Aprobación en `/admin` → "Cuentas de empresas":**
+  - Lista las cuentas pendientes o todas, y permite aprobar (marcando constructora o inmobiliaria) o rechazar; el
+    rechazo pide un segundo clic.
+  - Backend en `backend/api/cuentas.py`: `GET /api/admin/cuentas`, `POST …/{id}/aprobar` y `POST …/{id}/rechazar`, con la
+    misma sesión y las mismas reglas del panel (`exigir`).
+  - Habla con un `AlmacenCuentas` que se conecta con `configurar_almacen()` al elegir la nube. Sin almacén responde 503
+    `no_disponible`, y el panel lo explica.
+  - Cada decisión queda en "Actividad reciente". Pruebas: `python -m unittest tests.test_cuentas -v`.
 - **Probar en local:** `npm run dev` → `/acceso/`. El panel oscuro "Prueba" (abajo a la izquierda, solo con el
   proveedor de prueba) muestra los correos simulados con su enlace y permite aprobar o rechazar cuentas.
   Pruebas de la lógica: `npm run test:auth` (`node --test`, sin dependencias).

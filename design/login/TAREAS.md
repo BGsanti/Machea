@@ -21,7 +21,8 @@ No lleva la etiqueta Autónoma.
   Las entradas de Vite van con L4.
 - [x] L4. Pantallas con la propuesta B: `/acceso/` (entrar, crear, confirmar el correo, olvidé),
   `/acceso/nueva-clave/` e `/inicio/`. QA de punta a punta con Playwright: 31/31, axe AA 0 hallazgos, sin errores de CSP.
-- [ ] L5. `/admin` → Cuentas: listar, aprobar (con constructora o inmobiliaria) y rechazar, contra el contrato de administración.
+- [x] L5. `/admin` → "Cuentas de empresas": listar (pendientes o todas), aprobar (constructora o inmobiliaria) y rechazar
+  (doble clic). Backend `api/cuentas.py` (503 hasta conectar el almacén de la nube) con pruebas en `tests/test_cuentas.py`.
 - [x] L6. CSP y cabeceras en `vercel.json` (abiertas a Google GIS, `strict-origin-when-cross-origin`); botón de la demo
   quitado de la landing; prototipo `public/acceso/` retirado (queda en el commit `6203cbf`).
 - [ ] L7. QA final y PR de `login` a `main` (con el visto bueno de Diego).

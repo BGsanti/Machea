@@ -76,6 +76,11 @@ Es un borrador, para que la nube que se elija (o el backend de FastAPI en `backe
 | `POST /api/admin/cuentas/{id}/aprobar` | `{tipo: constructora \| inmobiliaria}` | `200 Cuenta` |
 | `POST /api/admin/cuentas/{id}/rechazar` | — | `200 Cuenta` |
 
+Las tres rutas `/api/admin/cuentas…` **ya existen** en `backend/api/cuentas.py` (panel `/admin` → "Cuentas de empresas").
+Delegan en un `AlmacenCuentas` (`listar`, `aprobar` y `rechazar`), que se conecta con `configurar_almacen()` al elegir la
+nube. Mientras no haya almacén responden `503 {"detail": {"codigo": "no_disponible", ...}}`. Solo devuelven los campos del
+contrato, aunque el almacén traiga más.
+
 Los errores van como `{ "codigo": "<CodigoError>", "campos"?: {...} }` y el front muestra el texto de
 `MENSAJES` en `contrato.ts`.
 

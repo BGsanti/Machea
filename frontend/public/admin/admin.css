@@ -340,3 +340,15 @@ svg path[fill="currentColor"] { fill: var(--logo-word); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 @media print { .barra, .btn { display: none !important; } }
+
+/* ---------------------------------------------------------------- cuentas de empresas (login) */
+.cuentas-filtro { display: flex; gap: 6px; }
+.cuentas-filtro [aria-pressed="true"] { border-color: var(--ink); background: var(--surface-2); }
+.cuentas-filtro b { font-weight: 700; }
+/* Texto pequeño de esta sección con --ink-2: --ink-3 da 3:1 sobre blanco y no pasa AA. */
+#cuentas .tarjeta-nota { margin: -6px 0 6px; color: var(--ink-2); }
+#tablaCuentas td small { display: block; margin-top: 3px; font-size: 12.5px; color: var(--ink-2); }
+#tablaCuentas td b { font-weight: 600; color: var(--ink); }
+.cuentas-acc { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn-peligro { color: var(--bad); border-color: var(--bad-line); }
+.btn-peligro:hover { background: var(--bad-bg); border-color: var(--bad); }

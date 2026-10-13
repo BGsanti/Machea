@@ -39,6 +39,7 @@ from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
 from Model.pipeline import recomendar, respuesta_json
 
 from api import admin as admin_mod
+from api import cuentas as cuentas_mod
 from api import demo as demo_mod
 from api import seguimiento
 from api.limites import Rechazo, ip_del_cliente, limites
@@ -65,6 +66,9 @@ from Model.prep import SMMLV as SMMLV_COP
 
 app.include_router(demo_mod.router)
 app.include_router(admin_mod.router)
+# Aprobación de cuentas de empresas desde /admin (login; ver design/login/CONTRATO_AUTH.md).
+# Sin almacén de la nube conectado responde 503 `no_disponible`.
+app.include_router(cuentas_mod.router)
 
 # Frases para la actividad del panel de administración (api/admin.py): sin jerga de Dapta.
 _MOTIVO_TOPE = {

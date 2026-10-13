@@ -26,6 +26,8 @@ acceso en `/acceso/`. Es solo diseño: no inicia sesión.
 | D14 | 2026-10-13 | **Al menos 3 mockups** partiendo del diseño de Felipe, con la marca de Machea → [mockups/login.html](mockups/login.html). |
 | D15 | 2026-10-13 | **Se elige la propuesta B "Centrada"** (minimalista: una tarjeta sobre gris claro con el selector Entrar / Crear cuenta). |
 | D16 | 2026-10-13 | *Por defecto, a falta de respuesta (se puede cambiar):* el tipo constructora/inmobiliaria **lo marca Machea al aprobar**; **colores del manual** (Inter, #FC4633, #1F2E42); usuario **sin espacios** (`constructora-andes`). La pregunta de los textos del panel se cae: la B no tiene panel. |
+| D17 | 2026-10-13 | **`/admin` → Cuentas se construye ya** contra el contrato HTTP. El backend `api/cuentas.py` responde 503 hasta que se conecte el almacén de la nube; en local se aprueba con el panel "Prueba". |
+| D18 | 2026-10-13 | **Correo de contacto** para una cuenta rechazada: `equipo@machea.co`. |
 
 Consecuencias:
 - D3: el botón lo dibuja Google. La página tiene que mandar `Referrer-Policy: strict-origin-when-cross-origin`
@@ -40,12 +42,6 @@ Consecuencias:
 
 Diego eligió la propuesta B (D15). Las demás preguntas quedaron con la opción recomendada (D16).
 
-## Ronda 3 (abierta)
+## Ronda 3: cerrada
 
-1. **`/admin` → Cuentas:** el panel de Felipe vive en `frontend/public/admin/` (sin build) y habla con su
-   backend de FastAPI. Sin una nube elegida no hay dónde guardar las cuentas reales.
-   - a) Construir ya la pantalla "Cuentas" en `/admin` (listar, aprobar como constructora o inmobiliaria,
-     rechazar) contra el contrato HTTP de `CONTRATO_AUTH.md`, para que funcione apenas exista el backend.
-     Mientras tanto, en local se aprueba con el panel "Prueba". *(recomendado)*
-   - b) Esperar a que se elija la nube.
-2. **Correo de contacto** que aparece si una cuenta es rechazada: hoy es `equipo@machea.co`. ¿Está bien?
+Diego: "sí, todo eso" (D17 y D18).
