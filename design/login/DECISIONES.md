@@ -24,6 +24,8 @@ acceso en `/acceso/`. Es solo diseño: no inicia sesión.
 | D12 | 2026-10-13 | **Registro mínimo:** nombre de usuario, correo y contraseña. Sin teléfono. |
 | D13 | 2026-10-13 | **Lo construimos nosotros (Diego + Claude)**, en **una sola rama `login`** en BGsanti/Machea, donde se hace todo. |
 | D14 | 2026-10-13 | **Al menos 3 mockups** partiendo del diseño de Felipe, con la marca de Machea → [mockups/login.html](mockups/login.html). |
+| D15 | 2026-10-13 | **Se elige la propuesta B "Centrada"** (minimalista: una tarjeta sobre gris claro con el selector Entrar / Crear cuenta). |
+| D16 | 2026-10-13 | *Por defecto, a falta de respuesta (se puede cambiar):* el tipo constructora/inmobiliaria **lo marca Machea al aprobar**; **colores del manual** (Inter, #FC4633, #1F2E42); usuario **sin espacios** (`constructora-andes`). La pregunta de los textos del panel se cae: la B no tiene panel. |
 
 Consecuencias:
 - D3: el botón lo dibuja Google. La página tiene que mandar `Referrer-Policy: strict-origin-when-cross-origin`
@@ -34,21 +36,16 @@ Consecuencias:
   en `/admin` (ver ronda 2, pregunta 2).
 - La rama `login` parte de `acceso-marca` (el prototipo de Felipe), con `main` ya unido. Se creó el 2026-10-13.
 
-## Ronda 2 (abierta)
+## Ronda 2: cerrada
 
-1. **¿Qué propuesta de mockup?** Están en [mockups/login.html](mockups/login.html), con 7 pantallas cada una.
-   - A) **Dividida:** la evolución del diseño de Felipe, con formulario y panel de marca navy.
-   - B) **Centrada:** una tarjeta sola, mínima, con el selector Entrar / Crear cuenta.
-   - C) **Plano:** fondo navy donde se dibuja un perfil de edificios, con la tarjeta flotante.
-   - O una mezcla, por ejemplo "A con el plano de C en el panel".
-2. **¿Constructora o inmobiliaria?** Con el registro mínimo (D12), propongo que **Machea lo marque al
-   aprobar** en `/admin`. La alternativa es un selector de dos opciones en el registro. *(recomiendo marcarlo en el admin)*
-3. **Colores.** Los mockups usan el manual de marca (Inter, rojo `#FC4633`, navy `#1F2E42`), igual que el
-   formulario en producción. La landing y el prototipo de Felipe usan coral `#FF6259` con Archivo.
-   - a) Manual. *(recomendado)*
-   - b) Landing.
-4. **Textos del panel de marca** (A y C): "Manuela llama a cada interesado por ti" y "A tu equipo solo llegan
-   los leads calificados" vienen del prototipo de Felipe. ¿Se quedan?
-5. **Nombre de usuario:** ¿solo minúsculas, números, guiones y puntos (tipo `constructora-andes`), o libre
-   con espacios y tildes (tipo "Constructora Andes")? *(recomiendo el formato sin espacios: es más fácil de
-   mostrar y de buscar)*
+Diego eligió la propuesta B (D15). Las demás preguntas quedaron con la opción recomendada (D16).
+
+## Ronda 3 (abierta)
+
+1. **`/admin` → Cuentas:** el panel de Felipe vive en `frontend/public/admin/` (sin build) y habla con su
+   backend de FastAPI. Sin una nube elegida no hay dónde guardar las cuentas reales.
+   - a) Construir ya la pantalla "Cuentas" en `/admin` (listar, aprobar como constructora o inmobiliaria,
+     rechazar) contra el contrato HTTP de `CONTRATO_AUTH.md`, para que funcione apenas exista el backend.
+     Mientras tanto, en local se aprueba con el panel "Prueba". *(recomendado)*
+   - b) Esperar a que se elija la nube.
+2. **Correo de contacto** que aparece si una cuenta es rechazada: hoy es `equipo@machea.co`. ¿Está bien?

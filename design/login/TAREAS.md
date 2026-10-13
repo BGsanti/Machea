@@ -19,7 +19,11 @@ No lleva la etiqueta Autónoma.
 - [x] L3. Lógica (commit `4bab418`): contrato, validación, sesión, Google (GIS + nonce) y proveedor de
   prueba, con 20 pruebas (`npm run test:auth`) y `design/login/CONTRATO_AUTH.md`.
   Las entradas de Vite van con L4.
-- [ ] L4. Pantallas con el mockup elegido (ronda 2): `/acceso/`, `/acceso/nueva-clave/` e `/inicio/`.
+- [x] L4. Pantallas con la propuesta B: `/acceso/` (entrar, crear, confirmar el correo, olvidé),
+  `/acceso/nueva-clave/` e `/inicio/`. QA de punta a punta con Playwright: 31/31, axe AA 0 hallazgos, sin errores de CSP.
 - [ ] L5. `/admin` → Cuentas: listar, aprobar (con constructora o inmobiliaria) y rechazar, contra el contrato de administración.
-- [ ] L6. CSP y cabeceras, y quitar el botón de la demo de la landing.
-- [ ] L7. QA y PR de `login` a `main`.
+- [x] L6. CSP y cabeceras en `vercel.json` (abiertas a Google GIS, `strict-origin-when-cross-origin`); botón de la demo
+  quitado de la landing; prototipo `public/acceso/` retirado (queda en el commit `6203cbf`).
+- [ ] L7. QA final y PR de `login` a `main` (con el visto bueno de Diego).
+- [ ] Antes de publicar: política de privacidad en `/privacidad/` (hoy el enlace del login no lleva a nada), proveedor
+  de la nube y cliente OAuth de Google.

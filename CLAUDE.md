@@ -1815,34 +1815,53 @@ de este bundle del invariante 1.
 
 ---
 
-### 8.4 `public/acceso/` — la pantalla de acceso con marca propia (PROTOTIPO)
+### 8.4 El login: `/acceso/`, `/acceso/nueva-clave/` e `/inicio/`
 
-Referencia de diseño: el login de YAVE CRM (pantalla dividida: formulario claro a la izquierda y un panel de
-marca con degradado y entrada animada a la derecha). La de Machea es para los **próximos clientes**: cada uno
-ve su propio nombre, logo y colores, con "Con tecnología Machea" discreto.
+Las decisiones, los mockups, el plan y el borrador de la política de privacidad están en `design/login/`.
+El contrato está en `design/login/CONTRATO_AUTH.md`.
 
-- **URL:** `/acceso/`. Tres archivos sueltos (`index.html`, `acceso.css`, `acceso.js`), sin librerías ni código en línea.
-- **NO inicia sesión todavía.** El formulario valida, muestra un aviso honesto, borra lo escrito y no envía nada: la CSP
-  (`form-action 'none'`, `connect-src 'none'`) lo impide. Hasta que haya acceso real (Supabase Auth con `tenant_id` y RLS)
-  no debe pedir credenciales de verdad. Está en `noindex`.
-- **De dónde sale la marca:** `?demo=<token>` (el enlace firmado de "Pruébalo con tu marca": nombre, tipo, color y logo del
-  prospecto), `?marca=<slug>` (machea, amarilo, colsubsidio, constructora-bolivar, cusezar) o Machea por defecto. Un token
-  vencido o inválido cae en Machea. **Nunca** se aceptan nombres o colores libres por la dirección (alguien armaría un
-  enlace con el nombre de un banco). `?editor=1` abre un editor local para probar marcas, sin tocar la dirección.
-- **Contraste garantizado (`derivar()` en `acceso.js`):** de uno o dos colores salen todos los tokens. El botón y el color
-  central del panel se oscurecen lo justo (hasta un 40 %) para que el texto blanco pase AA; si el color es claro
-  (amarillos, pasteles) el texto pasa a oscuro. Los enlaces se oscurecen hasta 4,5:1 sobre el fondo. Medido en 14 marcas
-  (incluidos amarillo, casi blanco, negro y pastel). Machea usa coral para la marca y navy para el panel (`panel`).
-- **Animación (solo escritorio y sin `prefers-reduced-motion`):** 1,5 s de entrada (la marca atraviesa la pantalla entre
-  siluetas de inmuebles que caen), título que se escribe letra a letra y tarjetas de vidrio que entran una por una. En
-  móvil el panel pasa a una franja de marca arriba, sin animación. Durante el arranque no hay transiciones (`.preparando`):
-  así el cliente no ve un destello del color por defecto.
-- **Desde la landing:** al armar una demo, el botón "Ver cómo se vería tu acceso" abre `/acceso/?demo=<el mismo token>`.
-- **Límite conocido (para el login real):** el navegador decodifica el token sin verificar la firma (igual que
-  `experiencia/js/demo.js`). Hoy es inocuo porque la página no captura nada; con login real la marca debe resolverla el
-  SERVIDOR a partir del cliente (slug/dominio) y no de un enlace.
-- **Siguiente:** Supabase Auth (correo + contraseña y Google; Apple queda fuera por el costo de la cuenta de desarrollador),
-  tabla de clientes con sus colores/logo, `cliente.machea.co`, y panel de leads por cliente.
+- **Alcance: solo el login.** Detrás irán el panel de administrador y el CRM de las empresas.
+  - `/inicio/` es la página provisional después de entrar. Según el estado de la cuenta muestra "en
+    revisión", "no fue aprobada" o la bienvenida.
+- **Una cuenta = una empresa** (constructora o inmobiliaria).
+  - Registro mínimo: nombre de usuario, correo y contraseña de al menos 10 caracteres.
+  - Ciclo de vida: `sin_confirmar → pendiente → aprobada | rechazada`.
+  - Machea aprueba desde `/admin` y ahí marca si es constructora o inmobiliaria.
+- **Independiente del proveedor de nube** (Machea va a migrar de Supabase):
+  - las pantallas solo usan `ProveedorAuth` (`src/auth/contrato.ts`);
+  - hoy existe solo `proveedores/prueba.ts`, que vive en el navegador y simula los correos en un buzón;
+  - el proveedor real se escribe al elegir la nube y debe cumplir lo de `CONTRATO_AUTH.md`;
+  - **en un build de producción el proveedor de prueba queda apagado** (el login responde "todavía no está
+    disponible"), salvo con `VITE_AUTH_PRUEBA_EN_PRODUCCION=1`, que nunca debe usarse en www.machea.co.
+- **Código:**
+  - `src/auth/`: contrato, validación, sesión, Google y proveedores.
+  - `src/paginas/`: pantallas, estilos y logo.
+  - Entradas de Vite: `acceso/index.html`, `acceso/nueva-clave/index.html` e `inicio/index.html`, registradas en
+    `vite.config.ts`.
+  - Sin librerías.
+- **Diseño:** propuesta B "Centrada" (una tarjeta sobre gris claro), con la marca del manual: Inter, `#FC4633` y `#1F2E42`.
+  - El botón rojo lleva letra de 18,67 px en negrita, que cuenta como "texto grande" (3:1).
+  - El texto rojo pequeño va con `--red-texto` (`#c0341f`).
+  - axe AA da 0 hallazgos.
+- **Google:** botón oficial de Google Identity Services, en popup/FedCM, con nonce.
+  - Aparece solo si `VITE_GOOGLE_CLIENT_ID` tiene valor.
+  - El ID token lo verifica el proveedor en el servidor.
+  - Requiere `Referrer-Policy: strict-origin-when-cross-origin` (con `no-referrer` no funciona) y la CSP abierta a
+    `https://accounts.google.com/gsi/`. Las dos cosas ya están en `vercel.json`, que es la **única** fuente de la CSP de estas
+    páginas.
+- **Seguridad del front:**
+  - `?volver=` solo acepta rutas del mismo sitio (`destinoSeguro`).
+  - Los tokens de los enlaces salen de la barra de direcciones apenas se leen.
+  - Los mensajes no revelan si un correo tiene cuenta.
+  - Cambiar la clave cierra las sesiones.
+  - "Recordarme" decide entre localStorage y sessionStorage.
+- **Probar en local:** `npm run dev` → `/acceso/`. El panel oscuro "Prueba" (abajo a la izquierda, solo con el
+  proveedor de prueba) muestra los correos simulados con su enlace y permite aprobar o rechazar cuentas.
+  Pruebas de la lógica: `npm run test:auth` (`node --test`, sin dependencias).
+- **Historia:** el prototipo de Felipe con marca por cliente (`?marca=`, `?demo=`, `derivar()`) vive en el commit `6203cbf`
+  (rama `acceso-marca`). Se retiró al decidir un login solo con la marca de Machea, y con él el botón "Ver cómo se vería tu
+  acceso" de la landing. Si vuelve la marca por cliente, la tiene que resolver el servidor y no el token `?demo=`, que el
+  navegador no verifica.
 
 ## 9. Invariantes que no se pueden romper
 
