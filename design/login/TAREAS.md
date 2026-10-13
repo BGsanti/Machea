@@ -16,7 +16,9 @@ No lleva la etiqueta Autónoma.
 - [x] L0. Rama `login` creada desde `acceso-marca` + `main`, y subida a GitHub.
 - [x] L1. Mockups: 3 propuestas × 7 pantallas → `mockups/login.html` (capturas en `mockups/capturas/`).
 - [x] L2. Borrador de la política de privacidad → `POLITICA_PRIVACIDAD_BORRADOR.md`.
-- [ ] L3. Lógica: contrato, validación, sesión, Google (GIS + nonce), proveedor de prueba y entradas de Vite.
+- [x] L3. Lógica (commit `4bab418`): contrato, validación, sesión, Google (GIS + nonce) y proveedor de
+  prueba, con 20 pruebas (`npm run test:auth`) y `design/login/CONTRATO_AUTH.md`.
+  Las entradas de Vite van con L4.
 - [ ] L4. Pantallas con el mockup elegido (ronda 2): `/acceso/`, `/acceso/nueva-clave/` e `/inicio/`.
 - [ ] L5. `/admin` → Cuentas: listar, aprobar (con constructora o inmobiliaria) y rechazar, contra el contrato de administración.
 - [ ] L6. CSP y cabeceras, y quitar el botón de la demo de la landing.
