@@ -25,8 +25,19 @@ No lleva la etiqueta Autónoma.
   (doble clic). Backend `api/cuentas.py` (503 hasta conectar el almacén de la nube) con pruebas en `tests/test_cuentas.py`.
 - [x] L6. CSP y cabeceras en `vercel.json` (abiertas a Google GIS, `strict-origin-when-cross-origin`); botón de la demo
   quitado de la landing; prototipo `public/acceso/` retirado (queda en el commit `6203cbf`).
-- [ ] L7. QA final y PR de `login` a `main` (con el visto bueno de Diego).
-- [ ] Antes de publicar el login: el proveedor de la nube y la página `/privacidad/`. El registro pide aceptar la
+- [x] L8. Base de datos (D20):
+  - migración `acceso`;
+  - backend `api/acceso.py` + `api/almacen_acceso.py`;
+  - proveedor `api` del front;
+  - reenvío `/api` en Vercel y en Vite.
+
+  Pruebas:
+  - backend: 153, todas en verde con un PostgreSQL 18 real (17 de acceso y 6 del almacén Postgres);
+  - front: 27;
+  - punta a punta navegador → Vite → FastAPI → Postgres: 27/27.
+- [ ] L9. Puesta en marcha (Santiago o Felipe, D21): migración en `machea-leads`, `DATABASE_URL` en Render y verificación. Guía en `PUESTA_EN_MARCHA.md`.
+- [ ] L7. Merge del PR #14 de `login` a `main` (con el visto bueno de Diego), después de L9 (paso 1).
+- [ ] Antes de abrirlo a empresas reales: la puesta en marcha (L9) y la página `/privacidad/`. El registro pide aceptar la
   política y hoy ese enlace no lleva a nada; además, el formulario ya guarda datos de leads y la Ley 1581 pide la
   política de todas formas.
 - [ ] Más adelante (D19): Google, cuando estén publicados la política y los términos de servicio. Se activa poniendo

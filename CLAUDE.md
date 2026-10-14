@@ -1827,6 +1827,18 @@ El contrato está en `design/login/CONTRATO_AUTH.md`.
   - Registro mínimo: nombre de usuario, correo y contraseña de al menos 10 caracteres.
   - Ciclo de vida: `sin_confirmar → pendiente → aprobada | rechazada`.
   - Machea aprueba desde `/admin` y ahí marca si es constructora o inmobiliaria.
+- **Las cuentas son nuestras (D20, 2026-10-14):**
+  - Rutas públicas en `backend/api/acceso.py`: `/api/cuentas`, `/api/sesion` y `/api/clave`.
+  - Almacén en `backend/api/almacen_acceso.py`: Postgres con `DATABASE_URL` (secreta, solo en Render), en el esquema
+    `acceso` de `supabase/migrations/20261014090000_cuentas_login.sql`.
+  - La contraseña va con scrypt.
+  - La sesión va en una cookie HttpOnly, Secure, SameSite=Lax y Path=/api; en la base solo queda el SHA-256 del
+    token y de los enlaces.
+  - El front llama a `/api/...` en su mismo dominio: `vercel.json` (`rewrites`) lo reenvía a Render, y en local lo
+    hace `vite.config.ts` (`server.proxy`).
+  - Sin `DATABASE_URL` todo responde 503 `no_disponible`. Encenderlo: `design/login/PUESTA_EN_MARCHA.md`.
+  - Pruebas: `python -m unittest tests.test_acceso tests.test_almacen_pg -v`. La segunda necesita
+    `TEST_DATABASE_URL` hacia un Postgres de prueba, nunca el de producción.
 - **Independiente del proveedor de nube** (Machea va a migrar de Supabase):
   - las pantallas solo usan `ProveedorAuth` (`src/auth/contrato.ts`);
   - hoy existe solo `proveedores/prueba.ts`, que vive en el navegador y simula los correos en un buzón;

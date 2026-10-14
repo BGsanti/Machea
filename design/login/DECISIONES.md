@@ -29,6 +29,8 @@ acceso en `/acceso/`. Es solo diseño: no inicia sesión.
 | D17 | 2026-10-13 | **`/admin` → Cuentas se construye ya** contra el contrato HTTP. El backend `api/cuentas.py` responde 503 hasta que se conecte el almacén de la nube; en local se aprueba con el panel "Prueba". |
 | D18 | 2026-10-13 | **Correo de contacto** para una cuenta rechazada: `equipo@machea.co`. |
 | D19 | 2026-10-13 | **Se lanza sin Google por ahora:** solo correo y contraseña. Google exige política de privacidad, página de inicio y términos de servicio para cualquier app externa en producción (con el botón oficial o con la redirección), y Machea aún no está constituida. El código de Google se queda en la rama y se activa con `VITE_GOOGLE_CLIENT_ID` cuando esos documentos estén publicados. |
+| D20 | 2026-10-14 | **Las cuentas las maneja nuestro backend (FastAPI) y se guardan en Postgres.** Hoy es la base de Supabase `machea-leads` usada como Postgres normal (esquema `acceso`), sin Supabase Auth. Migrar de nube es mover esas tablas y cambiar `DATABASE_URL`. |
+| D21 | 2026-10-14 | **Santiago o Felipe aplican la migración y ponen `DATABASE_URL` en Render.** Diego no tiene acceso. Guía: `design/login/PUESTA_EN_MARCHA.md`. |
 
 Consecuencias:
 - D3: el botón lo dibuja Google. La página tiene que mandar `Referrer-Policy: strict-origin-when-cross-origin`

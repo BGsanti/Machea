@@ -9,6 +9,15 @@ export default defineConfig({
   server: {
     port: process.env.PORT ? Number(process.env.PORT) : 5173,
     strictPort: true,
+    // El login llama a /api/... en su mismo dominio (cookie de sesión de primera parte). En local se
+    // reenvía al backend; en producción lo hace Vercel (vercel.json, "rewrites"). Solo hace falta con
+    // VITE_AUTH_PROVEEDOR=api; el proveedor de prueba no usa la red.
+    proxy: {
+      '^/api/(cuentas|sesion|clave)(/.*)?$': {
+        target: process.env.MACHEA_API_LOCAL || 'http://127.0.0.1:8100',
+        changeOrigin: false,
+      },
+    },
   },
   build: {
     rollupOptions: {

@@ -706,7 +706,8 @@ def _configuracion() -> List[Dict[str, Any]]:
 _TIPOS_ACTIVIDAD = ["llamada_enviada", "llamada_rechazada", "llamada_error", "resultado_recibido",
                     "demo_creada", "correo_enviado", "correo_error"]
 _TIPOS_EVENTO = _TIPOS_ACTIVIDAD + ["admin_login_ok", "admin_login_fallido",
-                                    "cuenta_aprobada", "cuenta_rechazada"]   # aprobación de cuentas (api/cuentas.py)
+                                    "cuenta_creada", "cuenta_aprobada", "cuenta_rechazada",   # login (api/acceso.py, api/cuentas.py)
+                                    "cuentas_base_error"]
 
 
 @router.get("/estado")

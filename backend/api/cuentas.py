@@ -21,9 +21,9 @@ contraseña ni un dato de un lead. Cada aprobación o rechazo queda anotado en l
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Callable, Dict, List, Optional, Protocol
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
 
 from api.admin import exigir
@@ -56,6 +56,10 @@ class AlmacenCuentas(Protocol):
 
 
 _almacen: Optional[AlmacenCuentas] = None
+
+# Se llama (en segundo plano) con la cuenta ya decidida: el arranque lo conecta al correo de aviso a la
+# empresa (api/acceso.py, correo_decision). None = no se avisa.
+al_decidir: Optional[Callable[[Dict[str, Any]], None]] = None
 
 
 def configurar_almacen(almacen: Optional[AlmacenCuentas]) -> None:
@@ -100,7 +104,7 @@ def listar(estado: Optional[str] = Query(default=None, max_length=20), sesion: D
     return {"cuentas": cuentas}
 
 
-def _cambiar(id_: str, accion: str, tipo: Optional[str] = None) -> Dict[str, Any]:
+def _cambiar(id_: str, accion: str, tipo: Optional[str] = None, tareas: Optional[BackgroundTasks] = None) -> Dict[str, Any]:
     almacen = _exigir_almacen()
     try:
         cuenta = almacen.aprobar(id_, tipo or "") if accion == "aprobar" else almacen.rechazar(id_)
@@ -115,19 +119,22 @@ def _cambiar(id_: str, accion: str, tipo: Optional[str] = None) -> Dict[str, Any
         metricas.registrar("cuenta_aprobada", f"Cuenta aprobada: {usuario} ({c['tipo']})", "ok")
     else:
         metricas.registrar("cuenta_rechazada", f"Cuenta rechazada: {usuario}", "aviso")
+    if al_decidir is not None and tareas is not None:
+        tareas.add_task(al_decidir, c)
     return {"cuenta": c}
 
 
 @router.post("/{id_}/aprobar")
-def aprobar(datos: EntradaAprobar, id_: str = Path(pattern=_ID), sesion: Dict[str, Any] = Depends(exigir)):
+def aprobar(datos: EntradaAprobar, tareas: BackgroundTasks, id_: str = Path(pattern=_ID),
+            sesion: Dict[str, Any] = Depends(exigir)):
     if datos.tipo not in TIPOS:
         raise HTTPException(422, {"codigo": "datos_invalidos", "mensaje": "El tipo debe ser constructora o inmobiliaria."})
-    return _cambiar(id_, "aprobar", datos.tipo)
+    return _cambiar(id_, "aprobar", datos.tipo, tareas)
 
 
 @router.post("/{id_}/rechazar")
-def rechazar(id_: str = Path(pattern=_ID), sesion: Dict[str, Any] = Depends(exigir)):
-    return _cambiar(id_, "rechazar")
+def rechazar(tareas: BackgroundTasks, id_: str = Path(pattern=_ID), sesion: Dict[str, Any] = Depends(exigir)):
+    return _cambiar(id_, "rechazar", tareas=tareas)
 
 
 class AlmacenEnMemoria:

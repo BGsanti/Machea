@@ -1,5 +1,13 @@
 # Contrato del login de Machea
 
+> **Actualización 2026-10-14 (D20):** el proveedor real ya existe y es **nuestro backend**.
+> - Front: `frontend/src/auth/proveedores/api.ts`.
+> - Rutas: `backend/api/acceso.py`.
+> - Almacén: `backend/api/almacen_acceso.py`, en Postgres, esquema `acceso` (`supabase/migrations/20261014090000_cuentas_login.sql`).
+> - En producción el front usa `api` por defecto.
+>
+> Cómo encenderlo: [PUESTA_EN_MARCHA.md](PUESTA_EN_MARCHA.md).
+
 El login se construye **sin atarse a ningún proveedor de nube** (D8): Machea piensa migrar de Supabase a
 otro servicio. Las pantallas hablan con una sola interfaz, `ProveedorAuth`, y el día que se elija la nube
 se escribe un proveedor que la cumpla. Ninguna pantalla cambia.

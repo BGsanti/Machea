@@ -1,4 +1,30 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/cuentas",
+      "destination": "https://machea-api.onrender.com/api/cuentas"
+    },
+    {
+      "source": "/api/cuentas/:ruta*",
+      "destination": "https://machea-api.onrender.com/api/cuentas/:ruta*"
+    },
+    {
+      "source": "/api/sesion",
+      "destination": "https://machea-api.onrender.com/api/sesion"
+    },
+    {
+      "source": "/api/sesion/:ruta*",
+      "destination": "https://machea-api.onrender.com/api/sesion/:ruta*"
+    },
+    {
+      "source": "/api/clave",
+      "destination": "https://machea-api.onrender.com/api/clave"
+    },
+    {
+      "source": "/api/clave/:ruta*",
+      "destination": "https://machea-api.onrender.com/api/clave/:ruta*"
+    }
+  ],
   "headers": [
     {
       "source": "/admin",

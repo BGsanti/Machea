@@ -1,13 +1,16 @@
 /* MACHEA — Punto de entrada del login: elige el proveedor y lo entrega a las pantallas.
  *
  * Variables de Vite (archivo .env.local o el panel de Vercel; ninguna es secreta):
- *   VITE_AUTH_PROVEEDOR              'prueba' (por defecto). El de la nube se agrega cuando se elija (D8).
+ *   VITE_AUTH_PROVEEDOR              'api' = nuestro backend (D20, backend/api/acceso.py) o 'prueba' = todo en
+ *                                    el navegador. Por defecto: 'api' en producción y 'prueba' en local
+ *                                    (en local, 'api' necesita el backend corriendo: ver vite.config.ts).
  *   VITE_AUTH_PRUEBA_EN_PRODUCCION   '1' para permitir el proveedor de prueba en un build de producción
  *                                    (solo para una vista previa de demo; NUNCA en www.machea.co).
  *   VITE_GOOGLE_CLIENT_ID            el Client ID público del cliente OAuth "Web" de Google. Vacío = sin botón.
  */
 
 import { ErrorAuth, type ProveedorAdmin, type ProveedorAuth, type Sesion } from './contrato.ts';
+import { ProveedorApi } from './proveedores/api.ts';
 import { ProveedorPrueba } from './proveedores/prueba.ts';
 import { almacenDelNavegador } from './sesion.ts';
 
@@ -35,8 +38,10 @@ let unico: (ProveedorAuth & Partial<ProveedorAdmin>) | null = null;
 export function proveedor(): ProveedorAuth & Partial<ProveedorAdmin> {
   if (unico) return unico;
   const env = import.meta.env;
-  const nombre = String(env.VITE_AUTH_PROVEEDOR || 'prueba');
-  if (nombre === 'prueba') {
+  const nombre = String(env.VITE_AUTH_PROVEEDOR || (env.PROD ? 'api' : 'prueba'));
+  if (nombre === 'api') {
+    unico = new ProveedorApi();
+  } else if (nombre === 'prueba') {
     const permitido = !env.PROD || env.VITE_AUTH_PRUEBA_EN_PRODUCCION === '1';
     unico = permitido
       ? new ProveedorPrueba({
@@ -48,7 +53,6 @@ export function proveedor(): ProveedorAuth & Partial<ProveedorAdmin> {
         })
       : new ProveedorApagado();
   } else {
-    // Aquí se conecta el proveedor de la nube cuando exista: new ProveedorNube({...}).
     unico = new ProveedorApagado();
   }
   return unico;
