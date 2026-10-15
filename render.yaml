@@ -45,3 +45,7 @@ services:
         sync: false
       - key: ADMIN_SESION_MINUTOS       # duración de la sesión (por defecto 60)
         sync: false
+      # --- Login de empresas (api/acceso.py; guía: design/login/PUESTA_EN_MARCHA.md) ---
+      - key: DATABASE_URL               # SECRETA. Postgres de las cuentas: cadena del "Session pooler" de Supabase (IPv4)
+        sync: false
+      - key: ORIGENES_ACCESO            # opcional: más orígenes del front (coma). machea.co y www.machea.co ya están

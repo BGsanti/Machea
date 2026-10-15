@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
-<link rel="stylesheet" href="admin.css?v=6">
+<link rel="stylesheet" href="admin.css?v=7">
 </head>
 <body>
 
@@ -146,6 +146,23 @@
       <div class="tabla-envuelta"><table class="tabla" id="tablaCfg"><thead><tr><th scope="col">Variable</th><th scope="col">Necesidad</th><th scope="col">Estado</th><th scope="col">Para qué sirve</th></tr></thead><tbody></tbody></table></div>
     </section>
 
+    <!-- Cuentas de empresas (el login de /acceso/; ver design/login/). Se pinta con textContent desde admin.js. -->
+    <section class="tarjeta" aria-labelledby="g-cuentas" id="cuentas">
+      <div class="tarjeta-cab">
+        <h2 id="g-cuentas">Cuentas de empresas</h2>
+        <div class="cuentas-filtro" role="group" aria-label="Qué cuentas mostrar">
+          <button type="button" class="btn btn-suave btn-mini" data-filtro="pendiente" aria-pressed="true">Pendientes<b id="cuentasPend"></b></button>
+          <button type="button" class="btn btn-suave btn-mini" data-filtro="" aria-pressed="false">Todas</button>
+        </div>
+      </div>
+      <p class="tarjeta-nota">Constructoras e inmobiliarias que se registraron en el acceso. Al aprobar una cuenta marcas si es constructora o inmobiliaria; una cuenta que no confirmó su correo todavía no se puede decidir.</p>
+      <p class="aviso aviso-info" id="cuentasAviso" role="status" hidden></p>
+      <div class="tabla-envuelta" id="cuentasCaja" hidden>
+        <table class="tabla" id="tablaCuentas"><thead><tr><th scope="col">Empresa</th><th scope="col">Estado</th><th scope="col">Registrada</th><th scope="col">Acciones</th></tr></thead><tbody></tbody></table>
+      </div>
+      <p class="vacio" id="cuentasVacio" hidden>No hay cuentas pendientes.</p>
+    </section>
+
     <footer class="pie">
       <p><svg class="ic"><use href="#i-shield"/></svg><span id="pieSesion">Sesión activa.</span> <span id="pieSeg"></span></p>
       <p>Los contadores y la actividad viven en la memoria del servidor: se reinician con cada despliegue. Este panel no muestra datos de leads.</p>
@@ -153,6 +170,6 @@
   </main>
 </div>
 
-<script src="admin.js?v=5"></script>
+<script src="admin.js?v=6"></script>
 </body>
 </html>

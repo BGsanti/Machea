@@ -1815,6 +1815,76 @@ de este bundle del invariante 1.
 
 ---
 
+### 8.4 El login: `/acceso/`, `/acceso/nueva-clave/` e `/inicio/`
+
+Las decisiones, los mockups, el plan y el borrador de la política de privacidad están en `design/login/`.
+El contrato está en `design/login/CONTRATO_AUTH.md`.
+
+- **Alcance: solo el login.** Detrás irán el panel de administrador y el CRM de las empresas.
+  - `/inicio/` es la página provisional después de entrar. Según el estado de la cuenta muestra "en
+    revisión", "no fue aprobada" o la bienvenida.
+- **Una cuenta = una empresa** (constructora o inmobiliaria).
+  - Registro mínimo: nombre de usuario, correo y contraseña de al menos 10 caracteres.
+  - Ciclo de vida: `sin_confirmar → pendiente → aprobada | rechazada`.
+  - Machea aprueba desde `/admin` y ahí marca si es constructora o inmobiliaria.
+- **Las cuentas son nuestras (D20, 2026-10-14):**
+  - Rutas públicas en `backend/api/acceso.py`: `/api/cuentas`, `/api/sesion` y `/api/clave`.
+  - Almacén en `backend/api/almacen_acceso.py`: Postgres con `DATABASE_URL` (secreta, solo en Render), en el esquema
+    `acceso` de `supabase/migrations/20261014090000_cuentas_login.sql`.
+  - La contraseña va con scrypt.
+  - La sesión va en una cookie HttpOnly, Secure, SameSite=Lax y Path=/api; en la base solo queda el SHA-256 del
+    token y de los enlaces.
+  - El front llama a `/api/...` en su mismo dominio: `vercel.json` (`rewrites`) lo reenvía a Render, y en local lo
+    hace `vite.config.ts` (`server.proxy`).
+  - Sin `DATABASE_URL` todo responde 503 `no_disponible`. Encenderlo: `design/login/PUESTA_EN_MARCHA.md`.
+  - Pruebas: `python -m unittest tests.test_acceso tests.test_almacen_pg -v`. La segunda necesita
+    `TEST_DATABASE_URL` hacia un Postgres de prueba, nunca el de producción.
+- **Independiente del proveedor de nube** (Machea va a migrar de Supabase):
+  - las pantallas solo usan `ProveedorAuth` (`src/auth/contrato.ts`);
+  - hoy existe solo `proveedores/prueba.ts`, que vive en el navegador y simula los correos en un buzón;
+  - el proveedor real se escribe al elegir la nube y debe cumplir lo de `CONTRATO_AUTH.md`;
+  - **en un build de producción el proveedor de prueba queda apagado** (el login responde "todavía no está
+    disponible"), salvo con `VITE_AUTH_PRUEBA_EN_PRODUCCION=1`, que nunca debe usarse en www.machea.co.
+- **Código:**
+  - `src/auth/`: contrato, validación, sesión, Google y proveedores.
+  - `src/paginas/`: pantallas, estilos y logo.
+  - Entradas de Vite: `acceso/index.html`, `acceso/nueva-clave/index.html` e `inicio/index.html`, registradas en
+    `vite.config.ts`.
+  - Sin librerías.
+- **Diseño:** propuesta B "Centrada" (una tarjeta sobre gris claro), con la marca del manual: Inter, `#FC4633` y `#1F2E42`.
+  - El botón rojo lleva letra de 18,67 px en negrita, que cuenta como "texto grande" (3:1).
+  - El texto rojo pequeño va con `--red-texto` (`#c0341f`).
+  - axe AA da 0 hallazgos.
+- **Google: apagado por ahora (D19, 2026-10-13).** Google exige política de privacidad, página de inicio y términos
+  de servicio publicados para toda app externa en producción, y Machea aún no está constituida. El código queda listo.
+- **Google, cuando se active:** botón oficial de Google Identity Services, en popup/FedCM, con nonce.
+  - Aparece solo si `VITE_GOOGLE_CLIENT_ID` tiene valor.
+  - El ID token lo verifica el proveedor en el servidor.
+  - Requiere `Referrer-Policy: strict-origin-when-cross-origin` (con `no-referrer` no funciona) y la CSP abierta a
+    `https://accounts.google.com/gsi/`. Las dos cosas ya están en `vercel.json`, que es la **única** fuente de la CSP de estas
+    páginas.
+- **Seguridad del front:**
+  - `?volver=` solo acepta rutas del mismo sitio (`destinoSeguro`).
+  - Los tokens de los enlaces salen de la barra de direcciones apenas se leen.
+  - Los mensajes no revelan si un correo tiene cuenta.
+  - Cambiar la clave cierra las sesiones.
+  - "Recordarme" decide entre localStorage y sessionStorage.
+- **Aprobación en `/admin` → "Cuentas de empresas":**
+  - Lista las cuentas pendientes o todas, y permite aprobar (marcando constructora o inmobiliaria) o rechazar; el
+    rechazo pide un segundo clic.
+  - Backend en `backend/api/cuentas.py`: `GET /api/admin/cuentas`, `POST …/{id}/aprobar` y `POST …/{id}/rechazar`, con la
+    misma sesión y las mismas reglas del panel (`exigir`).
+  - Habla con un `AlmacenCuentas` que se conecta con `configurar_almacen()` al elegir la nube. Sin almacén responde 503
+    `no_disponible`, y el panel lo explica.
+  - Cada decisión queda en "Actividad reciente". Pruebas: `python -m unittest tests.test_cuentas -v`.
+- **Probar en local:** `npm run dev` → `/acceso/`. El panel oscuro "Prueba" (abajo a la izquierda, solo con el
+  proveedor de prueba) muestra los correos simulados con su enlace y permite aprobar o rechazar cuentas.
+  Pruebas de la lógica: `npm run test:auth` (`node --test`, sin dependencias).
+- **Historia:** el prototipo de Felipe con marca por cliente (`?marca=`, `?demo=`, `derivar()`) vive en el commit `6203cbf`
+  (rama `acceso-marca`). Se retiró al decidir un login solo con la marca de Machea, y con él el botón "Ver cómo se vería tu
+  acceso" de la landing. Si vuelve la marca por cliente, la tiene que resolver el servidor y no el token `?demo=`, que el
+  navegador no verifica.
+
 ## 9. Invariantes que no se pueden romper
 
 1. **`Model/catalogos.py` es la única fuente de los ids.** Los índices de
