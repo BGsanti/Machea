@@ -1660,6 +1660,9 @@ en 0,50 son lo que evita que sean muchos más.
 
 ## 8. La landing y el formulario (`frontend/`)
 
+> **Nota (2026-10-15):** la landing de `/` es ahora la versión plana de §8.5. Lo que sigue en §8 y §8.2 describe la
+> landing React anterior, que se conserva en `/anterior.html`.
+
 **Hubo una landing, se borró para mostrar solo la experiencia, y volvió.**
 Entre medias existió una copia de este repo con `src/` entero fuera —React
 19, Tailwind v4, Framer Motion, `Navbar · Hero · Marquee · Benefits ·
@@ -1814,6 +1817,79 @@ fuerza `SIN_BACKEND: true`— son idénticas, y dejarlas divergir es la versión
 de este bundle del invariante 1.
 
 ---
+
+### 8.4 `public/acceso/` — la pantalla de acceso con marca propia (PROTOTIPO)
+
+Referencia de diseño: el login de YAVE CRM (pantalla dividida: formulario claro a la izquierda y un panel de
+marca con degradado y entrada animada a la derecha). La de Machea es para los **próximos clientes**: cada uno
+ve su propio nombre, logo y colores, con "Con tecnología Machea" discreto.
+
+- **URL:** `/acceso/`. Tres archivos sueltos (`index.html`, `acceso.css`, `acceso.js`), sin librerías ni código en línea.
+- **NO inicia sesión todavía.** El formulario valida, muestra un aviso honesto, borra lo escrito y no envía nada: la CSP
+  (`form-action 'none'`, `connect-src 'none'`) lo impide. Hasta que haya acceso real (Supabase Auth con `tenant_id` y RLS)
+  no debe pedir credenciales de verdad. Está en `noindex`.
+- **De dónde sale la marca:** `?demo=<token>` (el enlace firmado de "Pruébalo con tu marca": nombre, tipo, color y logo del
+  prospecto), `?marca=<slug>` (machea, amarilo, colsubsidio, constructora-bolivar, cusezar) o Machea por defecto. Un token
+  vencido o inválido cae en Machea. **Nunca** se aceptan nombres o colores libres por la dirección (alguien armaría un
+  enlace con el nombre de un banco). `?editor=1` abre un editor local para probar marcas, sin tocar la dirección.
+- **Contraste garantizado (`derivar()` en `acceso.js`):** de uno o dos colores salen todos los tokens. El botón y el color
+  central del panel se oscurecen lo justo (hasta un 40 %) para que el texto blanco pase AA; si el color es claro
+  (amarillos, pasteles) el texto pasa a oscuro. Los enlaces se oscurecen hasta 4,5:1 sobre el fondo. Medido en 14 marcas
+  (incluidos amarillo, casi blanco, negro y pastel). Machea usa coral para la marca y navy para el panel (`panel`).
+- **Animación (solo escritorio y sin `prefers-reduced-motion`):** 1,5 s de entrada (la marca atraviesa la pantalla entre
+  siluetas de inmuebles que caen), título que se escribe letra a letra y tarjetas de vidrio que entran una por una. En
+  móvil el panel pasa a una franja de marca arriba, sin animación. Durante el arranque no hay transiciones (`.preparando`):
+  así el cliente no ve un destello del color por defecto.
+- **Desde la landing:** al armar una demo, el botón "Ver cómo se vería tu acceso" abre `/acceso/?demo=<el mismo token>`.
+- **Límite conocido (para el login real):** el navegador decodifica el token sin verificar la firma (igual que
+  `experiencia/js/demo.js`). Hoy es inocuo porque la página no captura nada; con login real la marca debe resolverla el
+  SERVIDOR a partir del cliente (slug/dominio) y no de un enlace.
+- **Siguiente:** Supabase Auth (correo + contraseña y Google; Apple queda fuera por el costo de la cuenta de desarrollador),
+  tabla de clientes con sus colores/logo, `cliente.machea.co`, y panel de leads por cliente.
+
+### 8.5 La landing plana (`index.html` + `src/landing/`) y "Agenda una demo"
+
+**Qué es hoy `/`.** Desde 2026-10-15 la landing ya no es la "película" de scroll (GSAP + Three.js + el modelo 3D
+`demo3d.js`, ~1 MB) ni la app React de §8.2: es una página **plana** al estilo de las startups de producto (referencia:
+dapta.ai/es). `index.html` es solo marcado; los estilos y el script viven en `src/landing/landing.css` y
+`src/landing/landing.js`, que Vite empaqueta y minifica (≈ 27 KB de CSS y 15 KB de JS, sin librerías). La fuente Archivo
+va **autoalojada** en `public/fonts/archivo-latin.woff2` (35 KB, sin pedir nada a Google). La landing React vieja sigue
+en `/anterior.html` (noindex).
+
+**Reglas de movimiento** (la razón de ser del cambio: que cargue y se desplace rápido, sobre todo en celular):
+- Celular y tablet: **nada se mueve al hacer scroll**. Todo es contenido estático.
+- Escritorio con puntero fino y sin `prefers-reduced-motion` (clase `anim` en `<html>`, puesta por un script mínimo en la
+  cabecera): entradas suaves de 0,5 s (opacidad + 14 px) al entrar en pantalla y la historia del lead en la tarjeta del hero,
+  una sola vez. Sin pin, sin scroll secuestrado, sin bucle de animación. Si el módulo no carga en 3 s, `anim` se quita y
+  todo queda visible.
+- No agregar librerías de animación ni escenas WebGL a esta página sin hablarlo: es justo lo que se quitó.
+
+**Estructura:** nav (Cómo funciona · Soluciones · Demo · Preguntas · *Iniciar sesión* · **Agenda una demo** · **Empieza gratis**)
+→ hero con la tarjeta del recorrido del lead → cifras → problema vs. Machea → cómo funciona (4 pasos + conversión) → mini
+demo (una pregunta real del formulario que arma un plano plano en CSS, sin 3D) → soluciones (inmobiliarias / constructoras)
+→ **Empieza gratis** → preguntas (`<details>` nativos, sin JS) → cierre → pie. Los únicos botones de acción son **Agenda
+una demo** y **Empieza gratis** (más el enlace *Iniciar sesión*).
+
+**Qué hace cada botón:**
+- **Empieza gratis** baja a `#empieza`: el formulario "Pruébalo con tu marca" de siempre (`/api/demo/solicitar`, §8 y
+  `backend/api/demo.py`), sin cambios de contrato.
+- **Agenda una demo** abre un `<dialog>` a pantalla completa con un formulario **por pasos** (estilo dForms, con la marca de
+  Machea): problema, fuente de leads, pauta mensual, leads al mes, tipo de empresa, CRM, empresa + sitio web y contacto
+  (nombre, celular, correo y autorización de tratamiento de datos). Se abre también con `/#agendar`. Las respuestas se
+  guardan llamando a la función `solicitar_demo` de Supabase (`supabase/migrations/20261015120000_solicitudes_demo.sql`,
+  tabla cerrada, solo escritura con la clave anon, tope de 3 por celular al día y 300 por hora). Si Supabase no responde, la
+  pantalla final ofrece enviar las respuestas por correo a `equipo@machea.co` con un clic (no se pierde el lead).
+- **Iniciar sesión** lleva a `/acceso/` (§8.4), que todavía es un **prototipo**: no inicia sesión.
+
+**PENDIENTE (marcado en el código como `llamadaAgenteActiva: false` en `src/landing/landing.js`):**
+1. **Aplicar la migración** `20261015120000_solicitudes_demo.sql` en Supabase (SQL Editor). Hasta entonces el formulario
+   muestra la pantalla de respaldo por correo.
+2. **Crear el agente de voz que llama a quien pide la demo** (en Dapta: agente + flujo, y un disparador que lea las filas de
+   `solicitudes_demo` con `estado = 'pendiente'` y las pase a `llamando` / `contactado`). Mientras no exista, la pantalla de
+   éxito promete que "un asesor de Machea te va a contactar", no una llamada automática. Al activarlo, poner
+   `llamadaAgenteActiva: true` para que el texto diga que un agente llama en los próximos minutos.
+3. Ver las solicitudes en el panel de administración (`/admin/`) y, más adelante, en el CRM.
+4. Login real (Supabase Auth + Google, §8.4) y, con él, decidir si *Iniciar sesión* sigue visible en la landing.
 
 ## 9. Invariantes que no se pueden romper
 

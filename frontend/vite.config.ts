@@ -12,7 +12,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      // index.html es la landing estática (película, demo 3D y botón al formulario);
+      // index.html es la landing plana (src/landing/: CSS y JS sueltos, sin librerías);
       // anterior.html conserva la landing React de GO FEST en /anterior.html.
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
