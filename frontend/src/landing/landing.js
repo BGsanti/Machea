@@ -29,7 +29,15 @@ const ico = (id) => `<svg aria-hidden="true"><use href="#${id}"/></svg>`;
 
 window.__ml = 1; // avisa al script de la cabecera que este módulo cargó
 
-/* ---- Entradas suaves: solo escritorio con puntero fino ------------------- */
+/* ---- Entradas suaves y escenas de una sola vez: solo escritorio con puntero fino ---- */
+function contar(el) {
+  const to = Number(el.dataset.count), suf = el.dataset.suffix || '', t0 = performance.now(), ms = 1400;
+  (function paso(t) {
+    const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(to * e) + suf;
+    if (k < 1) requestAnimationFrame(paso);
+  })(t0);
+}
 if (root.classList.contains('anim') && 'IntersectionObserver' in window) {
   const io = new IntersectionObserver((entries) => {
     entries.forEach((en) => {
@@ -39,6 +47,50 @@ if (root.classList.contains('anim') && 'IntersectionObserver' in window) {
     });
   }, { rootMargin: '0px 0px -8% 0px' });
   $$('.rv').forEach((el) => io.observe(el));
+
+  // Escenas que se juegan una vez (formulario que se escribe, reloj de la demora, pasos que se encienden…).
+  // Por defecto el HTML ya trae el estado final: en celular y con "reducir movimiento" no se anima nada.
+  $$('[data-go] [data-count], [data-go][data-count]').forEach((n) => { n.textContent = '0' + (n.dataset.suffix || ''); });
+  const go = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      en.target.classList.add('go');
+      $$('[data-count]', en.target).forEach(contar);
+      if (en.target.dataset.count) contar(en.target);
+      go.unobserve(en.target);
+    });
+  }, { threshold: 0.35 });
+  $$('[data-go]').forEach((el) => go.observe(el));
+
+  // Hero: la ciudad "enciende" leads (foto con más ventanas coral que se funde despacio) y sigue al cursor unos píxeles.
+  const pan = $('.hero-pan');
+  if (pan) {
+    const lit = new Image();
+    lit.className = 'city lit'; lit.alt = ''; lit.decoding = 'async';
+    lit.onload = () => pan.appendChild(lit);
+    lit.src = '/ciudad/hero-lit-1600.webp';
+    let raf = 0, mx = 0, my = 0;
+    $('#inicio').addEventListener('pointermove', (e) => {
+      mx = e.clientX / window.innerWidth - 0.5; my = e.clientY / window.innerHeight - 0.5;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        pan.style.setProperty('--px', (mx * -16).toFixed(1) + 'px');
+        pan.style.setProperty('--py', (my * -9).toFixed(1) + 'px');
+      });
+    }, { passive: true });
+  }
+  // Tarjeta del lead: el cronómetro corre hasta 00:28 una vez.
+  const tiempo = $('#lcTime');
+  if (tiempo) {
+    const t0 = performance.now(), ms = 2800;
+    tiempo.textContent = '00:00';
+    (function paso(t) {
+      const k = Math.min(1, (t - t0) / ms), s = Math.round(28 * k);
+      tiempo.textContent = '00:' + String(s).padStart(2, '0');
+      if (k < 1) requestAnimationFrame(paso);
+    })(t0);
+  }
 } else {
   root.classList.remove('anim');
 }

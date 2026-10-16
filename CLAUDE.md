@@ -1851,24 +1851,46 @@ ve su propio nombre, logo y colores, con "Con tecnología Machea" discreto.
 
 **Qué es hoy `/`.** Desde 2026-10-15 la landing ya no es la "película" de scroll (GSAP + Three.js + el modelo 3D
 `demo3d.js`, ~1 MB) ni la app React de §8.2: es una página **plana** al estilo de las startups de producto (referencia:
-dapta.ai/es). `index.html` es solo marcado; los estilos y el script viven en `src/landing/landing.css` y
-`src/landing/landing.js`, que Vite empaqueta y minifica (≈ 27 KB de CSS y 15 KB de JS, sin librerías). La fuente Archivo
-va **autoalojada** en `public/fonts/archivo-latin.woff2` (35 KB, sin pedir nada a Google). La landing React vieja sigue
-en `/anterior.html` (noindex).
+dapta.ai/es) que **conserva el diseño de la película anterior**: la ciudad de fondo, el amanecer, los capítulos
+(5 min → 21×, formulario genérico y reloj de la demora, "En segundos", las ilustraciones isométricas) y los fondos
+suaves. Lo único que se quitó fue lo atado al scroll. `index.html` es solo marcado; los estilos y el script viven en
+`src/landing/landing.css` y `src/landing/landing.js`, que Vite empaqueta y minifica (≈ 50 KB de CSS y 17 KB de JS, sin
+librerías). La fuente Archivo va **autoalojada** en `public/fonts/archivo-latin.woff2` (35 KB). La landing React vieja
+sigue en `/anterior.html` (noindex).
+
+**La ciudad ya no es WebGL: son "fotos".** `public/ciudad/*.webp` son capturas de la escena 3D de la landing anterior
+(`window.MacheaCity`, commit `ee5eaaa`, `frontend/index.html`) en cinco estados, a 1600 px y 800 px de ancho (más una
+vertical para celular). Así no hace falta cargar Three.js ni usar la GPU. Para regenerarlas: abrir esa versión, crear un
+`MacheaCity` en un canvas del tamaño deseado, fijar `state.p` y los uniformes y exportar el canvas.
+
+| Imagen | `state.p` | `uLit` | `uCool` | `uQual` | Dónde se usa |
+|---|---|---|---|---|---|
+| `hero` / `hero-lit` / `hero-m` | 0 | .2 / .62 / .3 | 0 | 0 | fondo del hero (`hero-lit` se funde encima en escritorio; `hero-m` es la vertical del celular) |
+| `velocidad` | .24 | .42 | 0 | 0 | banda "5 min → 21×" |
+| `fria` | .47 | .62 | .93 | 0 | tarjeta "Proceso tradicional" (leads que se enfrían, en gris) |
+| `calificada` | .66 | .62 | .3 | .35 | tarjeta "Con Machea" (calificados en esmeralda) |
+| `ventanas` | .82 | .62 | .25 | .3 | banda "Del tráfico a la conversación" (sobre navy) |
+
+Las ilustraciones isométricas (`public/media/descubrimiento-1100`, `vis-engativa-1400`) y los renders (`sala-1200`,
+`fachada-800`) son copias recomprimidas de las de siempre; las originales quedan en `public/media/` sin usar.
 
 **Reglas de movimiento** (la razón de ser del cambio: que cargue y se desplace rápido, sobre todo en celular):
-- Celular y tablet: **nada se mueve al hacer scroll**. Todo es contenido estático.
+- Celular y tablet: **nada se mueve al hacer scroll**. Todo es contenido estático y todo aparece en su estado final.
 - Escritorio con puntero fino y sin `prefers-reduced-motion` (clase `anim` en `<html>`, puesta por un script mínimo en la
-  cabecera): entradas suaves de 0,5 s (opacidad + 14 px) al entrar en pantalla y la historia del lead en la tarjeta del hero,
-  una sola vez. Sin pin, sin scroll secuestrado, sin bucle de animación. Si el módulo no carga en 3 s, `anim` se quita y
-  todo queda visible.
-- No agregar librerías de animación ni escenas WebGL a esta página sin hablarlo: es justo lo que se quitó.
+  cabecera): entradas suaves de 0,5 s al entrar en pantalla; en el hero, la ciudad "enciende" leads (dos fotos que se
+  funden despacio) y sigue al cursor unos píxeles, el cronómetro corre hasta 00:28 y los pasos del lead se marcan; y cada
+  escena (`data-go`) se juega **una sola vez** al entrar (el formulario genérico se escribe, el reloj sube a 48 h, los pasos
+  "En segundos" se encienden, las notas aparecen sobre el apartamento, la línea Lead → Asesor se dibuja). Sin pin, sin
+  scroll secuestrado, sin escena que corra todo el tiempo salvo el titilar de las estrellas del cierre. Si el módulo no
+  carga en 3 s, `anim` se quita y todo queda visible.
+- No agregar librerías de animación ni WebGL a esta página sin hablarlo: es justo lo que se quitó.
 
-**Estructura:** nav (Cómo funciona · Soluciones · Demo · Preguntas · *Iniciar sesión* · **Agenda una demo** · **Empieza gratis**)
-→ hero con la tarjeta del recorrido del lead → cifras → problema vs. Machea → cómo funciona (4 pasos + conversión) → mini
-demo (una pregunta real del formulario que arma un plano plano en CSS, sin 3D) → soluciones (inmobiliarias / constructoras)
-→ **Empieza gratis** → preguntas (`<details>` nativos, sin JS) → cierre → pie. Los únicos botones de acción son **Agenda
-una demo** y **Empieza gratis** (más el enlace *Iniciar sesión*).
+**Estructura:** nav (Cómo funciona · Soluciones · Demo · Preguntas · *Iniciar sesión* · **Agenda una demo** ·
+**Empieza gratis**) → hero sobre la ciudad → velocidad de contacto → proceso tradicional vs. Machea → del tráfico a la
+conversación → cómo funciona (4 tarjetas con su ilustración + conversión) → mini demo (una pregunta real del formulario
+que arma un plano plano en CSS, sin 3D) → soluciones (inmobiliarias / constructoras) → **Empieza gratis** → preguntas
+(`<details>` nativos, sin JS) → cierre al amanecer con el horizonte de la ciudad → pie. Los únicos botones de acción son
+**Agenda una demo** y **Empieza gratis** (más el enlace *Iniciar sesión*).
 
 **Qué hace cada botón:**
 - **Empieza gratis** baja a `#empieza`: el formulario "Pruébalo con tu marca" de siempre (`/api/demo/solicitar`, §8 y
@@ -1890,6 +1912,8 @@ una demo** y **Empieza gratis** (más el enlace *Iniciar sesión*).
    `llamadaAgenteActiva: true` para que el texto diga que un agente llama en los próximos minutos.
 3. Ver las solicitudes en el panel de administración (`/admin/`) y, más adelante, en el CRM.
 4. Login real (Supabase Auth + Google, §8.4) y, con él, decidir si *Iniciar sesión* sigue visible en la landing.
+5. La línea del capítulo "Calificación con IA" dice "No contesta · sigue por WhatsApp" (texto de la landing anterior): el
+   seguimiento por WhatsApp sigue apagado en el backend (`api/seguimiento.py`) hasta tener su flujo en Dapta.
 
 ## 9. Invariantes que no se pueden romper
 
