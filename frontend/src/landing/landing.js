@@ -4,6 +4,8 @@
    "Empieza gratis" (demo con tu marca) y "Agenda una demo" (formulario por pasos).
    ========================================================================== */
 
+import { pintarPruebaSocial } from './prueba-social.js';
+
 /* ---- Configuración ------------------------------------------------------- */
 const CONFIG = {
   // Backend de Machea (Render). "Empieza gratis" le pide la demo con la marca.
@@ -94,6 +96,39 @@ if (root.classList.contains('anim') && 'IntersectionObserver' in window) {
 } else {
   root.classList.remove('anim');
 }
+
+/* ---- La demo funcionando: 3 escenas que se juegan solas (perfila · llama · entrega) ---- */
+pintarPruebaSocial($('#trust'));
+(function demoEnMovimiento() {
+  const pl = $('#player');
+  if (!pl) return;
+  const caps = $$('.pl-chapters button', pl), tiempo = $('#plTime'), play = $('.pl-play', pl);
+  const T = ['00:12', '00:19', '00:28'];
+  let escena = Number(pl.dataset.scene) || 3;
+  function poner(n) {
+    escena = n;
+    pl.dataset.scene = String(n);
+    caps.forEach((b, i) => {
+      b.parentElement.classList.toggle('on', i + 1 === n);
+      b.parentElement.classList.toggle('done', i + 1 < n);
+    });
+    tiempo.textContent = T[n - 1];
+  }
+  caps.forEach((b) => b.addEventListener('click', () => poner(Number(b.dataset.go))));
+  play.addEventListener('click', () => {
+    const en = pl.classList.toggle('paused');
+    play.setAttribute('aria-label', en ? 'Reproducir la demostración' : 'Pausar la demostración');
+  });
+  // Al terminar el relleno del capítulo activo (5 s), pasa a la siguiente escena y vuelve a empezar.
+  pl.addEventListener('animationend', (e) => { if (e.animationName === 'plfill') poner(escena % 3 + 1); });
+  // Con "reducir movimiento" o sin IntersectionObserver queda quieta en la última escena (se navega con los capítulos).
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) { pl.classList.add('paused'); play.hidden = true; return; }
+  let iniciado = false;
+  new IntersectionObserver(([en]) => {
+    if (en.isIntersecting && !iniciado) { iniciado = true; pl.classList.add('live'); poner(1); }
+    pl.classList.toggle('offscreen', !en.isIntersecting);
+  }, { threshold: 0.4 }).observe(pl);
+})();
 
 /* ---- Navegación: sombra al bajar y menú móvil ---------------------------- */
 const nav = $('#nav');

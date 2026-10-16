@@ -1885,8 +1885,17 @@ Las ilustraciones isométricas (`public/media/descubrimiento-1100`, `vis-engativ
   carga en 3 s, `anim` se quita y todo queda visible.
 - No agregar librerías de animación ni WebGL a esta página sin hablarlo: es justo lo que se quitó.
 
+**La demo funcionando (justo debajo del hero, `#demo-video`).** Una "ventana de producto" oscura que se juega sola en
+3 escenas de ~5 s —*Perfila* (el lead responde y se arma su vivienda), *Llama* (Manuela y lo que valida) y *Entrega* (la
+ficha llega al asesor, 00:28)— con capítulos clicables y pausa. NO es un video: es HTML/CSS (vectorial, nítida en cualquier
+pantalla, ~8 KB) con datos de ejemplo y la leyenda "Demostración ilustrada". Solo anima mientras está a la vista
+(`IntersectionObserver`), y con "reducir movimiento" queda quieta en la última escena. Corre también en celular (es el
+contenido, no un adorno). Si algún día hay una grabación real que se pueda mostrar, se cambia por un `<video>` sin tocar
+el resto. La **franja de prueba social** (logos, calificación con estrellas, cifra) vive justo encima y se llena en
+`src/landing/prueba-social.js`: **solo con datos reales**; mientras esté vacío no se muestra nada.
+
 **Estructura:** nav (Cómo funciona · Soluciones · Demo · Preguntas · *Iniciar sesión* · **Agenda una demo** ·
-**Empieza gratis**) → hero sobre la ciudad → velocidad de contacto → proceso tradicional vs. Machea → del tráfico a la
+**Empieza gratis**) → hero sobre la ciudad (centrado en celular) → demo funcionando → velocidad de contacto → proceso tradicional vs. Machea → del tráfico a la
 conversación → cómo funciona (4 tarjetas con su ilustración + conversión) → mini demo (una pregunta real del formulario
 que arma un plano plano en CSS, sin 3D) → soluciones (inmobiliarias / constructoras) → **Empieza gratis** → preguntas
 (`<details>` nativos, sin JS) → cierre al amanecer con el horizonte de la ciudad → pie. Los únicos botones de acción son
