@@ -245,6 +245,36 @@ ul, ol { padding: 0; list-style: none; }
   .chip-float { margin-inline: auto; }
 }
 
+/* Hero: acabado (subrayado, brillo, chips flotantes, calificación) */
+.acc-u { position: relative; display: inline-block; }
+.acc-u::after {
+  content: ""; position: absolute; left: -2%; right: -2%; bottom: -0.12em; height: 0.2em; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 14' preserveAspectRatio='none'%3E%3Cpath d='M3 9 C 32 2, 62 13, 100 7 S 170 3, 197 8' fill='none' stroke='%23ff6259' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.lead-wrap::before {
+  content: ""; position: absolute; inset: -14% -22% -14% -12%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 98, 89, 0.2), rgba(255, 177, 153, 0.12) 55%, rgba(255, 177, 153, 0));
+}
+.fl {
+  display: none; position: absolute; z-index: 2; align-items: center; gap: 10px; padding: 9px 14px 9px 10px; white-space: nowrap;
+  background: rgba(255, 255, 255, 0.98); border: 1px solid var(--hair-2); border-radius: 14px; box-shadow: var(--shadow-1);
+}
+.fl b { display: block; font-size: 13px; line-height: 1.2; color: var(--navy); }
+.fl span:not(.ico-bell) { display: block; font-size: 12px; color: var(--ink-3); line-height: 1.2; }
+.ico-bell { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--coral-soft); color: var(--coral-text); }
+.ico-bell svg { width: 15px; height: 15px; }
+.fl .ok { width: 26px; height: 26px; padding: 5px; border-radius: 50%; background: var(--emerald-soft); color: var(--emerald-ink); }
+.fl-new { top: -26px; right: -22px; }
+.fl-sent { bottom: -50px; right: -26px; }
+@media (min-width: 980px) { .fl { display: flex; } }
+
+.hero-rate { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 14.5px; color: var(--ink-2); font-weight: 600; }
+.hero-rate[hidden] { display: none; }
+.hero-rate .stars-row svg { width: 19px; height: 19px; }
+.hero-rate b { color: var(--navy); }
+.hero-rate a { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 699px) { .hero-rate { justify-content: center; } }
+
 /* ---------- La demo funcionando (debajo del hero) ---------- */
 .showcase { padding: clamp(8px, 2vw, 24px) 0 clamp(52px, 7vw, 96px); background: #fff; }
 .show-head { display: grid; justify-items: center; gap: 12px; text-align: center; margin-bottom: clamp(24px, 4vw, 40px); }
@@ -870,6 +900,13 @@ dialog.ag::backdrop { background: rgba(34, 48, 66, 0.5); }
   .anim .wave i:nth-child(3n) { animation-delay: 0.3s; }
   @keyframes wave { from { transform: scaleY(0.25); } to { transform: scaleY(1); } }
   .anim .chip-float { opacity: 0; animation: step-in 0.5s ease 2.6s forwards; }
+
+  /* Hero: el subrayado se dibuja una vez y los chips flotan despacio */
+  .anim .acc-u::after { clip-path: inset(0 100% 0 0); animation: draw 0.9s ease-out 0.5s forwards; }
+  @keyframes draw { to { clip-path: inset(0 0 0 0); } }
+  .anim .fl { opacity: 0; animation: step-in 0.5s ease 2.9s forwards, floaty 6s ease-in-out 3.4s infinite alternate; }
+  .anim .fl-sent { animation-delay: 3.3s, 3.8s; }
+  @keyframes floaty { from { transform: translateY(0); } to { transform: translateY(-6px); } }
 
   /* Escenas que se juegan una sola vez al entrar en pantalla (data-go -> .go) */
   .anim .deadform .f::after { width: 0; }

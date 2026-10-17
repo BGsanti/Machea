@@ -4,7 +4,7 @@
    "Empieza gratis" (demo con tu marca) y "Agenda una demo" (formulario por pasos).
    ========================================================================== */
 
-import { pintarPruebaSocial } from './prueba-social.js';
+import { pintarCalificacionHero, pintarPruebaSocial } from './prueba-social.js';
 
 /* ---- Configuración ------------------------------------------------------- */
 const CONFIG = {
@@ -98,6 +98,7 @@ if (root.classList.contains('anim') && 'IntersectionObserver' in window) {
 }
 
 /* ---- La demo funcionando: 3 escenas que se juegan solas (perfila · llama · entrega) ---- */
+pintarCalificacionHero($('#heroRate'));
 pintarPruebaSocial($('#trust'));
 (function demoEnMovimiento() {
   const pl = $('#player');

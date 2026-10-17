@@ -26,22 +26,36 @@ const estrella = (llena) => {
 };
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-export function pintarPruebaSocial(host, datos = PRUEBA_SOCIAL) {
+const calificacionReal = (datos) => (datos.calificacion && Number(datos.calificacion.puntaje) > 0 ? datos.calificacion : null);
+
+function htmlCalificacion(cal) {
+  const p = Math.max(0, Math.min(5, Number(cal.puntaje)));
+  const e = [0, 1, 2, 3, 4].map((i) => estrella(Math.max(0, Math.min(1, p - i)))).join('');
+  const detalle = [cal.resenas ? `${esc(cal.resenas)} reseñas` : '', cal.fuente ? `en ${esc(cal.fuente)}` : ''].filter(Boolean).join(' ');
+  const texto = `<b>${p.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</b>${detalle ? ` · ${detalle}` : ''}`;
+  return `<span class="stars-row" role="img" aria-label="Calificación ${p} de 5">${e}</span><span>${cal.url ? `<a href="${esc(cal.url)}" target="_blank" rel="noopener">${texto}</a>` : texto}</span>`;
+}
+
+// Estrellas del hero: solo si hay una calificación REAL cargada arriba.
+export function pintarCalificacionHero(host, datos = PRUEBA_SOCIAL) {
+  if (!host) return;
+  const cal = calificacionReal(datos);
+  if (!cal) { host.hidden = true; return; }
+  host.innerHTML = htmlCalificacion(cal);
+  host.hidden = false;
+}
+
+// Franja bajo el hero. Si la calificación ya se muestra en el hero, aquí no se repite.
+export function pintarPruebaSocial(host, datos = PRUEBA_SOCIAL, { conCalificacion = false } = {}) {
   if (!host) return;
   const logos = (datos.logos || []).filter((l) => l && l.src);
-  const cal = datos.calificacion && Number(datos.calificacion.puntaje) > 0 ? datos.calificacion : null;
+  const cal = conCalificacion ? calificacionReal(datos) : null;
   if (!logos.length && !datos.resumen && !cal) { host.hidden = true; return; }
   const partes = [];
   if (datos.titulo || datos.resumen) partes.push(`<p class="trust-k">${esc(datos.titulo || datos.resumen)}</p>`);
   if (logos.length) partes.push(`<div class="trust-logos">${logos.map((l) => `<img src="${esc(l.src)}" alt="${esc(l.nombre || '')}" height="30" loading="lazy" decoding="async">`).join('')}</div>`);
   if (datos.titulo && datos.resumen) partes.push(`<p class="trust-k">${esc(datos.resumen)}</p>`);
-  if (cal) {
-    const p = Math.max(0, Math.min(5, Number(cal.puntaje)));
-    const e = [0, 1, 2, 3, 4].map((i) => estrella(Math.max(0, Math.min(1, p - i)))).join('');
-    const detalle = [cal.resenas ? `${esc(cal.resenas)} reseñas` : '', cal.fuente ? `en ${esc(cal.fuente)}` : ''].filter(Boolean).join(' ');
-    const texto = `<b>${p.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</b>${detalle ? ` · ${detalle}` : ''}`;
-    partes.push(`<div class="trust-rate"><span class="stars-row" role="img" aria-label="Calificación ${p} de 5">${e}</span><span>${cal.url ? `<a href="${esc(cal.url)}" target="_blank" rel="noopener">${texto}</a>` : texto}</span></div>`);
-  }
+  if (cal) partes.push(`<div class="trust-rate">${htmlCalificacion(cal)}</div>`);
   host.innerHTML = partes.join('');
   host.hidden = false;
 }

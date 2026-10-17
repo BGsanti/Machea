@@ -1885,6 +1885,13 @@ Las ilustraciones isométricas (`public/media/descubrimiento-1100`, `vis-engativ
   carga en 3 s, `anim` se quita y todo queda visible.
 - No agregar librerías de animación ni WebGL a esta página sin hablarlo: es justo lo que se quitó.
 
+**Acabado del hero:** "segundos" va subrayado a mano (el trazo se dibuja una vez en escritorio), un brillo coral detrás
+de la tarjeta, tres chips alrededor de ella (compatibilidad 97 %, "Nuevo lead", "Ficha enviada"; solo escritorio, flotan
+despacio) y, bajo los botones, una **fila de estrellas de calificación que solo aparece con una calificación REAL**
+cargada en `src/landing/prueba-social.js` (`calificacion: { puntaje, resenas, fuente, url }`). Mientras esté vacía no se
+muestra nada: nunca se pone un puntaje inventado. Los activos estáticos (`/fonts`, `/ciudad`, `/media`) llevan caché larga
+en `frontend/vercel.json`.
+
 **La demo funcionando (justo debajo del hero, `#demo-video`).** Una "ventana de producto" oscura que se juega sola en
 3 escenas de ~5 s —*Perfila* (el lead responde y se arma su vivienda), *Llama* (Manuela y lo que valida) y *Entrega* (la
 ficha llega al asesor, 00:28)— con capítulos clicables y pausa. NO es un video: es HTML/CSS (vectorial, nítida en cualquier
