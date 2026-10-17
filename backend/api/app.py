@@ -453,6 +453,15 @@ def _texto(valor: Any) -> Optional[str]:
     return str(valor) if valor not in (None, "") else None
 
 
+def _booleano(valor: Any) -> Optional[bool]:
+    """Dapta entrega los booleanos del análisis como bool o como texto ("true"/"false")."""
+    if isinstance(valor, bool):
+        return valor
+    if isinstance(valor, str) and valor.strip().lower() in ("true", "false"):
+        return valor.strip().lower() == "true"
+    return None
+
+
 @app.post("/webhooks/dapta/resultado")
 async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     """Receptor del webhook post-call de Dapta (agente Manuela — Machea).
@@ -509,6 +518,11 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
         "presupuesto_confirmado": datos.get("presupuesto_confirmado"),
         "fecha_de_seguimiento": datos.get("fecha_de_seguimiento"),
         "objecion_principal": datos.get("objecion_principal"),
+        # Agenda (Manuela v2, docs/agente-manuela-v2.md): la cita que quedó acordada, si quedó.
+        "cita_agendada": _booleano(datos.get("cita_agendada")),
+        "fecha_hora_cita": datos.get("fecha_hora_cita"),
+        "canal_cita": datos.get("canal_cita"),
+        "motivo_no_agenda": datos.get("motivo_no_agenda"),
     }
     # Si Dapta manda más de un evento por llamada, uno sin análisis no debe
     # borrar los datos que dejó el anterior.

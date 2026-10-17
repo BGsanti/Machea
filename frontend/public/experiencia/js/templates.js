@@ -2248,7 +2248,8 @@
     if (d.nivel_de_urgencia) {
       chips.push(ic('reloj') + ' Urgencia ' + (d.nivel_de_urgencia === 'high' ? 'alta' : d.nivel_de_urgencia === 'medium' ? 'media' : 'baja'));
     }
-    if (d.fecha_de_seguimiento) chips.push(ic('calendario') + ' Seguimiento: ' + esc(d.fecha_de_seguimiento));
+    if (d.cita_agendada === true) chips.push(ic('calendario') + ' Cita confirmada');
+    if (d.fecha_de_seguimiento) chips.push(ic('calendario') + ' ' + (d.cita_agendada === true ? 'Cita' : 'Seguimiento') + ': ' + esc(d.fecha_de_seguimiento));
     var chipsHtmlResumen = chips.length
       ? '<div class="gdf-confirm-resumen-chips">' +
         chips.map(function (c) { return '<span class="gdf-chip">' + c + '</span>'; }).join('') +

@@ -1424,6 +1424,18 @@ Render, Vercel, Supabase y Cloudflare; actividad reciente, topes de uso y qué v
 - **Dapta (cuenta/créditos)** se consulta por su MCP (`https://mcp.dapta.ai/mcp`, `whoami` + `get_my_balance`) con la
   misma `DAPTA_API_KEY`; si la clave no sirve para eso, se muestra "con avisos" sin tumbar nada.
 
+### 5.6 Manuela v2: el agente que agenda
+
+Hasta el 2026-10-16 el prompt de Manuela no pedía agendar (cerraba con "un asesor te contactará") y dejaba que la llamada
+divagara con preguntas "imaginativas": en 29 llamadas reales solo 1 dejó `fecha_de_seguimiento`. La **v2**
+(`dapta/prompt-manuela.md`, diagnóstico y guía de aplicación en `docs/agente-manuela-v2.md`) la convierte en experta en
+agendar: misión única (día y hora confirmados), seis etapas, propone dos horas concretas con `{{current_time}}`, confirma
+repitiendo, maneja objeciones y se declara asistente virtual si le preguntan. El webhook (`/webhooks/dapta/resultado`) ahora
+también guarda `cita_agendada`, `fecha_hora_cita`, `canal_cita` y `motivo_no_agenda` (se ven en `/api/llamar/resultado`, en el
+resumen del formulario y en el pedido de `seguimiento.preparar`). **La cita es un acuerdo, no un evento de calendario**:
+cuando se conecte Google Calendar o el CRM, Manuela podrá consultar disponibilidad y crear el evento. Aplicar el prompt y las
+variables en Dapta es un paso manual (el workspace de Machea); ver la guía.
+
 ## 6. Resolución de localidad por dirección
 
 La función nueva del catálogo, en `scraping/scraper_projects.py`. Es la pieza que

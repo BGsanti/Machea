@@ -79,7 +79,8 @@ def clasificar(llamada: Dict[str, Any]) -> Optional[str]:
         return "no_contesto"
     if duracion < DURACION_MINIMA_MS:
         return "no_contesto"
-    if analisis.get("call_successful") is True or datos.get("estado_del_lead") == "qualified":
+    if (analisis.get("call_successful") is True or datos.get("estado_del_lead") == "qualified"
+            or str(datos.get("cita_agendada")).lower() == "true"):
         return "completa"
     if razon in COLGO or analisis.get("call_successful") is False:
         return "colgo"
@@ -117,6 +118,12 @@ def preparar(llamada: Dict[str, Any], telefono_e164: str) -> Optional[Dict[str, 
         except ValueError:
             v = {}
     resumen = (_analisis(llamada).get("call_summary") or "")[:300]
+    datos = _analisis(llamada).get("custom_analysis_data") or {}
+    if isinstance(datos, str):
+        try:
+            datos = json.loads(datos)
+        except ValueError:
+            datos = {}
     return {
         "telefono": telefono_e164,
         "plantilla": _plantilla(caso),
@@ -127,6 +134,10 @@ def preparar(llamada: Dict[str, Any], telefono_e164: str) -> Optional[Dict[str, 
         "nombre_marca": v.get("nombre_marca") or "Machea",
         "modo_demo": str(v.get("modo_demo") or "false").lower() == "true",
         "resumen": resumen,
+        # Si Manuela dejó una cita, el mensaje puede recordarla ("quedamos el martes 21, 4:00 p. m.").
+        "cita_confirmada": str(datos.get("cita_agendada")).lower() == "true",
+        "cita": str(datos.get("fecha_de_seguimiento") or "")[:80],
+        "fecha_hora_cita": str(datos.get("fecha_hora_cita") or "")[:32],
     }
 
 
