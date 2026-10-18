@@ -292,12 +292,16 @@ def _cookie_segura(request: Request) -> bool:
 
 
 def _poner_cookie(request: Request, response: Response, token: str, recordar: bool) -> None:
+    # Path=/ y no /api: el CRM (www.machea.co/crm, design/crm/) también lee esta sesión. Sigue siendo HttpOnly,
+    # así que ningún script de las páginas la ve.
     response.set_cookie(COOKIE, token, max_age=int(SESION_RECORDADA.total_seconds()) if recordar else None,
-                        httponly=True, secure=_cookie_segura(request), samesite="lax", path="/api")
+                        httponly=True, secure=_cookie_segura(request), samesite="lax", path="/")
 
 
 def _quitar_cookie(request: Request, response: Response) -> None:
-    response.delete_cookie(COOKIE, path="/api", httponly=True, secure=_cookie_segura(request), samesite="lax")
+    # También la de Path=/api, que dejaban las sesiones abiertas antes del cambio.
+    for ruta in ("/", "/api"):
+        response.delete_cookie(COOKIE, path=ruta, httponly=True, secure=_cookie_segura(request), samesite="lax")
 
 
 def _no_store(response: Response) -> None:

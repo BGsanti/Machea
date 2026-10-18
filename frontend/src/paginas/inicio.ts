@@ -41,6 +41,10 @@ function pantallaTarjeta(c: Cuenta): string {
   );
 }
 
+// El CRM (design/crm/) se enciende con VITE_CRM_URL=/crm/ cuando su rewrite ya está en vercel.json;
+// sin ella, /inicio/ sigue con el "Próximamente".
+const urlCrm = String(import.meta.env.VITE_CRM_URL || '');
+
 function pantallaBienvenida(c: Cuenta): string {
   const tipo = c.tipo === 'constructora' ? 'Constructora' : c.tipo === 'inmobiliaria' ? 'Inmobiliaria' : 'Cuenta activa';
   return (
@@ -49,9 +53,12 @@ function pantallaBienvenida(c: Cuenta): string {
     `<button class="salir" type="button" id="salir">Salir</button></div></header>` +
     `<main class="cuerpo"><div class="bienvenida"><span class="etiqueta">${esc(tipo)}</span>` +
     `<h1 tabindex="-1">Hola, ${esc(c.usuario)}</h1>` +
-    `<p>Ya tienes acceso a Machea. Aquí vivirá tu panel: estamos construyendo las herramientas para tu equipo comercial.</p>` +
-    `<p class="pronto-titulo">Próximamente</p><ul class="pronto">` +
-    `<li>${ic('personas')}Tus leads calificados</li><li>${ic('telefono')}Llamadas de Manuela</li><li>${ic('grafica')}Resultados</li></ul>` +
+    (urlCrm
+      ? `<p>Ya tienes acceso a Machea. En tu CRM están tus leads, las llamadas de Manuela y tus resultados.</p>` +
+        `<p><a class="boton" href="${esc(urlCrm)}">Abrir el CRM</a></p>`
+      : `<p>Ya tienes acceso a Machea. Aquí vivirá tu panel: estamos construyendo las herramientas para tu equipo comercial.</p>` +
+        `<p class="pronto-titulo">Próximamente</p><ul class="pronto">` +
+        `<li>${ic('personas')}Tus leads calificados</li><li>${ic('telefono')}Llamadas de Manuela</li><li>${ic('grafica')}Resultados</li></ul>`) +
     `</div></main></div>`
   );
 }

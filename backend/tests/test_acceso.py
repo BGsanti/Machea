@@ -3,6 +3,7 @@
 Sin red ni base: el almacén es `AlmacenMemoria` y los correos se capturan en una lista."""
 
 import os
+import re
 import sys
 import unittest
 from datetime import timedelta
@@ -85,15 +86,22 @@ class TestRegistro(Base):
         self.assertEqual(r.json()["cuenta"]["estado"], "pendiente")
         self.assertNotIn("clave_hash", r.text)
         galleta = r.headers["set-cookie"]
-        for atributo in ("machea_sesion=", "HttpOnly", "Secure", "SameSite=lax", "Path=/api", "Max-Age="):
+        for atributo in ("machea_sesion=", "HttpOnly", "Secure", "SameSite=lax", "Max-Age="):
             self.assertIn(atributo.lower(), galleta.lower())
+        # Path=/ (no /api) para que el CRM en /crm también vea la sesión.
+        self.assertRegex(galleta, r"(?i)path=/(;|$)")
 
         s = self.c.get("/api/sesion")
         self.assertEqual(s.status_code, 200)
         self.assertEqual(s.json()["cuenta"]["usuario"], "constructora-andes")
         self.assertEqual(s.headers["cache-control"], "no-store")
 
-        self.assertEqual(self.c.delete("/api/sesion", headers=ORIGEN).status_code, 204)
+        salida = self.c.delete("/api/sesion", headers=ORIGEN)
+        self.assertEqual(salida.status_code, 204)
+        # Se borran la cookie de Path=/ y la vieja de Path=/api.
+        borradas = salida.headers.get_list("set-cookie")
+        self.assertEqual(len(borradas), 2)
+        self.assertTrue(any(re.search(r"(?i)path=/api", b) for b in borradas))
         self.assertEqual(self.c.get("/api/sesion").status_code, 401)
 
     def test_la_clave_se_guarda_con_scrypt(self):
