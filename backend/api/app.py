@@ -358,7 +358,8 @@ def api_llamar(payload: SolicitudLlamada, request: Request, tareas: BackgroundTa
 
     # Lo que el CRM de la empresa necesita de esta llamada (api/llamadas.py). Las demos con marca no se guardan.
     solicitud = None if datos_demo else llamadas.nueva_solicitud(
-        telefono_e164=telefono_e164, marca=slug, tipo_operacion=payload.tipo_operacion,
+        telefono_e164=telefono_e164, nombre=demo_mod.limpiar_nombre_persona(payload.nombre), marca=slug,
+        tipo_operacion=payload.tipo_operacion,
         tipo_inmueble=payload.tipo_inmueble, id_proyecto=str(apto.id_proyecto) if apto.id_proyecto is not None else None,
         nombre_proyecto=apto.nombre_proyecto, autoriza_compartir=payload.autoriza_compartir,
         version_autorizacion=payload.version_autorizacion)

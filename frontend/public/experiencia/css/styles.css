@@ -6577,3 +6577,96 @@ html[data-demo='1'] .gdf-confirm-llamada--error {
   background: #fdecea;
   color: #b3261e;
 }
+
+/* -------------------------------------------------------------------------
+   Hoja "Antes de llamarte" (templates.js, permisoLlamada): permiso para compartir
+   los datos con la empresa dueña del proyecto antes de que Manuela llame
+   (design/crm/CONSENTIMIENTO.md). Modal en escritorio, hoja inferior en celular.
+   Usa los tokens del tema: se ve bien en Machea y en cada marca.
+   ------------------------------------------------------------------------- */
+.gdf-consent .text a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.gdf-permiso {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(10, 14, 20, 0.55);
+  animation: visorEntra 0.18s ease-out;
+}
+.gdf-permiso-hoja {
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: var(--papel);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+.gdf-permiso-hoja h2 {
+  margin: 0 0 8px;
+  font-family: var(--fuente-titulos);
+  font-size: 21px;
+}
+.gdf-permiso-hoja p {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tinta-media);
+}
+.gdf-permiso-hoja p b,
+.gdf-permiso-casilla b {
+  color: var(--tinta);
+}
+.gdf-permiso-casilla {
+  margin-bottom: 16px;
+}
+.gdf-permiso-hoja .gdf-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.gdf-permiso-casilla .text {
+  font-size: 13.5px;
+}
+.gdf-permiso-casilla:focus-visible {
+  outline: 3px solid var(--marca);
+  outline-offset: 2px;
+}
+.gdf-permiso-no {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 10px;
+  background: none;
+  border: 0;
+  color: var(--tinta);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .gdf-permiso {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .gdf-permiso-hoja {
+    max-width: none;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gdf-permiso { animation: none; }
+}

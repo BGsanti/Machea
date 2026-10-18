@@ -98,6 +98,7 @@ create table public.solicitudes_llamada (
   id                    uuid primary key,          -- lo genera el backend: viaja a Dapta como external_lead_id
   telefono              text not null,             -- E.164 (+573001112233)
   telefono_digitos      text,                      -- los 10 dígitos, como en public.leads.telefono
+  nombre                text,                      -- como lo escribió en el formulario (por si no hay fila en leads)
   marca                 text check (marca is null or marca ~ '^[a-z0-9-]{1,40}$'),
   tipo_operacion        text not null check (tipo_operacion in ('compra', 'arriendo')),
   tipo_inmueble         text,

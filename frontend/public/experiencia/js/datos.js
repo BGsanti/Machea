@@ -107,6 +107,13 @@
    * función guardar_consulta() de la base lo vuelve a exigir por su cuenta.
    * `cb(consultaId)` es opcional; recibe null si algo falló.
    */
+  function autorizacionRegistro(state) {
+    var C = window.GDF.consentimiento;
+    if (!state.consent || !C) return null;
+    var r = C.registro();
+    return { version: r.version, texto: r.texto, aceptada_en: state.consentEn || new Date().toISOString() };
+  }
+
   function guardarConsulta(state, resultado, cb) {
     var args = {
       p_nombre: state.nombre,
@@ -118,12 +125,15 @@
       // De qué formulario viene: con eso el lead le llega a la empresa de esa marca en su CRM
       // (20261018120000_llamadas_y_marca.sql).
       p_marca: (window.GDF_MARCA || {}).slug || 'machea',
+      // La autorización del registro: qué texto aceptó y cuándo (prueba ante la SIC, js/consentimiento.js).
+      p_autorizacion: autorizacionRegistro(state),
     };
     rpc('guardar_consulta', args, function (datos, error) {
       // Si la base todavía no tiene la migración de la marca, PostgREST no encuentra la función con
       // p_marca: se guarda igual, sin ella, como antes.
       if (error && /could not find the function|PGRST202/i.test(error)) {
         delete args.p_marca;
+        delete args.p_autorizacion;
         rpc('guardar_consulta', args, terminar);
         return;
       }

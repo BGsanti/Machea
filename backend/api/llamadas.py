@@ -195,7 +195,8 @@ def configurar_almacen(a: Any) -> None:
 # Lo que usa app.py
 # ---------------------------------------------------------------------------
 
-def nueva_solicitud(*, telefono_e164: str, marca: str, tipo_operacion: str, tipo_inmueble: Optional[str],
+def nueva_solicitud(*, telefono_e164: str, nombre: Optional[str], marca: str, tipo_operacion: str,
+                    tipo_inmueble: Optional[str],
                     id_proyecto: Optional[str], nombre_proyecto: str, autoriza_compartir: Optional[bool],
                     version_autorizacion: Optional[str]) -> Dict[str, Any]:
     """La fila de la solicitud, con su id ya puesto: el id viaja a Dapta como external_lead_id."""
@@ -203,6 +204,7 @@ def nueva_solicitud(*, telefono_e164: str, marca: str, tipo_operacion: str, tipo
         "id": str(uuid.uuid4()),
         "telefono": telefono_e164,
         "telefono_digitos": digitos_telefono(telefono_e164),
+        "nombre": (nombre or "").strip()[:120] or None,
         "marca": marca,
         "tipo_operacion": tipo_operacion,
         "tipo_inmueble": tipo_inmueble,

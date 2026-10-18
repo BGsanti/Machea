@@ -100,6 +100,7 @@ class TestSolicitud(Base):
         self.assertEqual((s["telefono"], s["telefono_digitos"]), ("+573123506412", "3123506412"))
         self.assertEqual(s["id_proyecto"], str(p["id_proyecto"]))
         self.assertIsNone(s["autoriza_compartir"])
+        self.assertEqual(s["nombre"], "Prueba")
         # El id de la solicitud viaja a Dapta para unir el resultado.
         self.assertEqual(FakeCliente.enviados[0]["external_lead_id"], f"machea-{s['id']}")
 
@@ -115,6 +116,12 @@ class TestSolicitud(Base):
         s = self.almacen.solicitudes[0]
         self.assertEqual(s["marca"], "machea")
         self.assertIsNone(s["dueno_slug"])
+
+    def test_autorizacion_de_compartir_viaja_con_la_solicitud(self):
+        self.llamar(autoriza_compartir=True, version_autorizacion="compartir-v1")
+        s = self.almacen.solicitudes[0]
+        self.assertIs(s["autoriza_compartir"], True)
+        self.assertEqual(s["version_autorizacion"], "compartir-v1")
 
     def test_demo_con_marca_no_se_guarda(self):
         with mock.patch.dict(os.environ, {"DEMO_SECRET": "clave-demo"}):

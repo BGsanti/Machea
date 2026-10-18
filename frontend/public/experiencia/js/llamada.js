@@ -142,6 +142,12 @@
     // De qué formulario viene el lead y, si es una demo con marca, el token firmado: el
     // servidor lo verifica; uno falso o vencido se ignora y Manuela habla como Machea.
     payload.marca = (window.GDF_MARCA || {}).slug || 'machea';
+    // Si autorizó compartir sus datos con la dueña del proyecto (hoja "Antes de llamarte", js/consentimiento.js),
+    // va con la llamada: sin eso, el lead no le llega a esa empresa.
+    if (state.autorizaCompartir) {
+      payload.autoriza_compartir = true;
+      payload.version_autorizacion = state.autorizaCompartir.version;
+    }
     if (window.GDF_DEMO && window.GDF_DEMO.token) payload.demo = window.GDF_DEMO.token;
 
     fetch(base.replace(/\/$/, '') + '/api/llamar', {

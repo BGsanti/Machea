@@ -312,9 +312,8 @@
       '<label class="gdf-consent" data-action="toggleConsent" role="checkbox" tabindex="0"' +
       ' aria-checked="' + (state.consent ? 'true' : 'false') + '" aria-describedby="consentError">' +
       '<span class="box' + (state.consent ? ' checked' : '') + '">' + (state.consent ? ic('check') : '') + '</span>' +
-      '<span class="text">' +
-      txt('habeasData', 'Autorizo el tratamiento de mis datos personales para recibir información de vivienda (Habeas Data).') +
-      '</span>' +
+      // El texto legal sale de js/consentimiento.js (versionado), no del copy de la marca.
+      '<span class="text">' + window.GDF.consentimiento.registro().html + '</span>' +
       '</label>' +
       '<p class="gdf-reg-error" id="consentError">' + ic('alerta', { tam: 14 }) + '<span>Necesitamos tu autorización para continuar.</span></p>' +
       '</div>' +
@@ -398,12 +397,8 @@
       afiliacionCampo +
       '<label class="gdf-consent" data-action="toggleConsent">' +
       '<span class="box' + (state.consent ? ' checked' : '') + '">' + (state.consent ? ic('check') : '') + '</span>' +
-      '<span class="text">' +
-      txt(
-        'habeasData',
-        'Autorizo el tratamiento de mis datos personales para recibir información de vivienda de Colsubsidio (Habeas Data).'
-      ) +
-      '</span>' +
+      // El texto legal sale de js/consentimiento.js (versionado), no del copy de la marca.
+      '<span class="text">' + window.GDF.consentimiento.registro().html + '</span>' +
       '</label>' +
       '<button class="gdf-btn-primary' + (canStart ? ' enabled' : '') + '" data-action="startQuiz">Empezar a construir ' + ic('flecha-derecha') + '</button>' +
       '<p class="gdf-hint">Completa nombres, apellidos, correo, teléfono y consentimiento para continuar.</p>' +
@@ -2543,6 +2538,39 @@
     );
   }
 
+  /**
+   * Hoja "Antes de llamarte" (design/crm/CONSENTIMIENTO.md). Sale al tocar "Hablar con un asesor" en un
+   * proyecto de otra empresa: la llamada solo se dispara con la casilla marcada, y entonces el lead se comparte
+   * con esa empresa. "Ahora no" o el fondo la cierran sin llamar. La casilla se actualiza por DOM
+   * (updatePermisoDOM en main.js) para no repintar la lista de resultados.
+   */
+  function permisoLlamada(state) {
+    var p = state.permiso;
+    if (!p) return '';
+    var C = window.GDF.consentimiento;
+    var dueno = C.duenoDeElegido(state, p.id);
+    if (!dueno) return '';
+    var quien = (dueno.tipo === 'inmobiliaria' ? 'la inmobiliaria ' : '') + dueno.nombre;
+    return (
+      '<div class="gdf-permiso" data-action="cancelarPermiso">' +
+      '<div class="gdf-permiso-hoja" role="dialog" aria-modal="true" aria-labelledby="permisoTitulo" data-action="noop">' +
+      '<h2 id="permisoTitulo">Antes de llamarte</h2>' +
+      '<p>Manuela, la asistente virtual de Machea, te va a llamar para agendar tu visita a <b>' +
+      esc(dueno.proyecto) + '</b>. Para que el equipo de <b>' + esc(quien) +
+      '</b> te atienda, necesitamos tu permiso para compartirle tus datos.</p>' +
+      '<label class="gdf-consent gdf-permiso-casilla" data-action="togglePermiso" role="checkbox" tabindex="0" aria-checked="' +
+      (p.aceptado ? 'true' : 'false') + '">' +
+      '<span class="box' + (p.aceptado ? ' checked' : '') + '">' + (p.aceptado ? ic('check') : '') + '</span>' +
+      '<span class="text">' + C.compartir(dueno).html + '</span>' +
+      '</label>' +
+      '<button class="gdf-btn-primary' + (p.aceptado ? ' enabled' : '') + '" data-action="confirmarPermiso">' +
+      ic('telefono') + 'Llamarme ahora</button>' +
+      '<button class="gdf-permiso-no" type="button" data-action="cancelarPermiso">Ahora no</button>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
   function renderApp(state, derived) {
     var screenHtml;
     switch (state.screen) {
@@ -2572,7 +2600,8 @@
     // elemento sobre el que aplica.
     return (
       '<div class="gdf-shell"' + (window.GDF_EMBED ? ' data-embed' : '') + '>' + screenHtml + '</div>' +
-      visorFotos(state)
+      visorFotos(state) +
+      permisoLlamada(state)
     );
   }
 

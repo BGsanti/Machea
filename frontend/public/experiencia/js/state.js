@@ -31,6 +31,12 @@
       // (Supabase sin configurar, o si falló al guardar) no bloquea nada.
       consultaId: null,
       consent: false,
+      // Cuándo marcó la casilla del registro: va con la autorización que se guarda (js/datos.js).
+      consentEn: null,
+      // Hoja "Antes de llamarte" abierta (templates.js, permisoLlamada): { id, aceptado }.
+      permiso: null,
+      // Lo que autorizó en esa hoja, para la llamada (js/llamada.js): { version, texto } o null.
+      autorizaCompartir: null,
       // Campos del registro que la persona ya dejó (blur): solo esos muestran
       // su error. Vive en el estado para que el error no se borre cuando un
       // clic (el consentimiento) repinta la pantalla.
@@ -380,6 +386,7 @@
 
       case 'toggleConsent':
         state.consent = !state.consent;
+        state.consentEn = state.consent ? new Date().toISOString() : null;
         break;
 
       case 'startQuiz': {
@@ -566,10 +573,41 @@
       // Tocar "Llamar" en una tarjeta ES elegir el proyecto: el contrato manda
       // un solo `proyecto_elegido`, y aquí queda fijado en el mismo gesto que
       // lleva al cierre. Ya no hay un paso previo de marcar la tarjeta.
-      case 'llamarProyecto':
+      case 'llamarProyecto': {
         if (!ds.value) return false;
+        // Si el proyecto es de otra empresa, antes de llamar se pide permiso para compartirle los datos
+        // (hoja "Antes de llamarte", js/consentimiento.js). Sin dueño conocido se llama como siempre.
+        var C = window.GDF.consentimiento;
+        if (C && C.requierePermiso(C.duenoDeElegido(state, ds.value))) {
+          state.permiso = { id: ds.value, aceptado: false };
+          break;
+        }
         state.chosen = ds.value;
+        state.autorizaCompartir = null;
         state.screen = 'confirmacion';
+        break;
+      }
+
+      case 'togglePermiso':
+        if (!state.permiso) return false;
+        state.permiso.aceptado = !state.permiso.aceptado;
+        break;
+
+      // La llamada sale solo con la casilla marcada: el botón sin marcar no hace nada.
+      case 'confirmarPermiso': {
+        if (!state.permiso || !state.permiso.aceptado) return false;
+        var Cp = window.GDF.consentimiento;
+        var aut = Cp.compartir(Cp.duenoDeElegido(state, state.permiso.id));
+        state.chosen = state.permiso.id;
+        state.autorizaCompartir = { version: aut.version, texto: aut.texto };
+        state.permiso = null;
+        state.screen = 'confirmacion';
+        break;
+      }
+
+      case 'cancelarPermiso':
+        if (!state.permiso) return false;
+        state.permiso = null;
         break;
 
       // Las 3 acciones del desplegable de planos solo guardan la preferencia:
