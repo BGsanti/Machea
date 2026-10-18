@@ -201,8 +201,14 @@ export const candidatos = crm.table(
     cuentaConvertidaId: uuid(),
     contactoConvertidoId: uuid(),
     oportunidadConvertidaId: uuid(),
+    // Lo que lo trajo de Machea (ingesta.ts): evita repetirlo si la bandeja se procesa dos veces.
+    origenExterno: text(),
   },
-  (t) => [index().on(t.apellidos), index().on(t.estado)],
+  (t) => [
+    index().on(t.apellidos),
+    index().on(t.estado),
+    uniqueIndex().on(t.empresaId, t.origenExterno).where(sql`${t.origenExterno} is not null`),
+  ],
 );
 
 export const listasPrecios = crm.table("listas_precios", {
@@ -332,8 +338,14 @@ export const eventos = crm.table(
     quienId: uuid(),
     relacionadoObjeto: text(),
     relacionadoId: uuid(),
+    origenExterno: text(),
   },
-  (t) => [index().on(t.inicio), index().on(t.relacionadoId), index().on(t.quienId)],
+  (t) => [
+    index().on(t.inicio),
+    index().on(t.relacionadoId),
+    index().on(t.quienId),
+    uniqueIndex().on(t.empresaId, t.origenExterno).where(sql`${t.origenExterno} is not null`),
+  ],
 );
 
 export const tareas = crm.table(
@@ -351,8 +363,14 @@ export const tareas = crm.table(
     relacionadoObjeto: text(),
     relacionadoId: uuid(),
     completadaEn: marcaTiempo(),
+    origenExterno: text(),
   },
-  (t) => [index().on(t.relacionadoId), index().on(t.quienId), index().on(t.propietarioId)],
+  (t) => [
+    index().on(t.relacionadoId),
+    index().on(t.quienId),
+    index().on(t.propietarioId),
+    uniqueIndex().on(t.empresaId, t.origenExterno).where(sql`${t.origenExterno} is not null`),
+  ],
 );
 
 // ---------------------------------------------------------------------------
@@ -628,3 +646,62 @@ export const configuracion = crm.table("configuracion", {
   impuestoPorcentaje: numeric({ precision: 5, scale: 2, mode: "number" }).notNull().default(19),
   actualizadoEn: marcaTiempo().notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Leads de Machea (design/crm/PLAN.md, fase 4)
+// ---------------------------------------------------------------------------
+
+/**
+ * De qué le llegan leads a cada empresa: su formulario con marca (`marca`, el ?marca= del formulario) o sus
+ * proyectos (`constructora` / `inmobiliaria`, el dueño que guarda public.solicitudes_llamada). Lo administra
+ * Machea en /admin, nunca la empresa: si no, una empresa podría reclamar los leads de otra.
+ */
+export const empresaFuentes = crm.table(
+  "empresa_fuentes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empresaId: empresa(),
+    tipo: text().notNull(),
+    slug: text().notNull(),
+    creadaEn: marcaTiempo().notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.tipo, t.slug), index().on(t.empresaId)],
+);
+
+/**
+ * Bandeja de entrada: los triggers de la base de Machea (supabase/migrations/*_crm_ingesta.sql) dejan aquí lo
+ * que le corresponde a cada empresa, y el CRM lo convierte en candidatos y actividades (ingesta.ts).
+ */
+export const bandejaLeads = crm.table(
+  "bandeja_leads",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    empresaId: empresa(),
+    origen: text().notNull(),
+    origenId: text().notNull(),
+    datos: jsonb().$type<Record<string, unknown>>().notNull(),
+    creadoEn: marcaTiempo().notNull().defaultNow(),
+    tomadoEn: marcaTiempo(),
+    procesadoEn: marcaTiempo(),
+    intentos: integer().notNull().default(0),
+    error: text(),
+  },
+  (t) => [
+    uniqueIndex().on(t.empresaId, t.origen, t.origenId),
+    index().on(t.empresaId, t.procesadoEn),
+  ],
+);
+
+/** Qué candidato es cada persona de Machea dentro de una empresa (una persona puede estar en dos empresas). */
+export const leadsMachea = crm.table(
+  "leads_machea",
+  {
+    empresaId: empresa(),
+    telefonoDigitos: text().notNull(),
+    candidatoId: uuid()
+      .notNull()
+      .references(() => candidatos.id, { onDelete: "cascade" }),
+    creadoEn: marcaTiempo().notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.empresaId, t.telefonoDigitos] })],
+);

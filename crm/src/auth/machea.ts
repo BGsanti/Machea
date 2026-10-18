@@ -46,15 +46,13 @@ const conocidas = new Set<string>();
 export async function asegurarEmpresaMachea(cuenta: CuentaMachea): Promise<void> {
   if (conocidas.has(cuenta.id)) return;
   const db = await bd();
-  const nueva = await db
-    .insert(empresas)
-    .values({ id: cuenta.id, nombre: cuenta.usuario })
-    .onConflictDoNothing()
-    .returning({ id: empresas.id });
+  await db.insert(empresas).values({ id: cuenta.id, nombre: cuenta.usuario }).onConflictDoNothing();
   await db
     .insert(usuarios)
     .values({ id: cuenta.id, empresaId: cuenta.id, name: cuenta.usuario, email: cuenta.correo, emailVerified: true, rol: "admin" })
     .onConflictDoNothing();
-  if (nueva.length > 0) await inicializarOrganizacion(cuenta.id, cuenta.id, cuenta.usuario);
+  // Siempre, no solo si la empresa es nueva: /admin puede crearla antes (al asignarle sus fuentes de leads), y
+  // inicializarOrganizacion no repite lo que ya existe.
+  await inicializarOrganizacion(cuenta.id, cuenta.id, cuenta.usuario);
   conocidas.add(cuenta.id);
 }

@@ -57,6 +57,19 @@ El CRM es multiempresa: cada constructora o inmobiliaria con cuenta en Machea ti
 
 `pnpm exec tsx scripts/prueba-fugas.ts` comprueba que una empresa no vea ni toque nada de otra (las instrucciones están en el archivo).
 
+### Leads de Machea
+
+- **Cómo llegan:** unos triggers de la base de Machea (`../supabase/migrations/20261018130000_crm_ingesta.sql`) dejan en `crm.bandeja_leads` lo que le corresponde a cada empresa, según sus fuentes en `crm.empresa_fuentes`. Las fuentes las asigna Machea en `/admin`.
+- **Qué hace el CRM con ellos** (`src/crm/servidor/ingesta.ts`), cada vez que alguien de la empresa entra:
+  - crea el candidato, con las respuestas del formulario;
+  - registra la llamada de Manuela como tarea completada;
+  - crea la cita como evento, o el seguimiento como tarea pendiente;
+  - pone la temperatura como valoración.
+- **Pasa por el repositorio**, así que corren las reglas y los flujos de la empresa.
+- **No duplica:** cada registro lleva `origen_externo`.
+
+`pnpm exec tsx scripts/prueba-ingesta.ts` lo prueba de punta a punta en PostgreSQL, conectado como `crm_app`.
+
 ## Usar PostgreSQL normal
 
 Defina `DATABASE_URL` en `.env.local` (Docker, Neon, AWS RDS…) y ejecute `pnpm db:migrar`. La app aplica también las migraciones pendientes al arrancar, salvo con `CRM_MIGRAR_AL_ARRANCAR=false` (producción).

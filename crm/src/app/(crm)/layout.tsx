@@ -2,12 +2,17 @@ import { urlMachea } from "@/auth/machea";
 import { modoAuth } from "@/auth/servidor";
 import { requerirUsuario } from "@/auth/sesion";
 import { notificacionesDe, obtenerConfiguracion, tareasAbiertas } from "@/crm/servidor/consultas";
+import { procesarBandeja } from "@/crm/servidor/ingesta";
 import { BarraApps } from "@/crm/ui/shell/barra-apps";
 import { BarraUtilidades } from "@/crm/ui/shell/barra-utilidades";
 import { Cabecera } from "@/crm/ui/shell/cabecera";
 
 export default async function LayoutCrm({ children }: { children: React.ReactNode }) {
   const usuario = await requerirUsuario();
+  // Leads nuevos de Machea (ingesta.ts): se procesan al entrar, en lotes cortos. Un fallo no tumba la página.
+  if (modoAuth() === "machea") {
+    await procesarBandeja(usuario).catch((e) => console.error("[crm] bandeja de leads:", e));
+  }
   const [config, notificaciones, tareas] = await Promise.all([
     obtenerConfiguracion(),
     notificacionesDe(usuario.id),

@@ -21,6 +21,9 @@ CRM en Next.js 16 (App Router), TypeScript, Drizzle ORM sobre PostgreSQL (PGlite
 - Toda consulta directa (fuera de `repositorio.ts`) filtra por `empresaId`: `eq(tabla.empresaId, await empresaActual())` o la empresa del usuario. Los inserts sin `empresaId` no compilan; los `select`, `update` y `delete` sin filtro sí, así que hay que revisarlos.
 - Los ids que llegan del navegador se validan contra la empresa (`validarReferencias` en `repositorio.ts`).
 - Después de tocar datos, correr `scripts/prueba-fugas.ts` contra un PostgreSQL con el esquema `acceso`.
+- **Leads de Machea:**
+  - `src/crm/servidor/ingesta.ts` procesa `crm.bandeja_leads`, que llenan los triggers de `../supabase/migrations/20261018130000_crm_ingesta.sql`.
+  - Si se agrega una tabla al CRM, después de migrar hay que correr `select crm.cerrar_tablas();` en la base de Machea (RLS y permisos para `crm_app`).
 
 ## Cómo trabajar
 

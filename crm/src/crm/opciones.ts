@@ -50,6 +50,9 @@ export const origenesCandidato: Opcion[] = [
   { valor: "feria", etiqueta: "Feria comercial" },
   { valor: "web", etiqueta: "Web" },
   { valor: "boca_a_boca", etiqueta: "Boca a boca" },
+  // Leads que llegan de Machea (src/crm/servidor/ingesta.ts).
+  { valor: "formulario_marca", etiqueta: "Formulario con su marca (Machea)" },
+  { valor: "proyecto_machea", etiqueta: "Su proyecto en Machea" },
   { valor: "otro", etiqueta: "Otro" },
 ];
 
