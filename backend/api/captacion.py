@@ -734,6 +734,10 @@ def demo(entrada: DemoEntrada, request: Request):
     tel = e164_co(entrada.telefono)
     if not tel or not tel.startswith("+573"):
         raise HTTPException(400, "Escribe un celular colombiano de 10 dígitos que empiece por 3.")
+    if almacen().nombre == "memoria" and os.environ.get("RENDER_SERVICE_NAME"):
+        # En producción sin Supabase la solicitud se perdería al reiniciar y el visitante vería «¡Listo!». Mejor un 503:
+        # la landing entonces guarda por su otro camino (Supabase) o le ofrece escribir por correo.
+        raise HTTPException(503, "El almacén de captación no está configurado.")
     declarado = {k: v for k, v in {"problema": entrada.problema, "fuente_leads": entrada.fuente_leads, "pauta_mensual": entrada.pauta_mensual,
                                    "leads_mes": entrada.leads_mes, "crm": entrada.crm}.items() if v not in (None, "")}
     e = ProspectoEntrada(empresa=entrada.empresa or entrada.nombre, telefono=entrada.telefono, tipo_empresa=entrada.tipo_empresa,

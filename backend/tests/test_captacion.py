@@ -316,6 +316,12 @@ class TestDemoPublica(Base):
         self.assertEqual((r["status"], r["llamada"]), ("registrado", False))
         self.assertEqual(cap.almacen().listar(), [])
 
+    def test_en_produccion_sin_supabase_no_finge_exito(self):
+        with mock.patch.dict(os.environ, {"RENDER_SERVICE_NAME": "machea-api"}):
+            r = self.post(telefono="3118614090")
+        self.assertEqual(r.status_code, 503)
+        self.assertEqual(cap.almacen().listar(), [])
+
     def test_apagado_por_defecto_solo_registra(self):
         r = self.post().json()
         self.assertEqual((r["status"], r["llamada"]), ("registrado", False))
