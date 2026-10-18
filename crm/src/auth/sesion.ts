@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { migracionesListas } from "@/db/cliente";
 import { contextoActual, type Usuario } from "@/db/contexto";
-import { asegurarEmpresaMachea, buscarSesionMachea, COOKIE_MACHEA, urlMachea } from "./machea";
+import { asegurarEmpresaMachea, buscarSesionMachea, COOKIE_MACHEA, urlMachea, type CuentaMachea } from "./machea";
 import { auth, modoAuth } from "./servidor";
 
 export type { Usuario } from "@/db/contexto";
@@ -24,10 +24,15 @@ export const usuarioActual = cache(async (): Promise<Usuario | null> => {
   return modoAuth() === "machea" ? usuarioMachea() : usuarioLocal();
 });
 
-async function usuarioMachea(): Promise<Usuario | null> {
+/** La cuenta de Machea de la cookie, esté o no aprobada. */
+const cuentaDeLaCookie = cache(async (): Promise<CuentaMachea | null> => {
   const token = (await cookies()).get(COOKIE_MACHEA)?.value;
   if (!token) return null;
-  const cuenta = await buscarSesionMachea(createHash("sha256").update(token).digest("hex"));
+  return buscarSesionMachea(createHash("sha256").update(token).digest("hex"));
+});
+
+async function usuarioMachea(): Promise<Usuario | null> {
+  const cuenta = await cuentaDeLaCookie();
   if (!cuenta || cuenta.estado !== "aprobada") return null;
   await asegurarEmpresaMachea(cuenta);
   // Una cuenta = una empresa: su único usuario es administrador de su propio CRM.
@@ -46,7 +51,12 @@ async function usuarioLocal(): Promise<Usuario | null> {
 export async function requerirUsuario(): Promise<Usuario> {
   const usuario = await usuarioActual();
   if (usuario) return usuario;
-  if (modoAuth() === "machea") redirect(`${urlMachea()}/acceso/?volver=${encodeURIComponent("/crm/")}`);
+  if (modoAuth() === "machea") {
+    // Con sesión pero sin aprobar: /inicio/ le dice "en revisión". Mandarla a /acceso/ sería un bucle, porque
+    // /acceso/ devuelve a quien ya tiene sesión a la página de la que venía.
+    if (await cuentaDeLaCookie()) redirect(`${urlMachea()}/inicio/`);
+    redirect(`${urlMachea()}/acceso/?volver=${encodeURIComponent("/crm/")}`);
+  }
   redirect("/login");
 }
 

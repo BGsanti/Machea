@@ -36,20 +36,32 @@ todo el CRM sin ver nunca datos de otra empresa.
 - Modo local en el navegador: el primer administrador se crea desde la pantalla, entra al CRM con su empresa, y
   la segunda vez la pantalla ya solo deja iniciar sesión.
 
-## Fase 2. Machea guarda lo que el CRM necesita
+## Fase 2. Machea guarda lo que el CRM necesita: HECHA (sin desplegar)
 
-Hoy un lead no guarda ni la marca ni la constructora, y el resultado de Manuela vive en memoria.
+Rama `crm/datos-llamadas` (parte de `main`), con PR hacia `main`. Puesta en marcha y detalle en
+`docs/crm-datos-de-llamadas.md` de esa rama.
 
-- [ ] Migración `<ts>_llamadas_y_marca.sql`:
-  - `consultas.marca` y `consultas.autorizacion`, y `guardar_consulta` con `p_marca` y `p_autorizacion`;
-  - `public.solicitudes_llamada`, que escribe `/api/llamar`, con la constructora tomada del catálogo por
-    `id_proyecto`. Ojo: `constructora-bolivar` en la marca y `bolivar` en el catálogo;
-  - `public.resultados_llamada`, que escribe el webhook (resumen, temperatura, seguimiento, `cita_*`).
-- [ ] `backend/api/llamadas.py`, en memoria y en Postgres, con el patrón de `almacen_acceso.py`. Secreto
-      `MANUELA_WEBHOOK_SECRET` en el webhook de Dapta, que hoy no tiene.
-- [ ] `datos.js` y `llamada.js` mandan la marca, `id_proyecto`, el correo y la autorización.
-- [ ] Login (rama `login`): la cookie con `Path=/` (hoy `/api`, y el CRM no la ve), y el botón "Abrir CRM"
-      en `/inicio/`.
+- [x] Migración `20261018120000_llamadas_y_marca.sql`:
+  - `consultas.marca` y `consultas.autorizacion`, que `guardar_consulta` recibe como parámetros opcionales;
+  - `solicitudes_llamada`, con el dueño del proyecto sacado del catálogo por id;
+  - `resultados_llamada`, uno por `call_id`.
+- [x] `backend/api/llamadas.py`: Supabase con service_role, como Camila; sin él, memoria. Las demos con marca no
+      se guardan.
+- [x] Webhook de Manuela: con `MANUELA_WEBHOOK_SECRET` exige `?k=` y solo entonces guarda.
+- [x] El formulario manda la marca (si la base no tiene la migración, reintenta sin ella) y el id del proyecto o
+      inmueble.
+- [x] Login (rama `login`, `b806e06`):
+  - cookie con `Path=/`, y al salir se borran las dos;
+  - "Abrir el CRM" en `/inicio/`, solo con `VITE_CRM_URL`.
+- [x] CRM: una cuenta con sesión pero sin aprobar va a `/inicio/`. Mandarla a `/acceso/` era un bucle.
+
+**Verificado (2026-10-18):**
+- Backend `main` + fase 2: 192 pruebas, 21 de ellas nuevas.
+- Migración sobre las de leads en PostgreSQL 18: `guardar_consulta` funciona con y sin `p_marca`, la marca rara se
+  descarta y `anon` no puede leer ni escribir las tablas nuevas.
+- El respaldo del formulario cuando la base no tiene la migración, probado en Node.
+- Login: backend 153 y front 27/27, y el build con y sin `VITE_CRM_URL`.
+- Prueba de fugas del CRM: 735/0.
 
 ## Fase 3. Consentimiento y política (requisito de D4)
 
@@ -76,7 +88,8 @@ Hoy un lead no guarda ni la marca ni la constructora, y el resultado de Manuela 
 ## Fase 5. Producción (la hacen Santiago o Felipe)
 
 1. Merge del PR #14. Hay que resolver los conflictos con `main` en `CLAUDE.md` y `app.py`, quitar las reglas de
-   `/acceso` repetidas en `vercel.json`, poner un timestamp nuevo a la migración y la cookie con `Path=/`.
+   `/acceso` repetidas en `vercel.json` y poner un timestamp nuevo a la migración. La cookie con `Path=/` ya está
+   en la rama.
 2. Migraciones en este orden: login → `llamadas_y_marca` → `crm` → `crm_ingesta`. Luego la clave del rol
    `crm_app`, puesta a mano, y `MANUELA_WEBHOOK_SECRET`.
 3. Proyecto de Vercel con root `crm/`:

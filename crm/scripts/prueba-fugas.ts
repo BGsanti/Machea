@@ -230,7 +230,8 @@ async function main() {
   const sinSesion = await pedir("/ventas/o/candidatos");
   comprobar(sinSesion.estado >= 300 && sinSesion.estado < 400 && (sinSesion.ubicacion ?? "").includes("/acceso/"), "Sin sesión no redirige a /acceso/ de Machea.");
   const pendiente = await pedir("/ventas/o/candidatos", C.token);
-  comprobar(pendiente.estado >= 300 && pendiente.estado < 400 && (pendiente.ubicacion ?? "").includes("/acceso/"), "Una cuenta pendiente entra al CRM.");
+  // A /inicio/ ("en revisión"), no a /acceso/: desde ahí /acceso/ la devolvería al CRM, en bucle.
+  comprobar(pendiente.estado >= 300 && pendiente.estado < 400 && (pendiente.ubicacion ?? "").endsWith("/inicio/"), `Una cuenta pendiente no va a /inicio/ (${pendiente.ubicacion}).`);
   const registro = await pedir("/api/auth/sign-up/email", undefined, {
     method: "POST",
     headers: { "content-type": "application/json" },
