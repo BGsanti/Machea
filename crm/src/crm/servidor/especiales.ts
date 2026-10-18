@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { requerirUsuario } from "@/auth/sesion";
 import { bd } from "@/db/cliente";
 import {
+  campanas,
   candidatos,
-  configuracion,
   contactos,
   destinatariosCorreo,
   entradasListaPrecios,
@@ -21,7 +21,11 @@ import {
 } from "@/db/esquema";
 import { hoyMas } from "../fechas";
 import type { EstadoAccion } from "./acciones";
+import { obtenerConfiguracion } from "./consultas";
 import * as repo from "./repositorio";
+
+// Cada consulta directa de este archivo se limita a la empresa del usuario; lo que pasa por
+// `repo` ya lo hace por su cuenta.
 
 
 function error(e: unknown): EstadoAccion {
@@ -41,7 +45,11 @@ export interface ResultadoConversion extends EstadoAccion {
 export async function convertirCandidato(candidatoId: string, formData: FormData): Promise<ResultadoConversion> {
   const usuario = await requerirUsuario();
   const db = await bd();
-  const [c] = await db.select().from(candidatos).where(eq(candidatos.id, candidatoId)).limit(1);
+  const [c] = await db
+    .select()
+    .from(candidatos)
+    .where(and(eq(candidatos.id, candidatoId), eq(candidatos.empresaId, usuario.empresaId)))
+    .limit(1);
   if (!c) return { ok: false, mensaje: "El candidato ya no existe." };
   if (c.convertido) return { ok: false, mensaje: "Este candidato ya se convirtió." };
 
@@ -121,8 +129,14 @@ export async function convertirCandidato(candidatoId: string, formData: FormData
       usuario.id,
     );
     // Las actividades del candidato pasan al nuevo contacto.
-    await db.update(tareas).set({ quienObjeto: "contactos", quienId: contactoId }).where(eq(tareas.quienId, candidatoId));
-    await db.update(eventos).set({ quienObjeto: "contactos", quienId: contactoId }).where(eq(eventos.quienId, candidatoId));
+    await db
+      .update(tareas)
+      .set({ quienObjeto: "contactos", quienId: contactoId })
+      .where(and(eq(tareas.quienId, candidatoId), eq(tareas.empresaId, usuario.empresaId)));
+    await db
+      .update(eventos)
+      .set({ quienObjeto: "contactos", quienId: contactoId })
+      .where(and(eq(eventos.quienId, candidatoId), eq(eventos.empresaId, usuario.empresaId)));
     revalidatePath("/", "layout");
     return { ok: true, mensaje: "Candidato convertido.", cuentaId, contactoId, oportunidadId };
   } catch (e) {
@@ -136,22 +150,35 @@ export async function convertirCandidato(candidatoId: string, formData: FormData
 
 /** Precio del producto en la lista de la oportunidad, o en la lista estándar si no tiene. */
 export async function precioProducto(productoId: string, oportunidadId?: string): Promise<number | null> {
-  await requerirUsuario();
+  const { empresaId } = await requerirUsuario();
   const db = await bd();
   let listaId: string | null = null;
   if (oportunidadId) {
-    const [o] = await db.select({ lista: oportunidades.listaPreciosId }).from(oportunidades).where(eq(oportunidades.id, oportunidadId));
+    const [o] = await db
+      .select({ lista: oportunidades.listaPreciosId })
+      .from(oportunidades)
+      .where(and(eq(oportunidades.id, oportunidadId), eq(oportunidades.empresaId, empresaId)));
     listaId = o?.lista ?? null;
   }
   if (!listaId) {
-    const [estandar] = await db.select({ id: listasPrecios.id }).from(listasPrecios).where(eq(listasPrecios.estandar, true)).limit(1);
+    const [estandar] = await db
+      .select({ id: listasPrecios.id })
+      .from(listasPrecios)
+      .where(and(eq(listasPrecios.estandar, true), eq(listasPrecios.empresaId, empresaId)))
+      .limit(1);
     listaId = estandar?.id ?? null;
   }
   if (!listaId) return null;
   const [entrada] = await db
     .select({ precio: entradasListaPrecios.precio })
     .from(entradasListaPrecios)
-    .where(and(eq(entradasListaPrecios.productoId, productoId), eq(entradasListaPrecios.listaPreciosId, listaId)))
+    .where(
+      and(
+        eq(entradasListaPrecios.productoId, productoId),
+        eq(entradasListaPrecios.listaPreciosId, listaId),
+        eq(entradasListaPrecios.empresaId, empresaId),
+      ),
+    )
     .limit(1);
   return entrada?.precio ?? null;
 }
@@ -159,7 +186,11 @@ export async function precioProducto(productoId: string, oportunidadId?: string)
 export async function generarFactura(oportunidadId: string): Promise<EstadoAccion> {
   const usuario = await requerirUsuario();
   const db = await bd();
-  const [o] = await db.select().from(oportunidades).where(eq(oportunidades.id, oportunidadId)).limit(1);
+  const [o] = await db
+    .select()
+    .from(oportunidades)
+    .where(and(eq(oportunidades.id, oportunidadId), eq(oportunidades.empresaId, usuario.empresaId)))
+    .limit(1);
   if (!o) return { ok: false, mensaje: "La oportunidad ya no existe." };
   const lineas = await db
     .select({
@@ -171,7 +202,7 @@ export async function generarFactura(oportunidadId: string): Promise<EstadoAccio
     })
     .from(productosOportunidad)
     .innerJoin(productos, eq(productos.id, productosOportunidad.productoId))
-    .where(eq(productosOportunidad.oportunidadId, oportunidadId))
+    .where(and(eq(productosOportunidad.oportunidadId, oportunidadId), eq(productosOportunidad.empresaId, usuario.empresaId)))
     .orderBy(asc(productosOportunidad.creadoEn));
 
   const items = lineas.length
@@ -184,8 +215,8 @@ export async function generarFactura(oportunidadId: string): Promise<EstadoAccio
       : [];
   if (items.length === 0) return { ok: false, mensaje: "Agregue productos o un importe a la oportunidad antes de facturar." };
 
-  const [config] = await db.select().from(configuracion).limit(1);
-  const tasa = config?.impuestoPorcentaje ?? 19;
+  const config = await obtenerConfiguracion();
+  const tasa = config.impuestoPorcentaje;
   const subtotal = Math.round(items.reduce((s, i) => s + i.total, 0) * 100) / 100;
   const impuestos = Math.round(subtotal * tasa) / 100;
   try {
@@ -204,7 +235,7 @@ export async function generarFactura(oportunidadId: string): Promise<EstadoAccio
       },
       usuario.id,
     );
-    await db.insert(lineasFactura).values(items.map((i) => ({ ...i, facturaId })));
+    await db.insert(lineasFactura).values(items.map((i) => ({ ...i, facturaId, empresaId: usuario.empresaId })));
     revalidatePath("/", "layout");
     return { ok: true, id: facturaId, mensaje: "Factura generada." };
   } catch (e) {
@@ -217,13 +248,27 @@ export async function generarFactura(oportunidadId: string): Promise<EstadoAccio
 // ---------------------------------------------------------------------------
 
 export async function agregarACampana(objeto: string, ids: string[], campanaId: string): Promise<EstadoAccion> {
-  await requerirUsuario();
+  const { empresaId } = await requerirUsuario();
   if (!["contactos", "candidatos"].includes(objeto)) return { ok: false, mensaje: "Solo contactos y candidatos." };
   if (!campanaId) return { ok: false, mensaje: "Elija una campaña." };
   const db = await bd();
+  // La campaña y las personas tienen que ser de la misma empresa.
+  const [campana] = await db
+    .select({ id: campanas.id })
+    .from(campanas)
+    .where(and(eq(campanas.id, campanaId), eq(campanas.empresaId, empresaId)));
+  if (!campana) return { ok: false, mensaje: "La campaña ya no existe." };
+  const tabla = objeto === "contactos" ? contactos : candidatos;
+  const propios = ids.length
+    ? await db
+        .select({ id: tabla.id })
+        .from(tabla)
+        .where(and(inArray(tabla.id, ids.slice(0, 500)), eq(tabla.empresaId, empresaId)))
+    : [];
+  if (propios.length === 0) return { ok: false, mensaje: "Ninguno de los registros seleccionados existe." };
   const filas = await db
     .insert(miembrosCampana)
-    .values(ids.map((registroId) => ({ campanaId, objeto, registroId })))
+    .values(propios.map((p) => ({ empresaId, campanaId, objeto, registroId: p.id })))
     .onConflictDoNothing()
     .returning();
   revalidatePath("/", "layout");
@@ -231,9 +276,9 @@ export async function agregarACampana(objeto: string, ids: string[], campanaId: 
 }
 
 export async function quitarDeCampana(miembroId: string): Promise<EstadoAccion> {
-  await requerirUsuario();
+  const { empresaId } = await requerirUsuario();
   const db = await bd();
-  await db.delete(miembrosCampana).where(eq(miembrosCampana.id, miembroId));
+  await db.delete(miembrosCampana).where(and(eq(miembrosCampana.id, miembroId), eq(miembrosCampana.empresaId, empresaId)));
   revalidatePath("/", "layout");
   return { ok: true, mensaje: "Miembro quitado." };
 }
@@ -252,7 +297,7 @@ export async function enviarCorreoLista(
   const filas = await db
     .select({ id: tabla.id, email: tabla.email })
     .from(tabla)
-    .where(inArray(tabla.id, ids.slice(0, 500)));
+    .where(and(inArray(tabla.id, ids.slice(0, 500)), eq(tabla.empresaId, usuario.empresaId)));
   const conCorreo = filas.filter((f) => f.email);
   if (conCorreo.length === 0) return { ok: false, mensaje: "Ninguno de los registros seleccionados tiene correo electrónico." };
   try {
@@ -268,10 +313,13 @@ export async function enviarCorreoLista(
       },
       usuario.id,
     );
-    await db.insert(destinatariosCorreo).values(conCorreo.map((f) => ({ correoId, objeto, registroId: f.id, email: f.email })));
+    await db
+      .insert(destinatariosCorreo)
+      .values(conCorreo.map((f) => ({ empresaId: usuario.empresaId, correoId, objeto, registroId: f.id, email: f.email })));
     // Queda constancia en la actividad de cada destinatario.
     await db.insert(tareas).values(
       conCorreo.map((f) => ({
+        empresaId: usuario.empresaId,
         asunto: `Correo: ${asunto.trim()}`,
         tipo: "correo",
         estado: "completada",

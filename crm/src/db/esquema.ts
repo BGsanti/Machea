@@ -6,23 +6,59 @@ import {
   integer,
   jsonb,
   numeric,
-  pgTable,
-  serial,
+  pgSchema,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
+/**
+ * Todas las tablas viven en el esquema `crm`: así el CRM puede compartir la base de datos de Machea
+ * sin chocar con sus tablas y sin quedar expuesto por PostgREST (que solo publica `public`).
+ */
+export const crm = pgSchema("crm");
+
 const marcaTiempo = () => timestamp({ withTimezone: true, mode: "date" });
 const moneda = () => numeric({ precision: 16, scale: 2, mode: "number" });
+
+// ---------------------------------------------------------------------------
+// Empresas. Cada constructora o inmobiliaria con cuenta en Machea es una empresa, y todos sus
+// datos llevan su `empresaId`. Con el login de Machea, el id es el de su cuenta (acceso.cuentas.id).
+// ---------------------------------------------------------------------------
+
+export const empresas = crm.table("empresas", {
+  id: uuid().primaryKey().defaultRandom(),
+  nombre: text().notNull(),
+  creadaEn: timestamp({ withTimezone: true, mode: "date" }).notNull().defaultNow(),
+});
+
+const empresa = () =>
+  uuid()
+    .notNull()
+    .references(() => empresas.id, { onDelete: "cascade" });
+
+/** Numeración propia de cada empresa (facturas, casos): FAC-1 empieza en 1 para todas. */
+export const contadores = crm.table(
+  "contadores",
+  {
+    empresaId: empresa(),
+    objeto: text().notNull(),
+    valor: integer().notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.empresaId, t.objeto] })],
+);
 
 // ---------------------------------------------------------------------------
 // Autenticación (Better Auth). Los nombres de las propiedades los fija Better Auth.
 // ---------------------------------------------------------------------------
 
-export const usuarios = pgTable("usuarios", {
+export const usuarios = crm.table("usuarios", {
   id: text().primaryKey(),
+  // Opcional solo para que Better Auth pueda crear el usuario antes de asignarle la empresa;
+  // la sesión rechaza a cualquier usuario sin empresa.
+  empresaId: uuid().references(() => empresas.id, { onDelete: "cascade" }),
   name: text().notNull(),
   email: text().notNull().unique(),
   emailVerified: boolean().notNull().default(false),
@@ -33,7 +69,7 @@ export const usuarios = pgTable("usuarios", {
   updatedAt: marcaTiempo().notNull().defaultNow(),
 });
 
-export const sesiones = pgTable("sesiones", {
+export const sesiones = crm.table("sesiones", {
   id: text().primaryKey(),
   expiresAt: marcaTiempo().notNull(),
   token: text().notNull().unique(),
@@ -46,7 +82,7 @@ export const sesiones = pgTable("sesiones", {
   updatedAt: marcaTiempo().notNull().defaultNow(),
 });
 
-export const cuentasAuth = pgTable("cuentas_auth", {
+export const cuentasAuth = crm.table("cuentas_auth", {
   id: text().primaryKey(),
   accountId: text().notNull(),
   providerId: text().notNull(),
@@ -64,7 +100,7 @@ export const cuentasAuth = pgTable("cuentas_auth", {
   updatedAt: marcaTiempo().notNull().defaultNow(),
 });
 
-export const verificaciones = pgTable("verificaciones", {
+export const verificaciones = crm.table("verificaciones", {
   id: text().primaryKey(),
   identifier: text().notNull(),
   value: text().notNull(),
@@ -79,6 +115,7 @@ export const verificaciones = pgTable("verificaciones", {
 
 const comunes = () => ({
   id: uuid().primaryKey().defaultRandom(),
+  empresaId: empresa(),
   propietarioId: text().references(() => usuarios.id, { onDelete: "set null" }),
   creadoPorId: text().references(() => usuarios.id, { onDelete: "set null" }),
   creadoEn: marcaTiempo().notNull().defaultNow(),
@@ -89,7 +126,7 @@ const comunes = () => ({
 // Ventas
 // ---------------------------------------------------------------------------
 
-export const cuentas = pgTable(
+export const cuentas = crm.table(
   "cuentas",
   {
     ...comunes(),
@@ -113,7 +150,7 @@ export const cuentas = pgTable(
   (t) => [index().on(t.nombre)],
 );
 
-export const contactos = pgTable(
+export const contactos = crm.table(
   "contactos",
   {
     ...comunes(),
@@ -135,7 +172,7 @@ export const contactos = pgTable(
   (t) => [index().on(t.apellidos), index().on(t.cuentaId)],
 );
 
-export const candidatos = pgTable(
+export const candidatos = crm.table(
   "candidatos",
   {
     ...comunes(),
@@ -168,7 +205,7 @@ export const candidatos = pgTable(
   (t) => [index().on(t.apellidos), index().on(t.estado)],
 );
 
-export const listasPrecios = pgTable("listas_precios", {
+export const listasPrecios = crm.table("listas_precios", {
   ...comunes(),
   nombre: text().notNull(),
   activo: boolean().notNull().default(true),
@@ -178,7 +215,7 @@ export const listasPrecios = pgTable("listas_precios", {
   validoHasta: marcaTiempo(),
 });
 
-export const oportunidades = pgTable(
+export const oportunidades = crm.table(
   "oportunidades",
   {
     ...comunes(),
@@ -197,7 +234,7 @@ export const oportunidades = pgTable(
   (t) => [index().on(t.etapa), index().on(t.cuentaId)],
 );
 
-export const productos = pgTable("productos", {
+export const productos = crm.table("productos", {
   ...comunes(),
   nombre: text().notNull(),
   familia: text(),
@@ -207,7 +244,7 @@ export const productos = pgTable("productos", {
   descripcion: text(),
 });
 
-export const entradasListaPrecios = pgTable(
+export const entradasListaPrecios = crm.table(
   "entradas_lista_precios",
   {
     ...comunes(),
@@ -223,7 +260,7 @@ export const entradasListaPrecios = pgTable(
   (t) => [uniqueIndex().on(t.listaPreciosId, t.productoId)],
 );
 
-export const productosOportunidad = pgTable("productos_oportunidad", {
+export const productosOportunidad = crm.table("productos_oportunidad", {
   ...comunes(),
   oportunidadId: uuid()
     .notNull()
@@ -237,9 +274,10 @@ export const productosOportunidad = pgTable("productos_oportunidad", {
   descripcion: text(),
 });
 
-export const facturas = pgTable("facturas", {
+export const facturas = crm.table("facturas", {
   ...comunes(),
-  numero: serial().notNull(),
+  // Lo asigna repositorio.crear con crm.contadores, por empresa.
+  numero: integer().notNull(),
   oportunidadId: uuid().references(() => oportunidades.id, { onDelete: "set null" }),
   cuentaId: uuid().references(() => cuentas.id, { onDelete: "set null" }),
   fechaEmision: date({ mode: "string" }).notNull(),
@@ -249,10 +287,11 @@ export const facturas = pgTable("facturas", {
   impuestos: moneda().notNull().default(0),
   total: moneda().notNull().default(0),
   notas: text(),
-});
+}, (t) => [uniqueIndex().on(t.empresaId, t.numero)]);
 
-export const lineasFactura = pgTable("lineas_factura", {
+export const lineasFactura = crm.table("lineas_factura", {
   id: uuid().primaryKey().defaultRandom(),
+  empresaId: empresa(),
   facturaId: uuid()
     .notNull()
     .references(() => facturas.id, { onDelete: "cascade" }),
@@ -262,7 +301,7 @@ export const lineasFactura = pgTable("lineas_factura", {
   total: moneda().notNull(),
 });
 
-export const videollamadas = pgTable("videollamadas", {
+export const videollamadas = crm.table("videollamadas", {
   ...comunes(),
   asunto: text().notNull(),
   inicio: marcaTiempo().notNull(),
@@ -278,7 +317,7 @@ export const videollamadas = pgTable("videollamadas", {
 // Actividades
 // ---------------------------------------------------------------------------
 
-export const eventos = pgTable(
+export const eventos = crm.table(
   "eventos",
   {
     ...comunes(),
@@ -297,7 +336,7 @@ export const eventos = pgTable(
   (t) => [index().on(t.inicio), index().on(t.relacionadoId), index().on(t.quienId)],
 );
 
-export const tareas = pgTable(
+export const tareas = crm.table(
   "tareas",
   {
     ...comunes(),
@@ -320,11 +359,12 @@ export const tareas = pgTable(
 // Servicio
 // ---------------------------------------------------------------------------
 
-export const casos = pgTable(
+export const casos = crm.table(
   "casos",
   {
     ...comunes(),
-    numero: serial().notNull(),
+    // Lo asigna repositorio.crear con crm.contadores, por empresa.
+    numero: integer().notNull(),
     estado: text().notNull().default("nuevo"),
     origen: text(),
     prioridad: text().notNull().default("media"),
@@ -335,15 +375,15 @@ export const casos = pgTable(
     notificarContacto: boolean().notNull().default(false),
     cerradoEn: marcaTiempo(),
   },
-  (t) => [index().on(t.estado)],
+  (t) => [index().on(t.estado), uniqueIndex().on(t.empresaId, t.numero)],
 );
 
-export const carpetasTexto = pgTable("carpetas_texto", {
+export const carpetasTexto = crm.table("carpetas_texto", {
   ...comunes(),
   nombre: text().notNull(),
 });
 
-export const textosRapidos = pgTable("textos_rapidos", {
+export const textosRapidos = crm.table("textos_rapidos", {
   ...comunes(),
   nombre: text().notNull(),
   mensaje: text().notNull(),
@@ -353,7 +393,7 @@ export const textosRapidos = pgTable("textos_rapidos", {
   favorito: boolean().notNull().default(false),
 });
 
-export const articulos = pgTable("articulos", {
+export const articulos = crm.table("articulos", {
   ...comunes(),
   titulo: text().notNull(),
   nombreUrl: text(),
@@ -366,7 +406,7 @@ export const articulos = pgTable("articulos", {
   vistas: integer().notNull().default(0),
 });
 
-export const sesionesMensajeria = pgTable("sesiones_mensajeria", {
+export const sesionesMensajeria = crm.table("sesiones_mensajeria", {
   ...comunes(),
   canal: text().notNull().default("whatsapp"),
   contactoId: uuid().references(() => contactos.id, { onDelete: "set null" }),
@@ -380,7 +420,7 @@ export const sesionesMensajeria = pgTable("sesiones_mensajeria", {
 // Marketing
 // ---------------------------------------------------------------------------
 
-export const campanas = pgTable("campanas", {
+export const campanas = crm.table("campanas", {
   ...comunes(),
   nombre: text().notNull(),
   tipo: text(),
@@ -392,10 +432,11 @@ export const campanas = pgTable("campanas", {
   descripcion: text(),
 });
 
-export const miembrosCampana = pgTable(
+export const miembrosCampana = crm.table(
   "miembros_campana",
   {
     id: uuid().primaryKey().defaultRandom(),
+    empresaId: empresa(),
     campanaId: uuid()
       .notNull()
       .references(() => campanas.id, { onDelete: "cascade" }),
@@ -407,7 +448,7 @@ export const miembrosCampana = pgTable(
   (t) => [uniqueIndex().on(t.campanaId, t.objeto, t.registroId)],
 );
 
-export const correosLista = pgTable("correos_lista", {
+export const correosLista = crm.table("correos_lista", {
   ...comunes(),
   asunto: text().notNull(),
   cuerpo: text().notNull(),
@@ -417,8 +458,9 @@ export const correosLista = pgTable("correos_lista", {
   enviadoEn: marcaTiempo(),
 });
 
-export const destinatariosCorreo = pgTable("destinatarios_correo", {
+export const destinatariosCorreo = crm.table("destinatarios_correo", {
   id: uuid().primaryKey().defaultRandom(),
+  empresaId: empresa(),
   correoId: uuid()
     .notNull()
     .references(() => correosLista.id, { onDelete: "cascade" }),
@@ -432,7 +474,7 @@ export const destinatariosCorreo = pgTable("destinatarios_correo", {
 // Comercio
 // ---------------------------------------------------------------------------
 
-export const establecimientos = pgTable("establecimientos", {
+export const establecimientos = crm.table("establecimientos", {
   ...comunes(),
   nombre: text().notNull(),
   slug: text(),
@@ -458,7 +500,7 @@ export type AccionFlujo =
   | { tipo: "notificar"; titulo: string; mensaje?: string }
   | { tipo: "llamar_webhook"; conexionId: string };
 
-export const flujos = pgTable("flujos", {
+export const flujos = crm.table("flujos", {
   ...comunes(),
   nombre: text().notNull(),
   descripcion: text(),
@@ -470,10 +512,11 @@ export const flujos = pgTable("flujos", {
   version: integer().notNull().default(1),
 });
 
-export const ejecucionesFlujo = pgTable(
+export const ejecucionesFlujo = crm.table(
   "ejecuciones_flujo",
   {
     id: uuid().primaryKey().defaultRandom(),
+    empresaId: empresa(),
     flujoId: uuid().references(() => flujos.id, { onDelete: "cascade" }),
     nombreFlujo: text().notNull(),
     objeto: text().notNull(),
@@ -483,10 +526,10 @@ export const ejecucionesFlujo = pgTable(
     duracionMs: integer(),
     creadoEn: marcaTiempo().notNull().defaultNow(),
   },
-  (t) => [index().on(t.creadoEn)],
+  (t) => [index().on(t.empresaId, t.creadoEn)],
 );
 
-export const conexiones = pgTable("conexiones", {
+export const conexiones = crm.table("conexiones", {
   ...comunes(),
   nombre: text().notNull(),
   conector: text().notNull(),
@@ -505,7 +548,7 @@ export interface FiltroInforme {
   valor: string;
 }
 
-export const informes = pgTable("informes", {
+export const informes = crm.table("informes", {
   ...comunes(),
   nombre: text().notNull(),
   descripcion: text(),
@@ -519,7 +562,7 @@ export const informes = pgTable("informes", {
   favorito: boolean().notNull().default(false),
 });
 
-export const paneles = pgTable("paneles", {
+export const paneles = crm.table("paneles", {
   ...comunes(),
   nombre: text().notNull(),
   descripcion: text(),
@@ -528,10 +571,11 @@ export const paneles = pgTable("paneles", {
 });
 
 // ---------------------------------------------------------------------------
-// Sistema
+// Sistema. Notificaciones, recientes y preferencias son de un usuario, y cada usuario es de una
+// sola empresa: no necesitan `empresaId`.
 // ---------------------------------------------------------------------------
 
-export const notificaciones = pgTable(
+export const notificaciones = crm.table(
   "notificaciones",
   {
     id: uuid().primaryKey().defaultRandom(),
@@ -547,7 +591,7 @@ export const notificaciones = pgTable(
   (t) => [index().on(t.usuarioId, t.leida)],
 );
 
-export const vistosRecientemente = pgTable(
+export const vistosRecientemente = crm.table(
   "vistos_recientemente",
   {
     id: uuid().primaryKey().defaultRandom(),
@@ -565,7 +609,7 @@ export interface PreferenciasNavegacion {
   [app: string]: string[];
 }
 
-export const preferenciasUsuario = pgTable("preferencias_usuario", {
+export const preferenciasUsuario = crm.table("preferencias_usuario", {
   usuarioId: text()
     .primaryKey()
     .references(() => usuarios.id, { onDelete: "cascade" }),
@@ -573,8 +617,10 @@ export const preferenciasUsuario = pgTable("preferencias_usuario", {
   navegacion: jsonb().$type<PreferenciasNavegacion>().notNull().default({}),
 });
 
-export const configuracion = pgTable("configuracion", {
-  id: integer().primaryKey().default(1),
+export const configuracion = crm.table("configuracion", {
+  empresaId: uuid()
+    .primaryKey()
+    .references(() => empresas.id, { onDelete: "cascade" }),
   nombreEmpresa: text().notNull().default("Mi empresa"),
   moneda: text().notNull().default("COP"),
   pais: text().default("Colombia"),

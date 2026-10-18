@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { and, count, eq, gte, lt, ne, notInArray, sql, sum } from "drizzle-orm";
 import { bd } from "@/db/cliente";
+import { empresaActual } from "@/db/empresa";
 import { candidatos, casos, eventos, oportunidades, tareas } from "@/db/esquema";
 import type { Usuario } from "@/auth/sesion";
 import { Tarjeta } from "@/ui/basicos";
@@ -97,33 +98,37 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
 
 export async function PaginaInformacionGeneral({ usuario, app }: { usuario: Usuario; app: string }) {
   const db = await bd();
+  const empresaId = await empresaActual();
   const config = await obtenerConfiguracion();
   const hoy = new Date();
   const primeroMes = inicioMes();
   const finSemana = new Date(hoy.getTime() + 7 * 864e5);
 
   const [[pipeline], [ganado], [abiertos], [casosAbiertos], [paraHoy], proximos, mejores] = await Promise.all([
-    db.select({ total: sum(oportunidades.importe), n: count() }).from(oportunidades).where(notInArray(oportunidades.etapa, etapasCerradas)),
     db
       .select({ total: sum(oportunidades.importe), n: count() })
       .from(oportunidades)
-      .where(and(eq(oportunidades.etapa, "cerrada_ganada"), gte(oportunidades.fechaCierre, primeroMes))),
-    db.select({ n: count() }).from(candidatos).where(eq(candidatos.convertido, false)),
-    db.select({ n: count() }).from(casos).where(ne(casos.estado, "cerrado")),
+      .where(and(eq(oportunidades.empresaId, empresaId), notInArray(oportunidades.etapa, etapasCerradas))),
+    db
+      .select({ total: sum(oportunidades.importe), n: count() })
+      .from(oportunidades)
+      .where(and(eq(oportunidades.empresaId, empresaId), eq(oportunidades.etapa, "cerrada_ganada"), gte(oportunidades.fechaCierre, primeroMes))),
+    db.select({ n: count() }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), eq(candidatos.convertido, false))),
+    db.select({ n: count() }).from(casos).where(and(eq(casos.empresaId, empresaId), ne(casos.estado, "cerrado"))),
     db
       .select({ n: count() })
       .from(tareas)
-      .where(and(eq(tareas.propietarioId, usuario.id), ne(tareas.estado, "completada"), sql`${tareas.fechaVencimiento} <= ${fechaLocal()}::date`)),
+      .where(and(eq(tareas.empresaId, empresaId), eq(tareas.propietarioId, usuario.id), ne(tareas.estado, "completada"), sql`${tareas.fechaVencimiento} <= ${fechaLocal()}::date`)),
     db
       .select()
       .from(eventos)
-      .where(and(eq(eventos.propietarioId, usuario.id), gte(eventos.fin, hoy), lt(eventos.inicio, finSemana)))
+      .where(and(eq(eventos.empresaId, empresaId), eq(eventos.propietarioId, usuario.id), gte(eventos.fin, hoy), lt(eventos.inicio, finSemana)))
       .orderBy(eventos.inicio)
       .limit(6),
     db
       .select()
       .from(oportunidades)
-      .where(notInArray(oportunidades.etapa, etapasCerradas))
+      .where(and(eq(oportunidades.empresaId, empresaId), notInArray(oportunidades.etapa, etapasCerradas)))
       .orderBy(sql`${oportunidades.importe} desc nulls last`)
       .limit(6),
   ]);

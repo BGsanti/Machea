@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { urlMachea } from "@/auth/machea";
+import { modoAuth } from "@/auth/servidor";
 import { usuarioActual } from "@/auth/sesion";
 import { hayUsuarios } from "@/crm/servidor/consultas";
 import { FormularioAcceso } from "./formulario";
@@ -7,6 +9,8 @@ import { FormularioAcceso } from "./formulario";
 export const metadata: Metadata = { title: "Iniciar sesión" };
 
 export default async function Login() {
+  // Con el login de Machea, esta pantalla no existe: se entra por /acceso/ de Machea.
+  if (modoAuth() === "machea") redirect(`${urlMachea()}/acceso/?volver=${encodeURIComponent("/crm/")}`);
   if (await usuarioActual()) redirect("/");
   const primeraVez = !(await hayUsuarios());
   return (

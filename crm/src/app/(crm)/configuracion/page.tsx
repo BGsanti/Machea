@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ejemplosPermitidos, modoAuth } from "@/auth/servidor";
 import { requerirUsuario } from "@/auth/sesion";
 import { formatoFecha } from "@/crm/formato";
 import { monedas } from "@/crm/opciones";
@@ -13,6 +14,8 @@ export default async function Configuracion() {
   const usuario = await requerirUsuario();
   const [config, usuarios] = await Promise.all([obtenerConfiguracion(), listaUsuarios()]);
   const admin = usuario.rol === "admin";
+  // Con el login de Machea, la cuenta es la empresa y su único usuario: no se crean más aquí.
+  const usuariosPropios = modoAuth() === "local";
 
   return (
     <main className="desplazable min-h-0 flex-1 overflow-y-auto p-4">
@@ -29,7 +32,7 @@ export default async function Configuracion() {
             monedas={monedas}
           />
         </Tarjeta>
-        <Tarjeta titulo={`Usuarios (${usuarios.length})`} icono={<Icono nombre="Users" className="size-4 text-slate-500" />} acciones={admin ? <NuevoUsuario /> : undefined} sinRelleno>
+        <Tarjeta titulo={`Usuarios (${usuarios.length})`} icono={<Icono nombre="Users" className="size-4 text-slate-500" />} acciones={admin && usuariosPropios ? <NuevoUsuario /> : undefined} sinRelleno>
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs text-slate-600">
               <tr>
@@ -55,7 +58,7 @@ export default async function Configuracion() {
             </tbody>
           </table>
         </Tarjeta>
-        {admin ? (
+        {admin && ejemplosPermitidos() ? (
           <Tarjeta titulo="Datos de ejemplo" icono={<Icono nombre="Sparkles" className="size-4 text-amber-500" />}>
             <DatosEjemplo />
           </Tarjeta>

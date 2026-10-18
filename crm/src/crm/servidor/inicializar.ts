@@ -1,18 +1,23 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { carpetasTexto, configuracion, informes, listasPrecios, paneles } from "@/db/esquema";
 
-/** Datos mínimos de una organización nueva: configuración, lista estándar, informes y paneles. */
-export async function inicializarOrganizacion(usuarioId: string, empresa?: string): Promise<void> {
+/** Datos mínimos de una empresa nueva: configuración, lista estándar, informes y paneles. */
+export async function inicializarOrganizacion(usuarioId: string, empresaId: string, empresa?: string): Promise<void> {
   const db = await bd();
   await db
     .insert(configuracion)
-    .values({ id: 1, nombreEmpresa: empresa?.trim() || "Mi empresa" })
+    .values({ empresaId, nombreEmpresa: empresa?.trim() || "Mi empresa" })
     .onConflictDoNothing();
 
-  const [estandar] = await db.select().from(listasPrecios).where(eq(listasPrecios.estandar, true)).limit(1);
+  const [estandar] = await db
+    .select()
+    .from(listasPrecios)
+    .where(and(eq(listasPrecios.empresaId, empresaId), eq(listasPrecios.estandar, true)))
+    .limit(1);
   if (!estandar) {
     await db.insert(listasPrecios).values({
+      empresaId,
       nombre: "Lista de precios estándar",
       estandar: true,
       activo: true,
@@ -22,9 +27,9 @@ export async function inicializarOrganizacion(usuarioId: string, empresa?: strin
     });
   }
 
-  const existentes = await db.select({ id: informes.id }).from(informes).limit(1);
+  const existentes = await db.select({ id: informes.id }).from(informes).where(eq(informes.empresaId, empresaId)).limit(1);
   if (existentes.length === 0) {
-    const base = { propietarioId: usuarioId, creadoPorId: usuarioId };
+    const base = { empresaId, propietarioId: usuarioId, creadoPorId: usuarioId };
     const creados = await db
       .insert(informes)
       .values([
@@ -102,8 +107,12 @@ export async function inicializarOrganizacion(usuarioId: string, empresa?: strin
     ]);
   }
 
-  const carpetas = await db.select({ id: carpetasTexto.id }).from(carpetasTexto).limit(1);
+  const carpetas = await db
+    .select({ id: carpetasTexto.id })
+    .from(carpetasTexto)
+    .where(eq(carpetasTexto.empresaId, empresaId))
+    .limit(1);
   if (carpetas.length === 0) {
-    await db.insert(carpetasTexto).values({ nombre: "General", propietarioId: usuarioId, creadoPorId: usuarioId });
+    await db.insert(carpetasTexto).values({ empresaId, nombre: "General", propietarioId: usuarioId, creadoPorId: usuarioId });
   }
 }

@@ -1,5 +1,8 @@
-CREATE TABLE "articulos" (
+CREATE SCHEMA "crm";
+--> statement-breakpoint
+CREATE TABLE "crm"."articulos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -15,8 +18,9 @@ CREATE TABLE "articulos" (
 	"vistas" integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "campanas" (
+CREATE TABLE "crm"."campanas" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -31,8 +35,9 @@ CREATE TABLE "campanas" (
 	"descripcion" text
 );
 --> statement-breakpoint
-CREATE TABLE "candidatos" (
+CREATE TABLE "crm"."candidatos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -64,8 +69,9 @@ CREATE TABLE "candidatos" (
 	"oportunidad_convertida_id" uuid
 );
 --> statement-breakpoint
-CREATE TABLE "carpetas_texto" (
+CREATE TABLE "crm"."carpetas_texto" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -73,13 +79,14 @@ CREATE TABLE "carpetas_texto" (
 	"nombre" text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "casos" (
+CREATE TABLE "crm"."casos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
 	"actualizado_en" timestamp with time zone DEFAULT now() NOT NULL,
-	"numero" serial NOT NULL,
+	"numero" integer NOT NULL,
 	"estado" text DEFAULT 'nuevo' NOT NULL,
 	"origen" text,
 	"prioridad" text DEFAULT 'media' NOT NULL,
@@ -91,8 +98,9 @@ CREATE TABLE "casos" (
 	"cerrado_en" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "conexiones" (
+CREATE TABLE "crm"."conexiones" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -104,8 +112,8 @@ CREATE TABLE "conexiones" (
 	"descripcion" text
 );
 --> statement-breakpoint
-CREATE TABLE "configuracion" (
-	"id" integer PRIMARY KEY DEFAULT 1 NOT NULL,
+CREATE TABLE "crm"."configuracion" (
+	"empresa_id" uuid PRIMARY KEY NOT NULL,
 	"nombre_empresa" text DEFAULT 'Mi empresa' NOT NULL,
 	"moneda" text DEFAULT 'COP' NOT NULL,
 	"pais" text DEFAULT 'Colombia',
@@ -114,8 +122,9 @@ CREATE TABLE "configuracion" (
 	"actualizado_en" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "contactos" (
+CREATE TABLE "crm"."contactos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -136,8 +145,16 @@ CREATE TABLE "contactos" (
 	"correo_codigo_postal" text
 );
 --> statement-breakpoint
-CREATE TABLE "correos_lista" (
+CREATE TABLE "crm"."contadores" (
+	"empresa_id" uuid NOT NULL,
+	"objeto" text NOT NULL,
+	"valor" integer DEFAULT 0 NOT NULL,
+	CONSTRAINT "contadores_empresa_id_objeto_pk" PRIMARY KEY("empresa_id","objeto")
+);
+--> statement-breakpoint
+CREATE TABLE "crm"."correos_lista" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -150,8 +167,9 @@ CREATE TABLE "correos_lista" (
 	"enviado_en" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "cuentas" (
+CREATE TABLE "crm"."cuentas" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -174,7 +192,7 @@ CREATE TABLE "cuentas" (
 	"envio_codigo_postal" text
 );
 --> statement-breakpoint
-CREATE TABLE "cuentas_auth" (
+CREATE TABLE "crm"."cuentas_auth" (
 	"id" text PRIMARY KEY NOT NULL,
 	"account_id" text NOT NULL,
 	"provider_id" text NOT NULL,
@@ -190,8 +208,9 @@ CREATE TABLE "cuentas_auth" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "destinatarios_correo" (
+CREATE TABLE "crm"."destinatarios_correo" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"correo_id" uuid NOT NULL,
 	"objeto" text NOT NULL,
 	"registro_id" uuid NOT NULL,
@@ -199,8 +218,9 @@ CREATE TABLE "destinatarios_correo" (
 	"estado" text DEFAULT 'registrado' NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "ejecuciones_flujo" (
+CREATE TABLE "crm"."ejecuciones_flujo" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"flujo_id" uuid,
 	"nombre_flujo" text NOT NULL,
 	"objeto" text NOT NULL,
@@ -211,8 +231,15 @@ CREATE TABLE "ejecuciones_flujo" (
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "entradas_lista_precios" (
+CREATE TABLE "crm"."empresas" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"nombre" text NOT NULL,
+	"creada_en" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "crm"."entradas_lista_precios" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -223,8 +250,9 @@ CREATE TABLE "entradas_lista_precios" (
 	"activo" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "establecimientos" (
+CREATE TABLE "crm"."establecimientos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -237,8 +265,9 @@ CREATE TABLE "establecimientos" (
 	"descripcion" text
 );
 --> statement-breakpoint
-CREATE TABLE "eventos" (
+CREATE TABLE "crm"."eventos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -256,13 +285,14 @@ CREATE TABLE "eventos" (
 	"relacionado_id" uuid
 );
 --> statement-breakpoint
-CREATE TABLE "facturas" (
+CREATE TABLE "crm"."facturas" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
 	"actualizado_en" timestamp with time zone DEFAULT now() NOT NULL,
-	"numero" serial NOT NULL,
+	"numero" integer NOT NULL,
 	"oportunidad_id" uuid,
 	"cuenta_id" uuid,
 	"fecha_emision" date NOT NULL,
@@ -274,8 +304,9 @@ CREATE TABLE "facturas" (
 	"notas" text
 );
 --> statement-breakpoint
-CREATE TABLE "flujos" (
+CREATE TABLE "crm"."flujos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -290,8 +321,9 @@ CREATE TABLE "flujos" (
 	"version" integer DEFAULT 1 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "informes" (
+CREATE TABLE "crm"."informes" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -308,8 +340,9 @@ CREATE TABLE "informes" (
 	"favorito" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "lineas_factura" (
+CREATE TABLE "crm"."lineas_factura" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"factura_id" uuid NOT NULL,
 	"descripcion" text NOT NULL,
 	"cantidad" numeric(14, 2) NOT NULL,
@@ -317,8 +350,9 @@ CREATE TABLE "lineas_factura" (
 	"total" numeric(16, 2) NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "listas_precios" (
+CREATE TABLE "crm"."listas_precios" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -331,8 +365,9 @@ CREATE TABLE "listas_precios" (
 	"valido_hasta" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "miembros_campana" (
+CREATE TABLE "crm"."miembros_campana" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"campana_id" uuid NOT NULL,
 	"objeto" text NOT NULL,
 	"registro_id" uuid NOT NULL,
@@ -340,7 +375,7 @@ CREATE TABLE "miembros_campana" (
 	"agregado_en" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "notificaciones" (
+CREATE TABLE "crm"."notificaciones" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"usuario_id" text NOT NULL,
 	"titulo" text NOT NULL,
@@ -350,8 +385,9 @@ CREATE TABLE "notificaciones" (
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "oportunidades" (
+CREATE TABLE "crm"."oportunidades" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -369,8 +405,9 @@ CREATE TABLE "oportunidades" (
 	"origen" text
 );
 --> statement-breakpoint
-CREATE TABLE "paneles" (
+CREATE TABLE "crm"."paneles" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -381,14 +418,15 @@ CREATE TABLE "paneles" (
 	"favorito" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "preferencias_usuario" (
+CREATE TABLE "crm"."preferencias_usuario" (
 	"usuario_id" text PRIMARY KEY NOT NULL,
 	"sugerencias_ocultas" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"navegacion" jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "productos" (
+CREATE TABLE "crm"."productos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -401,8 +439,9 @@ CREATE TABLE "productos" (
 	"descripcion" text
 );
 --> statement-breakpoint
-CREATE TABLE "productos_oportunidad" (
+CREATE TABLE "crm"."productos_oportunidad" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -415,7 +454,7 @@ CREATE TABLE "productos_oportunidad" (
 	"descripcion" text
 );
 --> statement-breakpoint
-CREATE TABLE "sesiones" (
+CREATE TABLE "crm"."sesiones" (
 	"id" text PRIMARY KEY NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
 	"token" text NOT NULL,
@@ -427,8 +466,9 @@ CREATE TABLE "sesiones" (
 	CONSTRAINT "sesiones_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "sesiones_mensajeria" (
+CREATE TABLE "crm"."sesiones_mensajeria" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -441,8 +481,9 @@ CREATE TABLE "sesiones_mensajeria" (
 	"resumen" text
 );
 --> statement-breakpoint
-CREATE TABLE "tareas" (
+CREATE TABLE "crm"."tareas" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -460,8 +501,9 @@ CREATE TABLE "tareas" (
 	"completada_en" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "textos_rapidos" (
+CREATE TABLE "crm"."textos_rapidos" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -474,8 +516,9 @@ CREATE TABLE "textos_rapidos" (
 	"favorito" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "usuarios" (
+CREATE TABLE "crm"."usuarios" (
 	"id" text PRIMARY KEY NOT NULL,
+	"empresa_id" uuid,
 	"name" text NOT NULL,
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
@@ -487,7 +530,7 @@ CREATE TABLE "usuarios" (
 	CONSTRAINT "usuarios_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "verificaciones" (
+CREATE TABLE "crm"."verificaciones" (
 	"id" text PRIMARY KEY NOT NULL,
 	"identifier" text NOT NULL,
 	"value" text NOT NULL,
@@ -496,8 +539,9 @@ CREATE TABLE "verificaciones" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "videollamadas" (
+CREATE TABLE "crm"."videollamadas" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"empresa_id" uuid NOT NULL,
 	"propietario_id" text,
 	"creado_por_id" text,
 	"creado_en" timestamp with time zone DEFAULT now() NOT NULL,
@@ -512,7 +556,7 @@ CREATE TABLE "videollamadas" (
 	"notas" text
 );
 --> statement-breakpoint
-CREATE TABLE "vistos_recientemente" (
+CREATE TABLE "crm"."vistos_recientemente" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"usuario_id" text NOT NULL,
 	"objeto" text NOT NULL,
@@ -520,95 +564,128 @@ CREATE TABLE "vistos_recientemente" (
 	"visto_en" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "articulos" ADD CONSTRAINT "articulos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "articulos" ADD CONSTRAINT "articulos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "articulos" ADD CONSTRAINT "articulos_asignado_a_id_usuarios_id_fk" FOREIGN KEY ("asignado_a_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "campanas" ADD CONSTRAINT "campanas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "campanas" ADD CONSTRAINT "campanas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "candidatos" ADD CONSTRAINT "candidatos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "candidatos" ADD CONSTRAINT "candidatos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "carpetas_texto" ADD CONSTRAINT "carpetas_texto_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "carpetas_texto" ADD CONSTRAINT "carpetas_texto_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "casos" ADD CONSTRAINT "casos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "casos" ADD CONSTRAINT "casos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "casos" ADD CONSTRAINT "casos_contacto_id_contactos_id_fk" FOREIGN KEY ("contacto_id") REFERENCES "public"."contactos"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "casos" ADD CONSTRAINT "casos_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "public"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "conexiones" ADD CONSTRAINT "conexiones_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "conexiones" ADD CONSTRAINT "conexiones_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "contactos" ADD CONSTRAINT "contactos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "contactos" ADD CONSTRAINT "contactos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "contactos" ADD CONSTRAINT "contactos_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "public"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "correos_lista" ADD CONSTRAINT "correos_lista_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "correos_lista" ADD CONSTRAINT "correos_lista_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "cuentas" ADD CONSTRAINT "cuentas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "cuentas" ADD CONSTRAINT "cuentas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "cuentas_auth" ADD CONSTRAINT "cuentas_auth_user_id_usuarios_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "destinatarios_correo" ADD CONSTRAINT "destinatarios_correo_correo_id_correos_lista_id_fk" FOREIGN KEY ("correo_id") REFERENCES "public"."correos_lista"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ejecuciones_flujo" ADD CONSTRAINT "ejecuciones_flujo_flujo_id_flujos_id_fk" FOREIGN KEY ("flujo_id") REFERENCES "public"."flujos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_lista_precios_id_listas_precios_id_fk" FOREIGN KEY ("lista_precios_id") REFERENCES "public"."listas_precios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_producto_id_productos_id_fk" FOREIGN KEY ("producto_id") REFERENCES "public"."productos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "establecimientos" ADD CONSTRAINT "establecimientos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "establecimientos" ADD CONSTRAINT "establecimientos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "establecimientos" ADD CONSTRAINT "establecimientos_lista_precios_id_listas_precios_id_fk" FOREIGN KEY ("lista_precios_id") REFERENCES "public"."listas_precios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "eventos" ADD CONSTRAINT "eventos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "eventos" ADD CONSTRAINT "eventos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "facturas" ADD CONSTRAINT "facturas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "facturas" ADD CONSTRAINT "facturas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "facturas" ADD CONSTRAINT "facturas_oportunidad_id_oportunidades_id_fk" FOREIGN KEY ("oportunidad_id") REFERENCES "public"."oportunidades"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "facturas" ADD CONSTRAINT "facturas_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "public"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "flujos" ADD CONSTRAINT "flujos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "flujos" ADD CONSTRAINT "flujos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "informes" ADD CONSTRAINT "informes_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "informes" ADD CONSTRAINT "informes_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "lineas_factura" ADD CONSTRAINT "lineas_factura_factura_id_facturas_id_fk" FOREIGN KEY ("factura_id") REFERENCES "public"."facturas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "listas_precios" ADD CONSTRAINT "listas_precios_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "listas_precios" ADD CONSTRAINT "listas_precios_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "miembros_campana" ADD CONSTRAINT "miembros_campana_campana_id_campanas_id_fk" FOREIGN KEY ("campana_id") REFERENCES "public"."campanas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "notificaciones" ADD CONSTRAINT "notificaciones_usuario_id_usuarios_id_fk" FOREIGN KEY ("usuario_id") REFERENCES "public"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "oportunidades" ADD CONSTRAINT "oportunidades_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "oportunidades" ADD CONSTRAINT "oportunidades_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "oportunidades" ADD CONSTRAINT "oportunidades_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "public"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "oportunidades" ADD CONSTRAINT "oportunidades_lista_precios_id_listas_precios_id_fk" FOREIGN KEY ("lista_precios_id") REFERENCES "public"."listas_precios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "paneles" ADD CONSTRAINT "paneles_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "paneles" ADD CONSTRAINT "paneles_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "preferencias_usuario" ADD CONSTRAINT "preferencias_usuario_usuario_id_usuarios_id_fk" FOREIGN KEY ("usuario_id") REFERENCES "public"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "productos" ADD CONSTRAINT "productos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "productos" ADD CONSTRAINT "productos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_oportunidad_id_oportunidades_id_fk" FOREIGN KEY ("oportunidad_id") REFERENCES "public"."oportunidades"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_producto_id_productos_id_fk" FOREIGN KEY ("producto_id") REFERENCES "public"."productos"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sesiones" ADD CONSTRAINT "sesiones_user_id_usuarios_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sesiones_mensajeria" ADD CONSTRAINT "sesiones_mensajeria_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sesiones_mensajeria" ADD CONSTRAINT "sesiones_mensajeria_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sesiones_mensajeria" ADD CONSTRAINT "sesiones_mensajeria_contacto_id_contactos_id_fk" FOREIGN KEY ("contacto_id") REFERENCES "public"."contactos"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "tareas" ADD CONSTRAINT "tareas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "tareas" ADD CONSTRAINT "tareas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "textos_rapidos" ADD CONSTRAINT "textos_rapidos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "textos_rapidos" ADD CONSTRAINT "textos_rapidos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "textos_rapidos" ADD CONSTRAINT "textos_rapidos_carpeta_id_carpetas_texto_id_fk" FOREIGN KEY ("carpeta_id") REFERENCES "public"."carpetas_texto"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "videollamadas" ADD CONSTRAINT "videollamadas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "videollamadas" ADD CONSTRAINT "videollamadas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "public"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "vistos_recientemente" ADD CONSTRAINT "vistos_recientemente_usuario_id_usuarios_id_fk" FOREIGN KEY ("usuario_id") REFERENCES "public"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "candidatos_apellidos_index" ON "candidatos" USING btree ("apellidos");--> statement-breakpoint
-CREATE INDEX "candidatos_estado_index" ON "candidatos" USING btree ("estado");--> statement-breakpoint
-CREATE INDEX "casos_estado_index" ON "casos" USING btree ("estado");--> statement-breakpoint
-CREATE INDEX "contactos_apellidos_index" ON "contactos" USING btree ("apellidos");--> statement-breakpoint
-CREATE INDEX "contactos_cuenta_id_index" ON "contactos" USING btree ("cuenta_id");--> statement-breakpoint
-CREATE INDEX "cuentas_nombre_index" ON "cuentas" USING btree ("nombre");--> statement-breakpoint
-CREATE INDEX "ejecuciones_flujo_creado_en_index" ON "ejecuciones_flujo" USING btree ("creado_en");--> statement-breakpoint
-CREATE UNIQUE INDEX "entradas_lista_precios_lista_precios_id_producto_id_index" ON "entradas_lista_precios" USING btree ("lista_precios_id","producto_id");--> statement-breakpoint
-CREATE INDEX "eventos_inicio_index" ON "eventos" USING btree ("inicio");--> statement-breakpoint
-CREATE INDEX "eventos_relacionado_id_index" ON "eventos" USING btree ("relacionado_id");--> statement-breakpoint
-CREATE INDEX "eventos_quien_id_index" ON "eventos" USING btree ("quien_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "miembros_campana_campana_id_objeto_registro_id_index" ON "miembros_campana" USING btree ("campana_id","objeto","registro_id");--> statement-breakpoint
-CREATE INDEX "notificaciones_usuario_id_leida_index" ON "notificaciones" USING btree ("usuario_id","leida");--> statement-breakpoint
-CREATE INDEX "oportunidades_etapa_index" ON "oportunidades" USING btree ("etapa");--> statement-breakpoint
-CREATE INDEX "oportunidades_cuenta_id_index" ON "oportunidades" USING btree ("cuenta_id");--> statement-breakpoint
-CREATE INDEX "tareas_relacionado_id_index" ON "tareas" USING btree ("relacionado_id");--> statement-breakpoint
-CREATE INDEX "tareas_quien_id_index" ON "tareas" USING btree ("quien_id");--> statement-breakpoint
-CREATE INDEX "tareas_propietario_id_index" ON "tareas" USING btree ("propietario_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "vistos_recientemente_usuario_id_objeto_registro_id_index" ON "vistos_recientemente" USING btree ("usuario_id","objeto","registro_id");--> statement-breakpoint
-CREATE INDEX "vistos_recientemente_usuario_id_visto_en_index" ON "vistos_recientemente" USING btree ("usuario_id","visto_en");
+ALTER TABLE "crm"."articulos" ADD CONSTRAINT "articulos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."articulos" ADD CONSTRAINT "articulos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."articulos" ADD CONSTRAINT "articulos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."articulos" ADD CONSTRAINT "articulos_asignado_a_id_usuarios_id_fk" FOREIGN KEY ("asignado_a_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."campanas" ADD CONSTRAINT "campanas_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."campanas" ADD CONSTRAINT "campanas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."campanas" ADD CONSTRAINT "campanas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."candidatos" ADD CONSTRAINT "candidatos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."candidatos" ADD CONSTRAINT "candidatos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."candidatos" ADD CONSTRAINT "candidatos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."carpetas_texto" ADD CONSTRAINT "carpetas_texto_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."carpetas_texto" ADD CONSTRAINT "carpetas_texto_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."carpetas_texto" ADD CONSTRAINT "carpetas_texto_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."casos" ADD CONSTRAINT "casos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."casos" ADD CONSTRAINT "casos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."casos" ADD CONSTRAINT "casos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."casos" ADD CONSTRAINT "casos_contacto_id_contactos_id_fk" FOREIGN KEY ("contacto_id") REFERENCES "crm"."contactos"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."casos" ADD CONSTRAINT "casos_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "crm"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."conexiones" ADD CONSTRAINT "conexiones_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."conexiones" ADD CONSTRAINT "conexiones_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."conexiones" ADD CONSTRAINT "conexiones_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."configuracion" ADD CONSTRAINT "configuracion_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."contactos" ADD CONSTRAINT "contactos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."contactos" ADD CONSTRAINT "contactos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."contactos" ADD CONSTRAINT "contactos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."contactos" ADD CONSTRAINT "contactos_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "crm"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."contadores" ADD CONSTRAINT "contadores_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."correos_lista" ADD CONSTRAINT "correos_lista_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."correos_lista" ADD CONSTRAINT "correos_lista_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."correos_lista" ADD CONSTRAINT "correos_lista_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."cuentas" ADD CONSTRAINT "cuentas_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."cuentas" ADD CONSTRAINT "cuentas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."cuentas" ADD CONSTRAINT "cuentas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."cuentas_auth" ADD CONSTRAINT "cuentas_auth_user_id_usuarios_id_fk" FOREIGN KEY ("user_id") REFERENCES "crm"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."destinatarios_correo" ADD CONSTRAINT "destinatarios_correo_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."destinatarios_correo" ADD CONSTRAINT "destinatarios_correo_correo_id_correos_lista_id_fk" FOREIGN KEY ("correo_id") REFERENCES "crm"."correos_lista"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."ejecuciones_flujo" ADD CONSTRAINT "ejecuciones_flujo_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."ejecuciones_flujo" ADD CONSTRAINT "ejecuciones_flujo_flujo_id_flujos_id_fk" FOREIGN KEY ("flujo_id") REFERENCES "crm"."flujos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_lista_precios_id_listas_precios_id_fk" FOREIGN KEY ("lista_precios_id") REFERENCES "crm"."listas_precios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."entradas_lista_precios" ADD CONSTRAINT "entradas_lista_precios_producto_id_productos_id_fk" FOREIGN KEY ("producto_id") REFERENCES "crm"."productos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."establecimientos" ADD CONSTRAINT "establecimientos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."establecimientos" ADD CONSTRAINT "establecimientos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."establecimientos" ADD CONSTRAINT "establecimientos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."establecimientos" ADD CONSTRAINT "establecimientos_lista_precios_id_listas_precios_id_fk" FOREIGN KEY ("lista_precios_id") REFERENCES "crm"."listas_precios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."eventos" ADD CONSTRAINT "eventos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."eventos" ADD CONSTRAINT "eventos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."eventos" ADD CONSTRAINT "eventos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."facturas" ADD CONSTRAINT "facturas_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."facturas" ADD CONSTRAINT "facturas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."facturas" ADD CONSTRAINT "facturas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."facturas" ADD CONSTRAINT "facturas_oportunidad_id_oportunidades_id_fk" FOREIGN KEY ("oportunidad_id") REFERENCES "crm"."oportunidades"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."facturas" ADD CONSTRAINT "facturas_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "crm"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."flujos" ADD CONSTRAINT "flujos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."flujos" ADD CONSTRAINT "flujos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."flujos" ADD CONSTRAINT "flujos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."informes" ADD CONSTRAINT "informes_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."informes" ADD CONSTRAINT "informes_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."informes" ADD CONSTRAINT "informes_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."lineas_factura" ADD CONSTRAINT "lineas_factura_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."lineas_factura" ADD CONSTRAINT "lineas_factura_factura_id_facturas_id_fk" FOREIGN KEY ("factura_id") REFERENCES "crm"."facturas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."listas_precios" ADD CONSTRAINT "listas_precios_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."listas_precios" ADD CONSTRAINT "listas_precios_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."listas_precios" ADD CONSTRAINT "listas_precios_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."miembros_campana" ADD CONSTRAINT "miembros_campana_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."miembros_campana" ADD CONSTRAINT "miembros_campana_campana_id_campanas_id_fk" FOREIGN KEY ("campana_id") REFERENCES "crm"."campanas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."notificaciones" ADD CONSTRAINT "notificaciones_usuario_id_usuarios_id_fk" FOREIGN KEY ("usuario_id") REFERENCES "crm"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."oportunidades" ADD CONSTRAINT "oportunidades_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."oportunidades" ADD CONSTRAINT "oportunidades_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."oportunidades" ADD CONSTRAINT "oportunidades_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."oportunidades" ADD CONSTRAINT "oportunidades_cuenta_id_cuentas_id_fk" FOREIGN KEY ("cuenta_id") REFERENCES "crm"."cuentas"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."oportunidades" ADD CONSTRAINT "oportunidades_lista_precios_id_listas_precios_id_fk" FOREIGN KEY ("lista_precios_id") REFERENCES "crm"."listas_precios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."paneles" ADD CONSTRAINT "paneles_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."paneles" ADD CONSTRAINT "paneles_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."paneles" ADD CONSTRAINT "paneles_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."preferencias_usuario" ADD CONSTRAINT "preferencias_usuario_usuario_id_usuarios_id_fk" FOREIGN KEY ("usuario_id") REFERENCES "crm"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos" ADD CONSTRAINT "productos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos" ADD CONSTRAINT "productos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos" ADD CONSTRAINT "productos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_oportunidad_id_oportunidades_id_fk" FOREIGN KEY ("oportunidad_id") REFERENCES "crm"."oportunidades"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."productos_oportunidad" ADD CONSTRAINT "productos_oportunidad_producto_id_productos_id_fk" FOREIGN KEY ("producto_id") REFERENCES "crm"."productos"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."sesiones" ADD CONSTRAINT "sesiones_user_id_usuarios_id_fk" FOREIGN KEY ("user_id") REFERENCES "crm"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."sesiones_mensajeria" ADD CONSTRAINT "sesiones_mensajeria_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."sesiones_mensajeria" ADD CONSTRAINT "sesiones_mensajeria_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."sesiones_mensajeria" ADD CONSTRAINT "sesiones_mensajeria_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."sesiones_mensajeria" ADD CONSTRAINT "sesiones_mensajeria_contacto_id_contactos_id_fk" FOREIGN KEY ("contacto_id") REFERENCES "crm"."contactos"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."tareas" ADD CONSTRAINT "tareas_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."tareas" ADD CONSTRAINT "tareas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."tareas" ADD CONSTRAINT "tareas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."textos_rapidos" ADD CONSTRAINT "textos_rapidos_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."textos_rapidos" ADD CONSTRAINT "textos_rapidos_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."textos_rapidos" ADD CONSTRAINT "textos_rapidos_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."textos_rapidos" ADD CONSTRAINT "textos_rapidos_carpeta_id_carpetas_texto_id_fk" FOREIGN KEY ("carpeta_id") REFERENCES "crm"."carpetas_texto"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."usuarios" ADD CONSTRAINT "usuarios_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."videollamadas" ADD CONSTRAINT "videollamadas_empresa_id_empresas_id_fk" FOREIGN KEY ("empresa_id") REFERENCES "crm"."empresas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."videollamadas" ADD CONSTRAINT "videollamadas_propietario_id_usuarios_id_fk" FOREIGN KEY ("propietario_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."videollamadas" ADD CONSTRAINT "videollamadas_creado_por_id_usuarios_id_fk" FOREIGN KEY ("creado_por_id") REFERENCES "crm"."usuarios"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "crm"."vistos_recientemente" ADD CONSTRAINT "vistos_recientemente_usuario_id_usuarios_id_fk" FOREIGN KEY ("usuario_id") REFERENCES "crm"."usuarios"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "candidatos_apellidos_index" ON "crm"."candidatos" USING btree ("apellidos");--> statement-breakpoint
+CREATE INDEX "candidatos_estado_index" ON "crm"."candidatos" USING btree ("estado");--> statement-breakpoint
+CREATE INDEX "casos_estado_index" ON "crm"."casos" USING btree ("estado");--> statement-breakpoint
+CREATE UNIQUE INDEX "casos_empresa_id_numero_index" ON "crm"."casos" USING btree ("empresa_id","numero");--> statement-breakpoint
+CREATE INDEX "contactos_apellidos_index" ON "crm"."contactos" USING btree ("apellidos");--> statement-breakpoint
+CREATE INDEX "contactos_cuenta_id_index" ON "crm"."contactos" USING btree ("cuenta_id");--> statement-breakpoint
+CREATE INDEX "cuentas_nombre_index" ON "crm"."cuentas" USING btree ("nombre");--> statement-breakpoint
+CREATE INDEX "ejecuciones_flujo_empresa_id_creado_en_index" ON "crm"."ejecuciones_flujo" USING btree ("empresa_id","creado_en");--> statement-breakpoint
+CREATE UNIQUE INDEX "entradas_lista_precios_lista_precios_id_producto_id_index" ON "crm"."entradas_lista_precios" USING btree ("lista_precios_id","producto_id");--> statement-breakpoint
+CREATE INDEX "eventos_inicio_index" ON "crm"."eventos" USING btree ("inicio");--> statement-breakpoint
+CREATE INDEX "eventos_relacionado_id_index" ON "crm"."eventos" USING btree ("relacionado_id");--> statement-breakpoint
+CREATE INDEX "eventos_quien_id_index" ON "crm"."eventos" USING btree ("quien_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "facturas_empresa_id_numero_index" ON "crm"."facturas" USING btree ("empresa_id","numero");--> statement-breakpoint
+CREATE UNIQUE INDEX "miembros_campana_campana_id_objeto_registro_id_index" ON "crm"."miembros_campana" USING btree ("campana_id","objeto","registro_id");--> statement-breakpoint
+CREATE INDEX "notificaciones_usuario_id_leida_index" ON "crm"."notificaciones" USING btree ("usuario_id","leida");--> statement-breakpoint
+CREATE INDEX "oportunidades_etapa_index" ON "crm"."oportunidades" USING btree ("etapa");--> statement-breakpoint
+CREATE INDEX "oportunidades_cuenta_id_index" ON "crm"."oportunidades" USING btree ("cuenta_id");--> statement-breakpoint
+CREATE INDEX "tareas_relacionado_id_index" ON "crm"."tareas" USING btree ("relacionado_id");--> statement-breakpoint
+CREATE INDEX "tareas_quien_id_index" ON "crm"."tareas" USING btree ("quien_id");--> statement-breakpoint
+CREATE INDEX "tareas_propietario_id_index" ON "crm"."tareas" USING btree ("propietario_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "vistos_recientemente_usuario_id_objeto_registro_id_index" ON "crm"."vistos_recientemente" USING btree ("usuario_id","objeto","registro_id");--> statement-breakpoint
+CREATE INDEX "vistos_recientemente_usuario_id_visto_en_index" ON "crm"."vistos_recientemente" USING btree ("usuario_id","visto_en");

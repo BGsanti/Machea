@@ -1,10 +1,12 @@
 import { and, asc, count, desc, eq, gte, inArray, lt, ne, or, sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
+import { empresaActual } from "@/db/empresa";
 import {
   candidatos,
   configuracion,
   contactos,
   ejecucionesFlujo,
+  empresas,
   eventos,
   informes,
   lineasFactura,
@@ -22,12 +24,21 @@ import { tablas } from "../tablas";
 import type { Condicion } from "../tipos";
 import { agruparPor, nombresDeIds } from "./repositorio";
 
+// Todas las consultas se limitan a la empresa actual (ver db/empresa.ts). Las de notificaciones y
+// preferencias van por usuario, y cada usuario es de una sola empresa.
+
 export async function obtenerConfiguracion() {
   const db = await bd();
-  const [c] = await db.select().from(configuracion).where(eq(configuracion.id, 1));
+  const empresaId = await empresaActual();
+  const [c] = await db.select().from(configuracion).where(eq(configuracion.empresaId, empresaId));
   if (c) return c;
-  const [nueva] = await db.insert(configuracion).values({ id: 1 }).onConflictDoNothing().returning();
-  return nueva ?? (await db.select().from(configuracion).where(eq(configuracion.id, 1)))[0]!;
+  const [empresa] = await db.select({ nombre: empresas.nombre }).from(empresas).where(eq(empresas.id, empresaId));
+  const [nueva] = await db
+    .insert(configuracion)
+    .values({ empresaId, nombreEmpresa: empresa?.nombre ?? "Mi empresa" })
+    .onConflictDoNothing()
+    .returning();
+  return nueva ?? (await db.select().from(configuracion).where(eq(configuracion.empresaId, empresaId)))[0]!;
 }
 
 export async function obtenerPreferencias(usuarioId: string) {
@@ -56,9 +67,11 @@ export async function listaUsuarios() {
   return db
     .select({ id: usuarios.id, nombre: usuarios.name, email: usuarios.email, rol: usuarios.rol, creadoEn: usuarios.createdAt })
     .from(usuarios)
+    .where(eq(usuarios.empresaId, await empresaActual()))
     .orderBy(asc(usuarios.name));
 }
 
+/** Solo para el modo local: decide si la pantalla de acceso crea el primer administrador. */
 export async function hayUsuarios(): Promise<boolean> {
   const db = await bd();
   const [r] = await db.select({ n: count() }).from(usuarios);
@@ -70,7 +83,7 @@ export async function tareasAbiertas(usuarioId: string, limite = 30) {
   return db
     .select()
     .from(tareas)
-    .where(and(eq(tareas.propietarioId, usuarioId), ne(tareas.estado, "completada")))
+    .where(and(eq(tareas.empresaId, await empresaActual()), eq(tareas.propietarioId, usuarioId), ne(tareas.estado, "completada")))
     .orderBy(sql`${tareas.fechaVencimiento} asc nulls last`, desc(tareas.creadoEn))
     .limit(limite);
 }
@@ -82,6 +95,7 @@ export async function eventosEntre(inicio: Date, fin: Date, usuarioId: string, s
     .from(eventos)
     .where(
       and(
+        eq(eventos.empresaId, await empresaActual()),
         lt(eventos.inicio, fin),
         gte(eventos.fin, inicio),
         soloMios ? eq(eventos.propietarioId, usuarioId) : or(eq(eventos.privado, false), eq(eventos.propietarioId, usuarioId)),
@@ -92,27 +106,42 @@ export async function eventosEntre(inicio: Date, fin: Date, usuarioId: string, s
 
 export async function ejecucionesRecientes(limite = 100) {
   const db = await bd();
-  return db.select().from(ejecucionesFlujo).orderBy(desc(ejecucionesFlujo.creadoEn)).limit(limite);
+  return db
+    .select()
+    .from(ejecucionesFlujo)
+    .where(eq(ejecucionesFlujo.empresaId, await empresaActual()))
+    .orderBy(desc(ejecucionesFlujo.creadoEn))
+    .limit(limite);
 }
 
 export async function lineasDe(facturaId: string) {
   const db = await bd();
-  return db.select().from(lineasFactura).where(eq(lineasFactura.facturaId, facturaId));
+  return db
+    .select()
+    .from(lineasFactura)
+    .where(and(eq(lineasFactura.facturaId, facturaId), eq(lineasFactura.empresaId, await empresaActual())));
 }
 
 export async function miembrosDe(campanaId: string) {
   const db = await bd();
+  const empresaId = await empresaActual();
   const miembros = await db
     .select()
     .from(miembrosCampana)
-    .where(eq(miembrosCampana.campanaId, campanaId))
+    .where(and(eq(miembrosCampana.campanaId, campanaId), eq(miembrosCampana.empresaId, empresaId)))
     .orderBy(desc(miembrosCampana.agregadoEn));
   const ids = (objeto: string) => miembros.filter((m) => m.objeto === objeto).map((m) => m.registroId);
   const deContactos = ids("contactos").length
-    ? await db.select({ id: contactos.id, nombre: contactos.nombre, apellidos: contactos.apellidos, email: contactos.email }).from(contactos).where(inArray(contactos.id, ids("contactos")))
+    ? await db
+        .select({ id: contactos.id, nombre: contactos.nombre, apellidos: contactos.apellidos, email: contactos.email })
+        .from(contactos)
+        .where(and(inArray(contactos.id, ids("contactos")), eq(contactos.empresaId, empresaId)))
     : [];
   const deCandidatos = ids("candidatos").length
-    ? await db.select({ id: candidatos.id, nombre: candidatos.nombre, apellidos: candidatos.apellidos, email: candidatos.email }).from(candidatos).where(inArray(candidatos.id, ids("candidatos")))
+    ? await db
+        .select({ id: candidatos.id, nombre: candidatos.nombre, apellidos: candidatos.apellidos, email: candidatos.email })
+        .from(candidatos)
+        .where(and(inArray(candidatos.id, ids("candidatos")), eq(candidatos.empresaId, empresaId)))
     : [];
   const personas = new Map([...deContactos, ...deCandidatos].map((p) => [p.id, p]));
   return miembros.map((m) => {
@@ -128,11 +157,12 @@ export async function miembrosDe(campanaId: string) {
 /** Número de registros por objeto, para la página Su cuenta. */
 export async function contarRegistros(): Promise<{ objeto: string; total: number }[]> {
   const db = await bd();
+  const empresaId = await empresaActual();
   const resultado: { objeto: string; total: number }[] = [];
   for (const objeto of ["cuentas", "contactos", "candidatos", "oportunidades", "casos", "productos", "tareas", "eventos", "articulos"]) {
     const t = tablas[objeto];
     if (!t) continue;
-    const [r] = await db.select({ n: count() }).from(t);
+    const [r] = await db.select({ n: count() }).from(t).where(sql`empresa_id = ${empresaId}`);
     resultado.push({ objeto, total: Number(r?.n ?? 0) });
   }
   return resultado;
@@ -225,23 +255,33 @@ export async function listaInformes(objeto?: string) {
   return db
     .select()
     .from(informes)
-    .where(objeto ? eq(informes.objeto, objeto) : undefined)
+    .where(and(eq(informes.empresaId, await empresaActual()), objeto ? eq(informes.objeto, objeto) : undefined))
     .orderBy(desc(informes.actualizadoEn));
 }
 
 export async function obtenerInforme(id: string) {
   const db = await bd();
-  const [i] = await db.select().from(informes).where(eq(informes.id, id));
+  const [i] = await db
+    .select()
+    .from(informes)
+    .where(and(eq(informes.id, id), eq(informes.empresaId, await empresaActual())));
   return i ?? null;
 }
 
 export async function listaPaneles() {
   const db = await bd();
-  return db.select().from(paneles).orderBy(desc(paneles.actualizadoEn));
+  return db
+    .select()
+    .from(paneles)
+    .where(eq(paneles.empresaId, await empresaActual()))
+    .orderBy(desc(paneles.actualizadoEn));
 }
 
 export async function obtenerPanel(id: string) {
   const db = await bd();
-  const [p] = await db.select().from(paneles).where(eq(paneles.id, id));
+  const [p] = await db
+    .select()
+    .from(paneles)
+    .where(and(eq(paneles.id, id), eq(paneles.empresaId, await empresaActual())));
   return p ?? null;
 }

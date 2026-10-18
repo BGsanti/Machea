@@ -13,7 +13,13 @@ export type BaseDatos = NodePgDatabase<typeof esquema>;
 interface Estado {
   db: BaseDatos;
   migraciones: Promise<void>;
+  migrar: () => Promise<void>;
 }
+
+// En producción las migraciones las aplica una persona antes del despliegue (ver
+// design/crm/PUESTA_EN_MARCHA.md) y el rol de la app no puede crear tablas: allí va
+// CRM_MIGRAR_AL_ARRANCAR=false. En desarrollo se aplican solas al arrancar.
+const migrarAlArrancar = process.env.CRM_MIGRAR_AL_ARRANCAR !== "false";
 
 const carpetaMigraciones = path.join(process.cwd(), "drizzle");
 
@@ -26,16 +32,21 @@ function crear(): Estado {
   if (url) {
     const pool = new Pool({ connectionString: url });
     const db = drizzlePg(pool, { schema: esquema, casing: "snake_case" });
-    return { db, migraciones: migrarPg(db, { migrationsFolder: carpetaMigraciones }) };
+    const migrar = () => migrarPg(db, { migrationsFolder: carpetaMigraciones });
+    return { db, migrar, migraciones: migrarAlArrancar ? migrar() : Promise.resolve() };
   }
+  // Falla cerrado: en Vercel no hay disco para PGlite y los datos se perderían.
+  if (process.env.VERCEL) throw new Error("En Vercel el CRM exige DATABASE_URL.");
   const carpetaDatos = path.join(process.cwd(), ".data", "pglite");
   mkdirSync(carpetaDatos, { recursive: true });
   const cliente = new PGlite(carpetaDatos);
   const db = drizzlePglite(cliente, { schema: esquema, casing: "snake_case" });
   // Ambos drivers exponen la misma API de consultas de Drizzle para PostgreSQL.
+  const migrar = () => migrarPglite(db, { migrationsFolder: carpetaMigraciones });
   return {
     db: db as unknown as BaseDatos,
-    migraciones: migrarPglite(db, { migrationsFolder: carpetaMigraciones }),
+    migrar,
+    migraciones: migrarAlArrancar ? migrar() : Promise.resolve(),
   };
 }
 
@@ -58,4 +69,11 @@ export function bdSinEsperar(): BaseDatos {
 
 export async function migracionesListas(): Promise<void> {
   await estado().migraciones;
+}
+
+/** Aplica las migraciones pendientes aunque CRM_MIGRAR_AL_ARRANCAR=false (lo usa `pnpm db:migrar`). */
+export async function aplicarMigraciones(): Promise<void> {
+  const e = estado();
+  await e.migraciones;
+  await e.migrar();
 }

@@ -5,4 +5,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   casing: "snake_case",
+  // Solo el esquema del CRM: la base también puede tener los de Machea (public, acceso).
+  schemaFilter: ["crm"],
 });

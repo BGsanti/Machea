@@ -9,11 +9,20 @@ import { campoDe, obtenerObjeto } from "../objetos";
 import { tablas } from "../tablas";
 import type { FilaRegistro } from "../tipos";
 import { convertirValor } from "../validacion";
+import { exigirUrlPublica } from "./red";
+
+// Los flujos corren en la empresa del registro que los dispara (`fila.empresaId`): solo se ejecutan
+// los flujos de esa empresa y todo lo que crean o tocan queda en ella.
 
 type Disparo = "crear" | "actualizar";
 
 const objetosRelacionables = ["cuentas", "oportunidades", "casos", "campanas", "productos"];
 const objetosPersona = ["contactos", "candidatos"];
+
+function empresaDe(fila: FilaRegistro): string {
+  if (typeof fila.empresaId !== "string" || !fila.empresaId) throw new Error("El registro no tiene empresa.");
+  return fila.empresaId;
+}
 
 function comoTexto(v: unknown): string {
   if (v === null || v === undefined) return "";
@@ -56,10 +65,12 @@ async function ejecutarAccion(
   const def = obtenerObjeto(objeto);
   const nombre = def ? nombreVisible(def, fila) : fila.id;
   const responsable = typeof fila.propietarioId === "string" ? fila.propietarioId : usuarioId;
+  const empresaId = empresaDe(fila);
 
   switch (accion.tipo) {
     case "crear_tarea": {
       await db.insert(tareas).values({
+        empresaId,
         asunto: accion.asunto || "Tarea automática",
         fechaVencimiento: hoyMas(accion.diasVencimiento ?? 0),
         prioridad: accion.prioridad ?? "normal",
@@ -83,7 +94,7 @@ async function ejecutarAccion(
       await db
         .update(tabla)
         .set(r.valor as never)
-        .where(eq(cols.id!, fila.id));
+        .where(and(eq(cols.id!, fila.id), eq(cols.empresaId!, empresaId)));
       return `${campo.etiqueta} = ${accion.valor}`;
     }
     case "notificar": {
@@ -96,14 +107,21 @@ async function ejecutarAccion(
       return "Notificación enviada";
     }
     case "llamar_webhook": {
-      const [conexion] = await db.select().from(conexiones).where(eq(conexiones.id, accion.conexionId)).limit(1);
+      const [conexion] = await db
+        .select()
+        .from(conexiones)
+        .where(and(eq(conexiones.id, accion.conexionId), eq(conexiones.empresaId, empresaId)))
+        .limit(1);
       if (!conexion?.url) throw new Error("La conexión no tiene URL.");
       try {
-        const respuesta = await fetch(conexion.url, {
+        const url = await exigirUrlPublica(conexion.url);
+        const respuesta = await fetch(url, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ objeto, registro: fila, enviadoEn: new Date().toISOString() }),
           signal: AbortSignal.timeout(8000),
+          // Una redirección podría llevar a una dirección interna que ya no se comprueba.
+          redirect: "manual",
         });
         await db
           .update(conexiones)
@@ -128,10 +146,18 @@ export async function ejecutarFlujos(
   usuarioId: string,
 ): Promise<void> {
   const db = await bd();
+  const empresaId = empresaDe(fila);
   const activos = await db
     .select()
     .from(flujos)
-    .where(and(eq(flujos.objeto, objeto), eq(flujos.activo, true), inArray(flujos.disparador, [disparo, "crear_o_actualizar"])));
+    .where(
+      and(
+        eq(flujos.empresaId, empresaId),
+        eq(flujos.objeto, objeto),
+        eq(flujos.activo, true),
+        inArray(flujos.disparador, [disparo, "crear_o_actualizar"]),
+      ),
+    );
 
   for (const flujo of activos) {
     if (!flujo.condiciones.every((c) => cumpleCondicion(c, fila, anterior))) continue;
@@ -140,6 +166,7 @@ export async function ejecutarFlujos(
     try {
       for (const accion of flujo.acciones) pasos.push(await ejecutarAccion(accion, objeto, fila, usuarioId));
       await db.insert(ejecucionesFlujo).values({
+        empresaId,
         flujoId: flujo.id,
         nombreFlujo: flujo.nombre,
         objeto,
@@ -150,6 +177,7 @@ export async function ejecutarFlujos(
       });
     } catch (e) {
       await db.insert(ejecucionesFlujo).values({
+        empresaId,
         flujoId: flujo.id,
         nombreFlujo: flujo.nombre,
         objeto,
