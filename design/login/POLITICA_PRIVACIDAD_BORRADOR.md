@@ -1,7 +1,8 @@
 # Política de tratamiento de datos personales de Machea
 
-> **BORRADOR v3.1, 2026-10-18. No se publica sin revisión legal.** La v3.1 aplica la respuesta de Ariel sobre el
-> responsable y el RNBD (REVISION_LEGAL.md, parte D, mensaje 1). Lo redactó un asistente de IA a partir de lo que
+> **BORRADOR v4, 2026-10-18. Lista para el abogado; no se publica sin su revisión ni sin los [PENDIENTE].** Ya
+> aplica las cuatro respuestas de Ariel (REVISION_LEGAL.md, parte D). Mientras tanto, en `/privacidad/` va
+> [AVISO_PROVISIONAL.md](AVISO_PROVISIONAL.md). Procedimientos internos: [PROCEDIMIENTOS_DATOS.md](PROCEDIMIENTOS_DATOS.md). Lo redactó un asistente de IA a partir de lo que
 > hace hoy el producto. **No es asesoría legal.** Las preguntas para la revisión (con Ariel y con un abogado) y la
 > tabla de cumplimiento están en [REVISION_LEGAL.md](REVISION_LEGAL.md).
 >
@@ -20,7 +21,7 @@
 > - **Contenido mínimo de la política:** área que atiende, plazos y vigencia.
 
 **Fecha de entrada en vigencia:** [PENDIENTE: fecha de publicación]
-**Versión:** 3.1
+**Versión:** 4
 
 ## 1. Quién es el responsable de tus datos
 
@@ -142,10 +143,19 @@ En esta política, "Machea", "nosotros" y "nuestro" se refieren a esos responsab
 - **Almacenamiento local del navegador y cookies técnicas:** para mantener tu sesión iniciada y recordar el avance de
   la experiencia. No usamos cookies de publicidad.
 
-**No pedimos datos sensibles** (salud, origen étnico, orientación política o religiosa, datos biométricos) ni datos de
-niñas, niños o adolescentes. El servicio está dirigido a mayores de edad. Las preguntas sobre ingresos, edad y
-personas a cargo son opcionales en el sentido de que puedes no seguir el formulario; no son datos sensibles.
-[VERIFICAR]
+**No pedimos datos sensibles** (salud, origen étnico, orientación política o religiosa, datos biométricos).
+
+**El servicio es para mayores de 18 años.** Si en el formulario indicas que eres menor de edad:
+
+- no te llamamos;
+- no compartimos tus datos con ninguna empresa;
+- no los usamos para publicidad;
+- los borramos, salvo que tu representante legal lo autorice para una finalidad legítima.
+
+(Ley 1581, art. 7; Decreto 1074 de 2015, art. 2.2.2.25.2.9)
+
+Las preguntas sobre ingresos, edad y personas a cargo no son datos sensibles, pero sí son privados. Las usamos solo
+para recomendarte vivienda (presupuesto y subsidios) y no las compartimos sin tu autorización.
 
 ## 4. Para qué los usamos
 
@@ -159,7 +169,9 @@ personas a cargo son opcionales en el sentido de que puedes no seguir el formula
    asesor, solo si lo autorizas** en ese momento (sección 6, caso A).
 6. **Si usaste el formulario de una constructora o inmobiliaria**, entregarle tus datos a esa empresa, que es quien
    te va a contactar (sección 6, caso B).
-7. Mejorar el sistema de recomendación con datos agregados o anonimizados.
+7. Mejorar el sistema de recomendación con datos **anonimizados**, es decir, sin nada que permita volver a
+   identificarte. Con los datos de formularios que operamos por cuenta de una empresa, solo si el contrato con esa
+   empresa lo permite.
 
 ### 4.2 Clientes
 1. Crear y administrar tu cuenta, verificar tu correo y permitirte entrar.
@@ -248,7 +260,9 @@ tratamiento, sus obligaciones, la finalidad, la seguridad y la confidencialidad.
 
 ## 7. Cuánto tiempo los guardamos
 
-[PROPUESTA: los plazos son una sugerencia para que el equipo decida.]
+Guardamos los datos solo el tiempo necesario para la finalidad para la que los recogimos y para cumplir deberes
+legales o defendernos (Decreto 1074 de 2015, art. 2.2.2.25.2.8). Ariel consideró razonables estos plazos.
+[PROPUESTA: los confirma el equipo.]
 
 | Datos | Cuánto tiempo |
 | --- | --- |
@@ -259,6 +273,16 @@ tratamiento, sus obligaciones, la finalidad, la seguridad y la confidencialidad.
 | CRM de una cuenta que se cierra | Se borra a los 90 días del cierre, salvo un deber legal de conservarlo |
 | Prueba de tus autorizaciones | Mientras tratemos tus datos, y después el tiempo necesario para atender reclamos |
 | Datos técnicos de seguridad | 90 días |
+
+Estos plazos **se suspenden** mientras haya una consulta o un reclamo tuyo abierto, una investigación de la SIC, un
+proceso judicial, o mientras haga falta guardar prueba para ejercer o defender derechos. Guardamos por separado:
+
+- la base de leads;
+- la lista de "no contactar";
+- el registro de autorizaciones;
+- los registros de seguridad.
+
+La prueba de tu autorización no justifica guardar el resto de tus datos.
 
 ## 8. Tus derechos
 
@@ -294,8 +318,16 @@ Escríbenos con:
   completas, entendemos que desististe.
 - **Mientras lo resolvemos**, marcamos el dato como "reclamo en trámite". (Ley 1581, art. 15)
 
-**Si tus datos ya llegaron a una constructora o inmobiliaria** (sección 6), te decimos a cuál, para que también
-puedas pedirle a ella que los borre. [VERIFICAR: si Machea debe además avisarle a esa empresa.]
+**Si tus datos ya llegaron a una constructora o inmobiliaria** (sección 6):
+
+1. Borramos o bloqueamos lo nuestro y dejamos de contactarte.
+2. Te decimos a cuál empresa se entregaron.
+3. **Le trasladamos tu solicitud** para que la resuelva sobre su propia base.
+4. Te damos su contacto, por si quieres ejercer tus derechos directamente ante ella.
+
+**Si pides que no te contactemos**, guardamos solo tu número en una lista de exclusión, para no volver a llamarte.
+
+(Ley 1581, arts. 14 a 16; Decreto 1074 de 2015, arts. 2.2.2.25.2.6 y 2.2.2.25.3.6)
 
 Si tienes una cuenta de cliente, puedes pedirnos que la eliminemos desde el mismo correo.
 
@@ -309,8 +341,9 @@ Usamos medidas técnicas y organizativas razonables para proteger tus datos:
 - límites contra intentos repetidos;
 - acceso interno solo para quien lo necesita.
 
-Ningún sistema es infalible. Si ocurre un incidente que afecte tus datos, lo informaremos a la SIC y te avisaremos
-cuando corresponda. [VERIFICAR: Ley 1581, art. 17, literal n.]
+Ningún sistema es infalible. Si ocurre un incidente que afecte tus datos, lo reportamos a la SIC dentro de los 15 días
+hábiles siguientes a detectarlo, como exige su Circular Única. Si el riesgo para ti es significativo, te avisamos qué
+pasó, qué datos se afectaron y qué puedes hacer. (Ley 1581, art. 17, lit. n, y art. 18, lit. k)
 
 ## 11. Vigencia
 
