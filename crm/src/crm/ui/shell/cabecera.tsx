@@ -22,11 +22,14 @@ export function Cabecera({
   empresa,
   notificaciones,
   sinLeer,
+  urlMachea,
 }: {
   usuario: { nombre: string; email: string; rol: string };
   empresa: string;
   notificaciones: Notificacion[];
   sinLeer: number;
+  /** Con el login de Machea: su URL, para cerrar la sesión allá. */
+  urlMachea?: string;
 }) {
   const router = useRouter();
   const [menu, setMenu] = useState<"notificaciones" | "perfil" | "ayuda" | null>(null);
@@ -151,11 +154,25 @@ export function Cabecera({
               <Link href="/configuracion" onClick={() => setMenu(null)} className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                 <Icono nombre="UserCog" /> Configuración
               </Link>
-              <form action={cerrarSesion}>
-                <button type="submit" className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">
+              {urlMachea ? (
+                // Con el login de Machea, la sesión se cierra en su backend; la cookie es de www.machea.co.
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await fetch(`${urlMachea}/api/sesion`, { method: "DELETE", credentials: "include" }).catch(() => undefined);
+                    window.location.href = `${urlMachea}/acceso/`;
+                  }}
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                >
                   <Icono nombre="LogOut" /> Cerrar sesión
                 </button>
-              </form>
+              ) : (
+                <form action={cerrarSesion}>
+                  <button type="submit" className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50">
+                    <Icono nombre="LogOut" /> Cerrar sesión
+                  </button>
+                </form>
+              )}
             </Desplegable>
           ) : null}
         </div>

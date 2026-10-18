@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consentimiento · mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Tokens del manual de Machea (los mismos del login): Inter, rojo #FC4633, navy #1F2E42.
+     El rojo da 3,5:1 con blanco: el botón usa texto grande en negrita y el texto rojo pequeño usa #c0341f. */
+  :root {
+    --rojo: #FC4633; --rojo-texto: #c0341f; --navy: #1F2E42; --tinta: #1F2E42; --tinta-2: #4a5563;
+    --tinta-3: #6b7480; --papel: #ffffff; --papel-2: #f5f6f8; --borde: #e3e6ea; --fondo: #eceff3;
+    --andes: #1f6f4a; --andes-claro: #e8f3ee;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; color: var(--tinta); background: var(--fondo); }
+  button, input { font: inherit; }
+
+  /* Controles del mockup (no son parte del diseño) */
+  .controles { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center;
+    padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--borde); font-size: 13px; }
+  .controles h1 { font-size: 15px; margin: 0 8px 0 0; }
+  .grupo { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .grupo > span { color: var(--tinta-3); font-weight: 600; margin-right: 2px; }
+  .chip { border: 1px solid var(--borde); background: #fff; border-radius: 999px; padding: 6px 12px; cursor: pointer; color: var(--tinta-2); }
+  .chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .nota { width: 100%; color: var(--tinta-3); font-size: 12px; margin: 0; }
+
+  .escenario { display: flex; justify-content: center; padding: 28px 16px 60px; }
+  .marco { background: var(--papel); border: 1px solid var(--borde); border-radius: 18px; overflow: hidden; position: relative;
+    box-shadow: 0 10px 40px rgba(31, 46, 66, 0.10); width: 100%; max-width: 1040px; min-height: 640px; }
+  .marco.celular { max-width: 390px; min-height: 780px; border-radius: 34px; border-width: 10px; border-color: #1b1f26; }
+  .barra { display: flex; align-items: center; gap: 10px; padding: 14px 22px; border-bottom: 1px solid var(--borde); }
+  .logo { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 8px; }
+  .logo i { width: 22px; height: 22px; border-radius: 7px; background: var(--rojo); display: inline-block; }
+  .logo.andes i { background: var(--andes); }
+  .contenido { padding: 34px 22px 40px; display: flex; justify-content: center; }
+  .celular .contenido { padding: 24px 16px 32px; }
+
+  /* Registro */
+  .caja { width: 100%; max-width: 460px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 700; color: var(--rojo-texto); margin: 0 0 6px; }
+  .andes-tema .eyebrow { color: var(--andes); }
+  h2 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .sub { color: var(--tinta-2); margin: 0 0 22px; font-size: 15px; }
+  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .celular .fila { grid-template-columns: 1fr; gap: 0; }
+  label.campo { display: block; font-size: 13px; font-weight: 600; color: var(--tinta-2); margin-bottom: 12px; }
+  label.campo input { display: block; width: 100%; margin-top: 6px; padding: 12px 14px; border: 1.5px solid var(--borde);
+    border-radius: 12px; font-size: 15px; color: var(--tinta); background: #fff; }
+  .consent { display: flex; gap: 10px; align-items: flex-start; padding: 12px; background: var(--papel-2); border: 1px solid var(--borde);
+    border-radius: 12px; cursor: pointer; margin: 6px 0 16px; font-size: 13.5px; line-height: 1.5; color: var(--tinta-2); }
+  .consent input { position: absolute; opacity: 0; pointer-events: none; }
+  .box { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 1px; border-radius: 6px; border: 2px solid #9aa1aa; background: #fff;
+    display: inline-flex; align-items: center; justify-content: center; }
+  .consent input:checked + .box { background: var(--navy); border-color: var(--navy); }
+  .consent input:checked + .box::after { content: ""; width: 9px; height: 5px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .consent input:focus-visible + .box { outline: 3px solid rgba(252, 70, 51, 0.35); outline-offset: 2px; }
+  .consent a { color: var(--navy); font-weight: 600; }
+  .consent b { color: var(--tinta); }
+  .btn { width: 100%; border: 0; border-radius: 13px; padding: 15px 18px; font-weight: 800; font-size: 18.67px; cursor: not-allowed;
+    background: var(--papel-2); color: var(--tinta-3); }
+  .btn.listo { background: var(--rojo); color: #fff; cursor: pointer; }
+  .andes-tema .btn.listo { background: var(--andes); }
+  .pista { text-align: center; font-size: 13px; color: var(--tinta-3); margin: 10px 0 0; }
+
+  /* Resultados */
+  .resultados { width: 100%; max-width: 900px; }
+  .tarjetas { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  .celular .tarjetas { grid-template-columns: 1fr; }
+  .tarjeta { border: 1.5px solid var(--borde); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07); }
+  .foto { height: 140px; background: linear-gradient(135deg, #cfd8e3, #eef1f5); position: relative; }
+  .foto span { position: absolute; left: 12px; top: 12px; background: #fff; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+  .cuerpo-t { padding: 14px 16px 16px; }
+  .cuerpo-t h3 { margin: 0 0 2px; font-size: 18px; }
+  .cuerpo-t .de { margin: 0 0 10px; color: var(--tinta-3); font-size: 13px; }
+  .cuerpo-t .precio { font-weight: 800; margin: 0 0 14px; }
+  .acciones { display: grid; gap: 8px; }
+  .llamar { border: 0; border-radius: 12px; padding: 13px; background: var(--rojo); color: #fff; font-weight: 800; font-size: 18.67px; cursor: pointer; }
+  .wa { text-align: center; padding: 11px; border: 1.5px solid var(--borde); border-radius: 12px; color: var(--navy); font-weight: 600; text-decoration: none; font-size: 15px; }
+
+  /* Hoja "Antes de llamarte": modal en escritorio, hoja inferior en celular */
+  .velo { position: absolute; inset: 0; background: rgba(15, 22, 32, 0.45); display: none; align-items: center; justify-content: center; z-index: 10; padding: 16px; }
+  .velo.abierta { display: flex; }
+  .hoja { background: #fff; border-radius: 18px; width: 100%; max-width: 480px; padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); }
+  .celular .velo { align-items: flex-end; padding: 0; }
+  .celular .hoja { border-radius: 20px 20px 0 0; max-width: none; padding: 20px 18px 24px; }
+  .celular .hoja::before { content: ""; display: block; width: 40px; height: 4px; border-radius: 4px; background: #d5d9de; margin: -6px auto 14px; }
+  .hoja h3 { margin: 0 0 8px; font-size: 21px; }
+  .hoja p { margin: 0 0 14px; color: var(--tinta-2); font-size: 15px; line-height: 1.5; }
+  .hoja p b { color: var(--tinta); }
+  .ahora-no { display: block; margin: 12px auto 0; background: none; border: 0; color: var(--navy); font-weight: 600; text-decoration: underline; cursor: pointer; font-size: 15px; }
+  .llamando { text-align: center; padding: 10px 0 4px; }
+  .llamando .pulso { width: 58px; height: 58px; border-radius: 50%; background: var(--rojo); margin: 0 auto 12px; animation: pulso 1.4s ease-in-out infinite; }
+  @keyframes pulso { 0%, 100% { transform: scale(0.9); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .llamando .pulso { animation: none; } }
+  .guardado { margin-top: 14px; background: var(--papel-2); border-radius: 10px; padding: 10px 12px; font-family: ui-monospace, Consolas, monospace;
+    font-size: 11.5px; color: var(--tinta-2); text-align: left; white-space: pre-wrap; word-break: break-word; }
+  .oculto { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="controles" role="region" aria-label="Controles del mockup">
+  <h1>Consentimiento · fase 3 del CRM</h1>
+  <div class="grupo" role="group" aria-label="Pantalla">
+    <span>Pantalla</span>
+    <button class="chip" data-pantalla="registro" aria-pressed="true">1. Registro de Machea</button>
+    <button class="chip" data-pantalla="marca" aria-pressed="false">2. Registro con marca</button>
+    <button class="chip" data-pantalla="resultados" aria-pressed="false">3. Hablar con un asesor</button>
+  </div>
+  <div class="grupo" role="group" aria-label="Texto del registro">
+    <span>Texto del registro</span>
+    <button class="chip" data-opcion="A" aria-pressed="true">A · corta</button>
+    <button class="chip" data-opcion="B" aria-pressed="false">B · completa</button>
+  </div>
+  <div class="grupo" role="group" aria-label="Vista">
+    <span>Vista</span>
+    <button class="chip" data-vista="escritorio" aria-pressed="true">Escritorio</button>
+    <button class="chip" data-vista="celular" aria-pressed="false">Celular</button>
+  </div>
+  <p class="nota">Borrador para decidir (design/crm/CONSENTIMIENTO.md). Los nombres de proyectos y empresas son de ejemplo. En la pantalla 3, «Hablar con un asesor» abre la hoja; la llamada solo sale con la casilla marcada.</p>
+</div>
+
+<div class="escenario">
+  <div class="marco" id="marco">
+
+    <!-- 1. Registro de Machea -->
+    <section data-vista-de="registro">
+      <div class="barra"><span class="logo"><i></i>machea</span></div>
+      <div class="contenido">
+        <div class="caja">
+          <p class="eyebrow">Tus datos</p>
+          <h2>Cuéntanos quién eres</h2>
+          <p class="sub">Después te hacemos unas preguntas sobre la vivienda que buscas.</p>
+          <div class="fila">
+            <label class="campo">Nombre<input value="Ana"></label>
+            <label class="campo">Apellido<input value="Ruiz"></label>
+          </div>
+          <label class="campo">Correo<input value="ana.ruiz@correo.com"></label>
+          <label class="campo">Teléfono (WhatsApp)<input value="300 123 4567"></label>
+          <label class="consent">
+            <input type="checkbox" data-habilita="btn-registro">
+            <span class="box" aria-hidden="true"></span>
+            <span class="texto-registro" data-texto="A">Autorizo a Machea a usar mis datos (nombre, correo, teléfono y mis respuestas) para recomendarme vivienda, llamarme con su asistente virtual y escribirme sobre los proyectos que me interesen. Puedo consultar, corregir o borrar mis datos cuando quiera. <a href="#" onclick="return false">Política de privacidad</a></span>
+            <span class="texto-registro oculto" data-texto="B">Autorizo a Machea, responsable del tratamiento, a recoger y usar mi nombre, correo, teléfono y las respuestas de este formulario para recomendarme vivienda, llamarme con su asistente virtual Manuela y enviarme la ficha de los proyectos por correo o WhatsApp. Tengo derecho a conocer, actualizar, rectificar y suprimir mis datos, y a revocar esta autorización, escribiendo a equipo@machea.co. <a href="#" onclick="return false">Política de privacidad</a></span>
+          </label>
+          <button class="btn" id="btn-registro" aria-disabled="true">Empezar →</button>
+          <p class="pista">La casilla va sin marcar: marcarla es la autorización.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Registro con marca -->
+    <section data-vista-de="marca" class="oculto andes-tema">
+      <div class="barra"><span class="logo andes"><i></i>Constructora Andes</span></div>
+      <div class="contenido">
+        <div class="caja">
+          <p class="eyebrow">Tus datos</p>
+          <h2>Encuentra tu apartamento Andes</h2>
+          <p class="sub">Formulario de Constructora Andes, operado por Machea.</p>
+          <div class="fila">
+            <label class="campo">Nombre<input value="Ana"></label>
+            <label class="campo">Apellido<input value="Ruiz"></label>
+          </div>
+          <label class="campo">Correo<input value="ana.ruiz@correo.com"></label>
+          <label class="campo">Teléfono (WhatsApp)<input value="300 123 4567"></label>
+          <label class="consent">
+            <input type="checkbox" data-habilita="btn-marca">
+            <span class="box" aria-hidden="true"></span>
+            <span>Autorizo a <b>Constructora Andes</b> a usar mis datos (nombre, correo, teléfono y mis respuestas) para contactarme sobre sus proyectos de vivienda. Machea opera este formulario y la llamada en nombre de Constructora Andes. <a href="#" onclick="return false">Política de privacidad de Constructora Andes</a></span>
+          </label>
+          <button class="btn" id="btn-marca" aria-disabled="true">Empezar →</button>
+          <p class="pista">Aquí no hay una segunda autorización: el lead es de la marca. La hoja de la pantalla 3 solo aparece si el proyecto es de otra empresa.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Resultados y hoja "Antes de llamarte" -->
+    <section data-vista-de="resultados" class="oculto">
+      <div class="barra"><span class="logo"><i></i>machea</span></div>
+      <div class="contenido">
+        <div class="resultados">
+          <p class="eyebrow">Tus resultados</p>
+          <h2>Estos proyectos van contigo</h2>
+          <div class="tarjetas">
+            <article class="tarjeta">
+              <div class="foto"><span>96 % compatible</span></div>
+              <div class="cuerpo-t">
+                <h3>Torres del Parque</h3>
+                <p class="de">Constructora Andes · Suba · VIS</p>
+                <p class="precio">Desde $ 262.300.000</p>
+                <div class="acciones">
+                  <button class="llamar" data-proyecto="Torres del Parque" data-dueno="Constructora Andes" data-tipo="constructora">Hablar con un asesor</button>
+                  <a class="wa" href="#" onclick="return false">Escribir por WhatsApp</a>
+                </div>
+              </div>
+            </article>
+            <article class="tarjeta">
+              <div class="foto"><span>91 % compatible</span></div>
+              <div class="cuerpo-t">
+                <h3>Mirador 80</h3>
+                <p class="de">Constructora Cumbre · Engativá · No VIS</p>
+                <p class="precio">Desde $ 318.900.000</p>
+                <div class="acciones">
+                  <button class="llamar" data-proyecto="Mirador 80" data-dueno="Constructora Cumbre" data-tipo="constructora">Hablar con un asesor</button>
+                  <a class="wa" href="#" onclick="return false">Escribir por WhatsApp</a>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <div class="velo" id="velo">
+        <div class="hoja" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo">
+          <div id="hoja-pedir">
+            <h3 id="hoja-titulo">Antes de llamarte</h3>
+            <p>Manuela, la asistente virtual de Machea, te va a llamar para agendar tu visita a <b data-c="proyecto"></b>. Para que el equipo de <b data-c="dueno"></b> te atienda, necesitamos tu permiso para compartirle tus datos.</p>
+            <label class="consent">
+              <input type="checkbox" id="casilla-compartir" data-habilita="btn-llamar">
+              <span class="box" aria-hidden="true"></span>
+              <span>Autorizo a Machea a compartir con <b data-c="dueno"></b> mi nombre, correo, teléfono, mis respuestas y el resultado de la llamada, para que me contacten sobre <b data-c="proyecto"></b>. <a href="#" onclick="return false">Política de privacidad</a></span>
+            </label>
+            <button class="btn" id="btn-llamar" aria-disabled="true">Llamarme ahora</button>
+            <button class="ahora-no" id="ahora-no">Ahora no</button>
+          </div>
+          <div id="hoja-llamando" class="oculto llamando">
+            <div class="pulso" aria-hidden="true"></div>
+            <h3>Manuela te está llamando</h3>
+            <p>Contesta el <b>300 123 4567</b>. Si no puedes ahora, te escribimos por WhatsApp.</p>
+            <div class="guardado" id="guardado"></div>
+            <button class="ahora-no" id="cerrar">Cerrar (mockup)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const marco = document.getElementById('marco');
+  const pulsar = (sel, attr, valor) => document.querySelectorAll(sel).forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute(attr) === valor)));
+
+  document.querySelectorAll('[data-pantalla]').forEach((b) => b.addEventListener('click', () => {
+    const p = b.dataset.pantalla;
+    pulsar('[data-pantalla]', 'data-pantalla', p);
+    document.querySelectorAll('[data-vista-de]').forEach((s) => s.classList.toggle('oculto', s.dataset.vistaDe !== p));
+  }));
+  document.querySelectorAll('[data-opcion]').forEach((b) => b.addEventListener('click', () => {
+    pulsar('[data-opcion]', 'data-opcion', b.dataset.opcion);
+    document.querySelectorAll('.texto-registro').forEach((t) => t.classList.toggle('oculto', t.dataset.texto !== b.dataset.opcion));
+  }));
+  document.querySelectorAll('[data-vista]').forEach((b) => b.addEventListener('click', () => {
+    pulsar('[data-vista]', 'data-vista', b.dataset.vista);
+    marco.classList.toggle('celular', b.dataset.vista === 'celular');
+  }));
+
+  // Una casilla habilita su botón (sin marcar, el botón no hace nada).
+  document.querySelectorAll('[data-habilita]').forEach((c) => c.addEventListener('change', () => {
+    const btn = document.getElementById(c.dataset.habilita);
+    btn.classList.toggle('listo', c.checked);
+    btn.setAttribute('aria-disabled', String(!c.checked));
+  }));
+
+  const velo = document.getElementById('velo');
+  const casilla = document.getElementById('casilla-compartir');
+  const btnLlamar = document.getElementById('btn-llamar');
+  let elegido = null, origen = null;
+
+  function abrir(boton) {
+    elegido = boton.dataset;
+    origen = boton;
+    document.querySelectorAll('[data-c="proyecto"]').forEach((e) => (e.textContent = elegido.proyecto));
+    document.querySelectorAll('[data-c="dueno"]').forEach((e) => (e.textContent = elegido.dueno));
+    casilla.checked = false;
+    casilla.dispatchEvent(new Event('change'));
+    document.getElementById('hoja-pedir').classList.remove('oculto');
+    document.getElementById('hoja-llamando').classList.add('oculto');
+    velo.classList.add('abierta');
+    casilla.focus();
+  }
+  function cerrar() {
+    velo.classList.remove('abierta');
+    if (origen) origen.focus();
+  }
+  document.querySelectorAll('.llamar').forEach((b) => b.addEventListener('click', () => abrir(b)));
+  document.getElementById('ahora-no').addEventListener('click', cerrar);
+  document.getElementById('cerrar').addEventListener('click', cerrar);
+  velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && velo.classList.contains('abierta')) cerrar(); });
+
+  btnLlamar.addEventListener('click', () => {
+    if (!casilla.checked) { casilla.focus(); return; }
+    document.getElementById('hoja-pedir').classList.add('oculto');
+    document.getElementById('hoja-llamando').classList.remove('oculto');
+    // Lo que quedaría en public.solicitudes_llamada (fase 2) con esta autorización.
+    document.getElementById('guardado').textContent =
+      'solicitudes_llamada:\n' + JSON.stringify({
+        nombre_proyecto: elegido.proyecto, dueno_tipo: elegido.tipo, dueno_nombre: elegido.dueno,
+        autoriza_compartir: true, version_autorizacion: 'compartir-v1',
+      }, null, 2);
+  });
+</script>
+</body>
+</html>

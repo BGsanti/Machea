@@ -1,9 +1,9 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/auth/servidor";
+import { crearUsuarioLocal, ejemplosPermitidos, modoAuth } from "@/auth/servidor";
 import { requerirAdmin, requerirUsuario } from "@/auth/sesion";
 import { bd } from "@/db/cliente";
 import {
@@ -20,7 +20,7 @@ import {
 } from "@/db/esquema";
 import { obtenerObjeto } from "../objetos";
 import type { EstadoAccion } from "./acciones";
-import { obtenerPreferencias } from "./consultas";
+import { obtenerConfiguracion, obtenerPreferencias } from "./consultas";
 import { cargarDatosEjemplo } from "./datos-ejemplo";
 
 function error(e: unknown): EstadoAccion {
@@ -76,9 +76,13 @@ export async function guardarNavegacion(app: string, pestanas: string[]): Promis
 // ---------------------------------------------------------------------------
 
 export async function activarMarketing(activar: boolean): Promise<EstadoAccion> {
-  await requerirAdmin();
+  const usuario = await requerirAdmin();
   const db = await bd();
-  await db.update(configuracion).set({ marketingActivado: activar, actualizadoEn: new Date() }).where(eq(configuracion.id, 1));
+  await obtenerConfiguracion();
+  await db
+    .update(configuracion)
+    .set({ marketingActivado: activar, actualizadoEn: new Date() })
+    .where(eq(configuracion.empresaId, usuario.empresaId));
   revalidatePath("/", "layout");
   return { ok: true, mensaje: activar ? "Herramientas de marketing activadas." : "Herramientas de marketing desactivadas." };
 }
@@ -92,11 +96,15 @@ const esquemaConfig = z.object({
 
 export async function guardarConfiguracion(formData: FormData): Promise<EstadoAccion> {
   try {
-    await requerirAdmin();
+    const usuario = await requerirAdmin();
     const datos = esquemaConfig.safeParse(Object.fromEntries(formData));
     if (!datos.success) return { ok: false, mensaje: datos.error.issues[0]?.message ?? "Revise los datos." };
     const db = await bd();
-    await db.update(configuracion).set({ ...datos.data, actualizadoEn: new Date() }).where(eq(configuracion.id, 1));
+    await obtenerConfiguracion();
+    await db
+      .update(configuracion)
+      .set({ ...datos.data, actualizadoEn: new Date() })
+      .where(eq(configuracion.empresaId, usuario.empresaId));
     revalidatePath("/", "layout");
     return { ok: true, mensaje: "Configuración guardada." };
   } catch (e) {
@@ -113,21 +121,15 @@ const esquemaUsuario = z.object({
 
 export async function crearUsuario(formData: FormData): Promise<EstadoAccion> {
   try {
-    await requerirAdmin();
+    const admin = await requerirAdmin();
+    // Con el login de Machea, una cuenta es una empresa y su único usuario (D3).
+    if (modoAuth() === "machea") return { ok: false, mensaje: "Las cuentas se gestionan en Machea." };
     const datos = esquemaUsuario.safeParse(Object.fromEntries(formData));
     if (!datos.success) return { ok: false, mensaje: datos.error.issues[0]?.message ?? "Revise los datos." };
     const db = await bd();
     const [existe] = await db.select({ id: usuarios.id }).from(usuarios).where(eq(usuarios.email, datos.data.email.toLowerCase()));
     if (existe) return { ok: false, mensaje: "Ya existe un usuario con ese correo." };
-    // Se usa el adaptador interno para no iniciar sesión como el usuario nuevo.
-    const ctx = await auth().$context;
-    const hash = await ctx.password.hash(datos.data.password);
-    const nuevo = await ctx.internalAdapter.createUser(
-      { name: datos.data.nombre, email: datos.data.email.toLowerCase(), emailVerified: false },
-      { method: "admin" },
-    );
-    await ctx.internalAdapter.linkAccount({ userId: nuevo.id, providerId: "credential", accountId: nuevo.id, password: hash });
-    await db.update(usuarios).set({ rol: datos.data.rol }).where(eq(usuarios.id, nuevo.id));
+    await crearUsuarioLocal(datos.data, datos.data.rol, admin.empresaId);
     revalidatePath("/", "layout");
     return { ok: true, mensaje: `Usuario ${datos.data.nombre} creado.` };
   } catch (e) {
@@ -138,6 +140,7 @@ export async function crearUsuario(formData: FormData): Promise<EstadoAccion> {
 export async function cargarEjemplos(): Promise<EstadoAccion> {
   try {
     const usuario = await requerirAdmin();
+    if (!ejemplosPermitidos()) return { ok: false, mensaje: "Los datos de ejemplo no están disponibles aquí." };
     const n = await cargarDatosEjemplo(usuario.id);
     revalidatePath("/", "layout");
     return { ok: true, mensaje: `Se cargaron ${n} registros de ejemplo.` };
@@ -180,11 +183,16 @@ export async function guardarInforme(id: string | null, datos: DatosInforme): Pr
     const db = await bd();
     let informeId = id;
     if (id) {
-      await db.update(informes).set({ ...valores, actualizadoEn: new Date() }).where(eq(informes.id, id));
+      const [actualizado] = await db
+        .update(informes)
+        .set({ ...valores, actualizadoEn: new Date() })
+        .where(and(eq(informes.id, id), eq(informes.empresaId, usuario.empresaId)))
+        .returning({ id: informes.id });
+      if (!actualizado) return { ok: false, mensaje: "El informe ya no existe." };
     } else {
       const [nuevo] = await db
         .insert(informes)
-        .values({ ...valores, propietarioId: usuario.id, creadoPorId: usuario.id })
+        .values({ ...valores, empresaId: usuario.empresaId, propietarioId: usuario.id, creadoPorId: usuario.id })
         .returning({ id: informes.id });
       informeId = nuevo?.id ?? null;
     }
@@ -196,18 +204,21 @@ export async function guardarInforme(id: string | null, datos: DatosInforme): Pr
 }
 
 export async function eliminarInforme(id: string): Promise<EstadoAccion> {
-  await requerirUsuario();
+  const usuario = await requerirUsuario();
   const db = await bd();
-  await db.delete(informes).where(eq(informes.id, id));
+  await db.delete(informes).where(and(eq(informes.id, id), eq(informes.empresaId, usuario.empresaId)));
   revalidatePath("/", "layout");
   return { ok: true, mensaje: "Informe eliminado." };
 }
 
 export async function alternarFavorito(tipo: "informe" | "panel", id: string, favorito: boolean): Promise<void> {
-  await requerirUsuario();
+  const usuario = await requerirUsuario();
   const db = await bd();
-  if (tipo === "informe") await db.update(informes).set({ favorito }).where(eq(informes.id, id));
-  else await db.update(paneles).set({ favorito }).where(eq(paneles.id, id));
+  if (tipo === "informe") {
+    await db.update(informes).set({ favorito }).where(and(eq(informes.id, id), eq(informes.empresaId, usuario.empresaId)));
+  } else {
+    await db.update(paneles).set({ favorito }).where(and(eq(paneles.id, id), eq(paneles.empresaId, usuario.empresaId)));
+  }
   revalidatePath("/", "layout");
 }
 
@@ -216,13 +227,32 @@ export async function guardarPanel(id: string | null, nombre: string, descripcio
     const usuario = await requerirUsuario();
     if (!nombre.trim()) return { ok: false, mensaje: "Escriba el nombre del panel." };
     const db = await bd();
-    const valores = { nombre: nombre.trim().slice(0, 120), descripcion: descripcion.trim().slice(0, 500), informes: ids.slice(0, 12) };
+    // Un panel solo puede mostrar informes de la misma empresa.
+    const pedidos = ids.slice(0, 12);
+    const propios = pedidos.length
+      ? await db
+          .select({ id: informes.id })
+          .from(informes)
+          .where(and(inArray(informes.id, pedidos), eq(informes.empresaId, usuario.empresaId)))
+      : [];
+    const validos = new Set(propios.map((i) => i.id));
+    const valores = {
+      nombre: nombre.trim().slice(0, 120),
+      descripcion: descripcion.trim().slice(0, 500),
+      informes: pedidos.filter((i) => validos.has(i)),
+    };
     let panelId = id;
-    if (id) await db.update(paneles).set({ ...valores, actualizadoEn: new Date() }).where(eq(paneles.id, id));
-    else {
+    if (id) {
+      const [actualizado] = await db
+        .update(paneles)
+        .set({ ...valores, actualizadoEn: new Date() })
+        .where(and(eq(paneles.id, id), eq(paneles.empresaId, usuario.empresaId)))
+        .returning({ id: paneles.id });
+      if (!actualizado) return { ok: false, mensaje: "El panel ya no existe." };
+    } else {
       const [nuevo] = await db
         .insert(paneles)
-        .values({ ...valores, propietarioId: usuario.id, creadoPorId: usuario.id })
+        .values({ ...valores, empresaId: usuario.empresaId, propietarioId: usuario.id, creadoPorId: usuario.id })
         .returning({ id: paneles.id });
       panelId = nuevo?.id ?? null;
     }
@@ -234,9 +264,9 @@ export async function guardarPanel(id: string | null, nombre: string, descripcio
 }
 
 export async function eliminarPanel(id: string): Promise<EstadoAccion> {
-  await requerirUsuario();
+  const usuario = await requerirUsuario();
   const db = await bd();
-  await db.delete(paneles).where(eq(paneles.id, id));
+  await db.delete(paneles).where(and(eq(paneles.id, id), eq(paneles.empresaId, usuario.empresaId)));
   revalidatePath("/", "layout");
   return { ok: true, mensaje: "Panel eliminado." };
 }
@@ -283,15 +313,17 @@ export async function guardarFlujo(id: string | null, datos: DatosFlujo): Promis
     };
     let flujoId = id;
     if (id) {
-      const [actual] = await db.select({ version: flujos.version }).from(flujos).where(eq(flujos.id, id));
+      const delFlujo = and(eq(flujos.id, id), eq(flujos.empresaId, usuario.empresaId));
+      const [actual] = await db.select({ version: flujos.version }).from(flujos).where(delFlujo);
+      if (!actual) return { ok: false, mensaje: "El flujo ya no existe." };
       await db
         .update(flujos)
-        .set({ ...valores, version: (actual?.version ?? 1) + 1, actualizadoEn: new Date() })
-        .where(and(eq(flujos.id, id)));
+        .set({ ...valores, version: actual.version + 1, actualizadoEn: new Date() })
+        .where(delFlujo);
     } else {
       const [nuevo] = await db
         .insert(flujos)
-        .values({ ...valores, propietarioId: usuario.id, creadoPorId: usuario.id })
+        .values({ ...valores, empresaId: usuario.empresaId, propietarioId: usuario.id, creadoPorId: usuario.id })
         .returning({ id: flujos.id });
       flujoId = nuevo?.id ?? null;
     }

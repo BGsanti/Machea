@@ -44,12 +44,35 @@ Funciones comunes:
 - **Videollamadas y sesiones de mensajería** son registros manuales: no hay videollamada ni WhatsApp reales.
 - **Comercio** gestiona establecimientos, pero no tiene tienda pública, pedidos ni pagos.
 - No se replicaron el asistente de IA (Agentforce), el Centro de orientación ni la facturación de la suscripción.
-- Es de una sola empresa. crm-kit es multiempresa; REA CRM todavía no.
 - Las fichas de registro las diseñamos nosotros: la organización de Salesforce estaba vacía y no se pudieron observar.
+
+## Varias empresas y login de Machea
+
+El CRM es multiempresa: cada constructora o inmobiliaria con cuenta en Machea tiene sus propios datos.
+
+- Todas las tablas viven en el esquema `crm` y llevan `empresa_id`, salvo las de autenticación y las de un usuario (notificaciones, recientes y preferencias).
+- Cada lectura y escritura se limita a la empresa del usuario. La empresa sale de la sesión o, fuera de una petición, de `conEmpresa` (`src/db/empresa.ts`).
+- Con `AUTH_MODO=machea` se entra con la cuenta de Machea: la cookie `machea_sesion` se busca por su SHA-256 en `acceso.sesiones`, y solo pasan las cuentas aprobadas. La primera visita crea la empresa, su usuario (administrador) y los informes iniciales. Una cuenta es una empresa con un solo usuario, así que en este modo no se crean usuarios ni se cargan datos de ejemplo.
+- Con `AUTH_MODO=local` (por defecto) funciona como antes, con una empresa: la primera vez se crea el administrador y él crea al resto. El registro público de Better Auth está apagado.
+
+`pnpm exec tsx scripts/prueba-fugas.ts` comprueba que una empresa no vea ni toque nada de otra (las instrucciones están en el archivo).
+
+### Leads de Machea
+
+- **Cómo llegan:** unos triggers de la base de Machea (`../supabase/migrations/20261018130000_crm_ingesta.sql`) dejan en `crm.bandeja_leads` lo que le corresponde a cada empresa, según sus fuentes en `crm.empresa_fuentes`. Las fuentes las asigna Machea en `/admin`.
+- **Qué hace el CRM con ellos** (`src/crm/servidor/ingesta.ts`), cada vez que alguien de la empresa entra:
+  - crea el candidato, con las respuestas del formulario;
+  - registra la llamada de Manuela como tarea completada;
+  - crea la cita como evento, o el seguimiento como tarea pendiente;
+  - pone la temperatura como valoración.
+- **Pasa por el repositorio**, así que corren las reglas y los flujos de la empresa.
+- **No duplica:** cada registro lleva `origen_externo`.
+
+`pnpm exec tsx scripts/prueba-ingesta.ts` lo prueba de punta a punta en PostgreSQL, conectado como `crm_app`.
 
 ## Usar PostgreSQL normal
 
-Defina `DATABASE_URL` en `.env.local` (Docker, Neon, AWS RDS…) y ejecute `pnpm db:migrar`. La app aplica también las migraciones pendientes al arrancar.
+Defina `DATABASE_URL` en `.env.local` (Docker, Neon, AWS RDS…) y ejecute `pnpm db:migrar`. La app aplica también las migraciones pendientes al arrancar, salvo con `CRM_MIGRAR_AL_ARRANCAR=false` (producción).
 
 La zona horaria del negocio es America/Bogota. Para cambiarla, defina `NEXT_PUBLIC_ZONA_HORARIA`.
 

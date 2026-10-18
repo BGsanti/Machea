@@ -1,14 +1,14 @@
 "use server";
 
-import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { bd } from "@/db/cliente";
-import { usuarios } from "@/db/esquema";
+import { empresas } from "@/db/esquema";
 import { hayUsuarios } from "@/crm/servidor/consultas";
 import { inicializarOrganizacion } from "@/crm/servidor/inicializar";
-import { auth } from "./servidor";
+import { urlMachea } from "./machea";
+import { auth, crearUsuarioLocal, modoAuth } from "./servidor";
 
 export interface EstadoLogin {
   error?: string;
@@ -25,7 +25,7 @@ const esquemaRegistro = z.object({
 function mensajeAuth(e: unknown): string {
   const texto = e instanceof Error ? e.message : String(e);
   if (/invalid email or password|invalid password|user not found/i.test(texto)) return "Correo o contraseña incorrectos.";
-  if (/already exists|already registered/i.test(texto)) return "Ya existe un usuario con ese correo.";
+  if (/already exists|already registered|unique/i.test(texto)) return "Ya existe un usuario con ese correo.";
   return "No se pudo completar la operación. Inténtelo de nuevo.";
 }
 
@@ -40,7 +40,7 @@ export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise
   redirect("/");
 }
 
-/** Solo funciona mientras no exista ningún usuario: crea el administrador inicial. */
+/** Solo funciona mientras no exista ningún usuario: crea la empresa y su administrador (modo local). */
 export async function crearAdministrador(_: EstadoLogin, formData: FormData): Promise<EstadoLogin> {
   if (await hayUsuarios()) return { error: "La cuenta de administrador ya existe. Inicie sesión." };
   const datos = esquemaRegistro.safeParse({
@@ -51,13 +51,12 @@ export async function crearAdministrador(_: EstadoLogin, formData: FormData): Pr
   });
   if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Revise los datos." };
   try {
-    const r = await auth().api.signUpEmail({
-      body: { name: datos.data.nombre, email: datos.data.email, password: datos.data.password },
-      headers: await headers(),
-    });
     const db = await bd();
-    await db.update(usuarios).set({ rol: "admin" }).where(eq(usuarios.id, r.user.id));
-    await inicializarOrganizacion(r.user.id, datos.data.empresa);
+    const nombreEmpresa = datos.data.empresa?.trim() || "Mi empresa";
+    const [empresa] = await db.insert(empresas).values({ nombre: nombreEmpresa }).returning({ id: empresas.id });
+    const usuarioId = await crearUsuarioLocal(datos.data, "admin", empresa!.id);
+    await inicializarOrganizacion(usuarioId, empresa!.id, nombreEmpresa);
+    await auth().api.signInEmail({ body: { email: datos.data.email, password: datos.data.password }, headers: await headers() });
   } catch (e) {
     return { error: mensajeAuth(e) };
   }
@@ -65,6 +64,8 @@ export async function crearAdministrador(_: EstadoLogin, formData: FormData): Pr
 }
 
 export async function cerrarSesion(): Promise<void> {
+  // Con el login de Machea, la sesión se cierra en Machea (DELETE /api/sesion desde el navegador).
+  if (modoAuth() === "machea") redirect(`${urlMachea()}/inicio/`);
   await auth().api.signOut({ headers: await headers() });
   redirect("/login");
 }

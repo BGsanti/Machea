@@ -1,12 +1,12 @@
 {
-  "id": "51caf6d6-71d5-4485-b968-c459aa07dda2",
+  "id": "e2f0aa42-fccc-464a-96c5-d0ed4fd351f5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.articulos": {
+    "crm.articulos": {
       "name": "articulos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -14,6 +14,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -102,10 +108,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "articulos_empresa_id_empresas_id_fk": {
+          "name": "articulos_empresa_id_empresas_id_fk",
+          "tableFrom": "articulos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "articulos_propietario_id_usuarios_id_fk": {
           "name": "articulos_propietario_id_usuarios_id_fk",
           "tableFrom": "articulos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -119,6 +140,7 @@
           "name": "articulos_creado_por_id_usuarios_id_fk",
           "tableFrom": "articulos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -132,6 +154,7 @@
           "name": "articulos_asignado_a_id_usuarios_id_fk",
           "tableFrom": "articulos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "asignado_a_id"
           ],
@@ -148,9 +171,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.campanas": {
+    "crm.campanas": {
       "name": "campanas",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -158,6 +181,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -238,10 +267,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "campanas_empresa_id_empresas_id_fk": {
+          "name": "campanas_empresa_id_empresas_id_fk",
+          "tableFrom": "campanas",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "campanas_propietario_id_usuarios_id_fk": {
           "name": "campanas_propietario_id_usuarios_id_fk",
           "tableFrom": "campanas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -255,6 +299,7 @@
           "name": "campanas_creado_por_id_usuarios_id_fk",
           "tableFrom": "campanas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -271,9 +316,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.candidatos": {
+    "crm.candidatos": {
       "name": "candidatos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -281,6 +326,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -494,10 +545,25 @@
         }
       },
       "foreignKeys": {
+        "candidatos_empresa_id_empresas_id_fk": {
+          "name": "candidatos_empresa_id_empresas_id_fk",
+          "tableFrom": "candidatos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "candidatos_propietario_id_usuarios_id_fk": {
           "name": "candidatos_propietario_id_usuarios_id_fk",
           "tableFrom": "candidatos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -511,6 +577,7 @@
           "name": "candidatos_creado_por_id_usuarios_id_fk",
           "tableFrom": "candidatos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -527,9 +594,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.carpetas_texto": {
+    "crm.carpetas_texto": {
       "name": "carpetas_texto",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -537,6 +604,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -573,10 +646,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "carpetas_texto_empresa_id_empresas_id_fk": {
+          "name": "carpetas_texto_empresa_id_empresas_id_fk",
+          "tableFrom": "carpetas_texto",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "carpetas_texto_propietario_id_usuarios_id_fk": {
           "name": "carpetas_texto_propietario_id_usuarios_id_fk",
           "tableFrom": "carpetas_texto",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -590,6 +678,7 @@
           "name": "carpetas_texto_creado_por_id_usuarios_id_fk",
           "tableFrom": "carpetas_texto",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -606,9 +695,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.casos": {
+    "crm.casos": {
       "name": "casos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -616,6 +705,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -645,7 +740,7 @@
         },
         "numero": {
           "name": "numero",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -722,13 +817,49 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "casos_empresa_id_numero_index": {
+          "name": "casos_empresa_id_numero_index",
+          "columns": [
+            {
+              "expression": "empresa_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "numero",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
+        "casos_empresa_id_empresas_id_fk": {
+          "name": "casos_empresa_id_empresas_id_fk",
+          "tableFrom": "casos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "casos_propietario_id_usuarios_id_fk": {
           "name": "casos_propietario_id_usuarios_id_fk",
           "tableFrom": "casos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -742,6 +873,7 @@
           "name": "casos_creado_por_id_usuarios_id_fk",
           "tableFrom": "casos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -755,6 +887,7 @@
           "name": "casos_contacto_id_contactos_id_fk",
           "tableFrom": "casos",
           "tableTo": "contactos",
+          "schemaTo": "crm",
           "columnsFrom": [
             "contacto_id"
           ],
@@ -768,6 +901,7 @@
           "name": "casos_cuenta_id_cuentas_id_fk",
           "tableFrom": "casos",
           "tableTo": "cuentas",
+          "schemaTo": "crm",
           "columnsFrom": [
             "cuenta_id"
           ],
@@ -784,9 +918,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.conexiones": {
+    "crm.conexiones": {
       "name": "conexiones",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -794,6 +928,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -855,10 +995,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "conexiones_empresa_id_empresas_id_fk": {
+          "name": "conexiones_empresa_id_empresas_id_fk",
+          "tableFrom": "conexiones",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "conexiones_propietario_id_usuarios_id_fk": {
           "name": "conexiones_propietario_id_usuarios_id_fk",
           "tableFrom": "conexiones",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -872,6 +1027,7 @@
           "name": "conexiones_creado_por_id_usuarios_id_fk",
           "tableFrom": "conexiones",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -888,16 +1044,15 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.configuracion": {
+    "crm.configuracion": {
       "name": "configuracion",
-      "schema": "",
+      "schema": "crm",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true,
-          "default": 1
+          "notNull": true
         },
         "nombre_empresa": {
           "name": "nombre_empresa",
@@ -943,16 +1098,31 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "configuracion_empresa_id_empresas_id_fk": {
+          "name": "configuracion_empresa_id_empresas_id_fk",
+          "tableFrom": "configuracion",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.contactos": {
+    "crm.contactos": {
       "name": "contactos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -960,6 +1130,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -1105,10 +1281,25 @@
         }
       },
       "foreignKeys": {
+        "contactos_empresa_id_empresas_id_fk": {
+          "name": "contactos_empresa_id_empresas_id_fk",
+          "tableFrom": "contactos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "contactos_propietario_id_usuarios_id_fk": {
           "name": "contactos_propietario_id_usuarios_id_fk",
           "tableFrom": "contactos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -1122,6 +1313,7 @@
           "name": "contactos_creado_por_id_usuarios_id_fk",
           "tableFrom": "contactos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -1135,6 +1327,7 @@
           "name": "contactos_cuenta_id_cuentas_id_fk",
           "tableFrom": "contactos",
           "tableTo": "cuentas",
+          "schemaTo": "crm",
           "columnsFrom": [
             "cuenta_id"
           ],
@@ -1151,9 +1344,64 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.correos_lista": {
+    "crm.contadores": {
+      "name": "contadores",
+      "schema": "crm",
+      "columns": {
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "objeto": {
+          "name": "objeto",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor": {
+          "name": "valor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "contadores_empresa_id_empresas_id_fk": {
+          "name": "contadores_empresa_id_empresas_id_fk",
+          "tableFrom": "contadores",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "contadores_empresa_id_objeto_pk": {
+          "name": "contadores_empresa_id_objeto_pk",
+          "columns": [
+            "empresa_id",
+            "objeto"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "crm.correos_lista": {
       "name": "correos_lista",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1161,6 +1409,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -1229,10 +1483,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "correos_lista_empresa_id_empresas_id_fk": {
+          "name": "correos_lista_empresa_id_empresas_id_fk",
+          "tableFrom": "correos_lista",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "correos_lista_propietario_id_usuarios_id_fk": {
           "name": "correos_lista_propietario_id_usuarios_id_fk",
           "tableFrom": "correos_lista",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -1246,6 +1515,7 @@
           "name": "correos_lista_creado_por_id_usuarios_id_fk",
           "tableFrom": "correos_lista",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -1262,9 +1532,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.cuentas": {
+    "crm.cuentas": {
       "name": "cuentas",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1272,6 +1542,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -1414,10 +1690,25 @@
         }
       },
       "foreignKeys": {
+        "cuentas_empresa_id_empresas_id_fk": {
+          "name": "cuentas_empresa_id_empresas_id_fk",
+          "tableFrom": "cuentas",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "cuentas_propietario_id_usuarios_id_fk": {
           "name": "cuentas_propietario_id_usuarios_id_fk",
           "tableFrom": "cuentas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -1431,6 +1722,7 @@
           "name": "cuentas_creado_por_id_usuarios_id_fk",
           "tableFrom": "cuentas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -1447,9 +1739,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.cuentas_auth": {
+    "crm.cuentas_auth": {
       "name": "cuentas_auth",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1538,6 +1830,7 @@
           "name": "cuentas_auth_user_id_usuarios_id_fk",
           "tableFrom": "cuentas_auth",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "user_id"
           ],
@@ -1554,9 +1847,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.destinatarios_correo": {
+    "crm.destinatarios_correo": {
       "name": "destinatarios_correo",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1564,6 +1857,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "correo_id": {
           "name": "correo_id",
@@ -1599,10 +1898,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "destinatarios_correo_empresa_id_empresas_id_fk": {
+          "name": "destinatarios_correo_empresa_id_empresas_id_fk",
+          "tableFrom": "destinatarios_correo",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "destinatarios_correo_correo_id_correos_lista_id_fk": {
           "name": "destinatarios_correo_correo_id_correos_lista_id_fk",
           "tableFrom": "destinatarios_correo",
           "tableTo": "correos_lista",
+          "schemaTo": "crm",
           "columnsFrom": [
             "correo_id"
           ],
@@ -1619,9 +1933,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.ejecuciones_flujo": {
+    "crm.ejecuciones_flujo": {
       "name": "ejecuciones_flujo",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1629,6 +1943,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "flujo_id": {
           "name": "flujo_id",
@@ -1681,9 +2001,15 @@
         }
       },
       "indexes": {
-        "ejecuciones_flujo_creado_en_index": {
-          "name": "ejecuciones_flujo_creado_en_index",
+        "ejecuciones_flujo_empresa_id_creado_en_index": {
+          "name": "ejecuciones_flujo_empresa_id_creado_en_index",
           "columns": [
+            {
+              "expression": "empresa_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "creado_en",
               "isExpression": false,
@@ -1698,10 +2024,25 @@
         }
       },
       "foreignKeys": {
+        "ejecuciones_flujo_empresa_id_empresas_id_fk": {
+          "name": "ejecuciones_flujo_empresa_id_empresas_id_fk",
+          "tableFrom": "ejecuciones_flujo",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "ejecuciones_flujo_flujo_id_flujos_id_fk": {
           "name": "ejecuciones_flujo_flujo_id_flujos_id_fk",
           "tableFrom": "ejecuciones_flujo",
           "tableTo": "flujos",
+          "schemaTo": "crm",
           "columnsFrom": [
             "flujo_id"
           ],
@@ -1718,9 +2059,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.entradas_lista_precios": {
-      "name": "entradas_lista_precios",
-      "schema": "",
+    "crm.empresas": {
+      "name": "empresas",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1728,6 +2069,45 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "nombre": {
+          "name": "nombre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creada_en": {
+          "name": "creada_en",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "crm.entradas_lista_precios": {
+      "name": "entradas_lista_precios",
+      "schema": "crm",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -1805,10 +2185,25 @@
         }
       },
       "foreignKeys": {
+        "entradas_lista_precios_empresa_id_empresas_id_fk": {
+          "name": "entradas_lista_precios_empresa_id_empresas_id_fk",
+          "tableFrom": "entradas_lista_precios",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "entradas_lista_precios_propietario_id_usuarios_id_fk": {
           "name": "entradas_lista_precios_propietario_id_usuarios_id_fk",
           "tableFrom": "entradas_lista_precios",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -1822,6 +2217,7 @@
           "name": "entradas_lista_precios_creado_por_id_usuarios_id_fk",
           "tableFrom": "entradas_lista_precios",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -1835,6 +2231,7 @@
           "name": "entradas_lista_precios_lista_precios_id_listas_precios_id_fk",
           "tableFrom": "entradas_lista_precios",
           "tableTo": "listas_precios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "lista_precios_id"
           ],
@@ -1848,6 +2245,7 @@
           "name": "entradas_lista_precios_producto_id_productos_id_fk",
           "tableFrom": "entradas_lista_precios",
           "tableTo": "productos",
+          "schemaTo": "crm",
           "columnsFrom": [
             "producto_id"
           ],
@@ -1864,9 +2262,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.establecimientos": {
+    "crm.establecimientos": {
       "name": "establecimientos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1874,6 +2272,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -1942,10 +2346,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "establecimientos_empresa_id_empresas_id_fk": {
+          "name": "establecimientos_empresa_id_empresas_id_fk",
+          "tableFrom": "establecimientos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "establecimientos_propietario_id_usuarios_id_fk": {
           "name": "establecimientos_propietario_id_usuarios_id_fk",
           "tableFrom": "establecimientos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -1959,6 +2378,7 @@
           "name": "establecimientos_creado_por_id_usuarios_id_fk",
           "tableFrom": "establecimientos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -1972,6 +2392,7 @@
           "name": "establecimientos_lista_precios_id_listas_precios_id_fk",
           "tableFrom": "establecimientos",
           "tableTo": "listas_precios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "lista_precios_id"
           ],
@@ -1988,9 +2409,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.eventos": {
+    "crm.eventos": {
       "name": "eventos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -1998,6 +2419,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -2142,10 +2569,25 @@
         }
       },
       "foreignKeys": {
+        "eventos_empresa_id_empresas_id_fk": {
+          "name": "eventos_empresa_id_empresas_id_fk",
+          "tableFrom": "eventos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "eventos_propietario_id_usuarios_id_fk": {
           "name": "eventos_propietario_id_usuarios_id_fk",
           "tableFrom": "eventos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -2159,6 +2601,7 @@
           "name": "eventos_creado_por_id_usuarios_id_fk",
           "tableFrom": "eventos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -2175,9 +2618,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.facturas": {
+    "crm.facturas": {
       "name": "facturas",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2185,6 +2628,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -2214,7 +2663,7 @@
         },
         "numero": {
           "name": "numero",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -2277,12 +2726,49 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "facturas_empresa_id_numero_index": {
+          "name": "facturas_empresa_id_numero_index",
+          "columns": [
+            {
+              "expression": "empresa_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "numero",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
+        "facturas_empresa_id_empresas_id_fk": {
+          "name": "facturas_empresa_id_empresas_id_fk",
+          "tableFrom": "facturas",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "facturas_propietario_id_usuarios_id_fk": {
           "name": "facturas_propietario_id_usuarios_id_fk",
           "tableFrom": "facturas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -2296,6 +2782,7 @@
           "name": "facturas_creado_por_id_usuarios_id_fk",
           "tableFrom": "facturas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -2309,6 +2796,7 @@
           "name": "facturas_oportunidad_id_oportunidades_id_fk",
           "tableFrom": "facturas",
           "tableTo": "oportunidades",
+          "schemaTo": "crm",
           "columnsFrom": [
             "oportunidad_id"
           ],
@@ -2322,6 +2810,7 @@
           "name": "facturas_cuenta_id_cuentas_id_fk",
           "tableFrom": "facturas",
           "tableTo": "cuentas",
+          "schemaTo": "crm",
           "columnsFrom": [
             "cuenta_id"
           ],
@@ -2338,9 +2827,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.flujos": {
+    "crm.flujos": {
       "name": "flujos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2348,6 +2837,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -2431,10 +2926,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "flujos_empresa_id_empresas_id_fk": {
+          "name": "flujos_empresa_id_empresas_id_fk",
+          "tableFrom": "flujos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "flujos_propietario_id_usuarios_id_fk": {
           "name": "flujos_propietario_id_usuarios_id_fk",
           "tableFrom": "flujos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -2448,6 +2958,7 @@
           "name": "flujos_creado_por_id_usuarios_id_fk",
           "tableFrom": "flujos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -2464,9 +2975,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.informes": {
+    "crm.informes": {
       "name": "informes",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2474,6 +2985,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -2568,10 +3085,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "informes_empresa_id_empresas_id_fk": {
+          "name": "informes_empresa_id_empresas_id_fk",
+          "tableFrom": "informes",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "informes_propietario_id_usuarios_id_fk": {
           "name": "informes_propietario_id_usuarios_id_fk",
           "tableFrom": "informes",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -2585,6 +3117,7 @@
           "name": "informes_creado_por_id_usuarios_id_fk",
           "tableFrom": "informes",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -2601,9 +3134,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.lineas_factura": {
+    "crm.lineas_factura": {
       "name": "lineas_factura",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2611,6 +3144,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "factura_id": {
           "name": "factura_id",
@@ -2645,10 +3184,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "lineas_factura_empresa_id_empresas_id_fk": {
+          "name": "lineas_factura_empresa_id_empresas_id_fk",
+          "tableFrom": "lineas_factura",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "lineas_factura_factura_id_facturas_id_fk": {
           "name": "lineas_factura_factura_id_facturas_id_fk",
           "tableFrom": "lineas_factura",
           "tableTo": "facturas",
+          "schemaTo": "crm",
           "columnsFrom": [
             "factura_id"
           ],
@@ -2665,9 +3219,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.listas_precios": {
+    "crm.listas_precios": {
       "name": "listas_precios",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2675,6 +3229,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -2743,10 +3303,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "listas_precios_empresa_id_empresas_id_fk": {
+          "name": "listas_precios_empresa_id_empresas_id_fk",
+          "tableFrom": "listas_precios",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "listas_precios_propietario_id_usuarios_id_fk": {
           "name": "listas_precios_propietario_id_usuarios_id_fk",
           "tableFrom": "listas_precios",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -2760,6 +3335,7 @@
           "name": "listas_precios_creado_por_id_usuarios_id_fk",
           "tableFrom": "listas_precios",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -2776,9 +3352,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.miembros_campana": {
+    "crm.miembros_campana": {
       "name": "miembros_campana",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2786,6 +3362,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "campana_id": {
           "name": "campana_id",
@@ -2850,10 +3432,25 @@
         }
       },
       "foreignKeys": {
+        "miembros_campana_empresa_id_empresas_id_fk": {
+          "name": "miembros_campana_empresa_id_empresas_id_fk",
+          "tableFrom": "miembros_campana",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "miembros_campana_campana_id_campanas_id_fk": {
           "name": "miembros_campana_campana_id_campanas_id_fk",
           "tableFrom": "miembros_campana",
           "tableTo": "campanas",
+          "schemaTo": "crm",
           "columnsFrom": [
             "campana_id"
           ],
@@ -2870,9 +3467,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.notificaciones": {
+    "crm.notificaciones": {
       "name": "notificaciones",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2948,6 +3545,7 @@
           "name": "notificaciones_usuario_id_usuarios_id_fk",
           "tableFrom": "notificaciones",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -2964,9 +3562,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.oportunidades": {
+    "crm.oportunidades": {
       "name": "oportunidades",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -2974,6 +3572,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -3103,10 +3707,25 @@
         }
       },
       "foreignKeys": {
+        "oportunidades_empresa_id_empresas_id_fk": {
+          "name": "oportunidades_empresa_id_empresas_id_fk",
+          "tableFrom": "oportunidades",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "oportunidades_propietario_id_usuarios_id_fk": {
           "name": "oportunidades_propietario_id_usuarios_id_fk",
           "tableFrom": "oportunidades",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -3120,6 +3739,7 @@
           "name": "oportunidades_creado_por_id_usuarios_id_fk",
           "tableFrom": "oportunidades",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -3133,6 +3753,7 @@
           "name": "oportunidades_cuenta_id_cuentas_id_fk",
           "tableFrom": "oportunidades",
           "tableTo": "cuentas",
+          "schemaTo": "crm",
           "columnsFrom": [
             "cuenta_id"
           ],
@@ -3146,6 +3767,7 @@
           "name": "oportunidades_lista_precios_id_listas_precios_id_fk",
           "tableFrom": "oportunidades",
           "tableTo": "listas_precios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "lista_precios_id"
           ],
@@ -3162,9 +3784,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.paneles": {
+    "crm.paneles": {
       "name": "paneles",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -3172,6 +3794,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -3228,10 +3856,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "paneles_empresa_id_empresas_id_fk": {
+          "name": "paneles_empresa_id_empresas_id_fk",
+          "tableFrom": "paneles",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "paneles_propietario_id_usuarios_id_fk": {
           "name": "paneles_propietario_id_usuarios_id_fk",
           "tableFrom": "paneles",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -3245,6 +3888,7 @@
           "name": "paneles_creado_por_id_usuarios_id_fk",
           "tableFrom": "paneles",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -3261,9 +3905,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.preferencias_usuario": {
+    "crm.preferencias_usuario": {
       "name": "preferencias_usuario",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "usuario_id": {
           "name": "usuario_id",
@@ -3292,6 +3936,7 @@
           "name": "preferencias_usuario_usuario_id_usuarios_id_fk",
           "tableFrom": "preferencias_usuario",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -3308,9 +3953,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.productos": {
+    "crm.productos": {
       "name": "productos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -3318,6 +3963,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -3385,10 +4036,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "productos_empresa_id_empresas_id_fk": {
+          "name": "productos_empresa_id_empresas_id_fk",
+          "tableFrom": "productos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "productos_propietario_id_usuarios_id_fk": {
           "name": "productos_propietario_id_usuarios_id_fk",
           "tableFrom": "productos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -3402,6 +4068,7 @@
           "name": "productos_creado_por_id_usuarios_id_fk",
           "tableFrom": "productos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -3418,9 +4085,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.productos_oportunidad": {
+    "crm.productos_oportunidad": {
       "name": "productos_oportunidad",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -3428,6 +4095,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -3495,10 +4168,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "productos_oportunidad_empresa_id_empresas_id_fk": {
+          "name": "productos_oportunidad_empresa_id_empresas_id_fk",
+          "tableFrom": "productos_oportunidad",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "productos_oportunidad_propietario_id_usuarios_id_fk": {
           "name": "productos_oportunidad_propietario_id_usuarios_id_fk",
           "tableFrom": "productos_oportunidad",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -3512,6 +4200,7 @@
           "name": "productos_oportunidad_creado_por_id_usuarios_id_fk",
           "tableFrom": "productos_oportunidad",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -3525,6 +4214,7 @@
           "name": "productos_oportunidad_oportunidad_id_oportunidades_id_fk",
           "tableFrom": "productos_oportunidad",
           "tableTo": "oportunidades",
+          "schemaTo": "crm",
           "columnsFrom": [
             "oportunidad_id"
           ],
@@ -3538,6 +4228,7 @@
           "name": "productos_oportunidad_producto_id_productos_id_fk",
           "tableFrom": "productos_oportunidad",
           "tableTo": "productos",
+          "schemaTo": "crm",
           "columnsFrom": [
             "producto_id"
           ],
@@ -3554,9 +4245,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.sesiones": {
+    "crm.sesiones": {
       "name": "sesiones",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -3615,6 +4306,7 @@
           "name": "sesiones_user_id_usuarios_id_fk",
           "tableFrom": "sesiones",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "user_id"
           ],
@@ -3639,9 +4331,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.sesiones_mensajeria": {
+    "crm.sesiones_mensajeria": {
       "name": "sesiones_mensajeria",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -3649,6 +4341,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -3718,10 +4416,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "sesiones_mensajeria_empresa_id_empresas_id_fk": {
+          "name": "sesiones_mensajeria_empresa_id_empresas_id_fk",
+          "tableFrom": "sesiones_mensajeria",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "sesiones_mensajeria_propietario_id_usuarios_id_fk": {
           "name": "sesiones_mensajeria_propietario_id_usuarios_id_fk",
           "tableFrom": "sesiones_mensajeria",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -3735,6 +4448,7 @@
           "name": "sesiones_mensajeria_creado_por_id_usuarios_id_fk",
           "tableFrom": "sesiones_mensajeria",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -3748,6 +4462,7 @@
           "name": "sesiones_mensajeria_contacto_id_contactos_id_fk",
           "tableFrom": "sesiones_mensajeria",
           "tableTo": "contactos",
+          "schemaTo": "crm",
           "columnsFrom": [
             "contacto_id"
           ],
@@ -3764,9 +4479,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.tareas": {
+    "crm.tareas": {
       "name": "tareas",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -3774,6 +4489,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -3919,10 +4640,25 @@
         }
       },
       "foreignKeys": {
+        "tareas_empresa_id_empresas_id_fk": {
+          "name": "tareas_empresa_id_empresas_id_fk",
+          "tableFrom": "tareas",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "tareas_propietario_id_usuarios_id_fk": {
           "name": "tareas_propietario_id_usuarios_id_fk",
           "tableFrom": "tareas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -3936,6 +4672,7 @@
           "name": "tareas_creado_por_id_usuarios_id_fk",
           "tableFrom": "tareas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -3952,9 +4689,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.textos_rapidos": {
+    "crm.textos_rapidos": {
       "name": "textos_rapidos",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -3962,6 +4699,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -4030,10 +4773,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "textos_rapidos_empresa_id_empresas_id_fk": {
+          "name": "textos_rapidos_empresa_id_empresas_id_fk",
+          "tableFrom": "textos_rapidos",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "textos_rapidos_propietario_id_usuarios_id_fk": {
           "name": "textos_rapidos_propietario_id_usuarios_id_fk",
           "tableFrom": "textos_rapidos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -4047,6 +4805,7 @@
           "name": "textos_rapidos_creado_por_id_usuarios_id_fk",
           "tableFrom": "textos_rapidos",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -4060,6 +4819,7 @@
           "name": "textos_rapidos_carpeta_id_carpetas_texto_id_fk",
           "tableFrom": "textos_rapidos",
           "tableTo": "carpetas_texto",
+          "schemaTo": "crm",
           "columnsFrom": [
             "carpeta_id"
           ],
@@ -4076,15 +4836,21 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.usuarios": {
+    "crm.usuarios": {
       "name": "usuarios",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
           "type": "text",
           "primaryKey": true,
           "notNull": true
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "name": {
           "name": "name",
@@ -4140,7 +4906,22 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "usuarios_empresa_id_empresas_id_fk": {
+          "name": "usuarios_empresa_id_empresas_id_fk",
+          "tableFrom": "usuarios",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "usuarios_email_unique": {
@@ -4155,9 +4936,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.verificaciones": {
+    "crm.verificaciones": {
       "name": "verificaciones",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -4206,9 +4987,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.videollamadas": {
+    "crm.videollamadas": {
       "name": "videollamadas",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -4216,6 +4997,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "propietario_id": {
           "name": "propietario_id",
@@ -4296,10 +5083,25 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "videollamadas_empresa_id_empresas_id_fk": {
+          "name": "videollamadas_empresa_id_empresas_id_fk",
+          "tableFrom": "videollamadas",
+          "tableTo": "empresas",
+          "schemaTo": "crm",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "videollamadas_propietario_id_usuarios_id_fk": {
           "name": "videollamadas_propietario_id_usuarios_id_fk",
           "tableFrom": "videollamadas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "propietario_id"
           ],
@@ -4313,6 +5115,7 @@
           "name": "videollamadas_creado_por_id_usuarios_id_fk",
           "tableFrom": "videollamadas",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "creado_por_id"
           ],
@@ -4329,9 +5132,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vistos_recientemente": {
+    "crm.vistos_recientemente": {
       "name": "vistos_recientemente",
-      "schema": "",
+      "schema": "crm",
       "columns": {
         "id": {
           "name": "id",
@@ -4421,6 +5224,7 @@
           "name": "vistos_recientemente_usuario_id_usuarios_id_fk",
           "tableFrom": "vistos_recientemente",
           "tableTo": "usuarios",
+          "schemaTo": "crm",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -4439,7 +5243,9 @@
     }
   },
   "enums": {},
-  "schemas": {},
+  "schemas": {
+    "crm": "crm"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},

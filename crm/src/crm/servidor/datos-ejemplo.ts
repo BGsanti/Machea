@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { bd } from "@/db/cliente";
+import { empresaActual } from "@/db/empresa";
 import { entradasListaPrecios, flujos, listasPrecios, miembrosCampana } from "@/db/esquema";
 import { desdeHoraLocal, hoyMas } from "../fechas";
 import { crear } from "./repositorio";
@@ -13,6 +14,7 @@ function hora(desplazamientoDias: number, h: number, m = 0): Date {
 /** Carga un conjunto de datos de demostración. Se puede ejecutar varias veces. */
 export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
   const db = await bd();
+  const empresaId = await empresaActual();
   let total = 0;
   const nuevo = async (objeto: string, datos: Record<string, unknown>) => {
     total++;
@@ -86,7 +88,11 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
   ];
   for (const c of candidatos) await nuevo("candidatos", { ...c, pais: "Colombia" });
 
-  const [estandar] = await db.select().from(listasPrecios).where(eq(listasPrecios.estandar, true)).limit(1);
+  const [estandar] = await db
+    .select()
+    .from(listasPrecios)
+    .where(and(eq(listasPrecios.empresaId, empresaId), eq(listasPrecios.estandar, true)))
+    .limit(1);
   const catalogo = [
     { nombre: "Licencia CRM anual", codigo: "LIC-CRM-12", familia: "software", precio: 1200000 },
     { nombre: "Implementación estándar", codigo: "SRV-IMP", familia: "servicios", precio: 4500000 },
@@ -102,7 +108,7 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
     if (estandar) {
       await db
         .insert(entradasListaPrecios)
-        .values({ listaPreciosId: estandar.id, productoId: id, precio: p.precio, propietarioId: usuarioId, creadoPorId: usuarioId })
+        .values({ empresaId, listaPreciosId: estandar.id, productoId: id, precio: p.precio, propietarioId: usuarioId, creadoPorId: usuarioId })
         .onConflictDoNothing();
     }
   }
@@ -179,8 +185,8 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
   await db
     .insert(miembrosCampana)
     .values([
-      { campanaId: campana, objeto: "contactos", registroId: contactos.laura },
-      { campanaId: campana, objeto: "contactos", registroId: contactos.diana },
+      { empresaId, campanaId: campana, objeto: "contactos", registroId: contactos.laura },
+      { empresaId, campanaId: campana, objeto: "contactos", registroId: contactos.diana },
     ])
     .onConflictDoNothing();
 
@@ -188,6 +194,7 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
   await nuevo("videollamadas", { asunto: "Kickoff de implementación", inicio: hora(4, 14), duracionMinutos: 45, enlace: "https://meet.example/kickoff", relacionadoObjeto: "cuentas", relacionadoId: cuentas.textiles });
 
   await db.insert(flujos).values({
+    empresaId,
     nombre: "Seguimiento de candidatos calientes",
     descripcion: "Crea una tarea de llamada y avisa al propietario cuando entra un candidato con valoración Caliente.",
     objeto: "candidatos",
