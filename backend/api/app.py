@@ -38,8 +38,10 @@ from Model.catalogos import LOCALIDADES_BOGOTA, ZONAS_COMUNES, indice_localidad
 from Model.grafo_barrios import barrios_de_localidad, hay_grafo_barrios
 from Model.pipeline import recomendar, respuesta_json
 
+from api import acceso as acceso_mod
 from api import admin as admin_mod
 from api import captacion as captacion_mod
+from api import cuentas as cuentas_mod
 from api import demo as demo_mod
 from api import seguimiento
 from api.limites import Rechazo, ip_del_cliente, limites
@@ -67,6 +69,39 @@ from Model.prep import SMMLV as SMMLV_COP
 app.include_router(demo_mod.router)
 app.include_router(admin_mod.router)
 app.include_router(captacion_mod.router)
+# Aprobación de cuentas de empresas desde /admin (login; ver design/login/CONTRATO_AUTH.md).
+# Sin almacén de la nube conectado responde 503 `no_disponible`.
+app.include_router(cuentas_mod.router)
+# El login (api/acceso.py): rutas públicas /api/cuentas, /api/sesion y /api/clave. Las cuentas viven en
+# Postgres (esquema `acceso`, supabase/migrations/20261014090000_cuentas_login.sql) y se conectan con
+# DATABASE_URL, solo en las variables de Render. Sin ella, el login y /admin → Cuentas responden 503.
+app.include_router(acceso_mod.router)
+acceso_mod.instalar_manejadores(app)
+
+
+def _conectar_cuentas() -> None:
+    dsn = (os.environ.get("DATABASE_URL") or "").strip()
+    if not dsn:
+        return
+    try:
+        from api.almacen_acceso import AlmacenPostgres
+
+        almacen = AlmacenPostgres(dsn)
+    except Exception as exc:                        # nunca tumbar el arranque (el recomendador sigue)
+        logging.getLogger("uvicorn.error").error("cuentas: no se pudo conectar la base: %s", type(exc).__name__)
+        return
+    acceso_mod.configurar_almacen(almacen)
+    cuentas_mod.configurar_almacen(almacen)
+
+
+def _avisar_decision(cuenta) -> None:
+    payload = acceso_mod.correo_decision(cuenta)
+    if payload:
+        acceso_mod.enviar_correo(payload)
+
+
+cuentas_mod.al_decidir = _avisar_decision
+_conectar_cuentas()
 
 # Frases para la actividad del panel de administración (api/admin.py): sin jerga de Dapta.
 _MOTIVO_TOPE = {

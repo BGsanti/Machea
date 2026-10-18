@@ -137,6 +137,7 @@
     construirEsqueleto();
     mostrar('panel');
     cargar(true);          // la primera lectura va siempre, aunque la pestaña esté en segundo plano
+    cargarCuentas();
   }
 
   function cerrarSesion(mensaje) {
@@ -506,6 +507,128 @@
     S.primera = false;
   }
 
+  // ---------------------------------------------------------------- cuentas de empresas (login)
+  // GET /api/admin/cuentas[?estado=pendiente] · POST …/{id}/aprobar {tipo} · POST …/{id}/rechazar.
+  // Sin almacén de la nube el servidor responde 503 `no_disponible` (ver api/cuentas.py). No se consulta
+  // cada 10 s: al entrar, al cambiar el filtro, al pulsar "Actualizar" y después de cada decisión.
+  var C = { filtro: 'pendiente', cargando: false, confirmar: null, confirmarTimer: null };
+  var ESTADO_CUENTA = {
+    sin_confirmar: ['Sin confirmar el correo', 'sin_configurar', 'i-minus'],
+    pendiente: ['Pendiente', 'degradado', 'i-alert'],
+    aprobada: ['Aprobada', 'ok', 'i-check'],
+    rechazada: ['Rechazada', 'caido', 'i-x']
+  };
+  var TIPO_TXT = { constructora: 'Constructora', inmobiliaria: 'Inmobiliaria' };
+
+  function mensajeDe(j, porDefecto) {
+    if (j && j.detail && typeof j.detail.mensaje === 'string') return j.detail.mensaje;
+    if (j && typeof j.detail === 'string') return j.detail;
+    return porDefecto;
+  }
+
+  function avisoCuentas(texto, tipo) {
+    var a = $('#cuentasAviso');
+    a.hidden = !texto;
+    a.textContent = texto || '';
+    a.className = 'aviso ' + (tipo === 'error' ? 'aviso-error' : 'aviso-info');
+  }
+
+  function fecha(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    try { return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (e) { return iso.slice(0, 10); }
+  }
+
+  async function pedirCuentas(ruta, opciones) {
+    var o = opciones || {};
+    var r = await fetch(API + '/admin/cuentas' + ruta, {
+      method: o.method || 'GET',
+      headers: o.body ? { Authorization: 'Bearer ' + S.token, 'Content-Type': 'application/json' } : { Authorization: 'Bearer ' + S.token },
+      body: o.body ? JSON.stringify(o.body) : undefined,
+      cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
+    });
+    var j = await r.json().catch(function () { return {}; });
+    return { r: r, j: j };
+  }
+
+  // `conservarAviso`: después de aprobar o rechazar, el aviso con el resultado se queda a la vista.
+  async function cargarCuentas(conservarAviso) {
+    if (!S.token || C.cargando) return;
+    C.cargando = true;
+    try {
+      var res = await pedirCuentas(C.filtro ? '?estado=' + encodeURIComponent(C.filtro) : '');
+      if (res.r.status === 401) { cerrarSesion('Tu sesión venció. Entra de nuevo.'); return; }
+      if (res.r.ok && Array.isArray(res.j.cuentas)) { if (conservarAviso !== true) avisoCuentas(''); pintarCuentas(res.j.cuentas); return; }
+      $('#cuentasCaja').hidden = true; $('#cuentasVacio').hidden = true; $('#cuentasPend').textContent = '';
+      if (res.r.status === 503) avisoCuentas(mensajeDe(res.j, 'Las cuentas todavía no están conectadas a un servicio de nube.') + ' Cuando se conecte, aquí aparecerán las empresas registradas.');
+      else if (res.r.status === 404) avisoCuentas('Este servidor todavía no tiene la aprobación de cuentas: llega con la rama login.');
+      else avisoCuentas(mensajeDe(res.j, 'No se pudieron leer las cuentas (HTTP ' + res.r.status + ').'), 'error');
+    } catch (e) {
+      avisoCuentas('No se pudo conectar con la API para leer las cuentas.', 'error');
+    } finally {
+      C.cargando = false;
+    }
+  }
+
+  function botonCuenta(texto, accion, id, extra) {
+    var b = el('button', { type: 'button', class: 'btn btn-suave btn-mini' + (extra || ''), 'data-accion': accion, 'data-id': id, text: texto });
+    return b;
+  }
+
+  function pintarCuentas(lista) {
+    var cuerpo = $('#tablaCuentas tbody'); cuerpo.replaceChildren();
+    var pendientes = 0;
+    lista.forEach(function (c) {
+      if (c.estado === 'pendiente') pendientes++;
+      var est = ESTADO_CUENTA[c.estado] || ESTADO_CUENTA.pendiente;
+      var empresa = el('td', {}, [el('b', { text: c.usuario }), el('small', { text: c.correo + (c.metodos && c.metodos.indexOf('google') >= 0 ? ' · con Google' : '') })]);
+      var estado = el('td', {}, [el('span', { class: 'etiq', 'data-estado': est[1] }, [icono(est[2]), est[0]])]);
+      if (c.tipo) estado.appendChild(el('small', { text: TIPO_TXT[c.tipo] || c.tipo }));
+      var acc = el('div', { class: 'cuentas-acc' });
+      if (c.estado === 'pendiente' || c.estado === 'rechazada') {
+        acc.appendChild(botonCuenta('Aprobar constructora', 'constructora', c.id));
+        acc.appendChild(botonCuenta('Aprobar inmobiliaria', 'inmobiliaria', c.id));
+      }
+      if (c.estado === 'pendiente' || c.estado === 'aprobada') acc.appendChild(botonCuenta('Rechazar', 'rechazar', c.id, ' btn-peligro'));
+      if (c.estado === 'sin_confirmar') acc.appendChild(el('span', { class: 'tarjeta-nota', text: 'Esperando que confirme su correo' }));
+      cuerpo.appendChild(el('tr', {}, [empresa, estado, el('td', { text: fecha(c.creadaEn) }), el('td', {}, [acc])]));
+    });
+    $('#cuentasCaja').hidden = lista.length === 0;
+    var vacio = $('#cuentasVacio');
+    vacio.hidden = lista.length > 0;
+    vacio.textContent = C.filtro === 'pendiente' ? 'No hay cuentas pendientes.' : 'Todavía no se ha registrado ninguna empresa.';
+    if (C.filtro === 'pendiente') $('#cuentasPend').textContent = pendientes ? ' · ' + pendientes : '';
+  }
+
+  async function decidirCuenta(boton) {
+    var id = boton.getAttribute('data-id'), accion = boton.getAttribute('data-accion');
+    // Rechazar pide un segundo clic (sin ventanas del navegador): el botón cambia a "Confirmar rechazo" 4 s.
+    if (accion === 'rechazar' && C.confirmar !== boton) {
+      if (C.confirmar) C.confirmar.textContent = 'Rechazar';
+      C.confirmar = boton; boton.textContent = 'Confirmar rechazo';
+      clearTimeout(C.confirmarTimer);
+      C.confirmarTimer = setTimeout(function () { if (C.confirmar === boton) { boton.textContent = 'Rechazar'; C.confirmar = null; } }, 4000);
+      return;
+    }
+    C.confirmar = null; clearTimeout(C.confirmarTimer);
+    var fila = boton.closest('tr');
+    fila.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+    try {
+      var res = accion === 'rechazar'
+        ? await pedirCuentas('/' + encodeURIComponent(id) + '/rechazar', { method: 'POST' })
+        : await pedirCuentas('/' + encodeURIComponent(id) + '/aprobar', { method: 'POST', body: { tipo: accion } });
+      if (res.r.status === 401) { cerrarSesion('Tu sesión venció. Entra de nuevo.'); return; }
+      if (!res.r.ok) { avisoCuentas(mensajeDe(res.j, 'No se pudo guardar la decisión.'), 'error'); fila.querySelectorAll('button').forEach(function (b) { b.disabled = false; }); return; }
+      var c = res.j.cuenta || {};
+      avisoCuentas(c.estado === 'aprobada' ? c.usuario + ' quedó aprobada como ' + (TIPO_TXT[c.tipo] || c.tipo).toLowerCase() + '.' : c.usuario + ' quedó rechazada.');
+      await cargarCuentas(true);
+      cargar(true);                    // la decisión aparece en "Actividad reciente"
+    } catch (e) {
+      avisoCuentas('No se pudo conectar con la API.', 'error');
+      fila.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
+    }
+  }
+
   // ---------------------------------------------------------------- consulta periódica
   function programar(ms) { clearTimeout(S.timer); S.timer = setTimeout(cargar, ms); }
 
@@ -618,7 +741,18 @@
       this.setAttribute('aria-label', ver ? 'Ocultar la clave' : 'Mostrar la clave');
     });
     $('#btnSalir').addEventListener('click', salir);
-    $('#btnActualizar').addEventListener('click', function () { clearTimeout(S.timer); S.cargando = false; cargar(true); });
+    $('#btnActualizar').addEventListener('click', function () { clearTimeout(S.timer); S.cargando = false; cargar(true); cargarCuentas(); });
+    $('#cuentas').addEventListener('click', function (ev) {
+      var f = ev.target.closest('[data-filtro]');
+      if (f) {
+        C.filtro = f.getAttribute('data-filtro');
+        document.querySelectorAll('[data-filtro]').forEach(function (b) { b.setAttribute('aria-pressed', b === f ? 'true' : 'false'); });
+        cargarCuentas();
+        return;
+      }
+      var b = ev.target.closest('button[data-accion]');
+      if (b && !b.disabled) decidirCuenta(b);
+    });
     document.addEventListener('visibilitychange', function () {
       if (!document.hidden && S.token && Date.now() - S.ultimaCarga > 4000) { clearTimeout(S.timer); cargar(); }
     });
