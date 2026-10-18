@@ -121,3 +121,13 @@ Cada llamada de prueba de ~1 minuto gasta ~666 créditos de Dapta; usar solo nú
 
 Hoy la cita es un **acuerdo** (el asesor llama o escribe a esa hora), no un evento en un calendario. Cuando se conecte Google
 Calendar o el CRM, Manuela puede consultar disponibilidad real y crear el evento; el prompt ya está preparado (etapas 4 y 5).
+
+## Cambios aplicados en Dapta el 2026-10-18 (por el conector de Dapta, workspace Machea)
+
+- **Agente:** detección de buzón **desactivada** (era la causa de las llamadas de 5 s a iPhone: `voicemail_reached` con «colgar»),
+  sensibilidad a interrupciones 0,65 → 0,6, reconocimiento de voz «accurate», recordatorio a 7 s hasta 2 veces. El prompt no se tocó.
+- **Variables post-llamada nuevas:** `cita_agendada`, `fecha_hora_cita`, `canal_cita`, `motivo_no_agenda` (el backend ya las lee).
+- **Flow «Machea - Disparador de llamadas» (`CIelr`):** el nodo «Validar lead» ahora calcula un calendario de 10 días (con domingos y festivos
+  de Colombia) y entrega `current_time` como «hora + calendario ya calculado». Motivo: en una llamada real Manuela dijo «martes veintiuno» para el
+  21 de octubre de 2026, que es miércoles. Así no se reescribe el prompt (lleva el catálogo de precios). Código: `dapta/flow-manuela-validar-lead.js`.
+

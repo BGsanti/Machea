@@ -419,6 +419,31 @@ class TestCola(Base):
         self.assertEqual((r["llamados"], r["errores"], d.call_count), (0, 2, 2))
 
 
+class TestDisparoDapta(Base):
+    def _enviar(self, url, clave):
+        vistas = []
+
+        class Cliente:
+            def __init__(self, *a, **k): pass
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def post(self, u, json=None, headers=None):
+                vistas.append((u, headers))
+                return httpx.Response(200, request=httpx.Request("POST", u))
+
+        with mock.patch.dict(os.environ, {"DAPTA_CAPTACION_FLOW_URL": url, "DAPTA_API_KEY": clave}), mock.patch("httpx.Client", Cliente):
+            self.assertEqual(cap._disparar_flow({"telefono": "+573001234567"}), "enviado")
+        return vistas[0]
+
+    def test_url_con_clave_propia_no_manda_cabecera(self):
+        u, h = self._enviar("https://api.dapta.ai/api/x/flow?x-api-key=abc", "otra-clave")
+        self.assertEqual(h, {})
+
+    def test_url_sin_clave_manda_la_cabecera(self):
+        u, h = self._enviar("https://api.dapta.ai/api/x/flow", "otra-clave")
+        self.assertEqual(h, {"x-api-key": "otra-clave"})
+
+
 class TestSupabase(unittest.TestCase):
     def test_peticiones(self):
         vistas = []

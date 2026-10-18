@@ -76,11 +76,18 @@ La idea: quien recibe muchos leads, invierte en pauta y los atiende tarde es qui
 
 ## 5. Ponerla a funcionar (en este orden)
 
+**Estado al 2026-10-18.** Hecho en Dapta (workspace *Machea*, `c61858f2-35db-491a-a2ef-ff4e4b24ffc4`): el agente **«Camila — Machea Captación»**
+(`f4c71126-0ff8-4ea6-9c1f-5a0c028cb6d7`, voz *Angie vendedora Colombiana*, gpt-5, detección de buzón apagada, sensibilidad 0,6, 20 variables
+post-llamada, webhook puesto) y el flow **«Machea - Captación: disparador de llamadas»** (`htrqM`). Pendiente: Supabase (§5.1) y Render (§5.4).
+El código de los nodos del flow está en `backend/dapta/flow-captacion-preparar.js` (valida el teléfono y calcula el calendario de 10 días con
+festivos). Camila llama desde el mismo número que Manuela (`+14432930308`, el único del workspace): si un prospecto devuelve la llamada, contesta
+Manuela. Lo ideal es comprar un segundo número en Dapta (solo se hace en el panel) y cambiar `from_number` del nodo «Llamar prospecto».
+
 ### 5.1 Supabase
 1. Aplicar `supabase/migrations/20261015120000_solicitudes_demo.sql` (si no está) y luego `20261017180000_captacion.sql` en el SQL Editor del proyecto `machea-leads`.
 2. Copiar la clave **service_role** (Settings → API) **solo a Render** (`SUPABASE_SERVICE_KEY`). Nunca al front, a un chat ni al repo.
 
-### 5.2 Agente en Dapta (workspace de Machea)
+### 5.2 Agente en Dapta (workspace de Machea) — HECHO
 1. Crear un agente de voz nuevo, «Camila · Machea Captación», voz femenina colombiana (la misma familia de Manuela sirve), idioma español de Colombia.
 2. Pegar `backend/dapta/prompt-captacion.md` completo (sin el comentario inicial).
 3. **Mensaje inicial vacío** y que el agente hable primero según la Etapa 1 (una sola frase de 12 a 18 palabras, sin pregunta: así pasa el filtro de llamadas de iPhone).
@@ -111,7 +118,7 @@ La idea: quien recibe muchos leads, invierte en pauta y los atiende tarde es qui
 | `no_contactar` | true / false |
 | `resumen_llamada` | 2 o 3 frases en español |
 
-### 5.3 Flow en Dapta
+### 5.3 Flow en Dapta — HECHO
 Crear el flow **«Machea - Captación: disparador de llamadas»**: disparador por webhook que recibe exactamente las variables de
 entrada de arriba más `telefono` (E.164, p. ej. `+573001234567`) y `external_lead_id`; un nodo de llamada saliente con el agente
 Camila que pasa todas esas variables como `dynamic_variables`; y el **webhook post-llamada** apuntando a:

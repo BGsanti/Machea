@@ -393,7 +393,8 @@ def _disparar_flow(payload: Dict[str, Any]) -> str:
     if not url:
         return "mock"
     import httpx
-    clave = os.environ.get("DAPTA_API_KEY")
+    # La URL del flow de Dapta ya trae su propia clave (?x-api-key=…): si además se manda otra en la cabecera, chocan.
+    clave = None if "x-api-key=" in url else os.environ.get("DAPTA_API_KEY")
     with httpx.Client(timeout=20.0) as c:
         r = c.post(url, json=payload, headers={"x-api-key": clave} if clave else {})
         r.raise_for_status()

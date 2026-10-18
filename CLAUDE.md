@@ -1449,7 +1449,7 @@ puesta en marcha en Dapta y Render, cumplimiento, plan de pruebas): `docs/agente
 Reglas que no se rompen: nunca llamar domingos ni festivos de Colombia (L-V 8-18, sáb 9-12); 1 llamada por número al día, 3 intentos
 y un tope diario; `/api/captacion/demo` es público y llama a un teléfono que escribe un desconocido, por eso nace **apagado**
 (`CAPTACION_LLAMAR_DEMOS=true` para encenderlo) y comparte los topes de `/api/llamar`; la clave `service_role` de Supabase vive solo en
-Render. **Estado:** código y pruebas listos; falta crear el agente y el flow en el Dapta del workspace de Machea, aplicar las dos
+Render. **Estado (2026-10-18):** el agente (`f4c71126…`) y el flow (`htrqM`) ya existen en el Dapta de Machea; falta aplicar las dos
 migraciones y fijar las variables de Render. Sin Supabase, funciona en memoria y se pierde al reiniciar.
 
 ## 6. Resolución de localidad por dirección
