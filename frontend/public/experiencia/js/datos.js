@@ -108,21 +108,35 @@
    * `cb(consultaId)` es opcional; recibe null si algo falló.
    */
   function guardarConsulta(state, resultado, cb) {
-    rpc('guardar_consulta', {
+    var args = {
       p_nombre: state.nombre,
       p_apellido: state.apellido,
       p_correo: state.correo,
       p_telefono: state.telefono,
       p_respuestas: state.answers,
       p_resultados: resultado,
-    }, function (datos, error) {
+      // De qué formulario viene: con eso el lead le llega a la empresa de esa marca en su CRM
+      // (20261018120000_llamadas_y_marca.sql).
+      p_marca: (window.GDF_MARCA || {}).slug || 'machea',
+    };
+    rpc('guardar_consulta', args, function (datos, error) {
+      // Si la base todavía no tiene la migración de la marca, PostgREST no encuentra la función con
+      // p_marca: se guarda igual, sin ella, como antes.
+      if (error && /could not find the function|PGRST202/i.test(error)) {
+        delete args.p_marca;
+        rpc('guardar_consulta', args, terminar);
+        return;
+      }
+      terminar(datos, error);
+    });
+    function terminar(datos, error) {
       if (error) {
         console.warn('[GDF/datos] guardar_consulta:', error);
         if (cb) cb(null);
         return;
       }
       if (cb) cb(datos);
-    });
+    }
   }
 
   // El proyecto elegido, como lo necesitan marcar_interes/marcar_intencion.

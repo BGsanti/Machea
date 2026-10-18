@@ -71,6 +71,8 @@
       tipo_inmueble: elegido.tipo_inmueble || 'vivienda',
       apartamento: {
         nombre_proyecto: elegido.nombre || '',
+        // Con el id, el backend sabe de qué inmobiliaria es el inmueble (CRM de cada empresa).
+        id_proyecto: elegido.id_inmueble != null ? String(elegido.id_inmueble) : undefined,
         localidad: elegido.localidad_nombre || '',
         tipo_vivienda: TIPO_LEGIBLE[elegido.tipo_inmueble] || 'Arriendo',
         // El canon mensual. El backend sabe que en arriendo este número es el
@@ -92,6 +94,9 @@
 
     var apartamento = {
       nombre_proyecto: elegido.nombre,
+      // Con el id, el backend sabe de qué constructora es el proyecto (CRM de cada empresa). El motor
+      // local no tiene ids (usa el nombre): entonces no se manda.
+      id_proyecto: /^\d+$/.test(String(elegido.id)) ? String(elegido.id) : undefined,
       localidad: elegido.localidad || '',
       tipo_vivienda: elegido.vis ? 'VIS' : 'No VIS',
       precio_desde_cop: elegido.precioCop || 0,
