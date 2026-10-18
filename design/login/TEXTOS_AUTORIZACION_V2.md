@@ -31,10 +31,13 @@ para que Diego decida.
 
 **Propuesta compacta (v2):**
 > Autorizo a [Nombre 1], [Nombre 2] y [Nombre 3], responsables del proyecto Machea, a guardar y analizar mi nombre,
-> correo, teléfono y respuestas para recomendarme vivienda en Bogotá, llamarme (también con una asistente virtual) y
-> escribirme por WhatsApp o correo sobre mi solicitud y los proyectos que elija. Puedo consultar, actualizar,
-> rectificar o suprimir mis datos y revocar esta autorización en [privacidad@machea.co] o [teléfono].
-> [Política de datos]
+> correo, teléfono y respuestas para recomendarme vivienda en Bogotá, llamarme con una asistente virtual que no graba
+> pero resume la conversación, y escribirme por WhatsApp o correo sobre mi solicitud y los proyectos que elija. Puedo
+> consultar, actualizar, rectificar o suprimir mis datos y revocar esta autorización en [privacidad@machea.co] o
+> [teléfono]. [Política de datos]
+
+- **El resumen se menciona** por la respuesta de Ariel al mensaje 3: un resumen automático también es tratamiento de
+  datos, y la autorización tiene que cubrirlo.
 
 - **Publicidad de otros proyectos o de terceros:** no se pide. Si un día se quiere, va en una casilla aparte y
   opcional, como recomienda Ariel.
@@ -114,6 +117,42 @@ para que Diego decida.
    - Agregar en el formulario: "Las preguntas sobre ingresos, edad y personas a cargo se usan solo para recomendarte
      vivienda; no se comparten sin tu autorización".
 
+## F. Las llamadas (Ariel, mensaje 3)
+
+### Manuela: apertura (cambio en `backend/dapta/prompt-manuela.md` y en el agente de Dapta)
+
+> Hola, soy Manuela, la asistente virtual de Machea. Te llamo por la solicitud que hiciste sobre {Proyecto}. Esta
+> llamada no se graba; lo que me cuentes lo uso para hacer un resumen de tu solicitud y agendar tu visita. Si en algún
+> momento no quieres seguir, me dices.
+
+- **Si se compartirá con la constructora** (autorizó en la hoja), agregar: "El resumen se lo pasamos a {Constructora}
+  para que te atienda, como autorizaste."
+- **Ley 2300:** la llamada que la persona pidió entra en la excepción de "información solicitada", siempre que Manuela
+  no ofrezca otros proyectos ni haga publicidad, y no vuelva a llamar sin una nueva solicitud.
+- **Horario, por prudencia (Ariel):** las mismas horas de la Ley 2300.
+  - Lunes a viernes, de 7:00 a.m. a 7:00 p.m.; sábados, de 8:00 a.m. a 3:00 p.m.; nunca domingos ni festivos.
+  - Hoy `/api/llamar` llama en cuanto la persona lo pide, a cualquier hora. Ver la ronda 4, pregunta 6.
+
+### Camila: cambios necesarios antes de llamar en frío (con Juan)
+
+1. **No llamar a celulares personales** sacados de directorios. Usar las líneas generales de las empresas y pedir el
+   contacto del área comercial.
+2. **Registrar la fuente** de cada número (`prospectos.fuente`).
+3. **Consultar el Registro de Números Excluidos (RNE)** de la CRC antes de cada campaña, y llevar una lista interna de
+   "no llamar". `no_contactar` ya existe.
+4. **Horario:** el de Camila ya es más estricto que la Ley 2300 (lunes a viernes de 8 a 18, sábados de 9 a 12, nunca
+   domingos ni festivos).
+5. **Apertura nueva** (cambio en `backend/dapta/prompt-captacion.md` y en el agente de Dapta):
+
+   > Hola, soy Camila, una asistente virtual de Machea. Es una llamada comercial para presentarle a {Empresa} nuestro
+   > servicio para atender leads de vivienda. Tomamos este contacto de [fuente]. Antes de seguir: la llamada se graba
+   > y Machea y sus proveedores la usan para hacer un resumen y darle seguimiento. ¿Me autoriza a grabar y le cuento
+   > en 20 segundos? Si prefiere, seguimos sin grabar, y si no quiere que lo volvamos a llamar, me dice.
+
+   - **Si no autoriza la grabación**, la llamada sigue sin grabar si Dapta lo permite. Si no lo permite, Camila lo dice
+     y ofrece otro canal.
+   - **La respuesta queda guardada** en el resultado: autorizó o no grabar, y si pidió que no lo llamen.
+
 ## E. Ronda 4: decide Diego
 
 1. **Textos:** ¿las versiones compactas (v2) de este documento, o el texto completo que propuso Ariel? Recomiendo las
@@ -123,3 +162,7 @@ para que Diego decida.
    riesgo más grande hoy.
 4. **La edad opcional y la explicación de por qué se piden los datos** (problema 5): ¿sí?
 5. **Los nombres de los responsables, el correo y el teléfono**: hacen falta para cualquiera de los textos.
+6. **Horario de Manuela:** ¿pide permiso para llamar fuera del horario de la Ley 2300, o agenda la llamada para la
+   siguiente franja permitida? Recomiendo agendarla y decirlo en la pantalla ("Te llamamos mañana a las 7:00 a.m.").
+7. **Camila:** ¿le paso a Juan los cambios de la parte F (sin celulares de directorios, fuente, RNE, apertura con
+   permiso para grabar) antes de que encienda las llamadas en frío? Recomiendo que sí.

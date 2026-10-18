@@ -84,8 +84,10 @@ En esta política, "Machea", "nosotros" y "nuestro" se refieren a esos responsab
   - una recomendación para el asesor;
   - la cita o la fecha de seguimiento, si se acordó una, y el canal.
 
-  Ese resumen lo genera nuestro proveedor de llamadas a partir de la conversación. [VERIFICAR con Dapta: si conserva
-  el audio o la transcripción de su lado, y por cuánto tiempo.]
+  Manuela te avisa al comenzar que la llamada no se graba y que lo que digas se procesa para hacer ese resumen. El
+  resumen lo genera nuestro proveedor de llamadas (Dapta) por encargo nuestro, y lo usamos para atender tu solicitud
+  y, si lo autorizaste, para entregárselo a la empresa dueña del proyecto. [VERIFICAR con Dapta: si conserva el audio o
+  la transcripción de su lado, por cuánto tiempo, y si usa los datos para entrenar modelos.]
 - **Seguimiento por WhatsApp:** si la llamada no se completó o quedó una cita, te podemos escribir por WhatsApp al
   número que nos diste.
 
@@ -113,13 +115,25 @@ En esta política, "Machea", "nosotros" y "nuestro" se refieren a esos responsab
 ### 3.4 De los contactos de empresas (llamadas de Camila)
 - El nombre y el cargo de la persona de contacto, el teléfono de la empresa o del contacto, el nombre de la empresa
   y lo que resulte de la llamada: interés, calificación, la cita agendada o tu pedido de no volver a llamarte.
-- **De dónde salen:** de directorios públicos de empresas, o de lo que tú mismo nos diste.
-- **Las llamadas de Camila pueden quedar grabadas, y ella lo avisa al comienzo.** [VERIFICAR con Dapta qué guarda.]
-  Si pides que no te llamemos, ese número no se vuelve a marcar.
+- **De dónde salen:**
+  - las líneas generales de las empresas, y los nombres y cargos que ellas publican;
+  - lo que tú mismo nos diste.
 
-> **Nota para el equipo:** el prompt de Camila dice "Esta llamada puede ser grabada", y en Manuela la llamada no se
-> graba. Hay que confirmar qué hace Dapta en cada agente y escribir aquí lo que de verdad pasa. Ver las preguntas 6
-> y 10 de REVISION_LEGAL.md.
+  **No usamos celulares personales sacados de directorios.** Registramos la fuente de cada dato.
+- **Al comenzar, Camila:**
+  - dice que es una asistente virtual de Machea y que la llamada es comercial;
+  - te dice de dónde sacamos tu contacto;
+  - **te pide permiso para grabar**. Si no lo das, la llamada sigue sin grabación o se termina.
+- **Antes de cada campaña** consultamos el Registro de Números Excluidos. **Si pides que no te llamemos**, ese número
+  no se vuelve a marcar. Llamamos solo en los horarios de la Ley 2300 de 2023.
+
+> **Nota para el equipo** (Ariel, mensaje 3): esto describe cómo **debe** funcionar Camila. Hoy no funciona así:
+> - su guion solo dice "puede ser grabada";
+> - no se consulta el Registro de Números Excluidos;
+> - la lista fría sale de directorios.
+>
+> Los cambios están en TEXTOS_AUTORIZACION_V2.md, parte F, y van con Juan. **No se publica este párrafo sin que esos
+> cambios estén hechos.**
 
 ### 3.5 De todos los visitantes
 - **Datos técnicos:** dirección IP, tipo de navegador y fechas de acceso. Los usamos para la seguridad del servicio y
@@ -214,7 +228,9 @@ Cuando una ley o una orden judicial nos obligue.
 
 ### Transmisión internacional
 
-Algunos de estos proveedores guardan o procesan los datos fuera de Colombia, por ejemplo en Estados Unidos. Esto es
+Algunos de estos proveedores guardan o procesan los datos fuera de Colombia, por ejemplo en Estados Unidos, que la
+SIC reconoce como país con nivel adecuado de protección (Circular Única de la SIC, Título V, Capítulo Tercero,
+numeral 3.2). Esto es
 una **transmisión**: los datos se comunican a un encargado para que los trate por cuenta nuestra, no se venden ni se
 transfieren a otro responsable. Con cada proveedor tenemos un contrato de transmisión que define el alcance del
 tratamiento, sus obligaciones, la finalidad, la seguridad y la confidencialidad. (Decreto 1074 de 2015, arts.
@@ -227,6 +243,8 @@ tratamiento, sus obligaciones, la finalidad, la seguridad y la confidencialidad.
 >   tengan esas obligaciones. Si un proveedor usa los datos para sus propios fines, es otro responsable, no un
 >   encargado.
 > - Hasta confirmarlo, la frase "tenemos un contrato de transmisión" no se publica. Ver MATRIZ_ROLES.md.
+> - Ariel (mensaje 3): que el país tenga nivel adecuado no reemplaza el contrato ni las medidas de seguridad. Los
+>   términos de servicio sirven solo si traen las cláusulas del art. 2.2.2.25.5.2 y obligan al proveedor.
 
 ## 7. Cuánto tiempo los guardamos
 

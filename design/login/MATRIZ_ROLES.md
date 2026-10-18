@@ -20,7 +20,7 @@ proveedores.
 | 6 | Cuentas de empresas (login y `/admin`) | Representantes: usuario, correo, contraseña (hash) | **R** | Render, Supabase, Google (correo y, si se enciende, el inicio de sesión) | "Acepto la política", al registrarse | Mientras la cuenta esté activa | Versionar esa aceptación |
 | 7 | "Pruébalo con tu marca" | Prospectos: nombre, correo, empresa, sitio | **R** | Render, Google (correo), Dapta (llamada de demo) | La casilla del formulario de demo | 12 meses | Revisar el texto |
 | 8 | "Agenda una demo" | Prospectos: nombre, celular, correo, empresa, datos comerciales | **R** | Supabase, Render, Dapta (Camila, en modo cálido) | "Autorizo a Machea a tratar mis datos…", sin enlace a la política | 12 meses | Enlazar la política y versionar el texto |
-| 9 | Llamadas en frío de Camila | Contactos de empresas: nombre, cargo, teléfono; resultado y grabación | **R** | Dapta, Supabase, Render | **Sin autorización previa**: base legal por confirmar | 12 meses; si pide no ser llamado, solo el número | Base legal y Ley 2300 (mensaje 3); qué graba Dapta |
+| 9 | Llamadas en frío de Camila | Contactos de empresas: nombre, cargo, teléfono; resultado y grabación | **R** | Dapta, Supabase, Render | Solo líneas generales o datos públicos de la empresa; **no celulares personales**. Grabar, con autorización oral | 12 meses; si pide no ser llamado, solo el número | Fuente de cada dato, consulta del RNE, apertura nueva con permiso para grabar (TEXTOS_AUTORIZACION_V2.md, F) |
 | 10 | Seguridad y operación | Visitantes: IP, navegador, fechas | **R** | Vercel, Render | Interés legítimo de seguridad [VERIFICAR] | 90 días | Confirmar la base |
 
 ### Proveedores: qué revisar de cada uno
@@ -35,6 +35,20 @@ Para confirmar que son encargados y que su contrato cubre la transmisión (Decre
 | Render | API | Su DPA | [PENDIENTE] |
 | Dapta | Voz (Manuela, Camila), WhatsApp, resúmenes | Contrato o términos; preguntar qué guarda y dónde | [PENDIENTE] |
 | Google | Correo (Gmail) y, si se enciende, el inicio de sesión | Google Workspace DPA (con Gmail personal no hay DPA) | [PENDIENTE] |
+
+De cada uno hay que guardar (Ariel, mensaje 3):
+
+- el contrato o DPA y el rol del proveedor;
+- las categorías de datos y las finalidades;
+- las instrucciones documentadas y los subencargados;
+- la seguridad, la retención y la eliminación;
+- **si usa los datos para entrenar modelos**;
+- dónde guarda los datos y las copias de seguridad;
+- el procedimiento ante incidentes;
+- en Dapta, **qué pasa con las grabaciones, las transcripciones y los resúmenes**.
+
+Que Estados Unidos tenga nivel adecuado (Circular Única de la SIC, Título V, Capítulo Tercero, numeral 3.2) no
+reemplaza nada de esto.
 
 ## B. Acuerdo entre los fundadores (qué debe decir)
 

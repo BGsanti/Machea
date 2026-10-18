@@ -147,7 +147,9 @@ sensibles?
 > - **Mensaje 1** (responsable, SAS, RNBD), 2026-10-18: aplicado en la v3.1.
 > - **Mensaje 2** (los tres textos, la prueba y los datos sensibles), 2026-10-18: propuesta en
 >   TEXTOS_AUTORIZACION_V2.md, ronda 4 para Diego.
-> - **Mensajes 3 y 4:** pendientes.
+> - **Mensaje 3** (proveedores, Camila, Ley 2300, resumen y grabaciones), 2026-10-18: aplicado en la política y en
+>   TEXTOS_AUTORIZACION_V2.md (parte F y preguntas 6 y 7 de la ronda 4).
+> - **Mensaje 4:** pendiente.
 
 | # | Respuesta (resumen) | Cita | Qué cambia en la política o en los textos |
 | --- | --- | --- | --- |
@@ -156,11 +158,11 @@ sensibles?
 | 2 | El texto A **cumple solo en parte**: la casilla debe traer al responsable con nombre propio, las operaciones, las finalidades concretas y los derechos con el contacto; el enlace complementa, pero no reemplaza. "Machea" no sustituye a las personas naturales. La publicidad, en una casilla aparte y opcional | Ley 1581, arts. 4 y 12; DUR 1074, art. 2.2.2.25.2.2 | TEXTOS_AUTORIZACION_V2.md, A |
 | 3 | Al recibir el lead, la constructora queda normalmente como **responsable independiente** (transferencia). Hay que decir para qué lo usará, qué es "el resultado de la llamada", y su política y su contacto. Condicionar la llamada vale solo si la llamada necesita entregar los datos, con una casilla aparte y diciéndolo. Botón: "Solicitar llamada de {Constructora}" | Ley 1581, art. 3; DUR 1074, art. 2.2.2.25.2.4 (antes Decreto 1377, art. 7) | TEXTOS_AUTORIZACION_V2.md, B y problema 1 |
 | 4 | Con el formulario de la marca, **Machea es encargado y la empresa responsable**, si Machea sigue sus instrucciones y no usa los datos para sí. El acuerdo debe tener: objeto, finalidades e instrucciones, operaciones, autorizaciones, seguridad, derechos, subencargados y terminación. Se enlaza **la política de la empresa** | Ley 1581, arts. 17 y 18; DUR 1074, arts. 2.2.2.25.5.1 y 2.2.2.25.5.2 | TEXTOS_AUTORIZACION_V2.md, C y problema 2 |
-| 5 | (Parcial, mensaje 1.) Proveedores en el exterior que actúan por encargo: es una transmisión. Con un contrato de transmisión no hace falta informar al titular ni su consentimiento para eso. Revisar los términos de cada uno | DUR 1074, arts. 2.2.2.25.1.3, 2.2.2.25.5.1 y 2.2.2.25.5.2 | §6 de la v3.1; falta la pregunta del país adecuado (mensaje 3) |
-| 6 | | | |
+| 5 | Proveedores en el exterior que actúan por encargo: es una **transmisión**. **Estados Unidos tiene nivel adecuado** (Circular Única de la SIC, Título V, Capítulo Tercero, num. 3.2), pero igual hace falta un contrato o DPA con las cláusulas del art. 2.2.2.25.5.2; los términos de servicio bastan solo si las traen. Documentar por proveedor: rol, datos, subencargados, retención, entrenamiento de modelos y ubicación | DUR 1074, arts. 2.2.2.25.1.3 num. 5, 2.2.2.25.5.1 y 2.2.2.25.5.2 | §6 de la política; MATRIZ_ROLES.md |
+| 6 | El nombre y el teléfono de una persona de una empresa **son datos personales**. Un directorio público no autoriza a llamar a celulares personales para vender; no hay una excepción del art. 10 para llamadas comerciales. **La Ley 2300 aplica a Camila** (horarios; consultar el RNE). A Manuela, solo si se vuelve publicidad: la llamada pedida es "información solicitada". Camila debe decir que es una asistente virtual, el propósito comercial y la fuente, y respetar la oposición | Ley 1581, arts. 3 y 10; Ley 2300 de 2023, art. 5 | TEXTOS_AUTORIZACION_V2.md, parte F; §3.4 de la política |
 | 7 | | | |
 | 8 | **No** hay que inscribirse en el RNBD como personas naturales. La SAS, solo con activos totales de más de 100.000 UVT; si se inscribe, cada base por separado | DUR 1074, arts. 2.2.2.26.1.2 (mod. Decreto 090 de 2018) y 2.2.2.26.1.3 | Nada en la política |
 | 9 | La versión, el texto, la fecha y el contacto son **una buena base, pero no siempre bastan**. Sumar: identificador del evento, formulario o URL, versión de la política, user agent (y la IP si es proporcional), que la casilla empezó sin marcar, el hash del texto, la constructora y el proyecto de la autorización de compartir, y las revocatorias | DUR 1074, art. 2.2.2.25.2.5 (antes Decreto 1377, art. 8); Ley 1581, art. 12, parágrafo | TEXTOS_AUTORIZACION_V2.md, problema 4 |
-| 10 | | | |
+| 10 | **El resumen de Manuela es tratamiento**: hay que informarlo en la autorización y al comenzar la llamada. **La grabación de Camila** necesita una información expresa (quién graba, para qué, si hay transcripción, quién accede) y, en la práctica, una autorización aparte, que puede ser oral, con la opción de seguir sin grabar | Ley 1581, art. 3; DUR 1074, art. 2.2.2.25.2.4 | TEXTOS_AUTORIZACION_V2.md, A y F; §3.1 y §3.4 de la política |
 | 11 | | | |
 | 12 | Ingresos, edad y personas a cargo **no son sensibles** (art. 5), pero son privados: explicar para qué se piden, preferir rangos, no compartirlos sin necesidad. Si la edad revela a un menor, aplica el art. 7. Recomienda declararlos opcionales | Ley 1581, arts. 5, 7 y 12 | TEXTOS_AUTORIZACION_V2.md, problema 5 |
