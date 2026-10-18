@@ -14,6 +14,8 @@
   // botón. Las animaciones internas (cuartos cayendo, progreso, chips) no
   // dependen de esto y siguen disparándose siempre, como debe ser.
   var lastScreen = null;
+  // Id del proyecto con la hoja "Antes de llamarte" abierta (state.permiso), para mover el foco al abrirla y cerrarla.
+  var permisoAbierto = null;
 
   // Selección en curso de la pregunta 'entorno_deseado' (buscador con chips).
   // Vive fuera de `state` a propósito, igual que los inputs no controlados:
@@ -993,6 +995,14 @@
       return;
     }
     if (action === 'setDetalleAbierto') return; // el <details> ya se pintó solo
+    // La casilla de la hoja "Antes de llamarte" se marca por DOM: repintar todo perdería el foco y repintaría la
+    // lista de resultados de fondo.
+    if (action === 'togglePermiso') {
+      updatePermisoDOM();
+      return;
+    }
+    var permisoAntes = permisoAbierto;
+    permisoAbierto = state.permiso ? state.permiso.id : null;
     // Se acaba de elegir el apartamento: se pide su plano ya, para que la
     // primera pieza que caiga no lo haga contra un hueco en blanco.
     if (action === 'startQuiz') precargarPlano();
@@ -1007,6 +1017,14 @@
       return;
     }
     render();
+    // Foco de la hoja: al abrirla va a su casilla; al cerrarla sin llamar, vuelve al botón que la abrió.
+    if (permisoAbierto && !permisoAntes) {
+      var casilla = root.querySelector('.gdf-permiso-casilla');
+      if (casilla) casilla.focus();
+    } else if (permisoAntes && !permisoAbierto && state.screen !== 'confirmacion') {
+      var boton = root.querySelector('.gdf-project-llamar[data-value="' + CSS.escape(permisoAntes) + '"]');
+      if (boton) boton.focus();
+    }
 
     // PASO 1 del contrato. El quiz termina y entra a 'result' exactamente una
     // vez por partida: ese es el primer momento en que existen TODOS los
@@ -1962,6 +1980,9 @@
     var el = e.target.closest('[data-action]');
     if (!el) return;
 
+    // El enlace a la política dentro de una casilla: se abre (target=_blank) sin marcar ni desmarcar la casilla.
+    if (el.dataset.action === 'abrirEnlace') return;
+
     // 'noop' es el freno del burbujeo del <details> de planos de cada tarjeta:
     // un clic ahí dentro no debe despachar ninguna acción del estado.
     if (el.dataset.action === 'noop') {
@@ -2212,6 +2233,31 @@
     });
   }
 
+  // Hoja "Antes de llamarte": Escape la cierra sin llamar; Espacio o Enter marcan su casilla.
+  function onTeclaPermiso(e) {
+    if (!state.permiso) return;
+    if (e.key === 'Escape') {
+      dispatch('cancelarPermiso', {});
+    } else if ((e.key === ' ' || e.key === 'Enter') && e.target.classList && e.target.classList.contains('gdf-permiso-casilla')) {
+      dispatch('togglePermiso', {});
+    } else {
+      return;
+    }
+    e.preventDefault();
+  }
+
+  function updatePermisoDOM() {
+    var aceptado = !!(state.permiso && state.permiso.aceptado);
+    var casilla = root.querySelector('.gdf-permiso-casilla');
+    var boton = root.querySelector('.gdf-permiso-hoja .gdf-btn-primary');
+    if (!casilla || !boton) return render();
+    casilla.setAttribute('aria-checked', aceptado ? 'true' : 'false');
+    var caja = casilla.querySelector('.box');
+    caja.classList.toggle('checked', aceptado);
+    caja.innerHTML = aceptado && window.GDF.iconosUI ? window.GDF.iconosUI.icono('check') : '';
+    boton.classList.toggle('enabled', aceptado);
+  }
+
   function onTeclaVisor(e) {
     if (!state.visor) return;
     if (e.key === 'Escape') dispatch('cerrarVisor', {});
@@ -2252,6 +2298,7 @@
     // repinta con cada render y un listener suyo propio se duplicaría en cada
     // flecha. No hace nada mientras el visor está cerrado.
     document.addEventListener('keydown', onTeclaVisor);
+    document.addEventListener('keydown', onTeclaPermiso);
     // El fondo AI Signal. Va ANTES del primer render y una sola vez: cuelga
     // del <body>, así que los re-renders de #root no lo tocan y la red sigue
     // corriendo igual al pasar de la escarapela al quiz. Se monta solo con la

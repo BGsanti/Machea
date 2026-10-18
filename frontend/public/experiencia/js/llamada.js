@@ -71,6 +71,8 @@
       tipo_inmueble: elegido.tipo_inmueble || 'vivienda',
       apartamento: {
         nombre_proyecto: elegido.nombre || '',
+        // Con el id, el backend sabe de qué inmobiliaria es el inmueble (CRM de cada empresa).
+        id_proyecto: elegido.id_inmueble != null ? String(elegido.id_inmueble) : undefined,
         localidad: elegido.localidad_nombre || '',
         tipo_vivienda: TIPO_LEGIBLE[elegido.tipo_inmueble] || 'Arriendo',
         // El canon mensual. El backend sabe que en arriendo este número es el
@@ -92,6 +94,9 @@
 
     var apartamento = {
       nombre_proyecto: elegido.nombre,
+      // Con el id, el backend sabe de qué constructora es el proyecto (CRM de cada empresa). El motor
+      // local no tiene ids (usa el nombre): entonces no se manda.
+      id_proyecto: /^\d+$/.test(String(elegido.id)) ? String(elegido.id) : undefined,
       localidad: elegido.localidad || '',
       tipo_vivienda: elegido.vis ? 'VIS' : 'No VIS',
       precio_desde_cop: elegido.precioCop || 0,
@@ -137,6 +142,12 @@
     // De qué formulario viene el lead y, si es una demo con marca, el token firmado: el
     // servidor lo verifica; uno falso o vencido se ignora y Manuela habla como Machea.
     payload.marca = (window.GDF_MARCA || {}).slug || 'machea';
+    // Si autorizó compartir sus datos con la dueña del proyecto (hoja "Antes de llamarte", js/consentimiento.js),
+    // va con la llamada: sin eso, el lead no le llega a esa empresa.
+    if (state.autorizaCompartir) {
+      payload.autoriza_compartir = true;
+      payload.version_autorizacion = state.autorizaCompartir.version;
+    }
     if (window.GDF_DEMO && window.GDF_DEMO.token) payload.demo = window.GDF_DEMO.token;
 
     fetch(base.replace(/\/$/, '') + '/api/llamar', {

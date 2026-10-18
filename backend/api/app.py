@@ -14,6 +14,7 @@ nunca sale de las variables de entorno del servidor.
 
 from __future__ import annotations
 
+import hmac
 import json
 import logging
 import os
@@ -21,7 +22,7 @@ import pathlib
 import re
 import sys
 from datetime import datetime, timedelta, timezone
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,6 +44,7 @@ from api import admin as admin_mod
 from api import captacion as captacion_mod
 from api import cuentas as cuentas_mod
 from api import demo as demo_mod
+from api import llamadas
 from api import seguimiento
 from api.limites import Rechazo, ip_del_cliente, limites
 from api.metricas import enmascarar_telefono, metricas
@@ -328,6 +330,10 @@ MARCAS_CONOCIDAS = {
 
 class ApartamentoLlamada(BaseModel):
     nombre_proyecto: str
+    # Id del proyecto (Compra, `id_proyecto` del catálogo) o del inmueble (Arriendo, `id_inmueble`). Con él, el
+    # backend sabe de qué constructora o inmobiliaria es, para el CRM (api/llamadas.py). Opcional: el motor local
+    # del front no tiene ids.
+    id_proyecto: Optional[Union[str, int]] = None
     localidad: str
     tipo_vivienda: str
     precio_desde_cop: float
@@ -358,11 +364,15 @@ class SolicitudLlamada(BaseModel):
     # Token firmado de "Pruébalo con tu marca" (ver api/demo.py). Solo si el servidor
     # lo reconoce, Manuela se presenta como la asistente virtual de esa empresa.
     demo: Optional[str] = None
+    # Autorización para compartir los datos con la empresa dueña del proyecto (design/crm/PLAN.md, fase 3).
+    # Mientras el formulario no la pida, llega vacía y el lead no se comparte por el proyecto.
+    autoriza_compartir: Optional[bool] = None
+    version_autorizacion: Optional[str] = None
     apartamento: ApartamentoLlamada
 
 
 @app.post("/api/llamar")
-def api_llamar(payload: SolicitudLlamada, request: Request):
+def api_llamar(payload: SolicitudLlamada, request: Request, tareas: BackgroundTasks):
     telefono_e164 = normalizar_telefono_e164(payload.telefono)
     if not telefono_e164:
         raise HTTPException(
@@ -380,6 +390,14 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
     datos_demo = demo_mod.verificar(payload.demo) if payload.demo else None
     slug = (payload.marca or "").strip().lower()
     slug = slug if slug in MARCAS_CONOCIDAS else "machea"
+
+    # Lo que el CRM de la empresa necesita de esta llamada (api/llamadas.py). Las demos con marca no se guardan.
+    solicitud = None if datos_demo else llamadas.nueva_solicitud(
+        telefono_e164=telefono_e164, nombre=demo_mod.limpiar_nombre_persona(payload.nombre), marca=slug,
+        tipo_operacion=payload.tipo_operacion,
+        tipo_inmueble=payload.tipo_inmueble, id_proyecto=str(apto.id_proyecto) if apto.id_proyecto is not None else None,
+        nombre_proyecto=apto.nombre_proyecto, autoriza_compartir=payload.autoriza_compartir,
+        version_autorizacion=payload.version_autorizacion)
 
     payload_dapta: dict[str, Any] = {
         # El nombre llega al prompt de Manuela: se limpia de todo lo que no sea un nombre.
@@ -408,7 +426,9 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
         ),
         "valor_estimado_vivienda": 0 if es_arriendo else apto.precio_desde_cop,
         "subsidio_estimado": subsidio_estimado,
-        "external_lead_id": f"machea-{int(datetime.now(TZ_BOGOTA).timestamp())}",
+        # Dapta lo devuelve en las variables de la llamada: así el resultado se une con su solicitud.
+        "external_lead_id": (f"{llamadas.PREFIJO_LEAD}{solicitud['id']}" if solicitud
+                             else f"machea-{int(datetime.now(TZ_BOGOTA).timestamp())}"),
         # Marca: informa el formulario de origen; en demo, Manuela se presenta como la
         # asistente virtual de la empresa del prospecto Y avisa que es una demostración.
         "marca": slug,
@@ -459,6 +479,8 @@ def api_llamar(payload: SolicitudLlamada, request: Request):
         raise
     metricas.registrar("llamada_enviada", f"Llamada de Manuela pedida a Dapta · {enmascarar_telefono(telefono_e164)}"
                        + (" · demo con marca" if datos_demo else ""), "ok")
+    if solicitud:
+        tareas.add_task(llamadas.guardar_solicitud, solicitud)
     return {
         "status": "enviado",
         "detalle": f"Manuela está llamando a {telefono_e164}.",
@@ -499,6 +521,24 @@ def _booleano(valor: Any) -> Optional[bool]:
     return None
 
 
+def _webhook_manuela_autorizado(request: Request) -> bool:
+    """¿Se puede guardar lo que trae este webhook?
+
+    Con MANUELA_WEBHOOK_SECRET (24+ caracteres) puesto en Render, el webhook exige `?k=<secreto>` (lo pone el
+    agente de Dapta en su webhook_url, como el de Camila) y responde 401 sin él. Sin el secreto funciona como
+    antes, para no cortar el resumen post-llamada mientras se configura, pero no guarda nada en la base.
+    """
+    secreto = os.environ.get("MANUELA_WEBHOOK_SECRET", "")
+    if not secreto:
+        return False
+    if len(secreto) < 24:
+        logger.error("MANUELA_WEBHOOK_SECRET tiene menos de 24 caracteres: se ignora y no se guardan resultados")
+        return False
+    if not hmac.compare_digest(request.query_params.get("k", ""), secreto):
+        raise HTTPException(status_code=401, detail="No autorizado")
+    return True
+
+
 @app.post("/webhooks/dapta/resultado")
 async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     """Receptor del webhook post-call de Dapta (agente Manuela — Machea).
@@ -510,6 +550,7 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     se sigue registrando, por si Dapta cambia la forma otra vez.
     `custom_analysis_data` puede llegar como dict o como string JSON.
     """
+    guardar = _webhook_manuela_autorizado(request)
     body = await request.json()
     logger.info("webhook post-call de Dapta: %s", json.dumps(body, ensure_ascii=False)[:4000])
 
@@ -588,6 +629,10 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     # Seguimiento por WhatsApp (api/seguimiento.py): si no contestó, colgó antes de calificar
     # o la llamada salió completa. Solo si el flow de envío está configurado, y solo para
     # llamadas salientes (en una entrante, `to_number` es el nuestro, no el del lead).
+    # A la base solo llega lo que trae el secreto: es lo que verá la empresa en su CRM.
+    if guardar and str(llamada.get("direction") or "outbound") != "inbound":
+        tareas.add_task(llamadas.guardar_resultado, llamada, body, telefono_e164, dict(nuevo))
+
     if os.environ.get("DAPTA_WHATSAPP_FLOW_URL") and str(llamada.get("direction") or "outbound") != "inbound":
         pedido = seguimiento.preparar(llamada, telefono_e164)
         if pedido:
