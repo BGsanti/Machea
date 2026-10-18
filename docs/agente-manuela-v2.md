@@ -1,4 +1,4 @@
-# Manuela v2 — la agente que agenda
+# Manuela v2.1 — la agente que agenda
 
 Prompt: [`backend/dapta/prompt-manuela.md`](../backend/dapta/prompt-manuela.md). Fecha: 2026-10-17.
 
@@ -57,6 +57,33 @@ El catálogo, las reglas de pronunciación, el modo demostración y el arriendo 
    preciso si está disponible (hubo transcripciones "audio no reconocido").
 5. **Llamadas de regreso:** si un lead devuelve la llamada al número de Manuela, hoy falla por límite de concurrencia. Subir el
    límite del plan o asignar un número de entrada con respuesta; si no, ese lead nunca habla con nadie.
+
+## 3a. Llamadas que "cuelgan" a los 3-5 segundos (`voicemail_reached`)
+
+**Síntoma:** contestas y la llamada se corta enseguida; Dapta la registra como `voicemail_reached` con "Call reached voicemail.
+Post-call analysis skipped.". **No es el prompt:** en el historial, el mismo número tiene 6 de 13 llamadas así, todas de ~5,2 s,
+desde agosto (antes de la v2).
+
+**Causa más probable:** el filtro de llamadas de iOS 26 ("Filtrar llamadas de desconocidos") contesta por ti y pide "di tu nombre
+y el motivo". Dapta lo toma por un buzón de voz y, con la acción "Colgar de inmediato", corta la llamada. Muchos leads con iPhone
+nuevo están igual: se pierden sin que nadie lo note.
+
+**Qué se hizo (prompt v2.1):** la primera frase de Manuela es UNA oración autosuficiente de 12-18 palabras, sin pregunta (nombre,
+empresa y motivo: "Hola Ana, te habla Manuela de Machea, por tu solicitud de información sobre Florecer."), que es lo único que
+alcanza a oírse en un filtro. Si una voz automática pide nombre y motivo, repite esa frase y espera sin colgar.
+
+**Qué hacer en Dapta (Configuración → Call Settings → Voicemail Detection):** la acción "Hang up immediately" corta también esos
+filtros. Opciones, de más a menos recomendada para esta etapa de pruebas:
+1. **Desactivar la detección de buzón** y dejar que el prompt decida (ya manda `end_call` ante un buzón de verdad). Costo: un buzón
+   real consume ~1 minuto en vez de 75 créditos.
+2. Dejarla activa con **"Leave a message → Static phrase"** con la misma frase de apertura; el filtro del iPhone la transcribe y la
+   persona puede decidir devolver la llamada (ojo: hoy las llamadas de regreso fallan por límite de concurrencia, ver 3.5).
+
+**Qué se ve en la web (backend v2.1):** cuando nadie habló con Manuela, el resumen sale en español con la causa y un consejo
+("si tienes iPhone, desactiva Filtrar llamadas de desconocidos…"), `sin_contacto = true` y `motivo_no_agenda = buzon`.
+
+**Para probar:** en el iPhone, Ajustes → Teléfono → Filtrar llamadas de desconocidos → "No" (o "Preguntar motivo" para
+comprobar la nueva apertura) y llamar de nuevo.
 
 ## 3b. Lo que ya se ve en la web
 

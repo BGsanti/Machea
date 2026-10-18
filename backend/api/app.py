@@ -504,14 +504,26 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
         except ValueError:
             datos = {}
 
+    # ¿Nadie habló con Manuela? Buzón, ocupado, sin respuesta o el filtro de llamadas del teléfono
+    # (iPhone con iOS 26 "Filtrar llamadas de desconocidos"): Dapta lo reporta como `voicemail_reached`
+    # y devuelve un resumen en inglés. Se dice en español y con la causa probable.
+    razon_corte = str(llamada.get("disconnection_reason") or "").lower()
+    sin_contacto = razon_corte in seguimiento.SIN_CONTACTO or bool(analisis.get("in_voicemail"))
+    resumen_dapta = datos.get("resumen_llamada") or analisis.get("call_summary")
+    if sin_contacto and (not resumen_dapta or re.search(r"voicemail|skipped|no answer|busy", str(resumen_dapta), re.I)):
+        resumen_dapta = ("No se llegó a hablar: la llamada se fue al buzón de voz o a un filtro de llamadas del teléfono "
+                         "(en iPhone: Ajustes > Teléfono > Filtrar llamadas de desconocidos).")
+
     nuevo = {
         "listo": True,
+        "sin_contacto": sin_contacto,
         "recibido_en": datetime.now(TZ_BOGOTA).isoformat(),
         "call_status": llamada.get("call_status"),
         "disconnection_reason": llamada.get("disconnection_reason"),
         "temperatura_lead": datos.get("temperatura_lead"),
-        "resumen_llamada": datos.get("resumen_llamada") or analisis.get("call_summary"),
-        "recomendacion_asesor": datos.get("recomendacion_asesor"),
+        "resumen_llamada": resumen_dapta,
+        "recomendacion_asesor": datos.get("recomendacion_asesor") or (
+            "No se logró hablar con la persona: escribirle por WhatsApp para coordinar una hora." if sin_contacto else None),
         "estado_del_lead": datos.get("estado_del_lead"),
         "nivel_de_urgencia": datos.get("nivel_de_urgencia"),
         "tomador_de_decision": datos.get("tomador_de_decision"),
@@ -522,7 +534,7 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
         "cita_agendada": _booleano(datos.get("cita_agendada")),
         "fecha_hora_cita": datos.get("fecha_hora_cita"),
         "canal_cita": datos.get("canal_cita"),
-        "motivo_no_agenda": datos.get("motivo_no_agenda"),
+        "motivo_no_agenda": datos.get("motivo_no_agenda") or ("buzon" if sin_contacto else None),
     }
     # Si Dapta manda más de un evento por llamada, uno sin análisis no debe
     # borrar los datos que dejó el anterior.

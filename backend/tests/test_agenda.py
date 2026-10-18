@@ -63,6 +63,31 @@ class TestAgendaEnResultado(unittest.TestCase):
         self.assertEqual(d["fecha_de_seguimiento"], "mañana 10:00 a. m.")
 
 
+class TestSinContacto(unittest.TestCase):
+    def setUp(self):
+        m.RESULTADOS_LLAMADAS.clear()
+        self.c = TestClient(m.app, raise_server_exceptions=False)
+
+    def test_buzon_se_explica_en_espanol(self):
+        b = cuerpo({}, tel="+573125923915", razon="voicemail_reached", dur=5200)
+        b["data"]["call_analysis"] = {"call_summary": "Call reached voicemail. Post-call analysis skipped.", "in_voicemail": True,
+                                      "custom_analysis_data": {}}
+        self.c.post("/webhooks/dapta/resultado", json=b)
+        d = self.c.get("/api/llamar/resultado", params={"telefono": "3125923915"}).json()
+        self.assertTrue(d["sin_contacto"])
+        self.assertIn("filtro de llamadas", d["resumen_llamada"])
+        self.assertNotIn("voicemail", d["resumen_llamada"].lower())
+        self.assertEqual(d["motivo_no_agenda"], "buzon")
+        self.assertIn("WhatsApp", d["recomendacion_asesor"])
+
+    def test_una_llamada_con_conversacion_no_es_sin_contacto(self):
+        self.c.post("/webhooks/dapta/resultado", json=cuerpo({"estado_del_lead": "qualified"}))
+        d = self.c.get("/api/llamar/resultado", params={"telefono": "3001112233"}).json()
+        self.assertFalse(d["sin_contacto"])
+        self.assertEqual(d["resumen_llamada"], "Quedó una cita.")
+        self.assertIsNone(d["motivo_no_agenda"])
+
+
 class TestSeguimientoConCita(unittest.TestCase):
     def llamada(self, **datos):
         return cuerpo(datos)["data"]

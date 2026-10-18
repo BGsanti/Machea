@@ -2256,6 +2256,13 @@
         '</div>'
       : '';
 
+    if (d.sin_contacto === true) {
+      filas +=
+        '<p class="gdf-confirm-resumen-reco"><strong>Para que Manuela hable contigo:</strong> ' +
+        'si tienes iPhone, desactiva Ajustes &gt; Teléfono &gt; Filtrar llamadas de desconocidos, o contesta cuando suene. ' +
+        'Mientras tanto, un asesor te escribirá por WhatsApp.</p>';
+    }
+
     return (
       '<div class="gdf-confirm-resumen gdf-confirm-resumen--listo">' +
       '<div class="gdf-confirm-resumen-cabecera"><h3>Resumen de la llamada</h3>' + tempHtml + '</div>' +
