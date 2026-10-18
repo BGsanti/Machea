@@ -1986,18 +1986,18 @@ que arma un plano plano en CSS, sin 3D) → soluciones (inmobiliarias / construc
   guardan llamando a la función `solicitar_demo` de Supabase (`supabase/migrations/20261015120000_solicitudes_demo.sql`,
   tabla cerrada, solo escritura con la clave anon, tope de 3 por celular al día y 300 por hora). Si Supabase no responde, la
   pantalla final ofrece enviar las respuestas por correo a `equipo@machea.co` con un clic (no se pierde el lead).
-- **Iniciar sesión** lleva a `/acceso/` (§8.4), que todavía es un **prototipo**: no inicia sesión.
+- **Iniciar sesión** lleva a `/acceso/` (§8.4): el login real de Machea (cuentas en Postgres, aprobación desde `/admin`). Hasta que Render tenga `DATABASE_URL`, responde que "todavía no está disponible".
 
 **PENDIENTE:**
 1. **Aplicar la migración** `20261015120000_solicitudes_demo.sql` en Supabase (SQL Editor). Hasta entonces el formulario
    muestra la pantalla de respaldo por correo.
-2. **Poner a Camila en Dapta** (el agente que llama a quien pide la demo, §5.7): el código ya está; falta crear el agente y el
-   flujo en el workspace de Machea y fijar `DAPTA_CAPTACION_FLOW_URL`, `CAPTACION_WEBHOOK_SECRET` y `CAPTACION_LLAMAR_DEMOS=true`
-   en Render. La landing ya no tiene interruptor propio: tras guardar en Supabase llama a `POST /api/captacion/demo` y
-   el texto final lo decide la respuesta del backend (`llamando` → "Camila te va a llamar en los próximos minutos";
-   `fuera_de_horario` → "te contactamos el próximo día hábil"; cualquier otra → "un asesor te va a contactar").
+2. **Camila** (el agente que llama a quien pide la demo, §5.7): el agente y el flow ya existen en el Dapta de Machea; falta fijar sus
+   variables en Render (`docs/puesta-en-produccion.md`) y encender `CAPTACION_LLAMAR_DEMOS=true` tras una llamada de prueba. La landing no
+   tiene interruptor propio: tras guardar en Supabase llama a `POST /api/captacion/demo` y el texto final lo decide la respuesta del
+   backend (`llamando` → "Camila te va a llamar en los próximos minutos"; `fuera_de_horario` → "te contactamos el próximo día hábil";
+   cualquier otra → "un asesor te va a contactar").
 3. Ver las solicitudes en el panel de administración (`/admin/`) y, más adelante, en el CRM.
-4. Login real (Supabase Auth + Google, §8.4) y, con él, decidir si *Iniciar sesión* sigue visible en la landing.
+4. Poner en producción el login, el CRM y Camila: `docs/puesta-en-produccion.md` (orden de migraciones, variables de Render y Vercel).
 5. La línea del capítulo "Calificación con IA" dice "No contesta · sigue por WhatsApp" (texto de la landing anterior): el
    seguimiento por WhatsApp sigue apagado en el backend (`api/seguimiento.py`) hasta tener su flujo en Dapta.
 
