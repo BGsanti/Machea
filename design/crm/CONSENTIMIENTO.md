@@ -100,7 +100,16 @@ Cada cambio de texto sube la versión. El texto exacto de cada versión queda en
    responsables y con qué dirección y correo.
 4. **Los leads anteriores** a esto no se comparten por el proyecto: su autorización no lo cubría.
 
-## Ronda 3: decide Diego
+## Ronda 3: decidido (Diego, 2026-10-18)
+
+- **D5. El registro usa la opción A (corta).** Diego quiere los textos cortos en todo.
+- **Por defecto, mientras Diego no diga otra cosa:** compartir es obligatorio para que salga la llamada.
+- **Siguen abiertos:** el responsable y el correo de contacto, la política de cada marca y quién hace la revisión
+  legal.
+- **Falta la política de privacidad (`/privacidad/`).** Diego dice cómo se va a hacer; sin ella no se publica nada
+  de esto.
+
+## Ronda 3: preguntas que se hicieron
 
 1. **Texto del registro:** ¿A (corta, recomendada) o B (completa)?
 2. **Compartir al pedir la llamada:** ¿obligatorio para que salga la llamada (recomendado: la llamada existe para
