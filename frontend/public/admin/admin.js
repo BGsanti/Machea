@@ -590,6 +590,9 @@
         acc.appendChild(botonCuenta('Aprobar inmobiliaria', 'inmobiliaria', c.id));
       }
       if (c.estado === 'pendiente' || c.estado === 'aprobada') acc.appendChild(botonCuenta('Rechazar', 'rechazar', c.id, ' btn-peligro'));
+      if (c.estado === 'aprobada') {
+        acc.appendChild(el('button', { type: 'button', class: 'btn btn-suave btn-mini', 'data-fuentes': c.id, 'aria-expanded': 'false', text: 'Fuentes de leads' }));
+      }
       if (c.estado === 'sin_confirmar') acc.appendChild(el('span', { class: 'tarjeta-nota', text: 'Esperando que confirme su correo' }));
       cuerpo.appendChild(el('tr', {}, [empresa, estado, el('td', { text: fecha(c.creadaEn) }), el('td', {}, [acc])]));
     });
@@ -598,6 +601,103 @@
     vacio.hidden = lista.length > 0;
     vacio.textContent = C.filtro === 'pendiente' ? 'No hay cuentas pendientes.' : 'Todavía no se ha registrado ninguna empresa.';
     if (C.filtro === 'pendiente') $('#cuentasPend').textContent = pendientes ? ' · ' + pendientes : '';
+  }
+
+  // ---------------------------------------------------------------- fuentes de leads del CRM
+  // GET /api/admin/fuentes/opciones · GET/PUT /api/admin/cuentas/{id}/fuentes (ver api/fuentes.py). Qué
+  // formulario con marca o qué dueño de proyecto le manda leads a cada empresa en su CRM. Cada fuente es de una
+  // sola empresa; el servidor responde 409 si ya la tiene otra.
+  var F = { opciones: null };
+  var TIPO_FUENTE = { marca: 'Formulario con marca', constructora: 'Proyectos de la constructora', inmobiliaria: 'Inmuebles de la inmobiliaria' };
+
+  async function pedirApi(ruta, opciones) {
+    var o = opciones || {};
+    var r = await fetch(API + ruta, {
+      method: o.method || 'GET',
+      headers: o.body ? { Authorization: 'Bearer ' + S.token, 'Content-Type': 'application/json' } : { Authorization: 'Bearer ' + S.token },
+      body: o.body ? JSON.stringify(o.body) : undefined,
+      cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
+    });
+    var j = await r.json().catch(function () { return {}; });
+    return { r: r, j: j };
+  }
+
+  async function abrirFuentes(boton) {
+    var id = boton.getAttribute('data-fuentes');
+    var fila = boton.closest('tr');
+    var abierta = fila.nextElementSibling && fila.nextElementSibling.classList.contains('fila-fuentes') ? fila.nextElementSibling : null;
+    if (abierta) { abierta.remove(); boton.setAttribute('aria-expanded', 'false'); return; }
+    boton.disabled = true;
+    try {
+      var res = await Promise.all([
+        F.opciones ? Promise.resolve({ r: { ok: true }, j: F.opciones }) : pedirApi('/admin/fuentes/opciones'),
+        pedirApi('/admin/cuentas/' + encodeURIComponent(id) + '/fuentes')
+      ]);
+      if (res[0].r.status === 401 || res[1].r.status === 401) { cerrarSesion('Tu sesión venció. Entra de nuevo.'); return; }
+      if (!res[0].r.ok || !res[1].r.ok) { avisoCuentas(mensajeDe(res[1].j, 'No se pudieron leer las fuentes de leads.'), 'error'); return; }
+      F.opciones = res[0].j;
+      var editor = editorFuentes(id, res[1].j.fuentes || []);
+      fila.after(el('tr', { class: 'fila-fuentes' }, [el('td', { colspan: '4' }, [editor])]));
+      boton.setAttribute('aria-expanded', 'true');
+      editor.querySelector('select').focus();
+    } catch (e) {
+      avisoCuentas('No se pudo conectar con la API.', 'error');
+    } finally {
+      boton.disabled = false;
+    }
+  }
+
+  function editorFuentes(id, actuales) {
+    var lista = actuales.slice();
+    var chips = el('ul', { class: 'fuentes-lista', 'aria-label': 'Fuentes de leads de esta empresa' });
+    var tipo = el('select', { 'aria-label': 'Tipo de fuente' }, Object.keys(TIPO_FUENTE).map(function (t) { return el('option', { value: t, text: TIPO_FUENTE[t] }); }));
+    var idLista = 'fuentes-op-' + id;
+    var valor = el('input', { type: 'text', list: idLista, 'aria-label': 'Cuál', placeholder: 'Escribe o elige', autocomplete: 'off' });
+    var datalist = el('datalist', { id: idLista });
+    function llenarOpciones() {
+      datalist.replaceChildren.apply(datalist, ((F.opciones || {})[tipo.value] || []).map(function (o) { return el('option', { value: o.slug, label: o.nombre }); }));
+    }
+    function pintar() {
+      chips.replaceChildren.apply(chips, lista.map(function (f, i) {
+        return el('li', {}, [el('span', { text: TIPO_FUENTE[f.tipo] + ': ' + f.slug }),
+          el('button', { type: 'button', class: 'btn btn-suave btn-mini', 'data-quitar': String(i), 'aria-label': 'Quitar ' + f.slug, text: 'Quitar' })]);
+      }));
+      if (!lista.length) chips.appendChild(el('li', { class: 'tarjeta-nota', text: 'Sin fuentes: a esta empresa no le llega ningún lead.' }));
+    }
+    var agregar = el('button', { type: 'button', class: 'btn btn-suave btn-mini', text: 'Agregar' });
+    var guardar = el('button', { type: 'button', class: 'btn btn-primario btn-mini', text: 'Guardar' });
+    tipo.addEventListener('change', llenarOpciones);
+    agregar.addEventListener('click', function () {
+      var slug = valor.value.trim().toLowerCase();
+      if (!slug) return;
+      if (!lista.some(function (f) { return f.tipo === tipo.value && f.slug === slug; })) lista.push({ tipo: tipo.value, slug: slug });
+      valor.value = ''; pintar(); valor.focus();
+    });
+    chips.addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-quitar]');
+      if (b) { lista.splice(Number(b.getAttribute('data-quitar')), 1); pintar(); }
+    });
+    guardar.addEventListener('click', async function () {
+      guardar.disabled = true;
+      try {
+        var res = await pedirApi('/admin/cuentas/' + encodeURIComponent(id) + '/fuentes', { method: 'PUT', body: { fuentes: lista } });
+        if (res.r.status === 401) { cerrarSesion('Tu sesión venció. Entra de nuevo.'); return; }
+        if (!res.r.ok) { avisoCuentas(mensajeDe(res.j, 'No se pudieron guardar las fuentes.'), 'error'); return; }
+        lista = res.j.fuentes || []; pintar();
+        avisoCuentas('Fuentes de leads guardadas.');
+        cargar(true);
+      } catch (e) {
+        avisoCuentas('No se pudo conectar con la API.', 'error');
+      } finally {
+        guardar.disabled = false;
+      }
+    });
+    llenarOpciones(); pintar();
+    return el('div', { class: 'fuentes' }, [
+      el('p', { class: 'tarjeta-nota', text: 'De dónde le llegan leads a esta empresa en su CRM. Por proyecto, solo cuando la persona autorizó compartir sus datos.' }),
+      chips,
+      el('div', { class: 'fuentes-agregar' }, [tipo, valor, datalist, agregar, guardar])
+    ]);
   }
 
   async function decidirCuenta(boton) {
@@ -750,6 +850,8 @@
         cargarCuentas();
         return;
       }
+      var fb = ev.target.closest('button[data-fuentes]');
+      if (fb && !fb.disabled) { abrirFuentes(fb); return; }
       var b = ev.target.closest('button[data-accion]');
       if (b && !b.disabled) decidirCuenta(b);
     });

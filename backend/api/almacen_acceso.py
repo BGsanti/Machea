@@ -222,6 +222,54 @@ class AlmacenPostgres:
     def cerrar(self) -> None:
         self.pool.close()
 
+    # --- fuentes de leads del CRM (api/fuentes.py): tablas del esquema crm, de la migración del CRM
+    def fuentes(self, cuenta_id: str) -> List[Dict[str, str]]:
+        import psycopg
+
+        from api.fuentes import CrmNoInstalado
+
+        try:
+            with self.pool.connection() as con:
+                filas = con.execute(
+                    "select tipo, slug from crm.empresa_fuentes where empresa_id = %s::uuid order by tipo, slug",
+                    (cuenta_id,)).fetchall()
+        except psycopg.errors.UndefinedTable as exc:
+            raise CrmNoInstalado() from exc
+        except psycopg.errors.InvalidTextRepresentation:
+            return []
+        return [{"tipo": f["tipo"], "slug": f["slug"]} for f in filas]
+
+    def reemplazar_fuentes(self, cuenta_id: str, fuentes: List[Dict[str, str]]) -> List[Dict[str, str]]:
+        import psycopg
+
+        from api.fuentes import CrmNoInstalado, FuenteOcupada
+
+        try:
+            with self.pool.connection() as con:
+                with con.transaction():
+                    cuenta = con.execute("select usuario, estado from acceso.cuentas where id = %s::uuid for update",
+                                         (cuenta_id,)).fetchone()
+                    if cuenta is None:
+                        raise CuentaNoExiste(cuenta_id)
+                    if cuenta["estado"] != "aprobada":
+                        raise EstadoInvalido(cuenta_id)
+                    # La empresa del CRM puede no existir todavía (la crea su primera visita): se crea aquí.
+                    con.execute("insert into crm.empresas (id, nombre) values (%s::uuid, %s) on conflict (id) do nothing",
+                                (cuenta_id, cuenta["usuario"]))
+                    con.execute("delete from crm.empresa_fuentes where empresa_id = %s::uuid", (cuenta_id,))
+                    for f in fuentes:
+                        try:
+                            with con.transaction():
+                                con.execute("insert into crm.empresa_fuentes (empresa_id, tipo, slug) values (%s::uuid, %s, %s)",
+                                            (cuenta_id, f["tipo"], f["slug"]))
+                        except psycopg.errors.UniqueViolation as exc:
+                            raise FuenteOcupada(f["tipo"], f["slug"]) from exc
+        except psycopg.errors.UndefinedTable as exc:
+            raise CrmNoInstalado() from exc
+        except psycopg.errors.InvalidTextRepresentation as exc:
+            raise CuentaNoExiste(cuenta_id) from exc
+        return self.fuentes(cuenta_id)
+
     def _uno(self, sql: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
         with self.pool.connection() as con:
             return con.execute(sql, params).fetchone()

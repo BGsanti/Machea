@@ -43,6 +43,7 @@ from api import acceso as acceso_mod
 from api import admin as admin_mod
 from api import captacion as captacion_mod
 from api import cuentas as cuentas_mod
+from api import fuentes as fuentes_mod
 from api import demo as demo_mod
 from api import llamadas
 from api import seguimiento
@@ -74,6 +75,7 @@ app.include_router(captacion_mod.router)
 # Aprobación de cuentas de empresas desde /admin (login; ver design/login/CONTRATO_AUTH.md).
 # Sin almacén de la nube conectado responde 503 `no_disponible`.
 app.include_router(cuentas_mod.router)
+app.include_router(fuentes_mod.router)
 # El login (api/acceso.py): rutas públicas /api/cuentas, /api/sesion y /api/clave. Las cuentas viven en
 # Postgres (esquema `acceso`, supabase/migrations/20261014090000_cuentas_login.sql) y se conectan con
 # DATABASE_URL, solo en las variables de Render. Sin ella, el login y /admin → Cuentas responden 503.
@@ -94,6 +96,7 @@ def _conectar_cuentas() -> None:
         return
     acceso_mod.configurar_almacen(almacen)
     cuentas_mod.configurar_almacen(almacen)
+    fuentes_mod.configurar_almacen(almacen)
 
 
 def _avisar_decision(cuenta) -> None:

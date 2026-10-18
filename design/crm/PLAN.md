@@ -63,45 +63,36 @@ Rama `crm/datos-llamadas` (parte de `main`), con PR hacia `main`. Puesta en marc
 - Login: backend 153 y front 27/27, y el build con y sin `VITE_CRM_URL`.
 - Prueba de fugas del CRM: 735/0.
 
-## Fase 3. Consentimiento y política (requisito de D4): EN DECISIÓN
+## Fase 3. Consentimiento: HECHA en código (sin desplegar)
 
-Textos, ubicación y lo que hay que decidir en la ronda 3: [CONSENTIMIENTO.md](CONSENTIMIENTO.md), con mockup en
-[mockups/consentimiento.html](mockups/consentimiento.html).
+Textos y decisiones en [CONSENTIMIENTO.md](CONSENTIMIENTO.md) (D5: los cortos).
 
+- **Rama `crm/datos-llamadas`, commit `6fe6e61`:**
+  - `js/consentimiento.js` con los textos versionados;
+  - la casilla del registro (Machea y marcas);
+  - la hoja "Antes de llamarte" al tocar "Hablar con un asesor" en un proyecto de otra empresa;
+  - la prueba guardada (`consultas.autorizacion`, `autoriza_compartir`).
+- **Verificado:** Playwright sobre el formulario real con el backend local, 36/36 (Machea, celular, Amarilo,
+  Arriendo y demo).
+- **Falta (Diego):** `/privacidad/` publicada y la revisión legal. Sin ellas no se publica.
 
-- [ ] Formulario de Machea: una casilla aparte, sin marcar, que nombra a la constructora del proyecto antes de
-      la llamada. Formularios con marca: el texto dice que Machea recoge los datos para esa empresa. Se guarda
-      la versión aceptada.
-- [ ] Política (`design/login/POLITICA_PRIVACIDAD_BORRADOR.md`): las empresas como destinatarias y Machea como
-      encargado; plazos. Fuera del código: un acuerdo de tratamiento con cada empresa.
+## Fase 4. Entrada de leads: HECHA (sin desplegar)
 
-## Fase 4. Entrada de leads
+- **CRM (`crm/multiempresa`, `1fd2efe`):**
+  - `crm.empresa_fuentes`, `crm.bandeja_leads` y `crm.leads_machea`, y `origen_externo`;
+  - `ingesta.ts`: candidato, llamada, cita, seguimiento y temperatura, procesados al entrar.
+- **Base de Machea:** `supabase/migrations/20261018130000_crm_ingesta.sql`, con el rol `crm_app`, RLS y los
+  triggers de las dos reglas.
+- **`/admin` → Fuentes de leads** (rama `login`, `056940f`).
+- **Verificado en PostgreSQL 18 con todas las migraciones:**
+  - `prueba-ingesta.ts`: 22/0, como `crm_app`. Sin la condición de autorización en el trigger da 7 fallos.
+  - `prueba-fugas.ts`: 741/0.
+  - `test_fuentes`: 10/10, con Postgres.
+  - El panel en Playwright: 9/9, en claro y en oscuro.
 
-- [ ] Migración `<ts>_crm_ingesta.sql`:
-  - `crm.empresa_fuentes (empresa_id, tipo marca|constructora|inmobiliaria, slug)`;
-  - triggers que llenan `crm.bandeja_leads`, con la regla de marca y la de constructora (esta, solo con
-    autorización).
-- [ ] `crm/src/crm/servidor/ingesta.ts`: `procesarBandeja(empresaId)` escribe con `repo.crear` dentro de
-      `conEmpresa`, así corren las reglas y los flujos. Mapeo:
-  - lead → candidato;
-  - llamada → tarea completada;
-  - cita → evento;
-  - seguimiento → tarea pendiente.
-- [ ] `/admin` → "Fuentes" por cuenta. Si está vacía no pasa nada, así que se puede desplegar sin riesgo.
+## Fase 5. Producción: guía lista
 
-## Fase 5. Producción (la hacen Santiago o Felipe)
-
-1. Merge del PR #14. Hay que resolver los conflictos con `main` en `CLAUDE.md` y `app.py`, quitar las reglas de
-   `/acceso` repetidas en `vercel.json` y poner un timestamp nuevo a la migración. La cookie con `Path=/` ya está
-   en la rama.
-2. Migraciones en este orden: login → `llamadas_y_marca` → `crm` → `crm_ingesta`. Luego la clave del rol
-   `crm_app`, puesta a mano, y `MANUELA_WEBHOOK_SECRET`.
-3. Proyecto de Vercel con root `crm/`:
-   - `DATABASE_URL` con el rol `crm_app`, `AUTH_MODO=machea`, `MACHEA_URL`, `CRM_MIGRAR_AL_ARRANCAR=false`;
-   - `CRM_BASE_PATH=/crm` y `CRM_ORIGENES=www.machea.co`.
-4. Merge del CRM. Al final, el rewrite `/crm/:path*` en `frontend/vercel.json`, que es el que lo enciende.
-
-El detalle irá en `PUESTA_EN_MARCHA.md` cuando estén las fases 2 a 4.
+Paso a paso en [PUESTA_EN_MARCHA.md](PUESTA_EN_MARCHA.md). La hacen Santiago o Felipe; Diego aprueba los merges.
 
 ## Fase 6. Después
 

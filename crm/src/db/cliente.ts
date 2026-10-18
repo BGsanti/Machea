@@ -30,7 +30,9 @@ const global = globalThis as unknown as { __reaBd?: Estado };
 function crear(): Estado {
   const url = process.env.DATABASE_URL;
   if (url) {
-    const pool = new Pool({ connectionString: url });
+    // En Vercel cada instancia tiene su pool: pocas conexiones por instancia para no agotar las del pooler de
+    // la base (Supabase: usar el de transacciones, puerto 6543; node-postgres no usa sentencias preparadas).
+    const pool = new Pool({ connectionString: url, max: Number(process.env.CRM_DB_MAX_CONEXIONES) || 5 });
     const db = drizzlePg(pool, { schema: esquema, casing: "snake_case" });
     const migrar = () => migrarPg(db, { migrationsFolder: carpetaMigraciones });
     return { db, migrar, migraciones: migrarAlArrancar ? migrar() : Promise.resolve() };
