@@ -145,20 +145,22 @@ sensibles?
 > Pegar aquí lo que responda Ariel, con sus citas, y después lo que diga el abogado.
 >
 > - **Mensaje 1** (responsable, SAS, RNBD), 2026-10-18: aplicado en la v3.1.
-> - **Mensajes 2, 3 y 4:** pendientes.
+> - **Mensaje 2** (los tres textos, la prueba y los datos sensibles), 2026-10-18: propuesta en
+>   TEXTOS_AUTORIZACION_V2.md, ronda 4 para Diego.
+> - **Mensajes 3 y 4:** pendientes.
 
 | # | Respuesta (resumen) | Cita | Qué cambia en la política o en los textos |
 | --- | --- | --- | --- |
 | 0 | | | |
 | 1 | **Sí** pueden ser responsables varias personas naturales "en asocio con otros" (lo son quienes deciden finalidades y medios, no quien solo programa). Se publican nombre, domicilio, dirección, correo y **teléfono**; **no** la cédula. La dirección puede ser de correspondencia. Al pasar a la SAS: documentar el traspaso, actualizar la política y avisar; nueva autorización solo si cambia la finalidad. Conviene un acuerdo interno entre los fundadores y una matriz de roles por flujo | Ley 1581, art. 3, lit. e; DUR 1074, arts. 2.2.2.25.3.1 y 2.2.2.25.2.2 | §1 y §12 de la v3.1; MATRIZ_ROLES.md |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
+| 2 | El texto A **cumple solo en parte**: la casilla debe traer al responsable con nombre propio, las operaciones, las finalidades concretas y los derechos con el contacto; el enlace complementa, pero no reemplaza. "Machea" no sustituye a las personas naturales. La publicidad, en una casilla aparte y opcional | Ley 1581, arts. 4 y 12; DUR 1074, art. 2.2.2.25.2.2 | TEXTOS_AUTORIZACION_V2.md, A |
+| 3 | Al recibir el lead, la constructora queda normalmente como **responsable independiente** (transferencia). Hay que decir para qué lo usará, qué es "el resultado de la llamada", y su política y su contacto. Condicionar la llamada vale solo si la llamada necesita entregar los datos, con una casilla aparte y diciéndolo. Botón: "Solicitar llamada de {Constructora}" | Ley 1581, art. 3; DUR 1074, art. 2.2.2.25.2.4 (antes Decreto 1377, art. 7) | TEXTOS_AUTORIZACION_V2.md, B y problema 1 |
+| 4 | Con el formulario de la marca, **Machea es encargado y la empresa responsable**, si Machea sigue sus instrucciones y no usa los datos para sí. El acuerdo debe tener: objeto, finalidades e instrucciones, operaciones, autorizaciones, seguridad, derechos, subencargados y terminación. Se enlaza **la política de la empresa** | Ley 1581, arts. 17 y 18; DUR 1074, arts. 2.2.2.25.5.1 y 2.2.2.25.5.2 | TEXTOS_AUTORIZACION_V2.md, C y problema 2 |
 | 5 | (Parcial, mensaje 1.) Proveedores en el exterior que actúan por encargo: es una transmisión. Con un contrato de transmisión no hace falta informar al titular ni su consentimiento para eso. Revisar los términos de cada uno | DUR 1074, arts. 2.2.2.25.1.3, 2.2.2.25.5.1 y 2.2.2.25.5.2 | §6 de la v3.1; falta la pregunta del país adecuado (mensaje 3) |
 | 6 | | | |
 | 7 | | | |
 | 8 | **No** hay que inscribirse en el RNBD como personas naturales. La SAS, solo con activos totales de más de 100.000 UVT; si se inscribe, cada base por separado | DUR 1074, arts. 2.2.2.26.1.2 (mod. Decreto 090 de 2018) y 2.2.2.26.1.3 | Nada en la política |
-| 9 | | | |
+| 9 | La versión, el texto, la fecha y el contacto son **una buena base, pero no siempre bastan**. Sumar: identificador del evento, formulario o URL, versión de la política, user agent (y la IP si es proporcional), que la casilla empezó sin marcar, el hash del texto, la constructora y el proyecto de la autorización de compartir, y las revocatorias | DUR 1074, art. 2.2.2.25.2.5 (antes Decreto 1377, art. 8); Ley 1581, art. 12, parágrafo | TEXTOS_AUTORIZACION_V2.md, problema 4 |
 | 10 | | | |
 | 11 | | | |
-| 12 | | | |
+| 12 | Ingresos, edad y personas a cargo **no son sensibles** (art. 5), pero son privados: explicar para qué se piden, preferir rangos, no compartirlos sin necesidad. Si la edad revela a un menor, aplica el art. 7. Recomienda declararlos opcionales | Ley 1581, arts. 5, 7 y 12 | TEXTOS_AUTORIZACION_V2.md, problema 5 |
