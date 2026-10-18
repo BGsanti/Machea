@@ -63,7 +63,11 @@ Rama `crm/datos-llamadas` (parte de `main`), con PR hacia `main`. Puesta en marc
 - Login: backend 153 y front 27/27, y el build con y sin `VITE_CRM_URL`.
 - Prueba de fugas del CRM: 735/0.
 
-## Fase 3. Consentimiento y política (requisito de D4)
+## Fase 3. Consentimiento y política (requisito de D4): EN DECISIÓN
+
+Textos, ubicación y lo que hay que decidir en la ronda 3: [CONSENTIMIENTO.md](CONSENTIMIENTO.md), con mockup en
+[mockups/consentimiento.html](mockups/consentimiento.html).
+
 
 - [ ] Formulario de Machea: una casilla aparte, sin marcar, que nombra a la constructora del proyecto antes de
       la llamada. Formularios con marca: el texto dice que Machea recoge los datos para esa empresa. Se guarda
