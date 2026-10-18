@@ -1,6 +1,7 @@
 # Política de tratamiento de datos personales de Machea
 
-> **BORRADOR v3, 2026-10-18. No se publica sin revisión legal.** Lo redactó un asistente de IA a partir de lo que
+> **BORRADOR v3.1, 2026-10-18. No se publica sin revisión legal.** La v3.1 aplica la respuesta de Ariel sobre el
+> responsable y el RNBD (REVISION_LEGAL.md, parte D, mensaje 1). Lo redactó un asistente de IA a partir de lo que
 > hace hoy el producto. **No es asesoría legal.** Las preguntas para la revisión (con Ariel y con un abogado) y la
 > tabla de cumplimiento están en [REVISION_LEGAL.md](REVISION_LEGAL.md).
 >
@@ -19,27 +20,35 @@
 > - **Contenido mínimo de la política:** área que atiende, plazos y vigencia.
 
 **Fecha de entrada en vigencia:** [PENDIENTE: fecha de publicación]
-**Versión:** 3
+**Versión:** 3.1
 
 ## 1. Quién es el responsable de tus datos
 
-Machea es un proyecto que **todavía no está constituido como sociedad**: no tiene razón social ni NIT. Mientras eso
-cambia, los responsables del tratamiento son las **personas naturales** que lo desarrollan:
+Machea es el nombre de un proyecto que **todavía no está constituido como sociedad**: no tiene razón social ni NIT.
+Los responsables del tratamiento son las **personas naturales que actúan conjuntamente bajo el proyecto Machea**:
 
-- **Responsable(s):** [PENDIENTE: nombre completo y número de cédula de cada responsable, como persona natural]
-- **Dirección física:** [PENDIENTE: una dirección en Bogotá donde se pueda recibir correspondencia]
-- **Correo para temas de datos personales:** [PENDIENTE: privacidad@machea.co (propuesto) o equipo@machea.co; que el
-  buzón exista y alguien lo lea]
-- **Teléfono:** [PENDIENTE]
+- **Responsables del tratamiento:** [PENDIENTE: nombre completo de cada persona natural que decide sobre los datos]
+- **Domicilio:** Bogotá D.C., Colombia
+- **Dirección de correspondencia:** [PENDIENTE: una dirección real donde se reciban comunicaciones; puede ser una
+  oficina, un coworking o una dirección contratada, no hace falta que sea la casa de alguien]
+- **Correo para temas de datos personales:** [PENDIENTE: privacidad@machea.co (propuesto); que el buzón exista y
+  alguien lo lea]
+- **Teléfono de atención:** [PENDIENTE: obligatorio]
 
-Cuando Machea se constituya como sociedad, actualizaremos esta política con su razón social, su NIT y su domicilio, y
-te lo avisaremos como dice la sección 12.
+Cuando Machea se constituya como sociedad, la sociedad pasará a ser la responsable. Te lo avisaremos antes, o a más
+tardar al hacer el cambio, con su razón social, su NIT y sus datos de contacto. Si las finalidades de esta política no
+cambian, no hará falta que nos des una nueva autorización (sección 12).
 
 En esta política, "Machea", "nosotros" y "nuestro" se refieren a esos responsables.
 
-> **Nota para el equipo:** la Ley 1581 permite que el responsable sea una persona natural (art. 3, literal e). El
-> Decreto 1377 pide que la política diga el nombre, el domicilio, la dirección, el correo y el teléfono del
-> responsable (art. 13, numeral 1). Ver la pregunta 1 de REVISION_LEGAL.md.
+> **Nota para el equipo** (Ariel, mensaje 1):
+> - Varias personas naturales pueden ser responsables "en asocio con otros" (Ley 1581, art. 3, lit. e). Lo son
+>   quienes deciden de verdad sobre los datos (qué se pide, para qué, a quién se entrega, cuánto se guarda), no quien
+>   solo programa.
+> - La política debe tener nombre, domicilio, dirección, correo y teléfono (Decreto 1074 de 2015, art. 2.2.2.25.3.1,
+>   antes Decreto 1377, art. 13). **No se publica la cédula.** La SIC tuvo por incompleta una política sin teléfono.
+> - Conviene un acuerdo interno entre los fundadores que diga quiénes son los responsables, qué bases controlan y
+>   quién atiende los reclamos. Ver MATRIZ_ROLES.md, parte B.
 
 ## 2. A quién aplica
 
@@ -206,10 +215,18 @@ Cuando una ley o una orden judicial nos obligue.
 ### Transmisión internacional
 
 Algunos de estos proveedores guardan o procesan los datos fuera de Colombia, por ejemplo en Estados Unidos. Esto es
-una **transmisión** de datos a un encargado, no una venta ni una transferencia a otro responsable. Exigimos a esos
-proveedores medidas de seguridad adecuadas y que usen los datos solo para prestarnos el servicio.
-[VERIFICAR: la región de cada servicio, si Estados Unidos figura como país con nivel adecuado de protección para la
-SIC, y si hace falta un contrato de transmisión (Decreto 1377, art. 25). Ver la pregunta 5 de REVISION_LEGAL.md.]
+una **transmisión**: los datos se comunican a un encargado para que los trate por cuenta nuestra, no se venden ni se
+transfieren a otro responsable. Con cada proveedor tenemos un contrato de transmisión que define el alcance del
+tratamiento, sus obligaciones, la finalidad, la seguridad y la confidencialidad. (Decreto 1074 de 2015, arts.
+2.2.2.25.1.3, 2.2.2.25.5.1 y 2.2.2.25.5.2)
+
+> **Nota para el equipo** (Ariel, mensaje 1):
+> - Con un contrato de transmisión no hace falta informar al titular ni pedirle un consentimiento aparte para la
+>   transmisión.
+> - **Hay que revisar, proveedor por proveedor**, que sus términos (o un acuerdo de procesamiento de datos, DPA)
+>   tengan esas obligaciones. Si un proveedor usa los datos para sus propios fines, es otro responsable, no un
+>   encargado.
+> - Hasta confirmarlo, la frase "tenemos un contrato de transmisión" no se publica. Ver MATRIZ_ROLES.md.
 
 ## 7. Cuánto tiempo los guardamos
 
@@ -280,18 +297,24 @@ cuando corresponda. [VERIFICAR: Ley 1581, art. 17, literal n.]
 ## 11. Vigencia
 
 Esta política rige desde la fecha de entrada en vigencia que aparece arriba. Las bases de datos se mantienen mientras
-existan las finalidades de la sección 4, con los plazos de la sección 7. (Decreto 1377, art. 13, numeral 6)
+existan las finalidades de la sección 4, con los plazos de la sección 7. (Decreto 1074 de 2015, art. 2.2.2.25.3.1, num. 6)
 
 ## 12. Cambios a esta política
 
-Si cambiamos esta política de forma importante, lo publicaremos en machea.co con la nueva fecha **antes de aplicar el
-cambio**. Si tienes una cuenta, te avisaremos por correo. Si el cambio toca las finalidades para las que nos diste tu
-autorización, te pediremos una nueva. [VERIFICAR: Decreto 1377, art. 5 y art. 13, sobre cambios sustanciales.]
+Si cambiamos esta política de forma importante (por ejemplo, quién es el responsable o para qué usamos tus datos), lo
+publicaremos en machea.co con la nueva fecha **antes de aplicar el cambio, o a más tardar al aplicarlo**. Si tienes una
+cuenta, te avisaremos por correo.
+
+- **Si cambia el responsable** (por ejemplo, cuando Machea se constituya como sociedad) y las finalidades siguen
+  iguales, te lo informamos.
+- **Si cambia o se amplía la finalidad**, te pedimos una nueva autorización.
+
+(Decreto 1074 de 2015, arts. 2.2.2.25.2.2 y 2.2.2.25.3.1)
 
 ## 13. Normas aplicables
 
-Ley 1581 de 2012, Decreto 1377 de 2013 (compilado en el Decreto Único Reglamentario 1074 de 2015) y demás normas
-colombianas sobre protección de datos personales.
+Ley 1581 de 2012, Decreto 1377 de 2013 (compilado en el Decreto Único Reglamentario 1074 de 2015, capítulo
+2.2.2.25) y demás normas colombianas sobre protección de datos personales.
 
 ---
 

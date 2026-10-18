@@ -17,7 +17,7 @@
 
 | # | Requisito | Norma (por verificar) | Dónde en la v3 | Estado |
 | --- | --- | --- | --- | --- |
-| 1 | Identificar al responsable: nombre, domicilio, dirección, correo y teléfono | Decreto 1377, art. 13, num. 1; Ley 1581, art. 12, lit. d | §1 | **Falta**: nombres, dirección y teléfono |
+| 1 | Identificar al responsable: nombre, domicilio, dirección, correo y teléfono | **DUR 1074, art. 2.2.2.25.3.1, num. 1** (confirmado por Ariel); Ley 1581, art. 12, lit. d | §1 | **Falta**: nombres, dirección y teléfono. Sin cédula; dirección de correspondencia válida; el teléfono es obligatorio |
 | 2 | Decir el tratamiento y para qué se usan los datos | Decreto 1377, art. 13, num. 2; Ley 1581, art. 12, lit. a | §3 y §4 | Listo |
 | 3 | Decir los derechos de los titulares | Ley 1581, art. 8; Decreto 1377, art. 13, num. 3 | §8 | Listo |
 | 4 | Decir quién atiende las peticiones | Decreto 1377, art. 13, num. 4 | §9 | **Falta**: persona o área |
@@ -29,11 +29,11 @@
 | 10 | Revocatoria y supresión | Ley 1581, art. 8, lit. e; Decreto 1377, art. 9 | §8 y §9 | Listo; **revisar** el caso del lead ya compartido |
 | 11 | Datos sensibles y de menores | Ley 1581, arts. 5 a 7 | §3.5 | Listo (no se piden); confirmar que ingresos y edad no son sensibles |
 | 12 | Circulación restringida: compartir solo con autorización | Ley 1581, art. 4, lit. f | §6, caso A | Listo; **revisar** el texto de la hoja |
-| 13 | Transmisión a encargados fuera de Colombia | Ley 1581, art. 26; Decreto 1377, arts. 24 y 25 | §6, "Transmisión internacional" | **Revisar**: contratos y país adecuado |
+| 13 | Transmisión a encargados fuera de Colombia | **DUR 1074, arts. 2.2.2.25.1.3, 2.2.2.25.5.1 y 2.2.2.25.5.2** (Ariel) | §6, "Transmisión internacional" | **Falta**: revisar el contrato o DPA de cada proveedor (MATRIZ_ROLES.md) |
 | 14 | Deberes del encargado, cuando Machea opera el formulario de una marca | Ley 1581, art. 18 | §6, caso B | **Falta**: el acuerdo con cada empresa |
 | 15 | Informar a la SIC los incidentes de seguridad | Ley 1581, art. 17, lit. n | §10 | Listo; confirmar |
-| 16 | Avisar los cambios sustanciales antes de aplicarlos | Decreto 1377, arts. 5 y 13 | §12 | Confirmar el artículo |
-| 17 | Registro Nacional de Bases de Datos (RNBD) | Ley 1581, art. 25; Decreto 090 de 2018 | No está | **Preguntar** si aplica a personas naturales |
+| 16 | Avisar los cambios sustanciales antes de aplicarlos, o a más tardar al aplicarlos; nueva autorización si cambia la finalidad | **DUR 1074, arts. 2.2.2.25.2.2 y 2.2.2.25.3.1** (Ariel) | §12 | Listo |
+| 17 | Registro Nacional de Bases de Datos (RNBD) | **DUR 1074, art. 2.2.2.26.1.2, modificado por el Decreto 090 de 2018** (Ariel) | No hace falta en la política | **No aplica** a personas naturales. La SAS, solo con activos de más de 100.000 UVT |
 
 ## B. Los textos de autorización que hoy están en producción
 
@@ -143,18 +143,21 @@ sensibles?
 ## D. Respuestas
 
 > Pegar aquí lo que responda Ariel, con sus citas, y después lo que diga el abogado.
+>
+> - **Mensaje 1** (responsable, SAS, RNBD), 2026-10-18: aplicado en la v3.1.
+> - **Mensajes 2, 3 y 4:** pendientes.
 
 | # | Respuesta (resumen) | Cita | Qué cambia en la política o en los textos |
 | --- | --- | --- | --- |
 | 0 | | | |
-| 1 | | | |
+| 1 | **Sí** pueden ser responsables varias personas naturales "en asocio con otros" (lo son quienes deciden finalidades y medios, no quien solo programa). Se publican nombre, domicilio, dirección, correo y **teléfono**; **no** la cédula. La dirección puede ser de correspondencia. Al pasar a la SAS: documentar el traspaso, actualizar la política y avisar; nueva autorización solo si cambia la finalidad. Conviene un acuerdo interno entre los fundadores y una matriz de roles por flujo | Ley 1581, art. 3, lit. e; DUR 1074, arts. 2.2.2.25.3.1 y 2.2.2.25.2.2 | §1 y §12 de la v3.1; MATRIZ_ROLES.md |
 | 2 | | | |
 | 3 | | | |
 | 4 | | | |
-| 5 | | | |
+| 5 | (Parcial, mensaje 1.) Proveedores en el exterior que actúan por encargo: es una transmisión. Con un contrato de transmisión no hace falta informar al titular ni su consentimiento para eso. Revisar los términos de cada uno | DUR 1074, arts. 2.2.2.25.1.3, 2.2.2.25.5.1 y 2.2.2.25.5.2 | §6 de la v3.1; falta la pregunta del país adecuado (mensaje 3) |
 | 6 | | | |
 | 7 | | | |
-| 8 | | | |
+| 8 | **No** hay que inscribirse en el RNBD como personas naturales. La SAS, solo con activos totales de más de 100.000 UVT; si se inscribe, cada base por separado | DUR 1074, arts. 2.2.2.26.1.2 (mod. Decreto 090 de 2018) y 2.2.2.26.1.3 | Nada en la política |
 | 9 | | | |
 | 10 | | | |
 | 11 | | | |
