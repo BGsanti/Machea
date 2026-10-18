@@ -16,11 +16,6 @@ const CONFIG = {
   supabaseUrl: 'https://ndfsrstnzttbmcxukixw.supabase.co',
   supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kZnNyc3RuenR0Ym1jeHVraXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMDU2NzcsImV4cCI6MjEwNjg4MTY3N30.rs6s2sgh6a7v6PiNqlcmpyATmf9_byjK_ilshg6qBGQ',
   email: 'equipo@machea.co',
-  // PENDIENTE: el agente de voz que llama a quien pide una demo todavía no existe.
-  // Mientras esté en false, la pantalla final promete que el EQUIPO contacta, no que
-  // una llamada automática salga. Pasar a true cuando el agente y su flujo estén
-  // creados en Dapta (ver CLAUDE.md §8.5).
-  llamadaAgenteActiva: false,
 };
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -385,6 +380,18 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
       return true;
     } finally { clearTimeout(timer); }
   }
+  /* Camila, la agente de captación, llama a quien pide la demo. El backend decide si llama (horario, límites,
+     interruptor CAPTACION_LLAMAR_DEMOS) y también deja el prospecto registrado aunque Supabase falle. */
+  async function pedirLlamada(d) {
+    const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 45000); // Render puede tardar en despertar
+    try {
+      const r = await fetch(CONFIG.apiBase + '/captacion/demo', {
+        method: 'POST', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d),
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } finally { clearTimeout(timer); }
+  }
 
   async function enviar() {
     if (ocupado) return;
@@ -405,27 +412,35 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
       p_fuente_leads: resp.fuente_leads || null, p_pauta_mensual: resp.pauta_mensual || null,
       p_leads_mes: resp.leads_mes || null, p_crm: resp.crm || null, p_origen: origen(),
     };
+    const agente = pedirLlamada({
+      nombre, telefono: tel, correo, empresa: resp.empresa || null, sitio: resp.sitio || null, tipo_empresa: resp.tipo_empresa || null,
+      problema: resp.problema || null, fuente_leads: resp.fuente_leads || null, pauta_mensual: resp.pauta_mensual || null,
+      leads_mes: resp.leads_mes || null, crm: resp.crm || null, acepto: true,
+    }).catch((ex) => { console.warn('[machea] captacion/demo falló:', ex && ex.message); return null; });
     try {
-      await guardar(datos);
-      cerrarOk();
-    } catch (ex) {
-      console.warn('[machea] solicitar_demo falló:', ex && ex.message);
-      pantallaFallo();
+      let guardado = true;
+      try { await guardar(datos); } catch (ex) { guardado = false; console.warn('[machea] solicitar_demo falló:', ex && ex.message); }
+      // Si Supabase guardó, no se hace esperar a nadie por la API; si no, la API es la única vía de registro.
+      const r = guardado ? await Promise.race([agente, new Promise((ok) => setTimeout(() => ok(null), 6000))]) : await agente;
+      if (!guardado && !r) pantallaFallo(); else cerrarOk(r);
     } finally {
       ocupado = false;
     }
   }
 
-  function cerrarOk() {
+  function cerrarOk(r) {
     enviado = true;
     $('#agProg').hidden = true;
     const nombre = esc((resp.nombre || '').split(' ')[0] || '');
-    const llamada = CONFIG.llamadaAgenteActiva;
+    const estado = r && r.status;
+    const texto = estado === 'llamando'
+      ? 'Camila, la agente de voz con IA de Machea, te va a llamar en los próximos minutos al número que nos diste. Contesta aunque aparezca un número desconocido.'
+      : estado === 'fuera_de_horario'
+        ? 'Recibimos tu solicitud. Ahora estamos fuera del horario de llamadas: te contactamos el próximo día hábil al número y al correo que nos diste.'
+        : 'Recibimos tu solicitud. Un asesor de Machea te va a contactar muy pronto al número y al correo que nos diste.';
     host.innerHTML = `<div class="ag-done"><span class="ok-i">${ico('i-check')}</span>
       <h2 id="agTitulo" tabindex="-1">¡Listo${nombre ? ', ' + nombre : ''}!</h2>
-      <p>${llamada
-        ? 'Un agente de Machea te va a llamar en los próximos minutos al número que nos diste.'
-        : 'Recibimos tu solicitud. Un asesor de Machea te va a contactar muy pronto al número y al correo que nos diste.'}</p>
+      <p>${texto}</p>
       <p>Mientras tanto, puedes armar tu demo con la marca de tu empresa.</p>
       <div class="ctas"><a class="btn btn-coral" href="#empieza" data-cerrar>Empieza gratis</a><button type="button" class="btn btn-line" data-cerrar>Cerrar</button></div></div>`;
     $('#agTitulo').focus({ preventScroll: true });

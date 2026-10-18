@@ -1436,6 +1436,22 @@ resumen del formulario y en el pedido de `seguimiento.preparar`). **La cita es u
 cuando se conecte Google Calendar o el CRM, Manuela podrá consultar disponibilidad y crear el evento. Aplicar el prompt y las
 variables en Dapta es un paso manual (el workspace de Machea); ver la guía.
 
+### 5.7 Camila: el agente de captación de Machea
+
+Agente de voz **propio** (no es Manuela): llama a inmobiliarias y constructoras, las califica (A/B/C, la puntuación la calcula el
+código en `captacion.puntuar`, no el modelo) y les agenda una demostración de 20 minutos. Dos modos: *cálida* (`origen=demo_web`,
+pidió la demo en la landing) y *fría* (`lista_frio`, lista importada). Prompt: `backend/dapta/prompt-captacion.md`. Módulo:
+`backend/api/captacion.py` (importar, cola, llamar, webhook `/webhooks/dapta/captacion?k=…`, citas, resumen), tablas
+`prospectos` / `llamadas_captacion` / `citas` (`supabase/migrations/20261017180000_captacion.sql`), importador
+`backend/scripts/importar_prospectos.py`, 44 pruebas en `tests/test_captacion.py`. Guía completa (arquitectura, puntuación,
+puesta en marcha en Dapta y Render, cumplimiento, plan de pruebas): `docs/agente-captacion.md`.
+
+Reglas que no se rompen: nunca llamar domingos ni festivos de Colombia (L-V 8-18, sáb 9-12); 1 llamada por número al día, 3 intentos
+y un tope diario; `/api/captacion/demo` es público y llama a un teléfono que escribe un desconocido, por eso nace **apagado**
+(`CAPTACION_LLAMAR_DEMOS=true` para encenderlo) y comparte los topes de `/api/llamar`; la clave `service_role` de Supabase vive solo en
+Render. **Estado:** código y pruebas listos; falta crear el agente y el flow en el Dapta del workspace de Machea, aplicar las dos
+migraciones y fijar las variables de Render. Sin Supabase, funciona en memoria y se pierde al reiniciar.
+
 ## 6. Resolución de localidad por dirección
 
 La función nueva del catálogo, en `scraping/scraper_projects.py`. Es la pieza que
@@ -1931,13 +1947,14 @@ que arma un plano plano en CSS, sin 3D) → soluciones (inmobiliarias / construc
   pantalla final ofrece enviar las respuestas por correo a `equipo@machea.co` con un clic (no se pierde el lead).
 - **Iniciar sesión** lleva a `/acceso/` (§8.4), que todavía es un **prototipo**: no inicia sesión.
 
-**PENDIENTE (marcado en el código como `llamadaAgenteActiva: false` en `src/landing/landing.js`):**
+**PENDIENTE:**
 1. **Aplicar la migración** `20261015120000_solicitudes_demo.sql` en Supabase (SQL Editor). Hasta entonces el formulario
    muestra la pantalla de respaldo por correo.
-2. **Crear el agente de voz que llama a quien pide la demo** (en Dapta: agente + flujo, y un disparador que lea las filas de
-   `solicitudes_demo` con `estado = 'pendiente'` y las pase a `llamando` / `contactado`). Mientras no exista, la pantalla de
-   éxito promete que "un asesor de Machea te va a contactar", no una llamada automática. Al activarlo, poner
-   `llamadaAgenteActiva: true` para que el texto diga que un agente llama en los próximos minutos.
+2. **Poner a Camila en Dapta** (el agente que llama a quien pide la demo, §5.7): el código ya está; falta crear el agente y el
+   flujo en el workspace de Machea y fijar `DAPTA_CAPTACION_FLOW_URL`, `CAPTACION_WEBHOOK_SECRET` y `CAPTACION_LLAMAR_DEMOS=true`
+   en Render. La landing ya no tiene interruptor propio: tras guardar en Supabase llama a `POST /api/captacion/demo` y
+   el texto final lo decide la respuesta del backend (`llamando` → "Camila te va a llamar en los próximos minutos";
+   `fuera_de_horario` → "te contactamos el próximo día hábil"; cualquier otra → "un asesor te va a contactar").
 3. Ver las solicitudes en el panel de administración (`/admin/`) y, más adelante, en el CRM.
 4. Login real (Supabase Auth + Google, §8.4) y, con él, decidir si *Iniciar sesión* sigue visible en la landing.
 5. La línea del capítulo "Calificación con IA" dice "No contesta · sigue por WhatsApp" (texto de la landing anterior): el
