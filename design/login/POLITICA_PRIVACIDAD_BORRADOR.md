@@ -1,215 +1,306 @@
-# Política de privacidad y tratamiento de datos personales de Machea
+# Política de tratamiento de datos personales de Machea
 
-> **BORRADOR v2, 2026-10-13. Hay que revisarlo antes de publicarlo.** Lo redactó un asistente de IA a partir de lo que
-> hace hoy el producto. **No es asesoría legal:** antes de publicarlo debe revisarlo un abogado o alguien con
-> experiencia en la Ley 1581 de 2012.
+> **BORRADOR v3, 2026-10-18. No se publica sin revisión legal.** Lo redactó un asistente de IA a partir de lo que
+> hace hoy el producto. **No es asesoría legal.** Las preguntas para la revisión (con Ariel y con un abogado) y la
+> tabla de cumplimiento están en [REVISION_LEGAL.md](REVISION_LEGAL.md).
 >
-> - Lo marcado **[PENDIENTE: …]** es un dato que no conozco y que hay que completar.
-> - Lo marcado **[VERIFICAR: …]** es algo que creo que es así pero hay que confirmar.
+> - **[PENDIENTE: …]**: un dato que no conozco y que hay que completar.
+> - **[VERIFICAR: …]**: algo que creo que es así pero hay que confirmar.
+> - **[PROPUESTA: …]**: una decisión del equipo con una opción sugerida.
 > - Las notas para el equipo van en bloques como este y se borran al publicar.
+>
+> **Qué cambió desde la v2 (2026-10-13):**
+> - **CRM de cada empresa:** con qué empresas se comparten los datos, en dos casos distintos (sección 6).
+> - **Las dos autorizaciones del formulario**, con su versión guardada como prueba (sección 5).
+> - **Grupos nuevos:** quienes piden una demo desde "Agenda una demo" y los contactos de empresas a los que llama
+>   Camila.
+> - **Transmisión, no transferencia:** a los proveedores de afuera se les envían datos por encargo, y eso se llama
+>   "transmisión internacional".
+> - **Contenido mínimo de la política:** área que atiende, plazos y vigencia.
 
-**Última actualización:** [PENDIENTE: fecha de publicación]
+**Fecha de entrada en vigencia:** [PENDIENTE: fecha de publicación]
+**Versión:** 3
 
 ## 1. Quién es el responsable de tus datos
 
-Machea es un proyecto que **todavía no está constituido como sociedad**: no tiene razón social ni NIT. Mientras
-eso cambia, los responsables del tratamiento son las **personas naturales** que lo desarrollan:
+Machea es un proyecto que **todavía no está constituido como sociedad**: no tiene razón social ni NIT. Mientras eso
+cambia, los responsables del tratamiento son las **personas naturales** que lo desarrollan:
 
-- **Responsable(s):** [PENDIENTE: nombre completo de cada responsable, como persona natural]
-- **Ciudad:** Bogotá D.C., Colombia
-- **Correo para temas de datos personales:** equipo@machea.co [VERIFICAR: que el buzón exista y alguien lo lea; o crear privacidad@machea.co]
+- **Responsable(s):** [PENDIENTE: nombre completo y número de cédula de cada responsable, como persona natural]
+- **Dirección física:** [PENDIENTE: una dirección en Bogotá donde se pueda recibir correspondencia]
+- **Correo para temas de datos personales:** [PENDIENTE: privacidad@machea.co (propuesto) o equipo@machea.co; que el
+  buzón exista y alguien lo lea]
+- **Teléfono:** [PENDIENTE]
 
-Cuando Machea se constituya como sociedad, actualizaremos esta política con su razón social, su NIT y su
-domicilio, y te lo avisaremos como dice la sección 11.
+Cuando Machea se constituya como sociedad, actualizaremos esta política con su razón social, su NIT y su domicilio, y
+te lo avisaremos como dice la sección 12.
 
 En esta política, "Machea", "nosotros" y "nuestro" se refieren a esos responsables.
 
-> Nota para el equipo: la Ley 1581 permite que el responsable sea una persona natural. Lo que no se puede es
-> publicar la política sin decir quién responde. Hay que decidir qué nombres van (D-pendiente).
+> **Nota para el equipo:** la Ley 1581 permite que el responsable sea una persona natural (art. 3, literal e). El
+> Decreto 1377 pide que la política diga el nombre, el domicilio, la dirección, el correo y el teléfono del
+> responsable (art. 13, numeral 1). Ver la pregunta 1 de REVISION_LEGAL.md.
 
 ## 2. A quién aplica
 
-Esta política aplica a dos grupos de personas:
-
-1. **Personas interesadas en vivienda** ("interesados"): quienes usan la experiencia interactiva de
-   machea.co para encontrar proyectos de vivienda, comprar o arrendar, y quienes reciben la llamada de
-   nuestra asistente virtual.
-2. **Empresas clientes y sus representantes** ("clientes"): constructoras e inmobiliarias que crean una
-   cuenta en Machea, y las personas que entran a esa cuenta.
-3. **Personas que piden una demo** ("prospectos"): quienes usan "Pruébalo con tu marca" en machea.co para ver
-   cómo se vería Machea con la marca de su empresa.
-
-> Nota para el equipo: el formulario hoy pide "Autorizo el tratamiento de mis datos personales para recibir
-> información de vivienda (Habeas Data)". Cuando los datos de un interesado se compartan con una constructora o
-> inmobiliaria (el futuro CRM), esa autorización tiene que decirlo de forma explícita. Ver la sección 6.
+1. **Personas interesadas en vivienda** ("interesados"): quienes usan la experiencia interactiva de machea.co, o el
+   formulario de una constructora o inmobiliaria operado por Machea, para encontrar vivienda para comprar o
+   arrendar, y quienes reciben la llamada de nuestra asistente virtual Manuela.
+2. **Empresas clientes y sus representantes** ("clientes"): constructoras e inmobiliarias que crean una cuenta en
+   Machea, y quienes entran a esa cuenta y a su CRM.
+3. **Personas que piden una demo** ("prospectos"): quienes usan "Pruébalo con tu marca" o "Agenda una demo" en
+   machea.co.
+4. **Contactos de empresas** a quienes llama nuestra asistente virtual de ventas, Camila, para ofrecer Machea.
+5. **Visitantes** de machea.co.
 
 ## 3. Qué datos recogemos
 
 ### 3.1 De los interesados
 - **Datos de contacto:** nombre, apellido, teléfono celular y correo electrónico.
-- **Respuestas de la experiencia interactiva:** zona de interés, tipo de vivienda, rango de ingresos,
-  número de personas, habitaciones, preferencias de entorno y edad, y en arriendo las preguntas
-  equivalentes.
-- **Resultados:** los proyectos que el sistema te recomendó y el que elegiste.
-- **Datos de la llamada con la asistente virtual (Manuela):** si pediste la llamada, **no la grabamos**. Sí
-  guardamos la información que resulta de ella:
-  - el estado de la llamada;
+- **Respuestas del formulario:**
+  - en compra, la zona de interés, el tipo de vivienda, el rango de ingresos del hogar, las personas a cargo, las
+    habitaciones, las preferencias de entorno y la edad;
+  - en arriendo, las preguntas equivalentes.
+- **Resultados:** los proyectos que el sistema te recomendó, el que elegiste y la empresa a la que pertenece.
+- **De qué formulario llegaste:** el de Machea o el de una constructora o inmobiliaria.
+- **Tus autorizaciones:** qué texto aceptaste, en qué versión y cuándo. Lo guardamos como prueba (sección 5).
+- **Datos de la llamada con Manuela**, si la pediste. **No grabamos la llamada.** Sí guardamos lo que resulta de ella:
+  - si se pudo hablar contigo;
   - un resumen de la conversación;
   - tu nivel de interés;
   - la urgencia;
-  - si eres quien toma la decisión de compra;
+  - si eres quien toma la decisión;
   - si confirmaste tu presupuesto;
   - tu principal duda u objeción;
   - una recomendación para el asesor;
-  - la fecha de seguimiento, si se agendó una.
+  - la cita o la fecha de seguimiento, si se acordó una, y el canal.
 
-  Ese resumen lo genera nuestro proveedor de llamadas a partir de la conversación.
-  [VERIFICAR con Dapta: si conserva el audio o la transcripción de su lado, y por cuánto tiempo.]
-- **Seguimiento por WhatsApp:** si diste permiso para que te contactemos por WhatsApp y la llamada no se completó,
-  te podemos escribir un mensaje de seguimiento.
+  Ese resumen lo genera nuestro proveedor de llamadas a partir de la conversación. [VERIFICAR con Dapta: si conserva
+  el audio o la transcripción de su lado, y por cuánto tiempo.]
+- **Seguimiento por WhatsApp:** si la llamada no se completó o quedó una cita, te podemos escribir por WhatsApp al
+  número que nos diste.
 
 ### 3.2 De los clientes (cuentas de constructoras e inmobiliarias)
-- **Datos de la cuenta:** nombre de usuario, correo electrónico y contraseña. La contraseña nunca se guarda
-  tal cual: se guarda cifrada con un algoritmo de una sola vía.
-- **Si entras con Google:** Google nos comparte tu nombre, tu correo y tu foto de perfil, y un identificador
-  de tu cuenta de Google. No recibimos tu contraseña de Google ni accedemos a tu correo, tus contactos o tus
-  archivos.
-- **Datos de la empresa** que nos des para aprobar la cuenta, y el estado de la cuenta (en revisión, activa o rechazada).
+- **Datos de la cuenta:** nombre de usuario, correo electrónico y contraseña. La contraseña nunca se guarda tal cual:
+  se guarda con un algoritmo de una sola vía.
+- **Si entras con Google:** tu nombre, tu correo, tu foto de perfil y un identificador de tu cuenta de Google. No
+  recibimos tu contraseña de Google.
+- **Datos de la empresa** que nos des para aprobar la cuenta, y el estado de la cuenta.
+- **El contenido de tu CRM:** los registros que tú o tus leads ponen ahí (contactos, oportunidades, tareas, notas,
+  etc.). Lo guardamos y procesamos **por encargo tuyo**: sobre esos datos, tu empresa es la responsable y Machea es
+  su encargado (sección 6).
 
-### 3.3 De quienes piden una demo
-- Nombre, correo, nombre de la empresa, tipo de empresa (constructora o inmobiliaria), sitio web y, si lo eliges,
-  un color de marca.
-- Para armar la demo leemos la **página pública** del sitio web que nos das y tomamos de ahí el logo, los colores
-  y el nombre de la empresa. No entramos a zonas privadas del sitio.
-- El enlace de la demo dura 30 días. Te lo enviamos por correo, y al equipo de Machea le llega un aviso con tus datos.
+### 3.3 De los prospectos (demos)
+- **"Pruébalo con tu marca":**
+  - nombre, correo, nombre y tipo de la empresa, sitio web y, si lo eliges, un color de marca;
+  - para armar la demo leemos la **página pública** del sitio web que nos das, y tomamos de ahí el logo, los colores
+    y el nombre. No entramos a zonas privadas;
+  - el enlace de la demo dura 30 días.
+- **"Agenda una demo":**
+  - nombre, celular, correo, empresa, sitio web y tipo de empresa;
+  - lo que nos cuentas de tu operación comercial: el problema que quieres resolver, de dónde te llegan los leads,
+    cuánto inviertes en pauta, cuántos leads recibes al mes y qué CRM usas.
 
-### 3.4 De todos los visitantes
-- **Datos técnicos:** dirección IP, tipo de navegador y fechas de acceso, que usamos para la seguridad del
-  servicio y para limitar abusos. [VERIFICAR: si se usa alguna herramienta de analítica o de publicidad. Hoy no
-  se encontró ninguna en el código.]
-- **Almacenamiento local del navegador:** para mantener tu sesión iniciada (y "Recordarme") y para recordar
-  el avance de la experiencia. No usamos cookies de publicidad.
+### 3.4 De los contactos de empresas (llamadas de Camila)
+- El nombre y el cargo de la persona de contacto, el teléfono de la empresa o del contacto, el nombre de la empresa
+  y lo que resulte de la llamada: interés, calificación, la cita agendada o tu pedido de no volver a llamarte.
+- **De dónde salen:** de directorios públicos de empresas, o de lo que tú mismo nos diste.
+- **Las llamadas de Camila pueden quedar grabadas, y ella lo avisa al comienzo.** [VERIFICAR con Dapta qué guarda.]
+  Si pides que no te llamemos, ese número no se vuelve a marcar.
 
-**No pedimos datos sensibles** (salud, origen étnico, orientación política o religiosa, datos biométricos)
-ni datos de niñas, niños o adolescentes. El servicio está dirigido a mayores de edad.
+> **Nota para el equipo:** el prompt de Camila dice "Esta llamada puede ser grabada", y en Manuela la llamada no se
+> graba. Hay que confirmar qué hace Dapta en cada agente y escribir aquí lo que de verdad pasa. Ver las preguntas 6
+> y 10 de REVISION_LEGAL.md.
+
+### 3.5 De todos los visitantes
+- **Datos técnicos:** dirección IP, tipo de navegador y fechas de acceso. Los usamos para la seguridad del servicio y
+  para limitar abusos. [VERIFICAR: si se usa alguna herramienta de analítica o de publicidad. Hoy no se encontró
+  ninguna en el código.]
+- **Almacenamiento local del navegador y cookies técnicas:** para mantener tu sesión iniciada y recordar el avance de
+  la experiencia. No usamos cookies de publicidad.
+
+**No pedimos datos sensibles** (salud, origen étnico, orientación política o religiosa, datos biométricos) ni datos de
+niñas, niños o adolescentes. El servicio está dirigido a mayores de edad. Las preguntas sobre ingresos, edad y
+personas a cargo son opcionales en el sentido de que puedes no seguir el formulario; no son datos sensibles.
+[VERIFICAR]
 
 ## 4. Para qué los usamos
 
 ### 4.1 Interesados
 1. Recomendarte proyectos de vivienda que se ajusten a lo que respondiste.
-2. Llamarte, si lo pediste, con nuestra asistente virtual para entender mejor lo que buscas y, si quieres,
-   agendar un seguimiento.
-3. Guardar tu consulta para que puedas volver a ver tus resultados.
-4. Mejorar el sistema de recomendación con datos agregados o anonimizados.
-5. [PENDIENTE: si se compartirán con constructoras o inmobiliarias, decirlo aquí; ver la sección 6.]
+2. Llamarte, si lo pediste, con nuestra asistente virtual Manuela, para entender lo que buscas y agendar una visita o
+   un seguimiento.
+3. Escribirte por WhatsApp o por correo sobre los proyectos que te interesaron.
+4. Guardar tu consulta para que puedas volver a ver tus resultados.
+5. **Compartir tus datos con la constructora o inmobiliaria dueña del proyecto por el que pediste hablar con un
+   asesor, solo si lo autorizas** en ese momento (sección 6, caso A).
+6. **Si usaste el formulario de una constructora o inmobiliaria**, entregarle tus datos a esa empresa, que es quien
+   te va a contactar (sección 6, caso B).
+7. Mejorar el sistema de recomendación con datos agregados o anonimizados.
 
-### 4.2 Prospectos (demos)
-1. Armar tu demo con la marca de tu empresa y enviarte el enlace.
-2. Contactarte para contarte más de Machea, si así lo quieres.
-
-### 4.3 Clientes
+### 4.2 Clientes
 1. Crear y administrar tu cuenta, verificar tu correo y permitirte entrar.
 2. Revisar y aprobar las cuentas de empresas antes de activarlas.
-3. Enviarte correos sobre tu cuenta: confirmación, recuperación de contraseña y activación.
-4. Proteger el servicio contra accesos no autorizados y abusos.
+3. Prestarte el CRM: guardar tus registros y entregarte los leads que te correspondan.
+4. Enviarte correos sobre tu cuenta.
+5. Proteger el servicio contra accesos no autorizados y abusos.
 
-No vendemos tus datos personales.
+### 4.3 Prospectos y contactos de empresas
+1. Armar tu demo y enviarte el enlace.
+2. Contactarte, por llamada (de nuestro equipo o de Camila), por WhatsApp o por correo, para contarte de Machea y
+   agendar una demostración.
 
-## 5. Base del tratamiento: tu autorización
+**No vendemos tus datos personales.**
 
-Tratamos tus datos con tu **autorización previa, expresa e informada**, que nos das al marcar la casilla
-correspondiente en el formulario o al crear tu cuenta. Puedes revocarla cuando quieras (ver la sección 8),
-salvo que tengamos un deber legal o contractual de conservar los datos.
+## 5. Tu autorización
+
+Tratamos tus datos con tu **autorización previa, expresa e informada** (Ley 1581 de 2012, art. 9). La pedimos con
+casillas **sin marcar**: marcarlas es la autorización (Decreto 1377 de 2013, art. 7).
+
+| Dónde | Qué autorizas | Versión |
+| --- | --- | --- |
+| Registro del formulario de Machea | Que Machea use tus datos para recomendarte vivienda, llamarte con su asistente virtual y escribirte sobre los proyectos que te interesen | `registro-machea-v1` |
+| Registro del formulario de una constructora o inmobiliaria | Que esa empresa use tus datos para contactarte sobre sus proyectos, con Machea operando el formulario y la llamada en su nombre | `registro-marca-v1` |
+| "Antes de llamarte", al pedir hablar con un asesor | Que Machea comparta con la empresa dueña del proyecto tus datos, tus respuestas y el resultado de la llamada | `compartir-v1` |
+| "Agenda una demo" | Que Machea te contacte sobre tu solicitud, también con su agente de voz | [PENDIENTE: versionar] |
+| Crear una cuenta de empresa | Esta política y el tratamiento de los datos de la cuenta | [PENDIENTE: versionar] |
+
+Guardamos qué texto aceptaste, en qué versión y cuándo, como **prueba de tu autorización** (Decreto 1377, art. 8).
+Puedes **revocarla cuando quieras** (sección 9), salvo que tengamos un deber legal o contractual de conservar los
+datos.
+
+> **Nota para el equipo:** las llamadas en frío de Camila no tienen una autorización previa del contacto. Hay que
+> confirmar la base legal (datos de empresas en directorios públicos, Ley 1581, art. 10) o cambiar el flujo. Ver la
+> pregunta 6 de REVISION_LEGAL.md.
 
 ## 6. Con quién los compartimos
 
-- **Proveedores que nos ayudan a prestar el servicio** (encargados del tratamiento). Solo usan los datos para
-  prestarnos ese servicio:
-  - alojamiento web y servidores: [VERIFICAR: hoy Vercel y Render];
-  - base de datos: [VERIFICAR: hoy Supabase, con migración prevista a otro proveedor de nube];
-  - llamadas con la asistente virtual y mensajes de WhatsApp: [VERIFICAR: hoy Dapta];
-  - envío de correos: [VERIFICAR: hoy Gmail de Google];
-  - inicio de sesión con Google: Google.
-- **Constructoras e inmobiliarias:** [PENDIENTE: decidir. Si los datos de un interesado se comparten con la
-  empresa del proyecto que eligió, hay que decirlo aquí y pedirlo de forma expresa en el formulario.]
-- **Autoridades**, cuando una ley o una orden judicial nos obligue.
+### Constructoras e inmobiliarias (los leads)
 
-### Transferencia internacional
-Algunos de estos proveedores guardan los datos en servidores fuera de Colombia, por ejemplo en Estados
-Unidos. Al aceptar esta política autorizas esa transferencia. Exigimos a esos proveedores medidas de
-seguridad adecuadas. [VERIFICAR: la región de cada servicio y los requisitos de la SIC para transferencias
-internacionales.]
+- **Caso A: pediste hablar con un asesor sobre un proyecto en el formulario de Machea.**
+  - Si marcaste la casilla "Antes de llamarte", compartimos con la empresa dueña de ese proyecto tu nombre, correo,
+    teléfono, tus respuestas y el resultado de la llamada.
+  - Desde ese momento la empresa trata esos datos **como responsable**, con su propia política de privacidad.
+  - Si no marcas la casilla, la llamada no se hace y no compartimos nada.
+- **Caso B: usaste el formulario de una constructora o inmobiliaria** (con su marca).
+  - Esa empresa es la **responsable** de tus datos, y Machea los trata **por encargo suyo**: opera el formulario,
+    hace la llamada y le entrega el lead en su CRM.
+  - Rige también la política de esa empresa: [PENDIENTE: enlace de cada empresa].
+- **Lo que no recibe una empresa:** las respuestas que diste en el formulario de otra empresa, ni los proyectos de
+  otras empresas que te recomendamos.
+
+### Proveedores (encargados del tratamiento)
+
+Solo usan los datos para prestarnos su servicio:
+
+- alojamiento web y servidores: Vercel y Render [VERIFICAR];
+- base de datos: Supabase [VERIFICAR; hay una migración prevista a otro proveedor de nube];
+- llamadas con las asistentes virtuales y mensajes de WhatsApp: Dapta [VERIFICAR];
+- envío de correos: Google (Gmail) [VERIFICAR];
+- inicio de sesión con Google: Google.
+
+### Autoridades
+
+Cuando una ley o una orden judicial nos obligue.
+
+### Transmisión internacional
+
+Algunos de estos proveedores guardan o procesan los datos fuera de Colombia, por ejemplo en Estados Unidos. Esto es
+una **transmisión** de datos a un encargado, no una venta ni una transferencia a otro responsable. Exigimos a esos
+proveedores medidas de seguridad adecuadas y que usen los datos solo para prestarnos el servicio.
+[VERIFICAR: la región de cada servicio, si Estados Unidos figura como país con nivel adecuado de protección para la
+SIC, y si hace falta un contrato de transmisión (Decreto 1377, art. 25). Ver la pregunta 5 de REVISION_LEGAL.md.]
 
 ## 7. Cuánto tiempo los guardamos
 
-- **Interesados:** mientras sea necesario para las finalidades de la sección 4.1, o hasta que nos pidas
-  borrarlos. [PENDIENTE: definir un plazo máximo, por ejemplo 24 meses desde la última consulta.]
-- **Prospectos:** el enlace de la demo vence a los 30 días; tus datos de contacto, mientras haya una conversación
-  comercial abierta o hasta que nos pidas borrarlos. [PENDIENTE: plazo.]
-- **Clientes:** mientras la cuenta esté activa, y después el tiempo que exijan las normas contables y
-  comerciales. [PENDIENTE: plazo.]
-- Los datos técnicos de seguridad se guardan por periodos cortos. [PENDIENTE: plazo.]
+[PROPUESTA: los plazos son una sugerencia para que el equipo decida.]
+
+| Datos | Cuánto tiempo |
+| --- | --- |
+| Interesados | 24 meses desde tu última consulta o llamada, o menos si pides que los borremos |
+| Copia que recibió una constructora o inmobiliaria | La guarda esa empresa, según su política |
+| Prospectos y contactos de empresas | 12 meses desde el último contacto. Si pediste que no te llamemos, guardamos solo el número, para no volver a marcarlo |
+| Cuentas de clientes | Mientras la cuenta esté activa |
+| CRM de una cuenta que se cierra | Se borra a los 90 días del cierre, salvo un deber legal de conservarlo |
+| Prueba de tus autorizaciones | Mientras tratemos tus datos, y después el tiempo necesario para atender reclamos |
+| Datos técnicos de seguridad | 90 días |
 
 ## 8. Tus derechos
 
-Según la Ley 1581 de 2012, tienes derecho a:
+Según la Ley 1581 de 2012 (art. 8), tienes derecho a:
 
 1. **Conocer, actualizar y rectificar** tus datos.
 2. **Pedir prueba** de la autorización que nos diste.
-3. **Saber cómo hemos usado** tus datos.
-4. **Revocar la autorización y pedir que borremos** tus datos, cuando no exista un deber legal o
-   contractual de conservarlos.
-5. **Acceder gratis** a tus datos.
-6. **Presentar quejas ante la Superintendencia de Industria y Comercio (SIC)**, después de haber hecho tu
-   consulta o reclamo ante nosotros.
+3. **Saber**, si lo pides, **cómo hemos usado** tus datos.
+4. **Presentar quejas ante la Superintendencia de Industria y Comercio (SIC)**, después de haber hecho tu consulta o
+   reclamo ante nosotros.
+5. **Revocar la autorización y pedir que borremos** tus datos, cuando no exista un deber legal o contractual de
+   conservarlos.
+6. **Acceder gratis** a tus datos.
 
 ## 9. Cómo ejercer tus derechos
 
-Escríbenos a **equipo@machea.co** [VERIFICAR, ver la sección 1] con tu nombre, tu correo o teléfono registrado, qué
-pides y, si es un reclamo, los hechos y los documentos que quieras aportar.
+**Quién atiende:** [PENDIENTE: nombre de la persona o área responsable], en [PENDIENTE: correo de la sección 1].
+Escríbenos con:
 
-- **Consultas** (saber qué datos tenemos): respondemos en máximo **10 días hábiles**. Si no alcanzamos, te
-  avisamos y respondemos en máximo 5 días hábiles más.
-- **Reclamos** (corregir, actualizar, borrar o revocar): respondemos en máximo **15 días hábiles**. Si no
-  alcanzamos, te avisamos y respondemos en máximo 8 días hábiles más.
+- tu nombre;
+- el correo o teléfono con que te registraste;
+- qué pides;
+- si es un reclamo, los hechos y los documentos que quieras aportar.
 
-[VERIFICAR: plazos de la Ley 1581 de 2012, artículos 14 y 15.]
+**Consultas** (saber qué datos tenemos y cómo los usamos):
+- Respondemos en máximo **10 días hábiles**.
+- Si no alcanzamos, te avisamos el motivo y respondemos en máximo **5 días hábiles** más. (Ley 1581, art. 14)
 
-Si tienes una cuenta de cliente, también puedes pedirnos que la eliminemos desde el mismo correo.
+**Reclamos** (corregir, actualizar, borrar o revocar):
+- Respondemos en máximo **15 días hábiles**.
+- Si no alcanzamos, te avisamos el motivo y respondemos en máximo **8 días hábiles** más.
+- **Si al reclamo le falta información**, te la pedimos dentro de los 5 días siguientes. Si en 2 meses no la
+  completas, entendemos que desististe.
+- **Mientras lo resolvemos**, marcamos el dato como "reclamo en trámite". (Ley 1581, art. 15)
+
+**Si tus datos ya llegaron a una constructora o inmobiliaria** (sección 6), te decimos a cuál, para que también
+puedas pedirle a ella que los borre. [VERIFICAR: si Machea debe además avisarle a esa empresa.]
+
+Si tienes una cuenta de cliente, puedes pedirnos que la eliminemos desde el mismo correo.
 
 ## 10. Seguridad
 
 Usamos medidas técnicas y organizativas razonables para proteger tus datos:
 
 - conexiones cifradas (HTTPS);
-- contraseñas cifradas;
-- bases de datos sin acceso público directo;
+- contraseñas guardadas con un algoritmo de una sola vía;
+- bases de datos sin acceso público directo, y cada empresa ve solo sus propios datos en su CRM;
 - límites contra intentos repetidos;
 - acceso interno solo para quien lo necesita.
 
-Ningún sistema es infalible. Si ocurre un incidente que afecte tus datos, te avisaremos y avisaremos a la SIC
-como exige la ley.
+Ningún sistema es infalible. Si ocurre un incidente que afecte tus datos, lo informaremos a la SIC y te avisaremos
+cuando corresponda. [VERIFICAR: Ley 1581, art. 17, literal n.]
 
-## 11. Cambios a esta política
+## 11. Vigencia
 
-Si cambiamos esta política de forma importante, lo publicaremos en machea.co con la nueva fecha y, si
-tienes una cuenta, te avisaremos por correo antes de que el cambio aplique.
+Esta política rige desde la fecha de entrada en vigencia que aparece arriba. Las bases de datos se mantienen mientras
+existan las finalidades de la sección 4, con los plazos de la sección 7. (Decreto 1377, art. 13, numeral 6)
 
-## 12. Normas aplicables
+## 12. Cambios a esta política
 
-Ley 1581 de 2012, Decreto 1377 de 2013 (incorporado en el Decreto 1074 de 2015) y demás normas
+Si cambiamos esta política de forma importante, lo publicaremos en machea.co con la nueva fecha **antes de aplicar el
+cambio**. Si tienes una cuenta, te avisaremos por correo. Si el cambio toca las finalidades para las que nos diste tu
+autorización, te pediremos una nueva. [VERIFICAR: Decreto 1377, art. 5 y art. 13, sobre cambios sustanciales.]
+
+## 13. Normas aplicables
+
+Ley 1581 de 2012, Decreto 1377 de 2013 (compilado en el Decreto Único Reglamentario 1074 de 2015) y demás normas
 colombianas sobre protección de datos personales.
 
 ---
 
 > **Lista para publicarla:**
-> - [ ] Completar todos los [PENDIENTE] y confirmar los [VERIFICAR].
-> - [ ] Revisión legal.
-> - [ ] Publicarla en una URL estable, por ejemplo `https://www.machea.co/privacidad/`. Google la exige en la
->   pantalla de consentimiento del botón "Acceder con Google".
-> - [ ] Enlazarla desde el formulario (casilla de Habeas Data), el registro de cuentas, el pie de la landing y
->   el login.
-> - [x] La llamada no se graba (confirmado por Diego, 2026-10-13). Sí se guarda la información que resulta de ella.
-> - [ ] Confirmar con Dapta si conserva el audio o la transcripción de su lado.
-> - [ ] Decidir quién figura como responsable mientras Machea no esté constituida.
-> - [ ] Si se comparten datos de interesados con constructoras o inmobiliarias: decirlo en la casilla del formulario.
+> - [ ] Completar todos los [PENDIENTE] y decidir las [PROPUESTA].
+> - [ ] Pasar REVISION_LEGAL.md por Ariel y por un abogado, y corregir esta política con sus respuestas.
+> - [ ] Publicarla en `https://www.machea.co/privacidad/`. **Hoy el formulario en producción ya enlaza ahí y la página
+>   da 404.**
+> - [ ] Enlazarla desde el pie de la landing y desde "Agenda una demo" (hoy esa casilla no la enlaza).
+> - [ ] Confirmar con Dapta qué guarda de las llamadas de Manuela y de Camila.
+> - [ ] Versionar las autorizaciones de "Agenda una demo" y del registro de cuentas.
+> - [x] La llamada de Manuela no se graba (confirmado por Diego, 2026-10-13).
