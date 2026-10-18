@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --color-marca-50: #eefbf8;
+  --color-marca-100: #d5f4ee;
+  --color-marca-500: #14a38b;
+  --color-marca-600: #0d8a76;
+  --color-marca-700: #0b6f61;
+  --color-marca-800: #0c584e;
+  --color-riel: #10233a;
+  --color-riel-claro: #1b3654;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #eef2f6;
+  color: #1e293b;
+}
+
+/* Barra de desplazamiento discreta en paneles */
+.desplazable::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.desplazable::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* Contenido de artículos (Markdown ya saneado) */
+.contenido-articulo h1,
+.contenido-articulo h2,
+.contenido-articulo h3 {
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+.contenido-articulo h2 {
+  font-size: 1.15rem;
+}
+.contenido-articulo p,
+.contenido-articulo ul,
+.contenido-articulo ol,
+.contenido-articulo blockquote {
+  margin: 0.5rem 0;
+}
+.contenido-articulo ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+.contenido-articulo ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+.contenido-articulo blockquote {
+  border-left: 3px solid #cbd5e1;
+  padding-left: 0.75rem;
+  color: #475569;
+}
+.contenido-articulo a {
+  color: var(--color-marca-700);
+  text-decoration: underline;
+}
+.contenido-articulo code {
+  background: #f1f5f9;
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}

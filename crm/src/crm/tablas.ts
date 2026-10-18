@@ -1,0 +1,28 @@
+import type { PgTable } from "drizzle-orm/pg-core";
+import * as t from "@/db/esquema";
+
+export const tablas: Record<string, PgTable> = {
+  cuentas: t.cuentas,
+  contactos: t.contactos,
+  candidatos: t.candidatos,
+  oportunidades: t.oportunidades,
+  productos: t.productos,
+  "listas-precios": t.listasPrecios,
+  "entradas-lista-precios": t.entradasListaPrecios,
+  "productos-oportunidad": t.productosOportunidad,
+  eventos: t.eventos,
+  tareas: t.tareas,
+  facturas: t.facturas,
+  videollamadas: t.videollamadas,
+  casos: t.casos,
+  "textos-rapidos": t.textosRapidos,
+  "carpetas-texto": t.carpetasTexto,
+  articulos: t.articulos,
+  "sesiones-mensajeria": t.sesionesMensajeria,
+  campanas: t.campanas,
+  "correos-lista": t.correosLista,
+  establecimientos: t.establecimientos,
+  flujos: t.flujos,
+  conexiones: t.conexiones,
+  usuarios: t.usuarios,
+};
