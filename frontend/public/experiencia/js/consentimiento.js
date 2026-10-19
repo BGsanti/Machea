@@ -19,6 +19,7 @@
     registroMachea: 'registro-machea-v1',
     registroMarca: 'registro-marca-v1',
     compartir: 'compartir-v1',
+    demoMarca: 'demo-marca-v1',
   };
   // Nombre para mostrar de las constructoras del catálogo (proyectos_bogota.json trae el slug).
   var CONSTRUCTORAS = {
@@ -43,6 +44,20 @@
     return (marca().slug || 'machea') === 'machea';
   }
 
+  function config() {
+    return window.GDF_CONFIG || {};
+  }
+
+  /**
+   * ¿Es el formulario con la marca de una empresa sin acuerdo firmado? Entonces es solo una demostración: no
+   * guarda datos, no llama y lo dice (Ariel, mensaje 4: nombrar como responsable a una empresa sin acuerdo es un
+   * riesgo alto). La lista de empresas con acuerdo está en config.js (MARCAS_CON_ACUERDO).
+   */
+  function esDemoDeMarca() {
+    if (esFormularioMachea()) return false;
+    return (config().MARCAS_CON_ACUERDO || []).indexOf(marca().slug) === -1;
+  }
+
   function nombreMarca() {
     return (marca().identidad && marca().identidad.nombre) || 'Machea';
   }
@@ -55,6 +70,13 @@
 
   /** La casilla del registro: { version, texto, html }. */
   function registro() {
+    if (esDemoDeMarca()) {
+      var nd = nombreMarca();
+      var textoDemo =
+        'Entiendo que este es un formulario de demostración de Machea: no es un formulario oficial de ' + nd +
+        ', mis datos no se guardan ni se envían a ' + nd + ' y no se hará ninguna llamada.';
+      return { version: VERSION.demoMarca, texto: textoDemo, html: esc(textoDemo) };
+    }
     if (esFormularioMachea()) {
       var texto =
         'Autorizo a Machea a usar mis datos (nombre, correo, teléfono y mis respuestas) para recomendarme ' +
@@ -104,6 +126,8 @@
 
   /** ¿Hay que pedir permiso antes de llamar? Solo si el dueño es otra empresa y no es una demo. */
   function requierePermiso(dueno) {
+    // Apagado hasta que haya empresas clientes con acuerdo (config.js, COMPARTIR_CON_DUENOS).
+    if (!config().COMPARTIR_CON_DUENOS) return false;
     if (!dueno) return false;
     if (window.GDF_DEMO && window.GDF_DEMO.token) return false;
     var propia = marca().constructora;
@@ -129,6 +153,7 @@
   window.GDF = window.GDF || {};
   window.GDF.consentimiento = {
     VERSION: VERSION,
+    esDemoDeMarca: esDemoDeMarca,
     registro: registro,
     duenoDeElegido: duenoDeElegido,
     requierePermiso: requierePermiso,

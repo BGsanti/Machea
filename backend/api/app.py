@@ -331,6 +331,12 @@ MARCAS_CONOCIDAS = {
 }
 
 
+def marcas_con_acuerdo() -> set:
+    """Marcas con acuerdo de encargo firmado (MARCAS_CON_ACUERDO=amarilo,cusezar en Render). Igual que
+    MARCAS_CON_ACUERDO en frontend/public/experiencia/js/config.js."""
+    return {m.strip().lower() for m in os.environ.get("MARCAS_CON_ACUERDO", "").split(",") if m.strip()}
+
+
 class ApartamentoLlamada(BaseModel):
     nombre_proyecto: str
     # Id del proyecto (Compra, `id_proyecto` del catálogo) o del inmueble (Arriendo, `id_inmueble`). Con él, el
@@ -393,6 +399,10 @@ def api_llamar(payload: SolicitudLlamada, request: Request, tareas: BackgroundTa
     datos_demo = demo_mod.verificar(payload.demo) if payload.demo else None
     slug = (payload.marca or "").strip().lower()
     slug = slug if slug in MARCAS_CONOCIDAS else "machea"
+    # Un formulario con la marca de una empresa sin acuerdo es solo una demostración: no llama (el front tampoco lo
+    # pide). Nombrar como responsable a una empresa sin acuerdo es un riesgo alto (design/login/REVISION_LEGAL.md).
+    if slug != "machea" and slug not in marcas_con_acuerdo():
+        raise HTTPException(status_code=403, detail="Este formulario es una demostración: no hace llamadas.")
 
     # Lo que el CRM de la empresa necesita de esta llamada (api/llamadas.py). Las demos con marca no se guardan.
     solicitud = None if datos_demo else llamadas.nueva_solicitud(

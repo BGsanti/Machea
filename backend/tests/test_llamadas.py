@@ -90,6 +90,8 @@ class Base(unittest.TestCase):
 class TestSolicitud(Base):
     def test_se_guarda_con_marca_y_dueno(self):
         p = proyecto_de("amarilo")
+        os.environ["MARCAS_CON_ACUERDO"] = "amarilo"
+        self.addCleanup(os.environ.pop, "MARCAS_CON_ACUERDO", None)
         r = self.llamar(marca="amarilo", apartamento={
             "nombre_proyecto": p["nombre_proyecto"], "id_proyecto": p["id_proyecto"], "localidad": "Suba",
             "tipo_vivienda": "VIS", "precio_desde_cop": 200000000})
@@ -110,6 +112,21 @@ class TestSolicitud(Base):
                                  "localidad": "Suba", "tipo_vivienda": "VIS", "precio_desde_cop": 1,
                                  "dueno_slug": "amarilo"})
         self.assertEqual(self.almacen.solicitudes[0]["dueno_slug"], "cusezar")
+
+    def test_marca_sin_acuerdo_es_demo_y_no_llama(self):
+        os.environ.pop("MARCAS_CON_ACUERDO", None)
+        r = self.llamar(marca="amarilo")
+        self.assertEqual(r.status_code, 403)
+        self.assertIn("demostración", r.json()["detail"])
+        self.assertEqual(FakeCliente.enviados, [])
+        self.assertEqual(self.almacen.solicitudes, [])
+        with mock.patch.dict(os.environ, {"MARCAS_CON_ACUERDO": "cusezar, amarilo "}):
+            self.assertEqual(self.llamar(marca="amarilo").json()["status"], "enviado")
+
+    def test_formulario_de_machea_no_necesita_acuerdo(self):
+        os.environ.pop("MARCAS_CON_ACUERDO", None)
+        self.assertEqual(self.llamar(marca="machea").json()["status"], "enviado")
+        self.assertEqual(self.llamar(telefono="3123506499").json()["status"], "enviado")   # otro número: el tope es por teléfono
 
     def test_marca_desconocida_cae_a_machea_y_sin_id_no_hay_dueno(self):
         self.llamar(marca="inventada")
@@ -141,7 +158,7 @@ class TestSolicitud(Base):
             def crear_solicitud(self, fila):
                 raise RuntimeError("Supabase caído")
         llamadas.configurar_almacen(Roto())
-        self.assertEqual(self.llamar().json()["status"], "enviado")
+        self.assertEqual(self.llamar(telefono="3123506499").json()["status"], "enviado")   # otro número: el tope es por teléfono
 
 
 class TestResultado(Base):

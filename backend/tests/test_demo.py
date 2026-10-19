@@ -362,7 +362,9 @@ class TestLlamadaConMarca(BaseApi):
         self.assertEqual((p["modo_demo"], p["nombre_marca"]), (False, "Machea"))
 
     def test_sin_demo_la_marca_informa_pero_no_cambia_a_manuela(self):
-        p = self.llamar(marca="colsubsidio")
+        # Con acuerdo firmado (MARCAS_CON_ACUERDO), la marca llega a Dapta pero Manuela sigue hablando como Machea.
+        with mock.patch.dict(os.environ, {"MARCAS_CON_ACUERDO": "colsubsidio"}):
+            p = self.llamar(marca="colsubsidio")
         self.assertEqual((p["marca"], p["tipo_cliente"], p["modo_demo"], p["nombre_marca"]),
                          ("colsubsidio", "constructora", False, "Machea"))
         self.assertEqual(self.llamar(marca="bancolombia")["marca"], "machea")

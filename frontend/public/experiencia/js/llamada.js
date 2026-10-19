@@ -128,6 +128,11 @@
    * resumen de verdad (ver verificarResultado más abajo).
    */
   function disparar(state, cb) {
+    // Formulario con la marca de una empresa sin acuerdo: demostración, no se llama a nadie.
+    if (window.GDF.consentimiento && window.GDF.consentimiento.esDemoDeMarca()) {
+      cb({ estado: 'lista', real: false, mensaje: 'Demostración: desde este formulario no se hace ninguna llamada.' });
+      return;
+    }
     var base = (window.GDF_CONFIG || {}).DAPTA_LLAMADA_BASE;
     if (!base) {
       cb({ estado: 'error', mensaje: 'Falta window.GDF_CONFIG.DAPTA_LLAMADA_BASE (ver js/config.js).' });

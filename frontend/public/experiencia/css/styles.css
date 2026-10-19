@@ -6670,3 +6670,57 @@ html[data-demo='1'] .gdf-confirm-llamada--error {
 @media (prefers-reduced-motion: reduce) {
   .gdf-permiso { animation: none; }
 }
+
+/* Aviso de demostración en los formularios con la marca de una empresa sin acuerdo (templates.js,
+   bandaDemoMarca). Va arriba, sobre todo, en todas las pantallas. */
+.gdf-banda-demo {
+  position: sticky;
+  top: 0;
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #1f2e42;
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+.gdf-banda-demo b {
+  font-weight: 700;
+}
+.gdf-banda-demo svg {
+  flex: none;
+}
+/* #root es una fila flex: con el aviso pasa a columna (si no, el aviso queda como una columna a la izquierda) y el
+   shell ocupa el alto que queda. Con #root en el selector le gana a todas las reglas de alto de .gdf-shell. */
+#root:has(> .gdf-banda-demo) {
+  flex-direction: column;
+}
+#root:has(> .gdf-banda-demo) > .gdf-shell {
+  flex: 1 0 auto;
+  min-height: 0;
+}
+/* Pantallas con escena (y escritorio, que fija #root a 100vh): alto acotado, como sin aviso. */
+#root:has(> .gdf-banda-demo):has(.gdf-scene) {
+  height: 100vh;
+  height: 100dvh;
+}
+#root:has(> .gdf-banda-demo):has(.gdf-scene) > .gdf-shell {
+  flex: 1 1 0;
+  height: auto;
+}
+@media (min-width: 900px) {
+  #root:has(> .gdf-banda-demo) > .gdf-shell {
+    flex: 1 1 0;
+    height: auto;
+  }
+}
+@media (max-width: 600px) {
+  .gdf-banda-demo {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}

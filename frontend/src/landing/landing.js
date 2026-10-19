@@ -303,7 +303,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
           <div class="field"><input id="agMail" type="email" placeholder=" " autocomplete="email" value="${esc(resp.correo || '')}"><label for="agMail">Tu correo</label></div>
           <div class="hp" aria-hidden="true"><label>No llenes este campo<input id="agWeb" type="text" tabindex="-1" autocomplete="off"></label></div>
         </div>
-        <label class="ag-consent"><input type="checkbox" id="agAcepto"><span>Autorizo a Machea a tratar mis datos para contactarme sobre esta solicitud, incluida una llamada o mensaje de su equipo o de su agente de voz con IA.</span></label>
+        <label class="ag-consent"><input type="checkbox" id="agAcepto"><span>Autorizo a Machea a tratar mis datos para contactarme sobre esta solicitud, incluida una llamada o mensaje de su equipo o de su agente de voz con IA. <a href="/privacidad/" target="_blank" rel="noopener">Aviso de privacidad</a></span></label>
         <p class="ag-err" id="agErr" role="alert"></p>
         <div class="ag-actions"><button type="button" class="btn btn-coral btn-lg" data-enviar>Enviar solicitud</button></div>`;
     }

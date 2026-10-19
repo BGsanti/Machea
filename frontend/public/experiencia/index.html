@@ -28,7 +28,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="css/styles.css?v=135" />
+    <link rel="stylesheet" href="css/styles.css?v=137" />
   </head>
   <body>
     <div id="root"></div>
@@ -54,7 +54,9 @@
     <script>
       (function () {
         var m = /[?&]marca=([a-z0-9-]+)/.exec(location.search);
-        var slug = (m && m[1]) || 'constructora-bolivar';
+        // Sin ?marca= entra el formulario de Machea. Antes era el de Constructora Bolívar, que nombraba como
+        // responsable de los datos a una empresa con la que no hay acuerdo (design/login/REVISION_LEGAL.md).
+        var slug = (m && m[1]) || 'machea';
         window.GDF_TENANT = slug;
         // MODO EMBEBIDO (`?embed=1`). Hoy lo usa el modal de "¡Empezar mi
         // match!" de la landing de Machea, que monta esta app en un iframe.
@@ -80,7 +82,7 @@
       })();
     </script>
     <!-- traduce la paleta de la marca a las custom properties del :root -->
-    <script src="js/config.js?v=131"></script>
+    <script src="js/config.js?v=132"></script>
     <!-- "Pruébalo con tu marca": funde nombre/logo/textos de la demo en GDF_MARCA.
          Va tras config.js (MACHEA_BASE) y antes de tema.js (que pinta al cargar). -->
     <script src="js/demo.js?v=2"></script>
@@ -127,7 +129,7 @@
          cada pantalla — ver la cabecera de senal.js. -->
     <script src="js/senal.js?v=109"></script>
     <!-- Paso 2 del contrato: dispara la llamada de Manuela vía api.py -->
-    <script src="js/llamada.js?v=111"></script>
+    <script src="js/llamada.js?v=112"></script>
     <!-- el contrato del modelo de recomendacion (Machea) -->
     <script src="js/iconos.js?v=109"></script>
     <!-- los iconos de la interfaz (telefono, alerta, flechas...): sustituyen a
@@ -136,8 +138,8 @@
     <script src="js/machea.js?v=108"></script>
     <script src="js/arriendo.js?v=1"></script>
     <!-- Textos de autorización y la regla de la hoja "Antes de llamarte" (antes de templates y state). -->
-    <script src="js/consentimiento.js?v=1"></script>
-    <script src="js/templates.js?v=126"></script>
+    <script src="js/consentimiento.js?v=2"></script>
+    <script src="js/templates.js?v=127"></script>
     <script src="js/state.js?v=117"></script>
     <!-- plano 3D. El bundle de three va aparte porque la app no tiene bundler,
          y TODOS estos van despues del document.write de arriba: moverlo o
@@ -153,7 +155,7 @@
     <script src="js/plano3d/entorno.js?v=108"></script>
     <script src="js/plano3d/escena.js?v=108"></script>
     <script src="js/plano3d/index.js?v=109"></script>
-    <script src="js/datos.js?v=2"></script>
+    <script src="js/datos.js?v=3"></script>
     <script src="js/main.js?v=125"></script>
   </body>
 </html>

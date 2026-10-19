@@ -2571,6 +2571,17 @@
     );
   }
 
+  // Aviso fijo en los formularios con la marca de una empresa sin acuerdo (js/consentimiento.js).
+  function bandaDemoMarca() {
+    var C = window.GDF.consentimiento;
+    if (!C || !C.esDemoDeMarca()) return '';
+    return (
+      '<div class="gdf-banda-demo" role="note">' + ic('alerta', { tam: 14 }) +
+      '<span><b>Demostración de Machea.</b> No es un formulario oficial de ' + esc(nombreMarca()) +
+      ': no guarda tus datos, no se los envía a esa empresa y no hace llamadas.</span></div>'
+    );
+  }
+
   function renderApp(state, derived) {
     var screenHtml;
     switch (state.screen) {
@@ -2599,6 +2610,7 @@
     // invierte la escena y el panel tiene que poder leerlo en el mismo
     // elemento sobre el que aplica.
     return (
+      bandaDemoMarca() +
       '<div class="gdf-shell"' + (window.GDF_EMBED ? ' data-embed' : '') + '>' + screenHtml + '</div>' +
       visorFotos(state) +
       permisoLlamada(state)

@@ -53,6 +53,15 @@ window.GDF_CONFIG = {
   // ejecutar las 4 funciones SECURITY DEFINER de la migración. Vacías, la
   // app funciona igual: js/datos.js nunca bloquea el formulario si no hay
   // configuración o si Supabase no responde.
+  // DATOS PERSONALES (design/login/REVISION_LEGAL.md y TEXTOS_AUTORIZACION_V2.md).
+  // Marcas con un acuerdo firmado: solo con ellas el formulario con su marca (?marca=) guarda datos y
+  // llama, con Machea como encargado. Cualquier otra marca es SOLO una demostración: no guarda nada ni
+  // llama. El backend tiene la misma lista en MARCAS_CON_ACUERDO.
+  MARCAS_CON_ACUERDO: [],
+  // Compartir el lead con la constructora dueña del proyecto (hoja "Antes de llamarte"). Apagado hasta
+  // que haya empresas clientes con acuerdo: sin eso la hoja pediría permiso para compartir con empresas
+  // que nunca recibirían el lead (Ariel, mensaje 2).
+  COMPARTIR_CON_DUENOS: false,
   SUPABASE_URL: 'https://ndfsrstnzttbmcxukixw.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kZnNyc3RuenR0Ym1jeHVraXh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMDU2NzcsImV4cCI6MjEwNjg4MTY3N30.rs6s2sgh6a7v6PiNqlcmpyATmf9_byjK_ilshg6qBGQ',
 };

@@ -83,7 +83,14 @@
    * él, nunca dejando el botón "Empezar a construir" colgado.
    * cb({ encontrado, consultaId, respuestas, resultados }).
    */
+  // Formulario con la marca de una empresa sin acuerdo: es una demostración y no guarda ni lee nada
+  // (js/consentimiento.js, esDemoDeMarca).
+  function esDemo() {
+    return !!(window.GDF.consentimiento && window.GDF.consentimiento.esDemoDeMarca());
+  }
+
   function buscarResultados(telefono, correo, cb) {
+    if (esDemo()) { cb({ encontrado: false }); return; }
     rpc('buscar_resultados', { p_telefono: telefono, p_correo: correo }, function (datos, error) {
       if (error) {
         console.warn('[GDF/datos] buscar_resultados:', error);
@@ -115,6 +122,7 @@
   }
 
   function guardarConsulta(state, resultado, cb) {
+    if (esDemo()) { if (cb) cb(null); return; }
     var args = {
       p_nombre: state.nombre,
       p_apellido: state.apellido,
@@ -163,6 +171,7 @@
    * Fire-and-forget: un fallo no debe impedir ni retrasar la llamada real.
    */
   function marcarInteres(state) {
+    if (esDemo()) return;
     var proyecto = proyectoElegido(state);
     if (!proyecto) return;
     rpc('marcar_interes', {
@@ -183,6 +192,7 @@
    * seguimiento viene con valor -- es la señal de que Dapta agendó cita.
    */
   function marcarIntencion(state, datosResumen) {
+    if (esDemo()) return;
     var proyecto = proyectoElegido(state);
     if (!proyecto) return;
     var d = datosResumen || {};
