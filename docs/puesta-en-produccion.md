@@ -37,6 +37,9 @@ Carpeta `~/Desktop/MACHEA/SUPABASE/` (copia de `supabase/migrations/`):
 2. Corra, en orden y **una sola vez cada una**, las que salgan en `false`: `1-cuentas_login`, `2-solicitudes_demo`, `3-captacion`, `4-llamadas_y_marca`.
    (Las de Diego no se pueden repetir; si una falla a medias, avise antes de volver a correrla.)
 3. Desde `crm/`: `DATABASE_URL=<cadena con permisos de administrador> pnpm db:migrar` crea el esquema `crm`.
+   **El CRM usa el driver de Node (`pg`), que con `?sslmode=require` verifica el certificado y falla con `self-signed certificate in certificate chain`**
+   (el certificado del pooler de Supabase lo firma su propia entidad). Para el CRM, tanto en esta migración como en Vercel, termine la cadena en
+   `?sslmode=no-verify` (cifra igual; es lo mismo que hace `psycopg` en Render con `require`). Render sigue con `?sslmode=require`.
 4. Corra `6-crm_ingesta.sql` (crea el rol `crm_app` y los triggers). Después ponga la clave del rol a mano:
    `alter role crm_app with password '<clave larga>';` — nunca en el repo ni en un chat.
 5. Verifique con `0-que-falta.sql`: todo en `true`.
@@ -57,7 +60,7 @@ Carpeta `~/Desktop/MACHEA/SUPABASE/` (copia de `supabase/migrations/`):
 
 ### 6. Vercel
 - Proyecto del front (el actual): `VITE_CRM_URL=https://www.machea.co/crm` enciende el botón «Abrir el CRM» en `/inicio/`.
-- **Proyecto nuevo del CRM**, raíz `crm/`: `DATABASE_URL` (con el rol `crm_app`), `AUTH_MODO=machea`, `MACHEA_URL=https://www.machea.co`,
+- **Proyecto nuevo del CRM**, raíz `crm/`: `DATABASE_URL` (con el rol `crm_app`, terminada en `?sslmode=no-verify`, no `require`), `AUTH_MODO=machea`, `MACHEA_URL=https://www.machea.co`,
   `CRM_MIGRAR_AL_ARRANCAR=false`, `CRM_BASE_PATH=/crm`, `CRM_ORIGENES=www.machea.co`. Más detalle en `crm/.env.example`.
 - **Último paso, el que lo enciende:** agregar a `frontend/vercel.json` el rewrite `/crm/:path*` hacia ese proyecto.
 
