@@ -496,7 +496,7 @@ def procesar_resultado(body: Dict[str, Any]) -> Dict[str, Any]:
     razon = str(llamada.get("disconnection_reason") or "").lower()
     sin_contacto = razon in seguimiento.SIN_CONTACTO or bool(analisis.get("in_voicemail"))
     resumen = datos.get("resumen_llamada") or analisis.get("call_summary") or ""
-    if sin_contacto and (not resumen or re.search(r"voicemail|skipped|no answer|busy", str(resumen), re.I)):
+    if sin_contacto and (not resumen or re.search(r"voicemail|skipped|no answer|not answered|unanswered|unavailable|busy", str(resumen), re.I)):
         resumen = "No se llegó a hablar: buzón de voz, ocupado, sin respuesta o filtro de llamadas."
     try:
         dur = int(llamada.get("duration_ms") or 0)

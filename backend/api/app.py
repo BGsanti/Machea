@@ -601,7 +601,7 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     razon_corte = str(llamada.get("disconnection_reason") or "").lower()
     sin_contacto = razon_corte in seguimiento.SIN_CONTACTO or bool(analisis.get("in_voicemail"))
     resumen_dapta = datos.get("resumen_llamada") or analisis.get("call_summary")
-    if sin_contacto and (not resumen_dapta or re.search(r"voicemail|skipped|no answer|busy", str(resumen_dapta), re.I)):
+    if sin_contacto and (not resumen_dapta or re.search(r"voicemail|skipped|no answer|not answered|unanswered|unavailable|busy", str(resumen_dapta), re.I)):
         resumen_dapta = ("No se llegó a hablar: la llamada se fue al buzón de voz o a un filtro de llamadas del teléfono "
                          "(en iPhone: Ajustes > Teléfono > Filtrar llamadas de desconocidos).")
 

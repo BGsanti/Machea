@@ -80,6 +80,16 @@ class TestSinContacto(unittest.TestCase):
         self.assertEqual(d["motivo_no_agenda"], "buzon")
         self.assertIn("WhatsApp", d["recomendacion_asesor"])
 
+    def test_nadie_contesto_tambien_se_explica_en_espanol(self):
+        # Caso real (2026-10-20): la red devolvió SIP 480 «Temporarily not available» y Dapta resumió en inglés.
+        b = cuerpo({}, tel="+573005912503", razon="dial_no_answer", dur=0)
+        b["data"]["call_analysis"] = {"call_summary": "Call was not answered by the recipient", "in_voicemail": False, "custom_analysis_data": {}}
+        self.c.post("/webhooks/dapta/resultado", json=b)
+        d = self.c.get("/api/llamar/resultado", params={"telefono": "3005912503"}).json()
+        self.assertTrue(d["sin_contacto"])
+        self.assertNotIn("answered", d["resumen_llamada"].lower())
+        self.assertIn("WhatsApp", d["recomendacion_asesor"])
+
     def test_una_llamada_con_conversacion_no_es_sin_contacto(self):
         self.c.post("/webhooks/dapta/resultado", json=cuerpo({"estado_del_lead": "qualified"}))
         d = self.c.get("/api/llamar/resultado", params={"telefono": "3001112233"}).json()
