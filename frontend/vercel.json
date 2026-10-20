@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/crm/",
+      "destination": "/crm",
+      "permanent": false
+    },
+    {
+      "source": "/crm/:ruta+/",
+      "destination": "/crm/:ruta+",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/cuentas",
