@@ -77,7 +77,7 @@ La idea: quien recibe muchos leads, invierte en pauta y los atiende tarde es qui
 ## 5. Ponerla a funcionar (en este orden)
 
 **Estado al 2026-10-18.** Hecho en Dapta (workspace *Machea*, `c61858f2-35db-491a-a2ef-ff4e4b24ffc4`): el agente **«Camila — Machea Captación»**
-(`f4c71126-0ff8-4ea6-9c1f-5a0c028cb6d7`, voz *Angie vendedora Colombiana*, gpt-5, detección de buzón apagada, sensibilidad 0,6, 20 variables
+(`f4c71126-0ff8-4ea6-9c1f-5a0c028cb6d7`, voz *Andrea vendedora paisa* (desde 2026-10-20; antes *Angie*, de Bogotá), gpt-5, detección de buzón apagada, sensibilidad 0,6, 20 variables
 post-llamada, webhook puesto) y el flow **«Machea - Captación: disparador de llamadas»** (`htrqM`). Pendiente: Supabase (§5.1) y Render (§5.4).
 El código de los nodos del flow está en `backend/dapta/flow-captacion-preparar.js` (valida el teléfono y calcula el calendario de 10 días con
 festivos). Camila llama desde el mismo número que Manuela (`+14432930308`, el único del workspace): si un prospecto devuelve la llamada, contesta
@@ -139,6 +139,10 @@ flow y la clave de API del workspace de Machea.
 | `CAPTACION_API_KEY` | 24+ caracteres al azar, para el importador y el cron |
 | `CAPTACION_LLAMAR_DEMOS` | `true` cuando Camila deba llamar sola a quien pide la demo en la landing |
 | `CAPTACION_LLAMADAS_DIA` | tope diario de llamadas de captación (por defecto 60) |
+
+### Historial de afinación (2026-10-20)
+- **Primera llamada real** (a un número propio, modo frío, 2 min): conectó, calificó (500 leads/mes, un día de demora, 5 a 7 millones de pauta → score A, 75 puntos) y todo quedó guardado en Supabase. Observaciones del equipo: sonaba **estática y poco fluida**, el inicio no captaba la atención, y faltaba acento paisa. Además repreguntaba para confirmar cada cifra y gastó los 2 minutos sin llegar a proponer la demo.
+- **v2 del prompt**: personalidad paisa de Medellín con medida, apertura con gancho (beneficio en la primera frase), reacciones distintas a lo que dice la persona, gancho con el dato de los cinco minutos, **sin repreguntas de confirmación** y paso a la agenda tras dos o tres respuestas. Voz *Andrea vendedora paisa* (la única paisa del catálogo; es la misma de Manuela), `enable_backchannel` encendido (los «ajá» mientras escucha), respuesta al máximo y velocidad 1,05.
 
 ### 5.5 Primera llamada de prueba
 1. Con `CAPTACION_LLAMAR_DEMOS` aún apagado, importar **un** prospecto con un número propio y llamarlo a mano:
