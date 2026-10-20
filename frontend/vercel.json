@@ -23,6 +23,14 @@
     {
       "source": "/api/clave/:ruta*",
       "destination": "https://machea-api.onrender.com/api/clave/:ruta*"
+    },
+    {
+      "source": "/crm",
+      "destination": "https://machea2.vercel.app/crm"
+    },
+    {
+      "source": "/crm/:path*",
+      "destination": "https://machea2.vercel.app/crm/:path*"
     }
   ],
   "headers": [
