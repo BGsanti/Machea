@@ -77,16 +77,20 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
     jorge: await nuevo("contactos", { tratamiento: "Sr.", nombre: "Jorge", apellidos: "Mendoza", cuentaId: cuentas.logistica, cargo: "Coordinador logístico", email: "jorge@logisticaexpress.example", telefono: "+57 301 555 0501" }),
   };
 
-  const candidatos = [
-    { nombre: "Valentina", apellidos: "Ríos", compania: "Panadería La Espiga", estado: "nuevo", valoracion: "caliente", origen: "web", sector: "alimentos", ciudad: "Pereira", estadoProvincia: "Risaralda", email: "valentina@laespiga.example", telefono: "+57 312 555 1001" },
-    { nombre: "Santiago", apellidos: "Herrera", compania: "AgroSur", estado: "contactado", valoracion: "tibio", origen: "feria", sector: "agricultura", ciudad: "Neiva", estadoProvincia: "Huila", email: "santiago@agrosur.example" },
-    { nombre: "Mariana", apellidos: "López", compania: "EduTech Colombia", estado: "en_seguimiento", valoracion: "tibio", origen: "referencia_externa", sector: "educacion", ciudad: "Bogotá", estadoProvincia: "Cundinamarca", email: "mariana@edutech.example" },
-    { nombre: "Daniel", apellidos: "Castro", compania: "Ferretería El Tornillo", estado: "nuevo", valoracion: "frio", origen: "publicidad", sector: "comercio", ciudad: "Bucaramanga", estadoProvincia: "Santander", telefono: "+57 317 555 1004" },
-    { nombre: "Isabella", apellidos: "Moreno", compania: "Hotel Mar Azul", estado: "calificado", valoracion: "caliente", origen: "socio", sector: "hoteleria", ciudad: "Santa Marta", estadoProvincia: "Magdalena", email: "reservas@marazul.example" },
-    { nombre: "Tomás", apellidos: "Jiménez", compania: "Energía Solar Andes", estado: "contactado", valoracion: "caliente", origen: "web", sector: "energia", ciudad: "Manizales", estadoProvincia: "Caldas", email: "tomas@solarandes.example", numeroEmpleados: 45, ingresosAnuales: 3200000000 },
-    { nombre: "Sofía", apellidos: "Ramírez", compania: "Consultores Ramírez", estado: "no_calificado", valoracion: "frio", origen: "boca_a_boca", sector: "consultoria", ciudad: "Cartagena", estadoProvincia: "Bolívar" },
+  // Leads de compradores, como los que entran por el formulario de Machea: la persona es el cliente.
+  const compradores = [
+    { nombre: "Valentina", apellidos: "Ríos", estado: "nuevo", valoracion: "caliente", origen: "formulario_marca", ciudad: "Bogotá", estadoProvincia: "Cundinamarca", email: "valentina.rios@correo.example", telefono: "+57 312 555 1001", proyecto: "Torres de Chapinero" },
+    { nombre: "Santiago", apellidos: "Herrera", estado: "contactado", valoracion: "tibio", origen: "proyecto_machea", ciudad: "Medellín", estadoProvincia: "Antioquia", email: "santiago.herrera@correo.example", telefono: "+57 315 555 1002", proyecto: "Altos del Poblado" },
+    { nombre: "Mariana", apellidos: "López", estado: "en_seguimiento", valoracion: "tibio", origen: "web", ciudad: "Bogotá", estadoProvincia: "Cundinamarca", email: "mariana.lopez@correo.example", telefono: "+57 300 555 1003", proyecto: "Parque Fontibón" },
+    { nombre: "Daniel", apellidos: "Castro", estado: "nuevo", valoracion: "frio", origen: "publicidad", ciudad: "Soacha", estadoProvincia: "Cundinamarca", email: "daniel.castro@correo.example", telefono: "+57 320 555 1004", proyecto: "Ciudadela Sol" },
+    { nombre: "Isabella", apellidos: "Moreno", estado: "calificado", valoracion: "caliente", origen: "formulario_marca", ciudad: "Bogotá", estadoProvincia: "Cundinamarca", email: "isabella.moreno@correo.example", telefono: "+57 311 555 1005", proyecto: "Torres de Chapinero" },
+    { nombre: "Tomás", apellidos: "Jiménez", estado: "contactado", valoracion: "caliente", origen: "proyecto_machea", ciudad: "Medellín", estadoProvincia: "Antioquia", email: "tomas.jimenez@correo.example", telefono: "+57 318 555 1006", proyecto: "Altos del Poblado" },
+    { nombre: "Sofía", apellidos: "Ramírez", estado: "no_calificado", valoracion: "frio", origen: "web", ciudad: "Bogotá", estadoProvincia: "Cundinamarca", email: "sofia.ramirez@correo.example", telefono: "+57 301 555 1007", proyecto: "Parque Fontibón" },
   ];
-  for (const c of candidatos) await nuevo("candidatos", { ...c, pais: "Colombia" });
+  const idsCompradores: string[] = [];
+  for (const { proyecto, ...c } of compradores) {
+    idsCompradores.push(await nuevo("candidatos", { ...c, pais: "Colombia", descripcion: `Pidió hablar con un asesor sobre **${proyecto}**.` }));
+  }
 
   const [estandar] = await db
     .select()
@@ -165,6 +169,68 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
   ];
   for (const t of tareas) await nuevo("tareas", t);
 
+  // Llamadas de Manuela de ejemplo, con la forma que les deja la ingesta (ingesta.ts). Si ya se cargaron, no se repiten.
+  const llamadasManuela = [
+    {
+      i: 0,
+      proyecto: "Torres de Chapinero",
+      temp: "caliente",
+      resumen: "Valentina busca un apartamento de 2 alcobas para vivir con su pareja y tiene la cuota inicial lista. Preguntó por el subsidio Mi Casa Ya y por el tiempo de entrega.",
+      recomendacion: "Llámela hoy y ofrezca visitar la sala de ventas el sábado. Tenga a mano el valor de la cuota mensual y los requisitos del subsidio.",
+      objecion: "Quiere confirmar que el proyecto entrega a tiempo.",
+      cita: null as Date | null,
+    },
+    {
+      i: 4,
+      proyecto: "Torres de Chapinero",
+      temp: "caliente",
+      resumen: "Isabella ya conoce el proyecto y quiere ver el apartamento modelo. Confirmó presupuesto y que decide ella sola.",
+      recomendacion: "Confirme la visita un día antes y lleve la simulación del crédito.",
+      objecion: null as string | null,
+      cita: hora(2, 10, 30),
+    },
+    {
+      i: 5,
+      proyecto: "Altos del Poblado",
+      temp: "caliente",
+      resumen: "Tomás pide un apartamento de 3 alcobas con parqueadero doble. Comparó dos proyectos y espera una respuesta esta semana.",
+      recomendacion: "Envíe hoy la ficha con los precios y proponga una llamada corta mañana para resolver dudas.",
+      objecion: "El precio frente a otro proyecto de la zona.",
+      cita: null as Date | null,
+    },
+  ];
+  for (const l of llamadasManuela) {
+    const persona = idsCompradores[l.i];
+    if (!persona) continue;
+    try {
+      await nuevo("tareas", {
+        asunto: `Llamada de Manuela – ${l.proyecto}`,
+        tipo: "llamada",
+        estado: "completada",
+        fechaVencimiento: dia(0),
+        prioridad: "alta",
+        comentarios: [l.resumen, `Recomendación para el asesor: ${l.recomendacion}`, l.objecion ? `Objeción principal: ${l.objecion}` : null, `Temperatura: ${l.temp}`].filter(Boolean).join("\n\n"),
+        quienObjeto: "candidatos",
+        quienId: persona,
+        origenExterno: `llamada:ejemplo-${l.i}`,
+      });
+      if (l.cita) {
+        await nuevo("eventos", {
+          asunto: `Cita – ${l.proyecto}`,
+          descripcion: "Agendada por Manuela.",
+          inicio: l.cita,
+          fin: new Date(l.cita.getTime() + 3600000),
+          ubicacion: "Sala de ventas",
+          quienObjeto: "candidatos",
+          quienId: persona,
+          origenExterno: `cita:ejemplo-${l.i}`,
+        });
+      }
+    } catch {
+      // Ya estaban cargadas (origen externo repetido).
+    }
+  }
+
   await nuevo("articulos", {
     titulo: "Cómo exportar un informe a Excel",
     contenido: "## Pasos\n\n1. Abra el informe en **Análisis**.\n2. Pulse **Exportar**.\n3. Elija el formato CSV y ábralo con Excel.\n\n> Si el archivo sale con caracteres extraños, ábralo desde *Datos > Desde texto* y elija UTF-8.",
@@ -195,14 +261,14 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
 
   await db.insert(flujos).values({
     empresaId,
-    nombre: "Seguimiento de candidatos calientes",
-    descripcion: "Crea una tarea de llamada y avisa al propietario cuando entra un candidato con valoración Caliente.",
+    nombre: "Seguimiento de leads calientes",
+    descripcion: "Crea una tarea de llamada y avisa al propietario cuando entra un lead con temperatura Caliente.",
     objeto: "candidatos",
     disparador: "crear_o_actualizar",
     condiciones: [{ campo: "valoracion", operador: "igual", valor: "caliente" }, { campo: "valoracion", operador: "cambia" }],
     acciones: [
-      { tipo: "crear_tarea", asunto: "Llamar al candidato en menos de 24 horas", diasVencimiento: 1, prioridad: "alta" },
-      { tipo: "notificar", titulo: "Nuevo candidato caliente", mensaje: "Revise y contacte pronto" },
+      { tipo: "crear_tarea", asunto: "Llamar al lead en menos de 24 horas", diasVencimiento: 1, prioridad: "alta" },
+      { tipo: "notificar", titulo: "Nuevo lead caliente", mensaje: "Revise y contacte pronto" },
     ],
     activo: true,
     propietarioId: usuarioId,

@@ -19,7 +19,7 @@ import {
   productosOportunidad,
   tareas,
 } from "@/db/esquema";
-import { hoyMas } from "../fechas";
+import { fechaLocal, hoyMas } from "../fechas";
 import type { EstadoAccion } from "./acciones";
 import { obtenerConfiguracion } from "./consultas";
 import * as repo from "./repositorio";
@@ -396,6 +396,57 @@ export async function completarTarea(id: string, completada: boolean): Promise<E
     await repo.actualizar("tareas", id, { estado: completada ? "completada" : "no_iniciada" }, usuario.id);
     revalidatePath("/", "layout");
     return { ok: true };
+  } catch (e) {
+    return error(e);
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Resultado de una llamada en dos toques
+// ---------------------------------------------------------------------------
+
+export type ResultadoLlamada = "contesto_interesado" | "contesto_no_interesado" | "no_contesto" | "numero_equivocado";
+
+const RESULTADOS: Record<ResultadoLlamada, { asunto: string; estadoLead: string | null; desdeEstados: string[]; volverALlamar: boolean }> = {
+  contesto_interesado: { asunto: "Llamada: contestó y está interesado", estadoLead: "en_seguimiento", desdeEstados: ["nuevo", "contactado"], volverALlamar: false },
+  contesto_no_interesado: { asunto: "Llamada: contestó, no le interesa", estadoLead: "no_calificado", desdeEstados: ["nuevo", "contactado", "en_seguimiento"], volverALlamar: false },
+  no_contesto: { asunto: "Llamada: no contestó", estadoLead: "contactado", desdeEstados: ["nuevo"], volverALlamar: true },
+  numero_equivocado: { asunto: "Llamada: número equivocado", estadoLead: "no_calificado", desdeEstados: ["nuevo", "contactado", "en_seguimiento"], volverALlamar: false },
+};
+
+/**
+ * Deja constancia de una llamada con un solo clic sobre el resultado: crea la tarea de llamada ya completada,
+ * mueve el estado del lead si corresponde y, si no contestó, deja «Volver a llamar» para mañana.
+ */
+export async function registrarResultadoLlamada(objeto: string, id: string, resultado: ResultadoLlamada, nota?: string): Promise<EstadoAccion> {
+  const usuario = await requerirUsuario();
+  const def = RESULTADOS[resultado];
+  if (!def || !["candidatos", "contactos"].includes(objeto)) return { ok: false, mensaje: "Resultado no válido." };
+  try {
+    const persona = await repo.obtener(objeto, id);
+    if (!persona) return { ok: false, mensaje: "El registro ya no existe." };
+    const quien = { quienObjeto: objeto, quienId: id };
+    await repo.crear(
+      "tareas",
+      {
+        asunto: def.asunto,
+        tipo: "llamada",
+        estado: "completada",
+        fechaVencimiento: fechaLocal(),
+        comentarios: nota?.trim() ? nota.trim().slice(0, 2000) : null,
+        ...quien,
+      },
+      usuario.id,
+    );
+    if (objeto === "candidatos" && def.estadoLead && def.desdeEstados.includes(String(persona.estado ?? ""))) {
+      await repo.actualizar("candidatos", id, { estado: def.estadoLead }, usuario.id);
+    }
+    if (def.volverALlamar) {
+      await repo.crear("tareas", { asunto: "Volver a llamar", tipo: "llamada", estado: "no_iniciada", fechaVencimiento: hoyMas(1), ...quien }, usuario.id);
+    }
+    revalidatePath("/", "layout");
+    return { ok: true, mensaje: def.volverALlamar ? "Registrado. Quedó «Volver a llamar» para mañana." : "Llamada registrada." };
   } catch (e) {
     return error(e);
   }

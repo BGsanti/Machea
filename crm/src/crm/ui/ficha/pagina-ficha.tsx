@@ -7,11 +7,14 @@ import { formatoMoneda, formatoNumero, nombreVisible, type FilaConNombres } from
 import { markdownSeguro } from "../../markdown";
 import { campoDe, obtenerObjeto } from "../../objetos";
 import { lineasDe, miembrosDe, obtenerConfiguracion } from "../../servidor/consultas";
-import { actividadesDe, obtener, registrarVisto, relacionados } from "../../servidor/repositorio";
+import { actividadesDe, obtener, registrarVisto, relacionados, ultimaLlamadaManuela } from "../../servidor/repositorio";
 import type { DefObjeto } from "../../tipos";
 import { ValorCampo } from "../valor-campo";
+import { AccionesContacto } from "../acciones-contacto";
+import { ResultadoLlamadaBoton } from "../resultado-llamada";
 import { AccionesFicha } from "./acciones-ficha";
 import { NuevoRelacionado, PanelActividad } from "./actividad";
+import { TarjetaLlamadaManuela } from "./llamada-manuela";
 import { MiembrosCampana } from "./miembros";
 import { Pestanas } from "./pestanas";
 import { Ruta } from "./ruta";
@@ -109,6 +112,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
   const actividades = def.actividades ? await actividadesDe(id) : null;
   const lineas = objeto === "facturas" ? await lineasDe(id) : [];
   const miembros = objeto === "campanas" ? await miembrosDe(id) : [];
+  const llamadaManuela = personas.includes(objeto) ? await ultimaLlamadaManuela(id) : null;
   const campoRuta = def.campoRuta ? campoDe(def, def.campoRuta) : undefined;
 
   const panelRelacionado =
@@ -248,6 +252,8 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {personas.includes(objeto) && fila.telefono ? <AccionesContacto telefono={fila.telefono} nombre={nombre} tamano="md" /> : null}
+            {personas.includes(objeto) && !fila.convertido ? <ResultadoLlamadaBoton objeto={objeto} id={id} /> : null}
             <AccionesFicha objeto={objeto} app={app} fila={fila} nombre={nombre} />
           </div>
         </div>
@@ -303,6 +309,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
           </div>
         ) : null}
       </div>
+      {llamadaManuela ? <TarjetaLlamadaManuela llamada={llamadaManuela} /> : null}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <Pestanas pestanas={pestanas} inicial={actividades ? "detalles" : undefined} />
       </div>

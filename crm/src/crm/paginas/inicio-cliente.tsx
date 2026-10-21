@@ -12,61 +12,77 @@ import { ocultarSugerencia, restaurarSugerencias } from "../servidor/sistema";
 import { FormularioRegistro } from "../ui/formulario-registro";
 import { Grafico } from "../ui/graficos";
 
-export interface Sugerencia {
+export interface PasoInicial {
   id: string;
   titulo: string;
   texto: string;
   href: string;
   icono: string;
+  hecho: boolean;
 }
 
-export function Bienvenida({ sugerencias, ocultas }: { sugerencias: Sugerencia[]; ocultas: number }) {
-  const [abierta, setAbierta] = useState(true);
+/** «Primeros pasos»: lo mínimo para sacarle provecho al panel, con progreso. Se esconde al terminar. */
+export function PrimerosPasos({ pasos, esAdmin, sinLeads, oculto }: { pasos: PasoInicial[]; esAdmin: boolean; sinLeads: boolean; oculto: boolean }) {
   const [, iniciar] = useTransition();
+  const hechos = pasos.filter((p) => p.hecho).length;
+  const porcentaje = Math.round((hechos / pasos.length) * 100);
+
+  if (oculto) {
+    return (
+      <button type="button" onClick={() => iniciar(async () => restaurarSugerencias())} className="text-sm text-marca-700 hover:underline">
+        Mostrar los primeros pasos ({hechos} de {pasos.length})
+      </button>
+    );
+  }
+
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
+    <section className="animate-subir rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-slate-800">Primeros pasos</h2>
-          <p className="mt-1 text-sm text-slate-500">Sugerencias para sacarle provecho al panel desde el primer día.</p>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {hechos} de {pasos.length} listos. Cada paso le deja el panel más útil.
+          </p>
         </div>
-        <button type="button" onClick={() => setAbierta(!abierta)} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={abierta ? "Ocultar sugerencias" : "Mostrar sugerencias"}>
-          <Icono nombre={abierta ? "ChevronDown" : "ChevronRight"} />
+        <button
+          type="button"
+          onClick={() => iniciar(async () => ocultarSugerencia("primeros-pasos"))}
+          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          aria-label="Ocultar los primeros pasos"
+          title="Ocultar"
+        >
+          <Icono nombre="X" />
         </button>
       </div>
-      {abierta ? (
-        sugerencias.length ? (
-          <ul className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {sugerencias.map((s) => (
-              <li key={s.id} className="relative rounded-xl bg-slate-50 p-5">
-                <button
-                  type="button"
-                  onClick={() => iniciar(async () => ocultarSugerencia(s.id))}
-                  className="absolute top-3 right-3 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                  aria-label="Descartar esta sugerencia"
-                >
-                  <Icono nombre="X" />
-                </button>
-                <span className="inline-flex size-9 items-center justify-center rounded-full bg-marca-100 text-marca-700">
-                  <Icono nombre={s.icono} />
-                </span>
-                <Link href={s.href} className="mt-3 block text-base font-medium text-marca-700 hover:underline">
-                  {s.titulo}
-                </Link>
-                <p className="mt-1 text-sm text-slate-600">{s.texto}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-4 text-sm text-slate-600">
-            No quedan sugerencias.{" "}
-            {ocultas ? (
-              <button type="button" onClick={() => iniciar(async () => restaurarSugerencias())} className="text-marca-700 hover:underline">
-                Volver a mostrar todas las tarjetas
-              </button>
-            ) : null}
-          </p>
-        )
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={porcentaje} aria-valuemin={0} aria-valuemax={100}>
+        <div className="h-full rounded-full bg-marca-500 transition-[width] duration-700 ease-out" style={{ width: `${porcentaje}%` }} />
+      </div>
+      <ul className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {pasos.map((p) => (
+          <li key={p.id}>
+            <Link
+              href={p.href}
+              className={`group block h-full rounded-xl border p-4 transition-[border-color,background-color,transform] duration-150 hover:-translate-y-0.5 ${
+                p.hecho ? "border-emerald-200 bg-emerald-50/60" : "border-slate-200 bg-slate-50 hover:border-marca-500"
+              }`}
+            >
+              <span className={`inline-flex size-8 items-center justify-center rounded-full ${p.hecho ? "bg-emerald-100 text-emerald-700" : "bg-marca-100 text-marca-700"}`}>
+                <Icono nombre={p.hecho ? "Check" : p.icono} className="size-4" />
+              </span>
+              <span className={`mt-3 block text-sm font-semibold ${p.hecho ? "text-emerald-800" : "text-slate-800 group-hover:text-marca-700"}`}>{p.titulo}</span>
+              <span className="mt-0.5 block text-xs text-slate-500">{p.texto}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {esAdmin && sinLeads ? (
+        <p className="mt-4 text-sm text-slate-500">
+          ¿Quiere ver el panel con datos?{" "}
+          <Link href="/configuracion" className="text-marca-700 hover:underline">
+            Cargar datos de ejemplo
+          </Link>
+          .
+        </p>
       ) : null}
     </section>
   );

@@ -1,12 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { Icono } from "./icono";
+
+type TipoAviso = "exito" | "error" | "info" | "caliente";
 
 interface Aviso {
   id: number;
   texto: string;
-  tipo: "exito" | "error" | "info";
+  tipo: TipoAviso;
+  accion?: { texto: string; href: string };
 }
 
 let avisos: Aviso[] = [];
@@ -18,11 +22,11 @@ function emitir() {
 }
 
 /** Muestra un aviso temporal en la esquina de la pantalla. */
-export function avisar(texto: string, tipo: Aviso["tipo"] = "exito") {
+export function avisar(texto: string, tipo: TipoAviso = "exito", opciones?: { accion?: Aviso["accion"]; duracion?: number }) {
   const id = siguiente++;
-  avisos = [...avisos, { id, texto, tipo }];
+  avisos = [...avisos, { id, texto, tipo, accion: opciones?.accion }];
   emitir();
-  setTimeout(() => cerrar(id), tipo === "error" ? 7000 : 4000);
+  setTimeout(() => cerrar(id), opciones?.duracion ?? (tipo === "error" ? 7000 : 4000));
 }
 
 function cerrar(id: number) {
@@ -46,12 +50,20 @@ export function Avisos() {
         <div
           key={a.id}
           role="status"
-          className={`pointer-events-auto flex max-w-xl items-start gap-3 rounded-lg px-4 py-3 text-sm text-white shadow-lg ${
-            a.tipo === "error" ? "bg-rose-700" : a.tipo === "info" ? "bg-slate-800" : "bg-emerald-700"
+          className={`animate-deslizar pointer-events-auto flex max-w-xl items-start gap-3 rounded-lg px-4 py-3 text-sm text-white shadow-lg ${
+            a.tipo === "error" ? "bg-rose-700" : a.tipo === "info" ? "bg-slate-800" : a.tipo === "caliente" ? "bg-marca-700" : "bg-emerald-700"
           }`}
         >
-          <Icono nombre={a.tipo === "error" ? "TriangleAlert" : a.tipo === "info" ? "Info" : "CircleCheck"} className="mt-0.5 size-4 shrink-0" />
+          <Icono
+            nombre={a.tipo === "error" ? "TriangleAlert" : a.tipo === "info" ? "Info" : a.tipo === "caliente" ? "Flame" : "CircleCheck"}
+            className="mt-0.5 size-4 shrink-0"
+          />
           <span className="flex-1">{a.texto}</span>
+          {a.accion ? (
+            <Link href={a.accion.href} onClick={() => cerrar(a.id)} className="rounded bg-white/20 px-2 py-0.5 text-xs font-semibold hover:bg-white/30">
+              {a.accion.texto}
+            </Link>
+          ) : null}
           <button type="button" onClick={() => cerrar(a.id)} className="opacity-80 hover:opacity-100" aria-label="Cerrar aviso">
             <Icono nombre="X" />
           </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { avisar } from "@/ui/avisos";
 import { Boton } from "@/ui/boton";
 import { Icono } from "@/ui/icono";
@@ -15,7 +15,7 @@ export function Ruta({
   campo,
   etiquetaCampo,
   opciones,
-  actual,
+  actual: actualServidor,
   finalesNegativos = [],
   finales = [],
 }: {
@@ -31,12 +31,16 @@ export function Ruta({
 }) {
   const [elegida, setElegida] = useState<string | null>(null);
   const [pendiente, iniciar] = useTransition();
+  // La etapa se ve cambiada al instante; si el servidor falla, vuelve sola a la anterior.
+  const [actual, setActual] = useOptimistic(actualServidor);
   const indiceActual = opciones.findIndex((o) => o.valor === actual);
   const seleccion = elegida ?? actual;
   const siguiente = finales.includes(actual ?? "") ? undefined : opciones[indiceActual + 1];
 
   const guardar = (valor: string) =>
     iniciar(async () => {
+      setActual(valor);
+      setElegida(null);
       const r = await actualizarCampo(objeto, id, campo, valor);
       avisar(r.ok ? `${etiquetaCampo}: ${opciones.find((o) => o.valor === valor)?.etiqueta}` : (r.mensaje ?? "Error"), r.ok ? "exito" : "error");
       if (r.ok) setElegida(null);

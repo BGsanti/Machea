@@ -4,6 +4,7 @@ import { requerirUsuario } from "@/auth/sesion";
 import { notificacionesDe, obtenerConfiguracion, tareasAbiertas } from "@/crm/servidor/consultas";
 import { procesarBandeja } from "@/crm/servidor/ingesta";
 import { BarraApps } from "@/crm/ui/shell/barra-apps";
+import { AvisosEnVivo } from "@/crm/ui/shell/avisos-en-vivo";
 import { BarraUtilidades } from "@/crm/ui/shell/barra-utilidades";
 import { Cabecera } from "@/crm/ui/shell/cabecera";
 
@@ -21,6 +22,7 @@ export default async function LayoutCrm({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen overflow-hidden">
       <BarraApps empresa={config.nombreEmpresa} />
+      <AvisosEnVivo />
       <div className="flex min-w-0 flex-1 flex-col">
         <Cabecera
           usuario={usuario}

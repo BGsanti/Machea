@@ -15,7 +15,7 @@ const estilos: Record<Variante, string> = {
 
 export function clasesBoton(variante: Variante = "secundario", tamano: "sm" | "md" = "md", extra?: string) {
   return clsx(
-    "inline-flex items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600",
+    "inline-flex items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600",
     tamano === "sm" ? "h-8 px-2.5 text-xs" : "h-9 px-3.5 text-sm",
     estilos[variante],
     extra,

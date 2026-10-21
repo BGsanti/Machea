@@ -4,17 +4,19 @@ import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
 import { candidatos, casos, eventos, oportunidades, tareas } from "@/db/esquema";
 import type { Usuario } from "@/auth/sesion";
-import { Insignia, Tarjeta } from "@/ui/basicos";
+import { Tarjeta } from "@/ui/basicos";
 import { EnlaceBoton } from "@/ui/boton";
 import { Icono, IconoObjeto } from "@/ui/icono";
+import { NumeroAnimado } from "@/ui/numero-animado";
 import { appDeObjeto, enlaceRegistro } from "../apps";
 import { fechaLocal, inicioMes, ZONA_HORARIA } from "../fechas";
-import { formatoFecha, formatoFechaHora, formatoMoneda } from "../formato";
+import { formatoFechaHora, formatoMoneda } from "../formato";
 import { obtenerObjeto } from "../objetos";
-import { etapasCerradas } from "../opciones";
+import { etapasCerradas, origenesCandidato } from "../opciones";
 import { ejecutarInforme, listaInformes, obtenerConfiguracion, obtenerPreferencias } from "../servidor/consultas";
 import { recientes } from "../servidor/repositorio";
-import { Bienvenida, TarjetaInformes, type InformeWidget, type Sugerencia } from "./inicio-cliente";
+import { ListaParaHoy } from "./inicio-hoy";
+import { PrimerosPasos, TarjetaInformes, type InformeWidget, type PasoInicial } from "./inicio-cliente";
 
 export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: string }) {
   const db = await bd();
@@ -22,6 +24,7 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
   const ahora = new Date();
   const hace7 = new Date(ahora.getTime() - 7 * 864e5);
   const en7 = new Date(ahora.getTime() + 7 * 864e5);
+  const hoy = fechaLocal();
 
   const [prefs, config, vistos, todos] = await Promise.all([
     obtenerPreferencias(usuario.id),
@@ -30,13 +33,19 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
     listaInformes(),
   ]);
 
-  const [[abiertos], [nuevos], [pipeline], tareasHoy, calientes, citas] = await Promise.all([
-    db.select({ n: count() }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), eq(candidatos.convertido, false))),
+  const abiertosDeLaEmpresa = and(eq(candidatos.empresaId, empresaId), eq(candidatos.convertido, false));
+  const [[abiertos], [nuevos], [calientesTotal], [pipeline], [conLeads], [conLlamadas], [conEventos], [conTareas], tareasHoy, calientes, citas] = await Promise.all([
+    db.select({ n: count() }).from(candidatos).where(abiertosDeLaEmpresa),
     db.select({ n: count() }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), gte(candidatos.creadoEn, hace7))),
+    db.select({ n: count() }).from(candidatos).where(and(abiertosDeLaEmpresa, eq(candidatos.valoracion, "caliente"))),
     db
       .select({ total: sum(oportunidades.importe), n: count() })
       .from(oportunidades)
       .where(and(eq(oportunidades.empresaId, empresaId), notInArray(oportunidades.etapa, etapasCerradas))),
+    db.select({ n: count() }).from(candidatos).where(eq(candidatos.empresaId, empresaId)),
+    db.select({ n: count() }).from(tareas).where(and(eq(tareas.empresaId, empresaId), eq(tareas.tipo, "llamada"))),
+    db.select({ n: count() }).from(eventos).where(eq(eventos.empresaId, empresaId)),
+    db.select({ n: count() }).from(tareas).where(eq(tareas.empresaId, empresaId)),
     db
       .select({ id: tareas.id, asunto: tareas.asunto, fechaVencimiento: tareas.fechaVencimiento, prioridad: tareas.prioridad })
       .from(tareas)
@@ -45,33 +54,40 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
           eq(tareas.empresaId, empresaId),
           eq(tareas.propietarioId, usuario.id),
           ne(tareas.estado, "completada"),
-          sql`${tareas.fechaVencimiento} <= ${fechaLocal()}::date`,
+          sql`${tareas.fechaVencimiento} <= ${hoy}::date`,
         ),
       )
       .orderBy(tareas.fechaVencimiento)
       .limit(50),
+    // Calientes sin llamar: los que ya tienen una llamada registrada a mano hoy no se vuelven a pedir.
     db
-      .select({ id: candidatos.id, nombre: candidatos.nombre, apellidos: candidatos.apellidos, compania: candidatos.compania, telefono: candidatos.telefono })
+      .select({ id: candidatos.id, nombre: candidatos.nombre, apellidos: candidatos.apellidos, telefono: candidatos.telefono, origen: candidatos.origen, ciudad: candidatos.ciudad })
       .from(candidatos)
-      .where(and(eq(candidatos.empresaId, empresaId), eq(candidatos.convertido, false), eq(candidatos.valoracion, "caliente")))
+      .where(
+        and(
+          abiertosDeLaEmpresa,
+          eq(candidatos.valoracion, "caliente"),
+          sql`not exists (select 1 from ${tareas} t where t.quien_id = ${candidatos.id} and t.tipo = 'llamada' and t.estado = 'completada' and t.origen_externo is null and t.fecha_vencimiento >= ${hoy}::date)`,
+        ),
+      )
       .orderBy(desc(candidatos.creadoEn))
-      .limit(5),
+      .limit(6),
     db
       .select({ id: eventos.id, asunto: eventos.asunto, inicio: eventos.inicio })
       .from(eventos)
       .where(and(eq(eventos.empresaId, empresaId), eq(eventos.propietarioId, usuario.id), gte(eventos.fin, ahora), lt(eventos.inicio, en7)))
       .orderBy(eventos.inicio)
-      .limit(5),
+      .limit(50),
   ]);
 
-  const sugerencias: Sugerencia[] = [
-    { id: "contacto", titulo: "Crear su primer contacto", texto: "Hacer crecer sus ventas empieza con los contactos. Le mostramos cómo.", href: "/contactos/o/contactos?nuevo=1", icono: "Contact" },
-    { id: "candidato", titulo: "Crear su primer lead", texto: "Vea lo fácil que es convertir leads en contactos, cuentas y oportunidades.", href: "/ventas/o/candidatos?nuevo=1", icono: "UserPlus" },
-    { id: "marketing", titulo: "Activar las funciones de marketing", texto: "Lleve sus mensajes a nuevas audiencias con campañas y correos de lista.", href: "/marketing/p/marketing", icono: "Megaphone" },
-    ...(usuario.rol === "admin"
-      ? [{ id: "ejemplos", titulo: "Probar con datos de ejemplo", texto: "Cargue cuentas, contactos y oportunidades de demostración para explorar el panel.", href: "/configuracion", icono: "Sparkles" }]
-      : []),
-  ].filter((s) => !prefs.sugerenciasOcultas.includes(s.id));
+  const pasos: PasoInicial[] = [
+    { id: "leads", titulo: "Agregue sus primeros leads", texto: "Cree uno o importe una lista en CSV.", href: "/ventas/o/candidatos?importar=1", icono: "UserPlus", hecho: (conLeads?.n ?? 0) > 0 },
+    { id: "llamada", titulo: "Registre una llamada", texto: "Con un clic deja el resultado y el seguimiento.", href: "/ventas/o/candidatos", icono: "PhoneCall", hecho: (conLlamadas?.n ?? 0) > 0 },
+    { id: "cita", titulo: "Agende una visita", texto: "Aparece en el calendario y en «Mis citas».", href: "/ventas/p/calendario", icono: "CalendarPlus", hecho: (conEventos?.n ?? 0) > 0 },
+    { id: "tarea", titulo: "Cree una tarea de seguimiento", texto: "Le aparece aquí el día que toca.", href: "/ventas/o/tareas?nuevo=1", icono: "ListChecks", hecho: (conTareas?.n ?? 0) > 0 },
+  ];
+  const completos = pasos.every((p) => p.hecho);
+  const primerosPasosOcultos = prefs.sugerenciasOcultas.includes("primeros-pasos");
 
   const widgets = async (objeto: string): Promise<InformeWidget[]> =>
     Promise.all(
@@ -89,17 +105,16 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
 
   const hora = Number(new Intl.DateTimeFormat("es-CO", { timeZone: ZONA_HORARIA, hour: "numeric", hourCycle: "h23" }).format(ahora));
   const saludo = hora < 5 ? "Buenas noches" : hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
-  const hoy = fechaLocal();
   const nombreCompleto = (c: { nombre: string | null; apellidos: string }) => [c.nombre, c.apellidos].filter(Boolean).join(" ");
+  const etiquetaOrigen = (valor: string | null) => origenesCandidato.find((o) => o.valor === valor)?.etiqueta ?? null;
 
-  const kpis = [
-    { etiqueta: "Leads abiertos", valor: String(abiertos?.n ?? 0), detalle: "sin convertir", icono: "UserPlus", href: "/ventas/o/candidatos" },
-    { etiqueta: "Leads nuevos", valor: String(nuevos?.n ?? 0), detalle: "en los últimos 7 días", icono: "Sparkles", href: "/ventas/o/candidatos" },
-    { etiqueta: "Mis citas", valor: String(citas.length), detalle: "en los próximos 7 días", icono: "CalendarDays", href: "/ventas/p/calendario" },
-    { etiqueta: "Mis tareas para hoy", valor: String(tareasHoy.length), detalle: "incluye vencidas", icono: "ListChecks", href: "/ventas/o/tareas?vista=vencidas" },
+  const kpis: { etiqueta: string; valor: number | string; detalle: string; icono: string; href: string }[] = [
+    { etiqueta: "Leads abiertos", valor: abiertos?.n ?? 0, detalle: `${nuevos?.n ?? 0} nuevos en 7 días`, icono: "UserPlus", href: "/ventas/o/candidatos" },
+    { etiqueta: "Leads calientes", valor: calientesTotal?.n ?? 0, detalle: "para llamar primero", icono: "Flame", href: "/ventas/o/candidatos?vista=calientes" },
+    { etiqueta: "Mis citas", valor: citas.length, detalle: "en los próximos 7 días", icono: "CalendarDays", href: "/ventas/p/calendario" },
+    { etiqueta: "Mis tareas para hoy", valor: tareasHoy.length, detalle: "incluye vencidas", icono: "ListChecks", href: "/ventas/o/tareas?vista=vencidas" },
     { etiqueta: "Negocios abiertos", valor: formatoMoneda(Number(pipeline?.total ?? 0), config.moneda), detalle: `${pipeline?.n ?? 0} oportunidades`, icono: "Crown", href: "/ventas/o/oportunidades" },
   ];
-  const hayPendientes = tareasHoy.length > 0 || calientes.length > 0;
 
   return (
     <div className="space-y-6">
@@ -131,68 +146,35 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
           <Link
             key={k.etiqueta}
             href={k.href}
-            className={`group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-marca-500 ${i === kpis.length - 1 ? "sm:max-xl:col-span-2" : ""}`}
+            style={{ animationDelay: `${i * 45}ms` }}
+            className={`animate-subir group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-marca-500 hover:shadow-md ${i === kpis.length - 1 ? "sm:max-xl:col-span-2" : ""}`}
           >
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-medium">{k.etiqueta}</span>
-              <span className="inline-flex size-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 group-hover:bg-marca-50 group-hover:text-marca-700">
+              <span className="inline-flex size-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors group-hover:bg-marca-50 group-hover:text-marca-700">
                 <Icono nombre={k.icono} className="size-4" />
               </span>
             </div>
-            <p className="mt-2 truncate text-2xl font-semibold text-slate-800">{k.valor}</p>
+            <p className="mt-2 truncate text-2xl font-semibold text-slate-800">{typeof k.valor === "number" ? <NumeroAnimado valor={k.valor} /> : k.valor}</p>
             <p className="text-xs text-slate-500">{k.detalle}</p>
           </Link>
         ))}
       </div>
 
+      {completos ? null : <PrimerosPasos pasos={pasos} esAdmin={usuario.rol === "admin"} sinLeads={(conLeads?.n ?? 0) === 0} oculto={primerosPasosOcultos} />}
+
       <div className="grid gap-4 xl:grid-cols-3">
         <Tarjeta titulo="Para hacer hoy" icono={<Icono nombre="ListChecks" className="size-4 text-marca-700" />} className="xl:col-span-2" sinRelleno>
-          {hayPendientes ? (
-            <ul className="divide-y divide-slate-100">
-              {calientes.map((c) => (
-                <li key={c.id}>
-                  <Link href={enlaceRegistro("candidatos", c.id)} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
-                    <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-marca-50 text-marca-700">
-                      <Icono nombre="PhoneCall" className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-slate-800">Contactar a {nombreCompleto(c)}</span>
-                      <span className="block truncate text-xs text-slate-500">{[c.compania, c.telefono].filter(Boolean).join(" · ")}</span>
-                    </span>
-                    <Insignia color="bg-rose-100 text-rose-700">Lead caliente</Insignia>
-                  </Link>
-                </li>
-              ))}
-              {tareasHoy.slice(0, 6).map((t) => {
-                const vencida = t.fechaVencimiento !== null && t.fechaVencimiento < hoy;
-                return (
-                  <li key={t.id}>
-                    <Link href={enlaceRegistro("tareas", t.id)} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
-                      <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                        <Icono nombre="ListChecks" className="size-4" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-slate-800">{t.asunto}</span>
-                        <span className={`block text-xs ${vencida ? "font-medium text-rose-600" : "text-slate-500"}`}>
-                          {vencida ? "Vencida · " : "Para hoy · "}
-                          {t.fechaVencimiento ? formatoFecha(t.fechaVencimiento) : ""}
-                        </span>
-                      </span>
-                      {t.prioridad === "alta" ? <Insignia color="bg-rose-100 text-rose-700">Alta</Insignia> : null}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <div className="flex flex-col items-center px-4 py-10 text-center">
-              <span className="inline-flex size-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                <Icono nombre="CircleCheck" className="size-6" />
-              </span>
-              <p className="mt-3 text-sm font-medium text-slate-800">Todo al día</p>
-              <p className="mt-1 max-w-sm text-sm text-slate-500">No tiene tareas para hoy ni leads calientes sin atender. Cuando entre uno nuevo, aparecerá aquí.</p>
-            </div>
-          )}
+          <ListaParaHoy
+            hoy={hoy}
+            calientes={calientes.map((c) => ({
+              id: c.id,
+              nombre: nombreCompleto(c),
+              detalle: [etiquetaOrigen(c.origen), c.ciudad].filter(Boolean).join(" · ") || null,
+              telefono: c.telefono,
+            }))}
+            tareas={tareasHoy.map((t) => ({ id: t.id, asunto: t.asunto, fechaVencimiento: t.fechaVencimiento, prioridad: t.prioridad }))}
+          />
         </Tarjeta>
 
         <div className="space-y-4">
@@ -210,9 +192,9 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
               <p className="px-4 py-6 text-sm text-slate-500">No tiene citas en los próximos 7 días.</p>
             ) : (
               <ul className="divide-y divide-slate-100">
-                {citas.map((e) => (
+                {citas.slice(0, 5).map((e) => (
                   <li key={e.id}>
-                    <Link href={enlaceRegistro("eventos", e.id)} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-slate-50">
+                    <Link href={enlaceRegistro("eventos", e.id)} className="flex items-center justify-between gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50">
                       <span className="min-w-0 truncate text-sm text-slate-800">{e.asunto}</span>
                       <span className="shrink-0 text-xs text-slate-500">{formatoFechaHora(e.inicio)}</span>
                     </Link>
@@ -231,7 +213,7 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
                   const d = obtenerObjeto(v.objeto);
                   return (
                     <li key={`${v.objeto}-${v.id}`}>
-                      <Link href={`/${appDeObjeto(v.objeto)}/o/${v.objeto}/${v.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
+                      <Link href={`/${appDeObjeto(v.objeto)}/o/${v.objeto}/${v.id}`} className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50">
                         {d ? <IconoObjeto icono={d.icono} color={d.color} tamano="sm" /> : null}
                         <span className="min-w-0 flex-1 truncate text-sm text-slate-800">{v.nombre}</span>
                         <span className="text-xs text-slate-400">{d?.etiqueta}</span>
@@ -245,13 +227,9 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
         </div>
       </div>
 
-      {sugerencias.length > 0 || prefs.sugerenciasOcultas.length > 0 ? (
-        <Bienvenida sugerencias={sugerencias} ocultas={prefs.sugerenciasOcultas.length} />
-      ) : null}
-
       <section aria-label="Informes" className="space-y-3">
         <h2 className="text-base font-semibold text-slate-800">Sus informes</h2>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 lg:grid-cols-2">
           <TarjetaInformes objeto="candidatos" informes={deCandidatos} moneda={config.moneda} app={app} />
           <TarjetaInformes objeto="oportunidades" informes={deOportunidades} moneda={config.moneda} app={app} />
           <TarjetaInformes objeto="contactos" informes={deContactos} moneda={config.moneda} app={app} />

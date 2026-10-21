@@ -176,7 +176,7 @@ function Desplegable({ children, alCerrar, ancho }: { children: React.ReactNode;
   return (
     <>
       <button type="button" className="fixed inset-0 z-30 cursor-default" aria-label="Cerrar menú" onClick={alCerrar} />
-      <div className={`absolute right-0 z-40 mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl ${ancho}`}>{children}</div>
+      <div className={`animate-bajar absolute right-0 z-40 mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl ${ancho}`}>{children}</div>
     </>
   );
 }

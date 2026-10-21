@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icono } from "@/ui/icono";
@@ -73,12 +73,19 @@ function Enlace({ enlace, activo }: { enlace: EnlaceNav; activo: boolean }) {
       aria-current={activo ? "page" : undefined}
       title={enlace.etiqueta}
       className={clsx(
-        "flex items-center justify-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors lg:justify-start",
+        "flex items-center justify-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 active:scale-[0.98] lg:justify-start",
         activo ? "bg-white/12 text-white" : "text-slate-300 hover:bg-white/8 hover:text-white",
       )}
     >
       <Icono nombre={enlace.icono} className={clsx("size-5 shrink-0", activo ? "text-marca-500" : "")} />
       <span className="hidden truncate lg:inline">{enlace.etiqueta}</span>
+      <Cargando />
     </Link>
   );
+}
+
+/** Punto que late en el enlace al que se acaba de hacer clic, hasta que carga la página. */
+function Cargando() {
+  const { pending } = useLinkStatus();
+  return pending ? <span aria-hidden className="animate-pulso-suave ml-auto hidden size-2 rounded-full bg-marca-500 lg:block" /> : null;
 }

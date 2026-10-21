@@ -16,6 +16,7 @@ export function Kanban({ objeto, app, filas, moneda }: { objeto: string; app: st
   const suma = def.campoSumaKanban;
   const [locales, setLocales] = useState<Record<string, string>>({});
   const [sobre, setSobre] = useState<string | null>(null);
+  const [arrastrando, setArrastrando] = useState<string | null>(null);
   const [, iniciar] = useTransition();
   const valorDe = (f: FilaConNombres) => locales[f.id] ?? String(f[campo.nombre] ?? "");
   const secundarios = def.columnas.filter((c) => c !== def.camposNombre[0] && c !== campo.nombre && c !== "propietarioId").slice(0, 3);
@@ -54,9 +55,10 @@ export function Kanban({ objeto, app, filas, moneda }: { objeto: string; app: st
             onDrop={(e) => {
               e.preventDefault();
               setSobre(null);
+              setArrastrando(null);
               mover(e.dataTransfer.getData("text/plain"), op.valor);
             }}
-            className={clsx("flex w-72 shrink-0 flex-col rounded-lg bg-slate-100", sobre === op.valor && "ring-2 ring-marca-600")}
+            className={clsx("flex w-72 shrink-0 flex-col rounded-lg bg-slate-100 transition-[box-shadow,background-color] duration-150", sobre === op.valor && "bg-marca-50 ring-2 ring-marca-500")}
           >
             <header className="border-b-4 border-white px-3 py-2">
               <p className="flex items-center justify-between text-sm font-semibold text-slate-700">
@@ -70,8 +72,18 @@ export function Kanban({ objeto, app, filas, moneda }: { objeto: string; app: st
                 <article
                   key={f.id}
                   draggable
-                  onDragStart={(e) => e.dataTransfer.setData("text/plain", f.id)}
-                  className="cursor-grab rounded-md border border-slate-200 bg-white p-3 shadow-sm active:cursor-grabbing"
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("text/plain", f.id);
+                    setArrastrando(f.id);
+                  }}
+                  onDragEnd={() => {
+                    setArrastrando(null);
+                    setSobre(null);
+                  }}
+                  className={clsx(
+                    "animate-aparecer cursor-grab rounded-md border border-slate-200 bg-white p-3 shadow-sm transition-[box-shadow,opacity,transform] duration-150 hover:shadow-md active:cursor-grabbing",
+                    arrastrando === f.id && "scale-95 opacity-40",
+                  )}
                 >
                   <Link href={`/${app}/o/${objeto}/${f.id}`} className="text-sm font-medium text-marca-700 hover:underline">
                     {nombreVisible(def, f)}

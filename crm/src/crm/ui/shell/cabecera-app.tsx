@@ -72,7 +72,7 @@ export function CabeceraApp({
               {menu === p.clave ? (
                 <>
                   <button type="button" className="fixed inset-0 z-30 cursor-default" aria-label="Cerrar" onClick={() => setMenu(null)} />
-                  <div className="absolute top-full left-0 z-40 mt-1 w-72 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
+                  <div className="animate-bajar absolute top-full left-0 z-40 mt-1 w-72 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
                     <Link href={p.href} onClick={() => setMenu(null)} className="flex items-center gap-2 border-b border-slate-100 px-4 py-2.5 text-sm text-marca-700 hover:bg-slate-50">
                       <Icono nombre="LayoutList" /> Ver lista de {p.etiqueta.toLowerCase()}
                     </Link>

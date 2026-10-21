@@ -20,8 +20,10 @@ interface TareaResumen {
 
 export function BarraUtilidades({ tareas }: { tareas: TareaResumen[] }) {
   const [abierta, setAbierta] = useState(false);
+  const [hechas, setHechas] = useState<Set<string>>(new Set());
   const [pendiente, iniciar] = useTransition();
   const hoy = fechaLocal();
+  const visibles = tareas.filter((t) => !hechas.has(t.id));
 
   return (
     <footer className="relative z-10 shrink-0 border-t border-slate-200 bg-white">
@@ -33,7 +35,7 @@ export function BarraUtilidades({ tareas }: { tareas: TareaResumen[] }) {
       >
         <Icono nombre="ListChecks" />
         Lista de tareas
-        {tareas.length > 0 ? <span className="rounded-full bg-slate-200 px-1.5 text-xs">{tareas.length}</span> : null}
+        {visibles.length > 0 ? <span className="rounded-full bg-slate-200 px-1.5 text-xs">{visibles.length}</span> : null}
       </button>
       {abierta ? (
         <div className="absolute bottom-10 left-4 flex max-h-[28rem] w-96 flex-col overflow-hidden rounded-t-lg border border-slate-200 bg-white shadow-2xl">
@@ -61,10 +63,10 @@ export function BarraUtilidades({ tareas }: { tareas: TareaResumen[] }) {
             <Boton type="submit" variante="primario" icono="Plus" cargando={pendiente} aria-label="Agregar tarea" />
           </form>
           <ul className="desplazable flex-1 overflow-y-auto">
-            {tareas.length === 0 ? (
+            {visibles.length === 0 ? (
               <li className="px-4 py-8 text-center text-sm text-slate-500">No tiene tareas pendientes. ¡Bien hecho!</li>
             ) : (
-              tareas.map((t) => {
+              visibles.map((t) => {
                 const vencida = t.fechaVencimiento !== null && t.fechaVencimiento < hoy;
                 return (
                   <li key={t.id} className="flex items-start gap-3 border-b border-slate-50 px-4 py-2.5">
@@ -74,6 +76,7 @@ export function BarraUtilidades({ tareas }: { tareas: TareaResumen[] }) {
                       aria-label={`Completar ${t.asunto}`}
                       onChange={(e) => {
                         const marcado = e.target.checked;
+                        if (marcado) setHechas((h) => new Set(h).add(t.id));
                         iniciar(async () => {
                           await completarTarea(t.id, marcado);
                           if (marcado) avisar("Tarea completada.");

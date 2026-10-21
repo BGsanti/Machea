@@ -122,3 +122,23 @@ export function valorInput(campo: Campo, valor: unknown): string {
   if (campo.tipo === "fecha") return String(valor).slice(0, 10);
   return String(valor);
 }
+
+/** Solo los dígitos de un teléfono, con el indicativo de Colombia (57) si es un número local de 10 dígitos. */
+export function digitosTelefono(telefono: unknown): string | null {
+  const d = String(telefono ?? "").replace(/\D/g, "");
+  if (d.length === 10) return `57${d}`;
+  if (d.length === 12 && d.startsWith("57")) return d;
+  return d.length >= 11 && d.length <= 15 ? d : null;
+}
+
+/** tel: para marcar desde el computador (softphone) o el celular. */
+export function enlaceLlamada(telefono: unknown): string | null {
+  const d = digitosTelefono(telefono);
+  return d ? `tel:+${d}` : null;
+}
+
+/** Chat de WhatsApp con la persona (abre WhatsApp Web o la aplicación), con un saludo opcional. */
+export function enlaceWhatsApp(telefono: unknown, mensaje?: string): string | null {
+  const d = digitosTelefono(telefono);
+  return d ? `https://wa.me/${d}${mensaje ? `?text=${encodeURIComponent(mensaje)}` : ""}` : null;
+}

@@ -67,7 +67,7 @@ Conclusión: no hace falta animar mucho; hace falta que **nada se sienta lento, 
 | ID | Requisito | Prio | Esf. |
 |---|---|---|---|
 | UX-9 | **«Mi día»**: pantalla de inicio del asesor con SUS leads por urgencia (caliente, sin contactar, cita hoy) y botones de un toque: **Llamar, WhatsApp, Registrar resultado, Agendar visita**. | P0 | M |
-| UX-10 | **Celular de verdad:** listas como tarjetas, barra inferior, formularios cómodos con el pulgar, PWA instalable y avisos push. | P0 | L |
+| UX-10 | **Celular:** listas como tarjetas, barra inferior, PWA instalable y avisos push. El asesor trabaja en computador, así que va después. | P1 | L |
 | UX-11 | **Ficha del lead como conversación:** línea de tiempo (formulario → llamada de Manuela con **audio, transcripción y recomendación** → cita → WhatsApp), «siguiente mejor acción», temperatura, notas por dictado. Requiere P-5. | P0 | L |
 | UX-12 | **Resultado en dos toques** (contestó / no contestó / visita agendada / descartó + motivo), que alimenta las métricas del gerente. | P0 | S–M |
 | UX-13 | **Aviso inmediato de lead caliente** al asesor (WhatsApp, push o correo) con enlace directo a la ficha. | P0 | M |
@@ -95,7 +95,7 @@ Conclusión: no hace falta animar mucho; hace falta que **nada se sienta lento, 
 | P-6 | **Operación:** monitoreo de caídas con alerta, Sentry, registro de llamadas fallidas, panel interno de salud de integraciones, guía de incidentes. Hoy Render no se redespliega solo y el CRM lee la bandeja en cada carga de página. | P0 | M |
 | P-7 | **Cuentas a nombre de Machea:** GitHub, Vercel, Render, Supabase, Dapta, dominio y correo (hoy hay piezas en cuentas de Santiago, Diego y personales). | P0 | S (trámite) |
 | P-8 | **Exportar y borrar los datos** de un lead o de una empresa, y regla de retención (Habeas Data). | P0 | M |
-| P-9 | **WhatsApp Business (Meta):** línea, plantillas aprobadas, bandeja de conversaciones y seguimiento automático. | P1 | L |
+| P-9 | **WhatsApp Business (Meta) con Dapta:** línea, plantillas aprobadas, bandeja de conversaciones y seguimiento automático. Entra en el piloto. | P0 | L |
 | P-10 | **Planes, cobro y facturación:** pasarela (Wompi u otra), facturación electrónica, límites por plan y bolsas de minutos. El primer piloto puede facturarse a mano. | P1 | L |
 | P-11 | **Integraciones:** Meta (Lead Ads, Pixel y API de conversiones), Google Sheets/Zapier, portales inmobiliarios si ofrecen API. | P2 | L |
 | P-12 | **Bajar el costo de la voz** (otro proveedor o tarifa): es la palanca de margen, ~USD 0,15/min frente al costo actual. Hacerlo con datos de los pilotos. | P2 | L |
@@ -142,14 +142,35 @@ las llamadas de Manuela guardadas (P-4). Entregable: una demostración en vivo c
 
 **Ola 3 · cobrar y escalar:** P-10 (cobro), P-9 (WhatsApp), UX-18, UX-19, UX-6, UX-7, P-11, UX-8, P-12, G-3 a G-6.
 
-## 8. Decisiones que hacen falta
+## 8. Decisiones (respondidas el 21-oct)
 
-1. ¿El asesor trabaja primero **desde el celular**? (cambia el orden de UX-9, UX-10 y UX-13).
-2. ¿Quiénes son los **3 pilotos** y qué se les ofrece?
-3. ¿**WhatsApp** entra en el piloto o se deja para la ola 3?
-4. ¿Se confirma **«Lead»** como nombre definitivo en vez de «Candidato»?
-5. ¿Quién lleva legal (Ariel y Diego) y en qué fecha deben estar los términos y el contrato?
-6. ¿Quién da soporte los primeros 90 días?
+1. **Asesor en computador**, no en celular: el panel se diseña primero para escritorio. UX-10 (celular/PWA) baja a P1.
+2. **Sin pilotos todavía:** se arma la infraestructura para inmobiliarias y constructoras (ver P-13 a P-15) y los pilotos llegan después.
+3. **WhatsApp entra en el piloto**, usando Dapta (P-9 sube a P0, ola 2).
+4. **«Lead»** es el nombre de la persona interesada en comprar o arrendar, solo en lo que ve el panel. Pendiente: que el equipo lo confirme.
+5. Por resolver: quién lleva legal (Ariel y Diego) y fechas; quién da soporte los primeros 90 días.
+
+## 8.1 Requisitos nuevos que salen de esas respuestas
+
+| ID | Requisito | Prio | Esf. |
+|---|---|---|---|
+| P-13 | **Constructor de formularios dentro del panel de la empresa:** campos, preguntas, marca (logo y colores), autorización de datos y código para incrustarlo en su sitio; los leads entran directo a su CRM. Hoy el formulario lo implementa Machea a mano por marca. | P0 | XL |
+| P-14 | **Agentes predeterminados por tipo de cliente** (constructora VIS, constructora media, inmobiliaria de venta, de arriendo), **generados con IA** a partir de los datos de la empresa (proyectos, precios, tono, horarios) y con una versión de prueba antes de activarlos. | P0 | XL |
+| P-15 | **Conexión con Dapta por API desde el panel:** crear y actualizar el agente y el flujo de cada empresa, número de salida, línea de WhatsApp y plantillas, sin que Machea entre a Dapta a mano. Incluye guardar el audio y la transcripción de cada llamada (P-4). | P0 | XL |
+
+## 8.2 Estado de la Ola 1 (rama `ux/ola-1`)
+
+| ID | Qué quedó | Falta |
+|---|---|---|
+| UX-1 | Sistema de movimiento (0,14–0,22 s, una curva), páginas que entran subiendo, modales, avisos, menús, botones con estado presionado y contadores que suben; respeta «reducir movimiento» | — |
+| UX-2 | Esqueletos de carga en inicio/análisis, listas y fichas; el enlace de la barra lateral late mientras carga | Esqueleto para el calendario |
+| UX-3 | Cambiar de etapa, completar tareas (inicio, pie y ficha) y resultado de llamada se ven al instante; el embudo ya arrastraba y ahora da feedback | Deshacer |
+| UX-4 | Pestañas de Ventas sin Productos, Listas de precios, Facturas ni Videollamadas (siguen en el lápiz «Agregar»); la lista de leads muestra teléfono, temperatura, estado y origen; empresa opcional; vistas «Leads calientes» y «Sin contactar»; datos de ejemplo de compradores | Ocultar Servicio y Comercio por defecto |
+| UX-5 | «Primeros pasos» con progreso, calculado con datos reales; se oculta al terminar | Pasos de conectar formulario, invitar asesores y probar a Manuela (dependen de P-13, UX-15 y UX-17) |
+| UX-9 | «Para hacer hoy» con **Llamar** (marca desde el computador), **WhatsApp** (WhatsApp Web) y **Resultado** a un clic; tareas que se tachan al instante | «Mi día» propio del asesor (depende de UX-15) |
+| UX-11 | Tarjeta **«Llamada de Manuela»** en la ficha: resumen, qué hacer ahora, objeción, temperatura y cita | **Audio y transcripción** (P-4) |
+| UX-12 | «¿Cómo te fue?» en dos toques (contestó interesado, no contestó, no le interesa, número equivocado), con nota opcional; mueve el estado y deja «Volver a llamar» mañana | Reportes al gerente (UX-14) |
+| UX-13 | **Aviso en pantalla** (cada 30 s con la pestaña visible) cuando entra un lead nuevo o Manuela deja uno caliente, con botón «Abrir» | Aviso por WhatsApp, correo o push (necesita P-9) |
 
 ## 9. Riesgos principales
 

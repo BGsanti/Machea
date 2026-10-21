@@ -29,6 +29,58 @@
   --color-slate-800: #2d3b4e;
   --color-slate-900: #1f2a38;
   --color-slate-950: #17212e;
+
+  /* Movimiento: corto (120-250 ms) y con una sola curva de salida, como el resto del panel. */
+  --ease-salida: cubic-bezier(0, 0, 0.2, 1);
+  --animate-subir: subir 220ms var(--ease-salida) backwards;
+  --animate-aparecer: aparecer 160ms var(--ease-salida) backwards;
+  --animate-bajar: bajar 140ms var(--ease-salida) backwards;
+  --animate-escalar: escalar 180ms var(--ease-salida) backwards;
+  --animate-deslizar: deslizar 220ms var(--ease-salida) backwards;
+  --animate-brillo: brillo 1.4s ease-in-out infinite;
+  --animate-pulso-suave: pulso-suave 1.8s ease-in-out infinite;
+
+  @keyframes subir {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes aparecer {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes bajar {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes escalar {
+    from { opacity: 0; transform: scale(0.97) translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes deslizar {
+    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes brillo {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  @keyframes pulso-suave {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(255 98 89 / 0.35); }
+    50% { box-shadow: 0 0 0 6px rgb(255 98 89 / 0); }
+  }
+}
+
+/* Quien prefiere menos movimiento no ve animaciones: todo aparece de una vez. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 html,

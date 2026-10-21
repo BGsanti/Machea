@@ -1,6 +1,7 @@
+/** `oculta`: no se muestra de entrada (queda en «Agregar más elementos» del lápiz de la navegación). */
 export type Pestana =
-  | { tipo: "objeto"; id: string; etiqueta?: string }
-  | { tipo: "pagina"; id: string; etiqueta: string };
+  | { tipo: "objeto"; id: string; etiqueta?: string; oculta?: boolean }
+  | { tipo: "pagina"; id: string; etiqueta: string; oculta?: boolean };
 
 export interface App {
   id: string;
@@ -30,12 +31,12 @@ export const apps: App[] = [
       { tipo: "objeto", id: "contactos" },
       { tipo: "objeto", id: "cuentas" },
       { tipo: "objeto", id: "oportunidades" },
-      { tipo: "objeto", id: "productos" },
-      { tipo: "objeto", id: "listas-precios" },
+      { tipo: "objeto", id: "productos", oculta: true },
+      { tipo: "objeto", id: "listas-precios", oculta: true },
       { tipo: "pagina", id: "calendario", etiqueta: "Calendario" },
       { tipo: "pagina", id: "analisis", etiqueta: "Análisis" },
-      { tipo: "objeto", id: "facturas" },
-      { tipo: "objeto", id: "videollamadas" },
+      { tipo: "objeto", id: "facturas", oculta: true },
+      { tipo: "objeto", id: "videollamadas", oculta: true },
     ],
   },
   {

@@ -76,6 +76,11 @@ import {
   Video,
   Workflow,
   X,
+  Flame,
+  MessageCircle,
+  PhoneOff,
+  CircleX,
+  Rocket,
   type LucideIcon,
 } from "lucide-react";
 
@@ -157,6 +162,11 @@ const iconos: Record<string, LucideIcon> = {
   Video,
   Workflow,
   X,
+  Flame,
+  MessageCircle,
+  PhoneOff,
+  CircleX,
+  Rocket,
 };
 
 export function Icono({ nombre, className = "size-4", ...resto }: { nombre: string; className?: string; "aria-hidden"?: boolean }) {

@@ -24,7 +24,7 @@ export async function pestanasDeApp(
   if (app.id === "marketing" && config.marketingActivado) todas.push(pestanaCampanas);
   const porClave = new Map(todas.map((p) => [claveDe(p), p]));
   const elegidas = prefs.navegacion[app.id]?.filter((c) => porClave.has(c));
-  const orden = elegidas && elegidas.length > 0 ? elegidas : todas.map(claveDe);
+  const orden = elegidas && elegidas.length > 0 ? elegidas : todas.filter((p) => !p.oculta).map(claveDe);
 
   const visibles = orden.map((clave) => {
     const p = porClave.get(clave)!;

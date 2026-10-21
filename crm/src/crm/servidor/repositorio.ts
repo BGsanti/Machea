@@ -9,6 +9,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  like,
   ne,
   notInArray,
   or,
@@ -622,5 +623,40 @@ export async function actividadesDe(registroId: string): Promise<{ pendientes: A
   return {
     pendientes: todas.filter((a) => a.pendiente).sort((a, b) => fechaNum(a) - fechaNum(b)),
     pasadas: todas.filter((a) => !a.pendiente).sort((a, b) => fechaNum(b) - fechaNum(a)),
+  };
+}
+
+
+export interface LlamadaManuela {
+  asunto: string;
+  comentarios: string | null;
+  prioridad: string;
+  fecha: Date;
+  cita: { inicio: Date; canal: string | null } | null;
+}
+
+/** La llamada más reciente de Manuela a esta persona (la deja la ingesta con origen `llamada:<id>`) y su cita, si la hubo. */
+export async function ultimaLlamadaManuela(personaId: string): Promise<LlamadaManuela | null> {
+  const db = await bd();
+  const empresaId = await empresaActual();
+  const [llamada] = await db
+    .select()
+    .from(tareas)
+    .where(and(eq(tareas.empresaId, empresaId), eq(tareas.quienId, personaId), like(tareas.origenExterno, "llamada:%")))
+    .orderBy(desc(tareas.creadoEn))
+    .limit(1);
+  if (!llamada) return null;
+  const idLlamada = String(llamada.origenExterno).slice("llamada:".length);
+  const [cita] = await db
+    .select()
+    .from(eventos)
+    .where(and(eq(eventos.empresaId, empresaId), eq(eventos.origenExterno, `cita:${idLlamada}`)))
+    .limit(1);
+  return {
+    asunto: llamada.asunto,
+    comentarios: llamada.comentarios,
+    prioridad: llamada.prioridad,
+    fecha: llamada.completadaEn ?? llamada.creadoEn,
+    cita: cita ? { inicio: cita.inicio, canal: cita.ubicacion } : null,
   };
 }

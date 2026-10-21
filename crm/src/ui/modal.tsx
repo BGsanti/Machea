@@ -22,7 +22,7 @@ export function Modal({
   if (!abierto) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 px-4 py-10"
+      className="animate-aparecer fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 px-4 py-10"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) alCerrar();
       }}
@@ -35,7 +35,7 @@ export function Modal({
         aria-modal="true"
         aria-label={typeof titulo === "string" ? titulo : undefined}
         className={clsx(
-          "relative flex max-h-[calc(100vh-5rem)] w-full flex-col rounded-xl bg-white shadow-2xl",
+          "animate-escalar relative flex max-h-[calc(100vh-5rem)] w-full flex-col rounded-xl bg-white shadow-2xl",
           { sm: "max-w-md", md: "max-w-2xl", lg: "max-w-4xl", xl: "max-w-6xl" }[ancho],
         )}
       >

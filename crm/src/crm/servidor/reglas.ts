@@ -58,6 +58,14 @@ export function aplicarReglas(
       }
       break;
     }
+    case "candidatos": {
+      // Un comprador no trae empresa: la columna pide un valor y se deja el nombre de la persona.
+      if (!String(valor("compania") ?? "").trim()) {
+        const persona = [valor("nombre"), valor("apellidos")].filter((v) => typeof v === "string" && v.trim()).join(" ");
+        datos.compania = persona || "Persona natural";
+      }
+      break;
+    }
     case "articulos": {
       if (!valor("nombreUrl") && typeof valor("titulo") === "string") datos.nombreUrl = slug(String(valor("titulo")));
       break;
