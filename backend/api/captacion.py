@@ -46,6 +46,7 @@ from pydantic import BaseModel, Field
 
 from api import admin as admin_mod
 from api import demo as demo_mod
+from api import grabaciones
 from api import seguimiento
 from api.limites import DIA, Rechazo, entero_env, ip_del_cliente, limites
 from api.metricas import enmascarar_telefono, metricas
@@ -332,7 +333,15 @@ class AlmacenSupabase:
     def registrar_llamada(self, fila: Dict[str, Any]) -> bool:
         if fila.get("call_id") and self._req("GET", "/llamadas_captacion", params={"call_id": f"eq.{fila['call_id']}", "select": "id"}):
             return False
-        self._req("POST", "/llamadas_captacion", cuerpo=fila, prefer="return=minimal")
+        try:
+            self._req("POST", "/llamadas_captacion", cuerpo=fila, prefer="return=minimal")
+        except RuntimeError as e:
+            # El código puede salir antes que la migración del audio: se guarda lo de siempre y se avisa.
+            if not grabaciones.columna_faltante(e):
+                raise
+            logger.warning("captación: falta aplicar la migración del audio y la transcripción; se guarda sin ellos")
+            self._req("POST", "/llamadas_captacion", cuerpo=grabaciones.sin_columnas_nuevas(fila, ("grabacion_url", "transcripcion")),
+                      prefer="return=minimal")
         return True
 
     def crear_cita(self, fila: Dict[str, Any]) -> Dict[str, Any]:
@@ -506,6 +515,7 @@ def procesar_resultado(body: Dict[str, Any]) -> Dict[str, Any]:
     nuevo = a.registrar_llamada({
         "prospecto_id": p["id"], "call_id": str(llamada.get("call_id") or llamada.get("id") or "") or None,
         "motivo_corte": razon or None, "duracion_ms": dur, "sin_contacto": sin_contacto, "resumen": str(resumen)[:1000], "analisis": datos,
+        **{k: v for k, v in grabaciones.extraer(llamada).items() if k != "duracion_ms"},
     })
     if not nuevo:
         return {"status": "duplicado", "prospecto_id": p["id"]}
@@ -762,5 +772,5 @@ async def webhook(request: Request):
     if not hmac.compare_digest(request.query_params.get("k", ""), secreto):
         raise HTTPException(401, "No autorizado")
     body = await request.json()
-    logger.info("webhook captación: %s", json.dumps(body, ensure_ascii=False)[:3000])
+    logger.info("webhook captación: %s", json.dumps(grabaciones.para_registro(body), ensure_ascii=False)[:3000])
     return procesar_resultado(body)

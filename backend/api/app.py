@@ -45,6 +45,7 @@ from api import captacion as captacion_mod
 from api import cuentas as cuentas_mod
 from api import fuentes as fuentes_mod
 from api import demo as demo_mod
+from api import grabaciones as grabaciones_mod
 from api import llamadas
 from api import seguimiento
 from api.limites import Rechazo, ip_del_cliente, limites
@@ -565,7 +566,7 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     """
     guardar = _webhook_manuela_autorizado(request)
     body = await request.json()
-    logger.info("webhook post-call de Dapta: %s", json.dumps(body, ensure_ascii=False)[:4000])
+    logger.info("webhook post-call de Dapta: %s", json.dumps(grabaciones_mod.para_registro(body), ensure_ascii=False)[:4000])
 
     def _con_telefono(d: Any) -> bool:
         return isinstance(d, dict) and any(d.get(k) for k in ("to_number", "telefono", "phone"))

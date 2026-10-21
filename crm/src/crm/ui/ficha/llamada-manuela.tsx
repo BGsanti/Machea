@@ -1,7 +1,9 @@
 import { Insignia } from "@/ui/basicos";
 import { Icono } from "@/ui/icono";
 import { formatoFechaHora } from "../../formato";
+import type { DetalleLlamada } from "../../servidor/grabaciones";
 import type { LlamadaManuela } from "../../servidor/repositorio";
+import { ConversacionLlamada } from "./conversacion-llamada";
 
 const temperaturas: Record<string, { etiqueta: string; color: string }> = {
   caliente: { etiqueta: "Caliente", color: "bg-rose-100 text-rose-700" },
@@ -22,12 +24,12 @@ function leerComentarios(texto: string | null) {
   return salida;
 }
 
-/** Lo que Manuela hizo con este lead: qué pasó en la llamada, qué recomienda y la cita si la agendó. */
-export function TarjetaLlamadaManuela({ llamada }: { llamada: LlamadaManuela }) {
+/** Lo que el agente (Manuela o Camila) hizo con este lead: qué pasó en la llamada, qué recomienda, la cita y la conversación. */
+export function TarjetaLlamadaManuela({ llamada, detalle }: { llamada: LlamadaManuela; detalle?: DetalleLlamada | null }) {
   const c = leerComentarios(llamada.comentarios);
   const temp = c.temperatura ? temperaturas[c.temperatura] : undefined;
   return (
-    <section className="animate-subir overflow-hidden rounded-xl border border-slate-200 border-l-4 border-l-marca-500 bg-white shadow-sm" aria-label="Llamada de Manuela">
+    <section className="animate-subir overflow-hidden rounded-xl border border-slate-200 border-l-4 border-l-marca-500 bg-white shadow-sm" aria-label={`Llamada de ${llamada.agente}`}>
       <header className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
         <span className="inline-flex size-7 items-center justify-center rounded-full bg-marca-100 text-marca-700">
           <Icono nombre="PhoneCall" className="size-3.5" />
@@ -69,6 +71,16 @@ export function TarjetaLlamadaManuela({ llamada }: { llamada: LlamadaManuela }) 
           ) : null}
         </div>
       </div>
+      {detalle ? (
+        <ConversacionLlamada
+          llamadaId={detalle.llamadaId}
+          turnos={detalle.turnos}
+          reproducible={detalle.reproducible}
+          enlaceDapta={detalle.enlaceDapta}
+          duracionMs={detalle.duracionMs}
+          agente={llamada.agente}
+        />
+      ) : null}
     </section>
   );
 }

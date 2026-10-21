@@ -27,6 +27,8 @@ const politica = [
 
 const config: NextConfig = {
   basePath,
+  // Para las direcciones que arma el navegador a mano (por ejemplo el audio de una llamada): Next no les pone el basePath.
+  env: { NEXT_PUBLIC_BASE_PATH: basePath ?? "" },
   // PGlite carga su WebAssembly desde node_modules; si se empaqueta, no lo encuentra.
   serverExternalPackages: ["@electric-sql/pglite"],
   experimental: {

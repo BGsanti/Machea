@@ -31,6 +31,7 @@ from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
 from Model.rutas import RUTA_ARRIENDO, RUTA_CATALOGO
+from api import grabaciones
 
 logger = logging.getLogger(__name__)
 
@@ -169,8 +170,18 @@ class AlmacenSupabase:
     def guardar_resultado(self, fila: Dict[str, Any]) -> None:
         # Un evento posterior sin análisis no borra lo que dejó el anterior: solo viajan las columnas con valor
         # y PostgREST actualiza esas (merge-duplicates sobre call_id).
-        self._req("POST", "/resultados_llamada", params={"on_conflict": "call_id"}, cuerpo=fila,
-                  prefer="resolution=merge-duplicates,return=minimal")
+        def enviar(cuerpo: Dict[str, Any]) -> None:
+            self._req("POST", "/resultados_llamada", params={"on_conflict": "call_id"}, cuerpo=cuerpo,
+                      prefer="resolution=merge-duplicates,return=minimal")
+
+        try:
+            enviar(fila)
+        except RuntimeError as e:
+            # El código puede salir antes que la migración del audio: se guarda lo de siempre y se avisa.
+            if not grabaciones.columna_faltante(e):
+                raise
+            logger.warning("llamadas: falta aplicar la migración del audio y la transcripción; se guarda sin ellos")
+            enviar(grabaciones.sin_columnas_nuevas(fila))
 
 
 _ALMACEN: Any = None
@@ -264,6 +275,7 @@ def guardar_resultado(llamada: Dict[str, Any], body: Dict[str, Any], telefono_e1
             if v in (None, ""):
                 continue
             fila[c] = str(v)[:2000] if c in _TEXTOS_LIBRES or isinstance(v, str) else v
+        fila.update(grabaciones.extraer(llamada))
         almacen().guardar_resultado(fila)
     except Exception:  # noqa: BLE001 - guardar nunca rompe el webhook
         logger.exception("llamadas: no se pudo guardar el resultado de %s", telefono_e164[-4:])

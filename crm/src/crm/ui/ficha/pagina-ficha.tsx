@@ -7,6 +7,7 @@ import { formatoMoneda, formatoNumero, nombreVisible, type FilaConNombres } from
 import { markdownSeguro } from "../../markdown";
 import { campoDe, obtenerObjeto } from "../../objetos";
 import { lineasDe, miembrosDe, obtenerConfiguracion } from "../../servidor/consultas";
+import { detalleDeLlamada } from "../../servidor/grabaciones";
 import { actividadesDe, obtener, registrarVisto, relacionados, ultimaLlamadaManuela } from "../../servidor/repositorio";
 import type { DefObjeto } from "../../tipos";
 import { ValorCampo } from "../valor-campo";
@@ -113,6 +114,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
   const lineas = objeto === "facturas" ? await lineasDe(id) : [];
   const miembros = objeto === "campanas" ? await miembrosDe(id) : [];
   const llamadaManuela = personas.includes(objeto) ? await ultimaLlamadaManuela(id) : null;
+  const detalleLlamada = llamadaManuela ? await detalleDeLlamada(llamadaManuela.llamadaId).catch(() => null) : null;
   const campoRuta = def.campoRuta ? campoDe(def, def.campoRuta) : undefined;
 
   const panelRelacionado =
@@ -309,7 +311,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
           </div>
         ) : null}
       </div>
-      {llamadaManuela ? <TarjetaLlamadaManuela llamada={llamadaManuela} /> : null}
+      {llamadaManuela ? <TarjetaLlamadaManuela llamada={llamadaManuela} detalle={detalleLlamada} /> : null}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <Pestanas pestanas={pestanas} inicial={actividades ? "detalles" : undefined} />
       </div>

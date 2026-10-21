@@ -628,6 +628,9 @@ export async function actividadesDe(registroId: string): Promise<{ pendientes: A
 
 
 export interface LlamadaManuela {
+  agente: "Manuela" | "Camila";
+  /** Identificador de la llamada en Dapta: con él se pide el audio y la transcripción. */
+  llamadaId: string;
   asunto: string;
   comentarios: string | null;
   prioridad: string;
@@ -635,24 +638,36 @@ export interface LlamadaManuela {
   cita: { inicio: Date; canal: string | null } | null;
 }
 
-/** La llamada más reciente de Manuela a esta persona (la deja la ingesta con origen `llamada:<id>`) y su cita, si la hubo. */
+/**
+ * La llamada más reciente de un agente de Machea a esta persona y su cita, si la hubo. La deja la ingesta
+ * (ingesta.ts) con origen `llamada:<id>` (Manuela) o `camila:<id>` (Camila).
+ */
 export async function ultimaLlamadaManuela(personaId: string): Promise<LlamadaManuela | null> {
   const db = await bd();
   const empresaId = await empresaActual();
   const [llamada] = await db
     .select()
     .from(tareas)
-    .where(and(eq(tareas.empresaId, empresaId), eq(tareas.quienId, personaId), like(tareas.origenExterno, "llamada:%")))
+    .where(
+      and(
+        eq(tareas.empresaId, empresaId),
+        eq(tareas.quienId, personaId),
+        or(like(tareas.origenExterno, "llamada:%"), like(tareas.origenExterno, "camila:%")),
+      ),
+    )
     .orderBy(desc(tareas.creadoEn))
     .limit(1);
   if (!llamada) return null;
-  const idLlamada = String(llamada.origenExterno).slice("llamada:".length);
+  const [prefijo, ...resto] = String(llamada.origenExterno).split(":");
+  const llamadaId = resto.join(":");
   const [cita] = await db
     .select()
     .from(eventos)
-    .where(and(eq(eventos.empresaId, empresaId), eq(eventos.origenExterno, `cita:${idLlamada}`)))
+    .where(and(eq(eventos.empresaId, empresaId), eq(eventos.origenExterno, `${prefijo === "camila" ? "cita-camila" : "cita"}:${llamadaId}`)))
     .limit(1);
   return {
+    agente: prefijo === "camila" ? "Camila" : "Manuela",
+    llamadaId,
     asunto: llamada.asunto,
     comentarios: llamada.comentarios,
     prioridad: llamada.prioridad,

@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
-import { entradasListaPrecios, flujos, listasPrecios, miembrosCampana } from "@/db/esquema";
+import { bandejaLeads, entradasListaPrecios, flujos, listasPrecios, miembrosCampana } from "@/db/esquema";
 import { desdeHoraLocal, hoyMas } from "../fechas";
 import { crear } from "./repositorio";
 
@@ -169,6 +169,36 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
   ];
   for (const t of tareas) await nuevo("tareas", t);
 
+  // La conversación de cada llamada vive en la bandeja (como la guarda la base de Machea): [{r: a|u, t: texto, s: segundo}].
+  const conversaciones: Record<number, { s: number; r: "a" | "u"; t: string }[]> = {
+    0: [
+      { s: 1.5, r: "a", t: "Hola Valentina, te habla Manuela de Machea, por tu solicitud de información sobre Torres de Chapinero." },
+      { s: 8.2, r: "u", t: "Hola, sí, claro." },
+      { s: 10.1, r: "a", t: "Perfecto. Te llamo para confirmar tu interés y dejarte una cita con un asesor. ¿Tienes un minuto?" },
+      { s: 17.0, r: "u", t: "Sí, dime." },
+      { s: 18.4, r: "a", t: "¿Buscas el apartamento para vivir o para invertir?" },
+      { s: 22.9, r: "u", t: "Para vivir con mi pareja. Ya tenemos la cuota inicial y queremos saber si aplica el subsidio Mi Casa Ya." },
+      { s: 31.3, r: "a", t: "Buenísimo. Eso lo revisa mejor el asesor con tus ingresos. ¿Te sirve visitar la sala de ventas el sábado en la mañana?" },
+      { s: 39.8, r: "u", t: "Me gustaría, pero primero quiero confirmar que entregan a tiempo." },
+      { s: 44.0, r: "a", t: "Claro, el asesor te muestra el avance de obra y la fecha de entrega. Te escribo por WhatsApp para coordinar la hora." },
+    ],
+    4: [
+      { s: 1.4, r: "a", t: "Hola Isabella, te habla Manuela de Machea. ¿Sigues interesada en Torres de Chapinero?" },
+      { s: 7.0, r: "u", t: "Sí, ya conozco el proyecto y quiero ver el apartamento modelo." },
+      { s: 12.2, r: "a", t: "Perfecto. ¿Tienes definido el presupuesto y decides tú sola?" },
+      { s: 17.5, r: "u", t: "Sí, el presupuesto está confirmado y la decisión es mía." },
+      { s: 22.0, r: "a", t: "Entonces te dejo una cita el jueves a las diez y media en la sala de ventas. ¿Te funciona?" },
+      { s: 28.6, r: "u", t: "Perfecto, ahí estoy." },
+    ],
+    5: [
+      { s: 1.6, r: "a", t: "Hola Tomás, te habla Manuela de Machea, por tu solicitud sobre Altos del Poblado." },
+      { s: 7.4, r: "u", t: "Hola. Estoy comparando dos proyectos de la zona." },
+      { s: 11.0, r: "a", t: "Entiendo. ¿Qué te gustaría resolver antes de decidir: precio, ubicación o algo del proyecto?" },
+      { s: 17.2, r: "u", t: "El precio, el otro está más barato. Necesito apartamento de tres alcobas con doble parqueadero." },
+      { s: 25.0, r: "a", t: "Claro. El asesor te envía la ficha con los precios y te llama mañana para resolver tus dudas." },
+    ],
+  };
+
   // Llamadas de Manuela de ejemplo, con la forma que les deja la ingesta (ingesta.ts). Si ya se cargaron, no se repiten.
   const llamadasManuela = [
     {
@@ -214,6 +244,21 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
         quienId: persona,
         origenExterno: `llamada:ejemplo-${l.i}`,
       });
+      await db
+        .insert(bandejaLeads)
+        .values({
+          empresaId,
+          origen: "resultado",
+          origenId: `ejemplo-${l.i}`,
+          procesadoEn: new Date(),
+          datos: {
+            duracion_ms: 48000,
+            transcripcion: conversaciones[l.i] ?? [],
+            // Solo para probar el reproductor en desarrollo (un archivo servido desde su propia máquina).
+            ...(process.env.CRM_DEMO_AUDIO_URL && l.i === 0 ? { grabacion_url: process.env.CRM_DEMO_AUDIO_URL } : {}),
+          },
+        })
+        .onConflictDoNothing();
       if (l.cita) {
         await nuevo("eventos", {
           asunto: `Cita – ${l.proyecto}`,

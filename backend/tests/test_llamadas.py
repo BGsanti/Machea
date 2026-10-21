@@ -179,6 +179,22 @@ class TestResultado(Base):
             self.assertEqual(self.webhook(resultado_dapta(), k=SECRETO).status_code, 200)
         self.assertIn("llamada-1", self.almacen.resultados)
 
+    def test_el_audio_y_la_transcripcion_se_guardan_pero_no_llegan_al_navegador(self):
+        llamada = {**resultado_dapta(datos={"temperatura_lead": "tibio"})["data"], "duration_ms": 30000,
+                   "recording_url": "https://files.dapta.ai/calls/llamada-1.ogg",
+                   "transcript_object": [{"role": "agent", "content": "Hola, te habla Manuela.", "words": [{"start": 1.0}]},
+                                         {"role": "user", "content": "Buenas.", "words": [{"start": 4.0}]}]}
+        with mock.patch.dict(os.environ, {"MANUELA_WEBHOOK_SECRET": SECRETO}):
+            self.webhook({"data": llamada, "call": {}}, k=SECRETO)
+        guardado = self.almacen.resultados["llamada-1"]
+        self.assertEqual(guardado["grabacion_url"], "https://files.dapta.ai/calls/llamada-1.ogg")
+        self.assertEqual(guardado["transcripcion"][1], {"r": "u", "t": "Buenas.", "s": 4.0})
+        self.assertEqual(guardado["duracion_ms"], 30000)
+        publico = self.c.get("/api/llamar/resultado", params={"telefono": "3123506412"}).text
+        self.assertNotIn("te habla Manuela", publico)
+        self.assertNotIn("files.dapta.ai", publico)
+        self.assertNotIn("transcripcion", publico)
+
     def test_secreto_corto_se_ignora(self):
         with mock.patch.dict(os.environ, {"MANUELA_WEBHOOK_SECRET": "corto"}):
             self.assertEqual(self.webhook(resultado_dapta()).status_code, 200)
