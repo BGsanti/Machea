@@ -18,10 +18,10 @@ import { BotonActivarMarketing, BotonNuevaConexion, FiltroAcciones } from "./var
 export async function PaginaMarketing({ usuario, app }: { usuario: Usuario; app: string }) {
   const config = await obtenerConfiguracion();
   const funciones = [
-    { titulo: "Campañas", texto: "Organice sus acciones de marketing, agregue contactos y candidatos como miembros y mida los resultados.", icono: "Megaphone" },
-    { titulo: "Correos de lista", texto: "Escriba un mensaje y regístrelo para una lista de contactos o candidatos, con campos de combinación.", icono: "Mails" },
+    { titulo: "Campañas", texto: "Organice sus acciones de marketing, agregue contactos y leads como miembros y mida los resultados.", icono: "Megaphone" },
+    { titulo: "Correos de lista", texto: "Escriba un mensaje y regístrelo para una lista de contactos o leads, con campos de combinación.", icono: "Mails" },
     { titulo: "Construcción de audiencia", texto: "Use vistas de lista y filtros para elegir exactamente a quién dirigirse.", icono: "Users" },
-    { titulo: "Análisis preconstruidos", texto: "Mida candidatos por origen y oportunidades por campaña desde Análisis.", icono: "ChartPie" },
+    { titulo: "Análisis preconstruidos", texto: "Mida leads por origen y oportunidades por campaña desde Análisis.", icono: "ChartPie" },
   ];
   return (
     <div className="space-y-4">
@@ -90,8 +90,8 @@ export async function PaginaSuCuenta({ usuario }: { usuario: Usuario }) {
       <Tarjeta titulo="Plan" icono={<Icono nombre="CreditCard" className="size-4 text-slate-500" />} className="lg:col-span-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-2xl font-semibold text-slate-800">REA CRM · Autoalojado</p>
-            <p className="text-sm text-slate-600">Sin suscripción: la aplicación corre en su propio equipo o servidor y no tiene límite de licencias.</p>
+            <p className="text-2xl font-semibold text-slate-800">Machea · Panel de leads</p>
+            <p className="text-sm text-slate-600">Incluido con su cuenta de Machea.</p>
           </div>
           <Insignia color="bg-emerald-100 text-emerald-800">Activo</Insignia>
         </div>

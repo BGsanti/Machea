@@ -19,13 +19,11 @@ interface Notificacion {
 
 export function Cabecera({
   usuario,
-  empresa,
   notificaciones,
   sinLeer,
   urlMachea,
 }: {
   usuario: { nombre: string; email: string; rol: string };
-  empresa: string;
   notificaciones: Notificacion[];
   sinLeer: number;
   /** Con el login de Machea: su URL, para cerrar la sesión allá. */
@@ -38,16 +36,9 @@ export function Cabecera({
 
   return (
     <header className="relative z-20 flex h-14 shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-4">
-      <Link href="/inicio" className="flex items-center gap-2" aria-label="Ir al inicio">
-        <span className="inline-flex size-8 items-center justify-center rounded-lg bg-marca-700 text-sm font-bold text-white">R</span>
-        <span className="hidden text-sm font-semibold text-slate-800 md:block">
-          REA CRM <span className="font-normal text-slate-400">· {empresa}</span>
-        </span>
-      </Link>
-
       <form
         role="search"
-        className="mx-auto w-full max-w-xl"
+        className="mr-auto w-full max-w-xl"
         onSubmit={(e) => {
           e.preventDefault();
           const q = new FormData(e.currentTarget).get("q");
@@ -74,11 +65,11 @@ export function Cabecera({
           {menu === "ayuda" ? (
             <Desplegable alCerrar={() => setMenu(null)} ancho="w-72">
               <div className="p-4 text-sm text-slate-600">
-                <p className="font-semibold text-slate-800">Ayuda de REA CRM</p>
+                <p className="font-semibold text-slate-800">Ayuda de Machea</p>
                 <ul className="mt-2 space-y-1.5">
-                  <li>Use la barra lateral para cambiar de app.</li>
-                  <li>Las pestañas de cada app se pueden ordenar con el lápiz de la derecha.</li>
-                  <li>Busque cualquier registro con el buscador superior.</li>
+                  <li>Use la barra lateral para cambiar de sección; las demás herramientas están en «Más herramientas».</li>
+                  <li>Las pestañas de cada sección se pueden ordenar con el lápiz de la derecha.</li>
+                  <li>Busque cualquier lead, contacto o empresa con el buscador superior.</li>
                   <li>Automatice tareas desde Automatización › Flujos.</li>
                 </ul>
               </div>
@@ -139,7 +130,7 @@ export function Cabecera({
           <button
             type="button"
             onClick={() => alternar("perfil")}
-            className="ml-1 inline-flex size-9 items-center justify-center rounded-full bg-marca-100 text-sm font-semibold text-marca-800 hover:ring-2 hover:ring-marca-600/30"
+            className="ml-1 inline-flex size-9 items-center justify-center rounded-full bg-riel-claro text-sm font-semibold text-white hover:ring-2 hover:ring-marca-500/40"
             aria-label="Ver perfil"
           >
             {iniciales(usuario.nombre)}

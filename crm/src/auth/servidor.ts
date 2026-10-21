@@ -26,7 +26,7 @@ export function ejemplosPermitidos(): boolean {
 
 function crearAuth() {
   return betterAuth({
-    appName: "REA CRM",
+    appName: "Machea",
     secret: process.env.AUTH_SECRET,
     baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
     database: drizzleAdapter(bdSinEsperar(), {

@@ -1,15 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  --color-marca-50: #eefbf8;
-  --color-marca-100: #d5f4ee;
-  --color-marca-500: #14a38b;
-  --color-marca-600: #0d8a76;
-  --color-marca-700: #0b6f61;
-  --color-marca-800: #0c584e;
-  --color-riel: #10233a;
-  --color-riel-claro: #1b3654;
+  /* Tipografía de Machea (Archivo). La carga app/layout.tsx con next/font/local, que respeta el basePath /crm. */
+  --font-sans: var(--fuente-archivo), "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+
+  /* Acento: el coral de Machea (#ff6259). 700 y 800 son los que llevan texto/botones: contraste suficiente sobre blanco. */
+  --color-marca-50: #fff4f2;
+  --color-marca-100: #ffe3df;
+  --color-marca-200: #ffc9c2;
+  --color-marca-500: #ff6259;
+  --color-marca-600: #f2473e;
+  --color-marca-700: #d63a30;
+  --color-marca-800: #a82a22;
+
+  /* Barra lateral: el navy de Machea. */
+  --color-riel: #223042;
+  --color-riel-claro: #2d3b4e;
+
+  /* Neutros cálidos (fondos y bordes) y texto en navy: reemplazan la escala slate de Tailwind en todo el CRM. */
+  --color-slate-50: #fcfaf8;
+  --color-slate-100: #f5eee7;
+  --color-slate-200: #e8e0d7;
+  --color-slate-300: #d6ccc1;
+  --color-slate-400: #98a0ab;
+  --color-slate-500: #6b7686;
+  --color-slate-600: #556172;
+  --color-slate-700: #3f4c5f;
+  --color-slate-800: #2d3b4e;
+  --color-slate-900: #1f2a38;
+  --color-slate-950: #17212e;
 }
 
 html,
@@ -18,8 +37,8 @@ body {
 }
 
 body {
-  background: #eef2f6;
-  color: #1e293b;
+  background: #f9f5f0;
+  color: #2d3b4e;
 }
 
 /* Barra de desplazamiento discreta en paneles */
@@ -28,7 +47,7 @@ body {
   height: 8px;
 }
 .desplazable::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d6ccc1;
   border-radius: 4px;
 }
 
@@ -57,16 +76,16 @@ body {
   padding-left: 1.5rem;
 }
 .contenido-articulo blockquote {
-  border-left: 3px solid #cbd5e1;
+  border-left: 3px solid #d6ccc1;
   padding-left: 0.75rem;
-  color: #475569;
+  color: #556172;
 }
 .contenido-articulo a {
   color: var(--color-marca-700);
   text-decoration: underline;
 }
 .contenido-articulo code {
-  background: #f1f5f9;
+  background: #f5eee7;
   padding: 0 0.25rem;
   border-radius: 0.25rem;
 }

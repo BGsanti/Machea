@@ -20,17 +20,17 @@ export interface Sugerencia {
   icono: string;
 }
 
-export function Bienvenida({ nombre, sugerencias, ocultas }: { nombre: string; sugerencias: Sugerencia[]; ocultas: number }) {
+export function Bienvenida({ sugerencias, ocultas }: { sugerencias: Sugerencia[]; ocultas: number }) {
   const [abierta, setAbierta] = useState(true);
   const [, iniciar] = useTransition();
   return (
-    <section className="rounded-2xl border border-marca-100 bg-gradient-to-r from-marca-50 to-sky-50 p-6 shadow-sm">
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-light text-slate-800">Le damos la bienvenida, {nombre.split(" ")[0]}</h1>
-          <p className="mt-1 text-sm text-slate-600">Consulte estas sugerencias para empezar su jornada.</p>
+          <h2 className="text-base font-semibold text-slate-800">Primeros pasos</h2>
+          <p className="mt-1 text-sm text-slate-500">Sugerencias para sacarle provecho al panel desde el primer día.</p>
         </div>
-        <button type="button" onClick={() => setAbierta(!abierta)} className="rounded-md p-1.5 text-slate-500 hover:bg-white" aria-label={abierta ? "Ocultar sugerencias" : "Mostrar sugerencias"}>
+        <button type="button" onClick={() => setAbierta(!abierta)} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={abierta ? "Ocultar sugerencias" : "Mostrar sugerencias"}>
           <Icono nombre={abierta ? "ChevronDown" : "ChevronRight"} />
         </button>
       </div>
@@ -38,7 +38,7 @@ export function Bienvenida({ nombre, sugerencias, ocultas }: { nombre: string; s
         sugerencias.length ? (
           <ul className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {sugerencias.map((s) => (
-              <li key={s.id} className="relative rounded-xl bg-white p-5 shadow-sm">
+              <li key={s.id} className="relative rounded-xl bg-slate-50 p-5">
                 <button
                   type="button"
                   onClick={() => iniciar(async () => ocultarSugerencia(s.id))}
@@ -47,7 +47,7 @@ export function Bienvenida({ nombre, sugerencias, ocultas }: { nombre: string; s
                 >
                   <Icono nombre="X" />
                 </button>
-                <span className="inline-flex size-9 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                <span className="inline-flex size-9 items-center justify-center rounded-full bg-marca-100 text-marca-700">
                   <Icono nombre={s.icono} />
                 </span>
                 <Link href={s.href} className="mt-3 block text-base font-medium text-marca-700 hover:underline">

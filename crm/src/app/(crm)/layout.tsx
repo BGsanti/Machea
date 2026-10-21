@@ -20,11 +20,10 @@ export default async function LayoutCrm({ children }: { children: React.ReactNod
   ]);
   return (
     <div className="flex h-screen overflow-hidden">
-      <BarraApps />
+      <BarraApps empresa={config.nombreEmpresa} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Cabecera
           usuario={usuario}
-          empresa={config.nombreEmpresa}
           notificaciones={notificaciones.lista}
           sinLeer={notificaciones.sinLeer}
           urlMachea={modoAuth() === "machea" ? urlMachea() : undefined}

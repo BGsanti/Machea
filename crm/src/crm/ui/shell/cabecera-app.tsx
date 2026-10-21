@@ -46,7 +46,7 @@ export function CabeceraApp({
     <div className="shrink-0 border-b border-slate-200 bg-white px-5">
       <div className="flex h-12 items-center gap-6">
         <p className="shrink-0 text-lg font-light text-slate-800">{etiqueta}</p>
-        <nav aria-label={`Navegación de ${etiqueta}`} className="flex h-full min-w-0 flex-1 items-stretch gap-1 overflow-x-auto">
+        <nav aria-label={`Navegación de ${etiqueta}`} className="desplazable flex h-full min-w-0 flex-1 items-stretch gap-1 overflow-x-auto [scrollbar-width:thin]">
           {pestanas.map((p) => (
             <div key={p.clave} className="relative flex items-stretch">
               <Link

@@ -4,6 +4,7 @@ import { urlMachea } from "@/auth/machea";
 import { modoAuth } from "@/auth/servidor";
 import { usuarioActual } from "@/auth/sesion";
 import { hayUsuarios } from "@/crm/servidor/consultas";
+import { LogoMacheaCompleto } from "@/ui/logo-machea";
 import { FormularioAcceso } from "./formulario";
 
 export const metadata: Metadata = { title: "Iniciar sesión" };
@@ -14,11 +15,10 @@ export default async function Login() {
   if (await usuarioActual()) redirect("/");
   const primeraVez = !(await hayUsuarios());
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-riel via-riel-claro to-marca-800 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-riel to-riel-claro px-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-3 text-white">
-          <span className="inline-flex size-11 items-center justify-center rounded-xl bg-white/15 text-xl font-bold">R</span>
-          <span className="text-2xl font-semibold">REA CRM</span>
+          <LogoMacheaCompleto className="h-9 w-auto" />
         </div>
         <div className="rounded-2xl bg-white p-8 shadow-2xl">
           <h1 className="text-xl font-semibold text-slate-800">{primeraVez ? "Cree la cuenta de administrador" : "Iniciar sesión"}</h1>

@@ -138,7 +138,7 @@ function ModalConversion({ fila, app, alCerrar }: { fila: FilaConNombres; app: s
     <Modal
       abierto
       alCerrar={alCerrar}
-      titulo={`Convertir candidato: ${persona}`}
+      titulo={`Convertir lead: ${persona}`}
       ancho="md"
       pie={
         <>
@@ -253,7 +253,7 @@ function ModalMiembros({ campanaId, alCerrar }: { campanaId: string; alCerrar: (
           aria-label="Tipo de miembro"
         >
           <option value="contactos">Contactos</option>
-          <option value="candidatos">Candidatos</option>
+          <option value="candidatos">Leads</option>
         </select>
         <div className="flex-1">
           <BusquedaRegistro

@@ -33,7 +33,7 @@ const titulos: Record<string, string> = {
 
 export async function generateMetadata({ params }: { params: Promise<{ pagina: string }> }): Promise<Metadata> {
   const { pagina } = await params;
-  return { title: titulos[pagina] ?? "REA CRM" };
+  return { title: titulos[pagina] ?? "Machea" };
 }
 
 export default async function PaginaEspecial({

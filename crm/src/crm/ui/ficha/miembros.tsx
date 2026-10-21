@@ -31,7 +31,7 @@ export function MiembrosCampana({ miembros, app }: { miembros: Miembro[]; app: s
                   {m.nombre}
                 </Link>
                 <p className="text-xs text-slate-500">
-                  {m.objeto === "contactos" ? "Contacto" : "Candidato"}
+                  {m.objeto === "contactos" ? "Contacto" : "Lead"}
                   {m.email ? ` · ${m.email}` : ""}
                 </p>
               </div>

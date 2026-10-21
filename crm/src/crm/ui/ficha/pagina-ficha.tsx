@@ -278,7 +278,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
         ) : null}
         {objeto === "candidatos" && fila.convertido ? (
           <div className="flex flex-wrap items-center gap-3 border-t border-emerald-100 bg-emerald-50 px-5 py-3 text-sm text-emerald-800">
-            <Icono nombre="CircleCheck" className="size-4" /> Candidato convertido.
+            <Icono nombre="CircleCheck" className="size-4" /> Lead convertido.
             {typeof fila.cuentaConvertidaId === "string" ? (
               <EnlaceBoton href={`/${app}/o/cuentas/${fila.cuentaConvertidaId}`} tamano="sm" variante="enlace">
                 Ver cuenta

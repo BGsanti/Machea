@@ -42,3 +42,18 @@ Machea vende: leads que Manuela contacta, qué dijeron, y la cita.
 3. **Leads y ficha** con la llamada.
 4. **Citas y agenda.**
 5. **Machea como su propio cliente:** prospectos y demos de Camila dentro del CRM.
+
+## Estado (21-oct-2026): fases 1 y 2 en el CRM real
+
+Rama `crm/panel-machea`. Se cambió **cómo se ve y se navega**; no se quitó ninguna función ni se tocó la base de datos.
+
+**Hecho**
+- **Piel Machea:** paleta (coral en el acento, navy en la barra, neutros cálidos en toda la escala `slate` de Tailwind), tipografía Archivo (`next/font/local`, respeta `/crm`), logo real, títulos «Machea», gráficos con la paleta de la marca.
+- **Barra lateral:** Inicio, Leads, Contactos, Empresas, Negocios, Citas, Análisis, Automatización. Ventas (completa), Servicio, Marketing, Comercio y Su cuenta siguen en «Más herramientas». En pantallas angostas queda solo con íconos.
+- **Vocabulario:** «candidato» pasa a «lead» en lo que se ve (el objeto interno sigue siendo `candidatos`; no hay migración).
+- **Inicio nuevo:** saludo, acciones rápidas (nuevo lead, importar leads —abre el diálogo por `?importar=1`—, nuevo contacto, ver citas), cinco indicadores, «Para hacer hoy» (leads calientes sin atender + tareas de hoy y vencidas), próximas citas y actividad reciente. Los informes de antes siguen debajo («Sus informes») y los consejos de arranque, en «Primeros pasos».
+
+**Sigue siendo concepto (no está construido)**
+- Grabación y transcripción de la llamada dentro de la ficha, asistente de preguntas, agenda con Google Calendar, aviso al asesor, confirmación automática 24 h antes, medidor de llamadas del plan, indicadores con tendencia.
+
+**Falta decidir con Diego y Carlos:** el visto bueno de Carlos para adaptar su CRM (ya pendiente) y si quieren «Leads» como nombre definitivo.

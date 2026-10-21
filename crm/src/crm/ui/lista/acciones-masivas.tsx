@@ -172,7 +172,7 @@ export function ModalCorreoLista({ objeto, ids, alCerrar, alTerminar }: PropsMas
                 aria-label="Tipo de destinatario"
               >
                 <option value="contactos">Contactos</option>
-                <option value="candidatos">Candidatos</option>
+                <option value="candidatos">Leads</option>
               </select>
               <div className="flex-1">
                 <BusquedaRegistro

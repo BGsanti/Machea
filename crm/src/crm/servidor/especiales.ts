@@ -50,8 +50,8 @@ export async function convertirCandidato(candidatoId: string, formData: FormData
     .from(candidatos)
     .where(and(eq(candidatos.id, candidatoId), eq(candidatos.empresaId, usuario.empresaId)))
     .limit(1);
-  if (!c) return { ok: false, mensaje: "El candidato ya no existe." };
-  if (c.convertido) return { ok: false, mensaje: "Este candidato ya se convirtió." };
+  if (!c) return { ok: false, mensaje: "El lead ya no existe." };
+  if (c.convertido) return { ok: false, mensaje: "Este lead ya se convirtió." };
 
   const texto = (n: string) => {
     const v = formData.get(n);
@@ -138,7 +138,7 @@ export async function convertirCandidato(candidatoId: string, formData: FormData
       .set({ quienObjeto: "contactos", quienId: contactoId })
       .where(and(eq(eventos.quienId, candidatoId), eq(eventos.empresaId, usuario.empresaId)));
     revalidatePath("/", "layout");
-    return { ok: true, mensaje: "Candidato convertido.", cuentaId, contactoId, oportunidadId };
+    return { ok: true, mensaje: "Lead convertido.", cuentaId, contactoId, oportunidadId };
   } catch (e) {
     return error(e);
   }
@@ -249,7 +249,7 @@ export async function generarFactura(oportunidadId: string): Promise<EstadoAccio
 
 export async function agregarACampana(objeto: string, ids: string[], campanaId: string): Promise<EstadoAccion> {
   const { empresaId } = await requerirUsuario();
-  if (!["contactos", "candidatos"].includes(objeto)) return { ok: false, mensaje: "Solo contactos y candidatos." };
+  if (!["contactos", "candidatos"].includes(objeto)) return { ok: false, mensaje: "Solo contactos y leads." };
   if (!campanaId) return { ok: false, mensaje: "Elija una campaña." };
   const db = await bd();
   // La campaña y las personas tienen que ser de la misma empresa.
@@ -290,7 +290,7 @@ export async function enviarCorreoLista(
   cuerpo: string,
 ): Promise<EstadoAccion> {
   const usuario = await requerirUsuario();
-  if (!["contactos", "candidatos"].includes(objeto)) return { ok: false, mensaje: "Solo contactos y candidatos." };
+  if (!["contactos", "candidatos"].includes(objeto)) return { ok: false, mensaje: "Solo contactos y leads." };
   if (!asunto.trim() || !cuerpo.trim()) return { ok: false, mensaje: "Escriba el asunto y el mensaje." };
   const db = await bd();
   const tabla = objeto === "contactos" ? contactos : candidatos;
@@ -306,7 +306,7 @@ export async function enviarCorreoLista(
       {
         asunto: asunto.trim(),
         cuerpo: cuerpo.trim(),
-        objetoDestinatarios: objeto === "contactos" ? "Contactos" : "Candidatos",
+        objetoDestinatarios: objeto === "contactos" ? "Contactos" : "Leads",
         destinatarios: conCorreo.length,
         estado: "registrado",
         enviadoEn: new Date(),

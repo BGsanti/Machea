@@ -3,7 +3,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatoMoneda, formatoNumero } from "../formato";
 
-export const paleta = ["#0d8a76", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#14b8a6", "#ec4899", "#64748b", "#84cc16", "#06b6d4"];
+export const paleta = ["#ff6259", "#2d3b4e", "#2dd4a7", "#f59e0b", "#3b82f6", "#8b5cf6", "#ec4899", "#6b7686", "#84cc16", "#06b6d4"];
 
 export interface DatoGrafico {
   etiqueta: string;
@@ -61,7 +61,7 @@ export function Grafico({
     return (
       <ResponsiveContainer width="100%" height={alto}>
         <LineChart data={datos} margin={{ left: 8, right: 16, top: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d7" />
           <XAxis dataKey="etiqueta" tick={{ fontSize: 11 }} />
           <YAxis tickFormatter={corto} tick={{ fontSize: 11 }} width={56} />
           <Tooltip formatter={(v) => formato(Number(v))} />
@@ -74,7 +74,7 @@ export function Grafico({
   return (
     <ResponsiveContainer width="100%" height={Math.max(alto, horizontal ? datos.length * 34 + 30 : alto)}>
       <BarChart data={datos} layout={horizontal ? "vertical" : "horizontal"} margin={{ left: 8, right: 16, top: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d7" />
         {horizontal ? (
           <>
             <XAxis type="number" tickFormatter={corto} tick={{ fontSize: 11 }} />
@@ -86,7 +86,7 @@ export function Grafico({
             <YAxis tickFormatter={corto} tick={{ fontSize: 11 }} width={56} />
           </>
         )}
-        <Tooltip formatter={(v) => formato(Number(v))} cursor={{ fill: "#f1f5f9" }} />
+        <Tooltip formatter={(v) => formato(Number(v))} cursor={{ fill: "#f5eee7" }} />
         <Bar dataKey="valor" radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]}>
           {datos.map((d, i) => (
             <Cell key={d.etiqueta} fill={paleta[i % paleta.length]} />

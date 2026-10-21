@@ -58,6 +58,7 @@ export async function PaginaLista({
       grafico={grafico}
       campoGrafico={campoGrafico ?? null}
       abrirNuevo={parametros.nuevo === "1" && Boolean(def.acciones.nuevo)}
+      abrirImportar={parametros.importar === "1" && Boolean(def.acciones.importar)}
     />
   );
 }

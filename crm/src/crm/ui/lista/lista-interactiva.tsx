@@ -36,6 +36,7 @@ export function ListaInteractiva({
   grafico,
   campoGrafico,
   abrirNuevo = false,
+  abrirImportar = false,
 }: {
   objeto: string;
   app: string;
@@ -49,12 +50,13 @@ export function ListaInteractiva({
   grafico: { campo: string; etiqueta: string; grupos: { etiqueta: string; total: number; suma: number }[] } | null;
   campoGrafico: string | null;
   abrirNuevo?: boolean;
+  abrirImportar?: boolean;
 }) {
   const router = useRouter();
   const def = obtenerObjeto(objeto)!;
   const base = `/${app}/o/${objeto}`;
   const [seleccion, setSeleccion] = useState<string[]>([]);
-  const [modal, setModal] = useState<Modal>(abrirNuevo ? "nuevo" : null);
+  const [modal, setModal] = useState<Modal>(abrirNuevo ? "nuevo" : abrirImportar ? "importar" : null);
   const [menuVista, setMenuVista] = useState(false);
   const [menuFila, setMenuFila] = useState<string | null>(null);
   const [pendiente, iniciar] = useTransition();

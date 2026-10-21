@@ -126,7 +126,7 @@ const contactos: DefObjeto = {
 // ---------------------------------------------------------------------------
 
 const camposCandidato: Campo[] = [
-  { nombre: "estado", etiqueta: "Estado del candidato", tipo: "lista", opciones: op.estadosCandidato, requerido: true, porDefecto: "nuevo" },
+  { nombre: "estado", etiqueta: "Estado del lead", tipo: "lista", opciones: op.estadosCandidato, requerido: true, porDefecto: "nuevo" },
   { nombre: "tratamiento", etiqueta: "Tratamiento", tipo: "lista", opciones: op.tratamientos },
   { nombre: "nombre", etiqueta: "Nombre", tipo: "texto" },
   { nombre: "apellidos", etiqueta: "Apellidos", tipo: "texto", requerido: true },
@@ -144,7 +144,7 @@ const camposCandidato: Campo[] = [
   { nombre: "codigoPostal", etiqueta: "Código postal", tipo: "texto" },
   { nombre: "numeroEmpleados", etiqueta: "Número de empleados", tipo: "numero" },
   { nombre: "ingresosAnuales", etiqueta: "Ingresos anuales", tipo: "moneda" },
-  { nombre: "origen", etiqueta: "Origen del candidato", tipo: "lista", opciones: op.origenesCandidato },
+  { nombre: "origen", etiqueta: "Origen del lead", tipo: "lista", opciones: op.origenesCandidato },
   { nombre: "sector", etiqueta: "Sector", tipo: "lista", opciones: op.sectores },
   { nombre: "convertido", etiqueta: "Convertido", tipo: "casilla", soloLectura: true },
   { nombre: "convertidoEn", etiqueta: "Fecha de conversión", tipo: "fechaHora", soloLectura: true },
@@ -156,8 +156,8 @@ const camposCandidato: Campo[] = [
 
 const candidatos: DefObjeto = {
   api: "candidatos",
-  etiqueta: "Candidato",
-  etiquetaPlural: "Candidatos",
+  etiqueta: "Lead",
+  etiquetaPlural: "Leads",
   genero: "m",
   icono: "UserPlus",
   color: "bg-orange-500",
@@ -177,10 +177,10 @@ const candidatos: DefObjeto = {
   ],
   columnas: ["nombre", "compania", "estadoProvincia", "telefono", "email", "estado", "creadoEn", "propietarioId"],
   vistas: [
-    { id: "abiertos", etiqueta: "Todos los candidatos abiertos", condiciones: [{ campo: "convertido", operador: "falso" }] },
-    { id: "mios", etiqueta: "Mis candidatos", soloMios: true, condiciones: [{ campo: "convertido", operador: "falso" }] },
-    { id: "convertidos", etiqueta: "Candidatos convertidos", condiciones: [{ campo: "convertido", operador: "verdadero" }] },
-    todos("Todos los candidatos"),
+    { id: "abiertos", etiqueta: "Todos los leads abiertos", condiciones: [{ campo: "convertido", operador: "falso" }] },
+    { id: "mios", etiqueta: "Mis leads", soloMios: true, condiciones: [{ campo: "convertido", operador: "falso" }] },
+    { id: "convertidos", etiqueta: "Leads convertidos", condiciones: [{ campo: "convertido", operador: "verdadero" }] },
+    todos("Todos los leads"),
     recientes,
   ],
   vistaPorDefecto: "abiertos",
@@ -191,9 +191,9 @@ const candidatos: DefObjeto = {
   actividades: true,
   acciones: { nuevo: true, importar: true, agregarCampana: true, enviarCorreo: true, cambiarPropietario: true },
   vacio: {
-    titulo: "Céntrese en los candidatos correctos",
-    texto: "Los candidatos son clientes y acuerdos en potencia. Siga su progreso y vea cuáles tienen más probabilidades de cerrarse.",
-    boton: "Agregar un candidato",
+    titulo: "Céntrese en los leads correctos",
+    texto: "Los leads son personas interesadas en comprar. Siga su progreso y vea cuáles tienen más probabilidades de cerrarse.",
+    boton: "Agregar un lead",
   },
 };
 
@@ -730,7 +730,7 @@ const correosLista: DefObjeto = {
   busqueda: ["asunto"],
   camposResaltados: ["destinatarios", "estado", "enviadoEn"],
   acciones: {},
-  vacio: { titulo: "Nada que ver aquí", texto: "Seleccione contactos o candidatos en su lista y use «Enviar correo electrónico»." },
+  vacio: { titulo: "Nada que ver aquí", texto: "Seleccione contactos o leads en su lista y use «Enviar correo electrónico»." },
 };
 
 const establecimientos: DefObjeto = {
