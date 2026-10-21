@@ -74,3 +74,35 @@ Carpeta `~/Desktop/MACHEA/SUPABASE/` (copia de `supabase/migrations/`):
 - Login: quitar `DATABASE_URL` en Render y redesplegar.
 - CRM: quitar el rewrite `/crm` de `frontend/vercel.json`.
 - Camila: `CAPTACION_LLAMAR_DEMOS=false`.
+
+## Ola 2 (21-oct-2026): audio y transcripción, formularios, perfiles de empresa y Machea como su propio cliente
+
+**Orden importante.** El CRM nuevo lee columnas y tablas que aún no existen en su base: hay que migrar **antes** de que Vercel
+termine de desplegar (o apenas después: mientras tanto `/crm` responde con error).
+
+1. **CRM (`pnpm db:migrar` en `crm/`)**, con la cadena de administrador y `?sslmode=no-verify`, desde su propia terminal.
+   Aplica `0002_perfiles_catalogo_formularios` (perfil de la empresa, catálogo de proyectos e inmuebles, formularios y sus envíos,
+   respuestas del lead). Después, en el SQL Editor de Supabase: `select crm.cerrar_tablas();`
+2. **Supabase (SQL Editor), en este orden:**
+   - `20261021120000_grabaciones_llamadas.sql`: columnas de audio y transcripción. Se puede aplicar antes o después de desplegar Render.
+   - `20261021130000_crm_interna.sql`: prospectos, demos, llamadas y citas de Camila hacia el CRM de Machea. No hace nada hasta que
+     exista la fuente `interna` (paso 6). **No se probó contra Postgres**: aplicarla primero en un proyecto de prueba si es posible.
+3. **Render:** Manual Deploy. Variable nueva `GRABACIONES_GUARDAR`: vacía = se guarda solo lo de Camila (ella avisa que la llamada
+   «puede ser grabada»); `todas` o `manuela,camila` = también Manuela. **No poner `todas` antes de corregir los textos:** la política de
+   privacidad y el aviso de Manuela dicen que la llamada NO se graba, y Dapta sí la graba y la transcribe. Ariel y Diego deben revisarlo.
+4. **Dapta:** para escuchar el audio en el CRM, encender «Public call link» en cada agente (Ajustes → Call Settings & Behavior).
+   Con eso cualquiera que tenga el enlace puede oír la llamada; el CRM no lo expone al navegador (lo sirve él mismo, solo con sesión).
+5. **Vercel (proyecto `machea2`), opcional:** `FORMULARIOS_SECRETO` (24+ caracteres aleatorios) para firmar los formularios públicos;
+   si no está se usa un derivado de la cadena de la base. Los formularios públicos quedan en `https://www.machea.co/crm/f/<slug>`.
+6. **Machea como empresa interna** (una vez, después de entrar al CRM con la cuenta de Machea):
+   ```sql
+   select id, usuario, correo from acceso.cuentas where correo = '<correo de la cuenta de Machea>';
+   insert into crm.empresa_fuentes (empresa_id, tipo, slug) values ('<id>', 'interna', 'machea');
+   select crm.rellenar_interna();
+   ```
+   Luego, en Configuración del CRM, elegir el tipo de empresa «Machea (ventas B2B)».
+7. **Verificación:** crear un formulario en `/crm/formularios`, publicarlo, llenarlo desde otra ventana y comprobar que llega como lead;
+   abrir un lead con llamada de Camila y ver la conversación.
+
+**Para apagar rápido:** `GRABACIONES_GUARDAR=ninguna` en Render; pausar un formulario en `/crm/formularios`; quitar la fuente `interna`
+(`delete from crm.empresa_fuentes where tipo = 'interna';`).
