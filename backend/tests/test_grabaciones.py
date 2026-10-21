@@ -84,7 +84,42 @@ class TestRegistro(unittest.TestCase):
         self.assertIn("573001112233", texto)
 
 
+class TestInterruptor(unittest.TestCase):
+    def prueba(self, valor, manuela, camila):
+        with mock.patch.dict(os.environ, {"GRABACIONES_GUARDAR": valor}):
+            self.assertEqual((grabaciones.habilitada("manuela"), grabaciones.habilitada("camila")), (manuela, camila), valor)
+
+    def test_por_defecto_solo_camila(self):
+        os.environ.pop("GRABACIONES_GUARDAR", None)
+        self.assertEqual((grabaciones.habilitada("manuela"), grabaciones.habilitada("camila")), (False, True))
+
+    def test_valores(self):
+        self.prueba("todas", True, True)
+        self.prueba("1", True, True)
+        self.prueba("0", False, False)
+        self.prueba("ninguna", False, False)
+        self.prueba("manuela", True, False)
+        self.prueba("manuela, camila", True, True)
+        self.prueba("otra", False, False)
+
+
 class TestGuardado(unittest.TestCase):
+    def setUp(self):
+        p = mock.patch.dict(os.environ, {"GRABACIONES_GUARDAR": "todas"})
+        p.start()
+        self.addCleanup(p.stop)
+
+    def test_apagado_no_guarda_nada_de_manuela(self):
+        a = llamadas.AlmacenMemoria()
+        llamadas.configurar_almacen(a)
+        self.addCleanup(llamadas.configurar_almacen, None)
+        with mock.patch.dict(os.environ, {"GRABACIONES_GUARDAR": "camila"}):
+            llamadas.guardar_resultado(LLAMADA, {}, "+573001112233", {"resumen_llamada": "Poco interés."})
+        fila = a.resultados["call_abc123"]
+        self.assertNotIn("transcripcion", fila)
+        self.assertNotIn("grabacion_url", fila)
+        self.assertEqual(fila["resumen_llamada"], "Poco interés.")
+
     def test_guardar_resultado_incluye_audio_y_transcripcion(self):
         a = llamadas.AlmacenMemoria()
         llamadas.configurar_almacen(a)

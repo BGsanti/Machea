@@ -25,6 +25,10 @@ const politica = [
   "object-src 'none'",
 ].join("; ");
 
+// Las páginas públicas de los formularios (/f/*): se pueden incrustar en el sitio de cada empresa (frame-ancestors) y
+// mostrar su logo desde cualquier https (img-src). Nada más se relaja: siguen sin poder cargar scripts de otros sitios.
+const politicaFormularios = politica.replace("img-src 'self' data: blob:", "img-src 'self' data: blob: https:").replace("frame-ancestors 'none'", "frame-ancestors *");
+
 const config: NextConfig = {
   basePath,
   // Para las direcciones que arma el navegador a mano (por ejemplo el audio de una llamada): Next no les pone el basePath.
@@ -42,9 +46,14 @@ const config: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     ];
     return [
+      // Todo menos los formularios públicos: sin poder incrustarse en otros sitios.
       {
-        source: "/:ruta*",
+        source: "/:ruta((?!f/).*)",
         headers: produccion ? [...comunes, { key: "Content-Security-Policy", value: politica }] : comunes,
+      },
+      {
+        source: "/f/:slug",
+        headers: produccion ? [...comunes, { key: "Content-Security-Policy", value: politicaFormularios }] : comunes,
       },
     ];
   },

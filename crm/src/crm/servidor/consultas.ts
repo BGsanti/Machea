@@ -17,6 +17,7 @@ import {
   tareas,
   usuarios,
   type FiltroInforme,
+  empresaFuentes,
 } from "@/db/esquema";
 import { etiquetaOpcion, formatoFecha } from "../formato";
 import { campoDe, obtenerObjeto } from "../objetos";
@@ -39,6 +40,24 @@ export async function obtenerConfiguracion() {
     .onConflictDoNothing()
     .returning();
   return nueva ?? (await db.select().from(configuracion).where(eq(configuracion.empresaId, empresaId)))[0]!;
+}
+
+/**
+ * ¿Es la empresa de Machea misma? La marca /admin o el SQL de puesta en marcha con una fuente `interna`: esa
+ * empresa recibe lo que sale de la base de Machea (prospectos de Camila, demos pedidas) y puede usar el perfil
+ * «Machea (ventas B2B)».
+ */
+export async function empresaEsInterna(): Promise<boolean> {
+  // Para probar el perfil de Machea en desarrollo sin tener la fuente en la base.
+  if (process.env.CRM_EMPRESA_INTERNA === "1" && process.env.NODE_ENV !== "production") return true;
+  const db = await bd();
+  const empresaId = await empresaActual();
+  const [f] = await db
+    .select({ id: empresaFuentes.id })
+    .from(empresaFuentes)
+    .where(and(eq(empresaFuentes.empresaId, empresaId), eq(empresaFuentes.tipo, "interna")))
+    .limit(1);
+  return Boolean(f);
 }
 
 export async function obtenerPreferencias(usuarioId: string) {

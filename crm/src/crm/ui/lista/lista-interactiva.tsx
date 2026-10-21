@@ -35,6 +35,7 @@ export function ListaInteractiva({
   moneda,
   grafico,
   campoGrafico,
+  columnas: columnasPropias,
   abrirNuevo = false,
   abrirImportar = false,
 }: {
@@ -49,6 +50,8 @@ export function ListaInteractiva({
   moneda: string;
   grafico: { campo: string; etiqueta: string; grupos: { etiqueta: string; total: number; suma: number }[] } | null;
   campoGrafico: string | null;
+  /** Columnas distintas de las del objeto (por ejemplo, las de los leads según el tipo de empresa). */
+  columnas?: string[];
   abrirNuevo?: boolean;
   abrirImportar?: boolean;
 }) {
@@ -62,7 +65,7 @@ export function ListaInteractiva({
   const [pendiente, iniciar] = useTransition();
 
   const vista = def.vistas.find((v) => v.id === estado.vista);
-  const columnas = def.columnas.map((c) => campoDe(def, c)).filter((c) => c !== undefined);
+  const columnas = (columnasPropias ?? def.columnas).map((c) => campoDe(def, c)).filter((c) => c !== undefined);
   const todosMarcados = filas.length > 0 && seleccion.length === filas.length;
   const paginas = Math.max(1, Math.ceil(total / porPagina));
   const url = (cambios: Partial<Record<string, string | null>>) => urlLista(base, estado, cambios);

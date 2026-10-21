@@ -39,6 +39,21 @@ export async function buscarSesionMachea(hash: string): Promise<CuentaMachea | n
   return r.rows[0] ?? null;
 }
 
+/**
+ * El tipo con que se aprobó la cuenta (constructora o inmobiliaria). Si el rol del CRM aún no puede leerlo (falta
+ * el permiso de la migración de puesta en marcha), se usa el perfil de por defecto: nunca rompe la entrada.
+ */
+async function perfilDeLaCuenta(cuentaId: string): Promise<string | undefined> {
+  try {
+    const db = await bd();
+    const r = await db.execute<{ tipo: string | null }>(sql`select tipo from acceso.cuentas where id = ${cuentaId}::uuid`);
+    const tipo = r.rows[0]?.tipo;
+    return tipo === "constructora" || tipo === "inmobiliaria" ? tipo : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Empresas que ya existen en el CRM, para no escribir en cada petición.
 const conocidas = new Set<string>();
 
@@ -52,7 +67,7 @@ export async function asegurarEmpresaMachea(cuenta: CuentaMachea): Promise<void>
     .values({ id: cuenta.id, empresaId: cuenta.id, name: cuenta.usuario, email: cuenta.correo, emailVerified: true, rol: "admin" })
     .onConflictDoNothing();
   // Siempre, no solo si la empresa es nueva: /admin puede crearla antes (al asignarle sus fuentes de leads), y
-  // inicializarOrganizacion no repite lo que ya existe.
-  await inicializarOrganizacion(cuenta.id, cuenta.id, cuenta.usuario);
+  // inicializarOrganizacion no repite lo que ya existe. El perfil sale del tipo con que se aprobó la cuenta.
+  await inicializarOrganizacion(cuenta.id, cuenta.id, cuenta.usuario, await perfilDeLaCuenta(cuenta.id));
   conocidas.add(cuenta.id);
 }

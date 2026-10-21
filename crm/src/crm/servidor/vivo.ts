@@ -5,7 +5,7 @@ import { requerirUsuario } from "@/auth/sesion";
 import { modoAuth } from "@/auth/servidor";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
-import { bandejaLeads, leadsMachea } from "@/db/esquema";
+import { bandejaLeads, candidatos, enviosFormulario, formularios, leadsMachea } from "@/db/esquema";
 import { procesarBandeja } from "./ingesta";
 
 export interface NovedadLead {
@@ -33,7 +33,7 @@ export async function novedadesDeLeads(desdeMs: number): Promise<{ ahoraMs: numb
     const filas = await db
       .select()
       .from(bandejaLeads)
-      .where(and(eq(bandejaLeads.empresaId, empresaId), gt(bandejaLeads.procesadoEn, new Date(desdeMs)), inArray(bandejaLeads.origen, ["consulta", "solicitud", "resultado"])))
+      .where(and(eq(bandejaLeads.empresaId, empresaId), gt(bandejaLeads.procesadoEn, new Date(desdeMs)), inArray(bandejaLeads.origen, ["consulta", "solicitud", "resultado", "demo"])))
       .limit(20);
     const novedades: NovedadLead[] = [];
     for (const f of filas) {
@@ -51,8 +51,25 @@ export async function novedadesDeLeads(desdeMs: number): Promise<{ ahoraMs: numb
         clave: `${f.origen}:${f.origenId}`,
         tipo: caliente ? "caliente" : "nuevo",
         nombre: [texto(d.nombre), texto(d.apellido)].filter(Boolean).join(" ") || "Un interesado",
-        detalle: texto(d.nombre_proyecto),
+        detalle: texto(d.nombre_proyecto) ?? texto(d.empresa),
         candidatoId: enlace?.candidatoId ?? null,
+      });
+    }
+    // Lo que se llenó en los formularios de la empresa (constructor de formularios).
+    const envios = await db
+      .select({ id: enviosFormulario.id, candidatoId: enviosFormulario.candidatoId, formulario: formularios.nombre, nombre: candidatos.nombre, apellidos: candidatos.apellidos, interes: candidatos.interes })
+      .from(enviosFormulario)
+      .innerJoin(formularios, eq(formularios.id, enviosFormulario.formularioId))
+      .leftJoin(candidatos, eq(candidatos.id, enviosFormulario.candidatoId))
+      .where(and(eq(enviosFormulario.empresaId, empresaId), gt(enviosFormulario.creadoEn, new Date(desdeMs))))
+      .limit(10);
+    for (const e of envios) {
+      novedades.push({
+        clave: `envio:${e.id}`,
+        tipo: "nuevo",
+        nombre: [e.nombre, e.apellidos].filter((x) => x && x !== "(sin apellido)").join(" ") || "Un interesado",
+        detalle: e.interes ?? e.formulario,
+        candidatoId: e.candidatoId,
       });
     }
     return { ahoraMs, novedades };

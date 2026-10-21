@@ -2,7 +2,7 @@ import Link from "next/link";
 import { and, count, desc, eq, gte, lt, ne, notInArray, sql, sum } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
-import { candidatos, casos, eventos, oportunidades, tareas } from "@/db/esquema";
+import { candidatos, casos, eventos, formularios, inmuebles, oportunidades, proyectos, tareas } from "@/db/esquema";
 import type { Usuario } from "@/auth/sesion";
 import { Tarjeta } from "@/ui/basicos";
 import { EnlaceBoton } from "@/ui/boton";
@@ -13,6 +13,7 @@ import { fechaLocal, inicioMes, ZONA_HORARIA } from "../fechas";
 import { formatoFechaHora, formatoMoneda } from "../formato";
 import { obtenerObjeto } from "../objetos";
 import { etapasCerradas, origenesCandidato } from "../opciones";
+import { perfilDe } from "../perfiles";
 import { ejecutarInforme, listaInformes, obtenerConfiguracion, obtenerPreferencias } from "../servidor/consultas";
 import { recientes } from "../servidor/repositorio";
 import { ListaParaHoy } from "./inicio-hoy";
@@ -33,8 +34,10 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
     listaInformes(),
   ]);
 
+  const perfil = perfilDe(config.perfil);
+  const tablaCatalogo = perfil.catalogo?.objeto === "proyectos" ? proyectos : perfil.catalogo?.objeto === "inmuebles" ? inmuebles : null;
   const abiertosDeLaEmpresa = and(eq(candidatos.empresaId, empresaId), eq(candidatos.convertido, false));
-  const [[abiertos], [nuevos], [calientesTotal], [pipeline], [conLeads], [conLlamadas], [conEventos], [conTareas], tareasHoy, calientes, citas] = await Promise.all([
+  const [[abiertos], [nuevos], [calientesTotal], [pipeline], [conLeads], [conLlamadas], [conEventos], [conTareas], [conFormularios], [conCatalogo], tareasHoy, calientes, citas] = await Promise.all([
     db.select({ n: count() }).from(candidatos).where(abiertosDeLaEmpresa),
     db.select({ n: count() }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), gte(candidatos.creadoEn, hace7))),
     db.select({ n: count() }).from(candidatos).where(and(abiertosDeLaEmpresa, eq(candidatos.valoracion, "caliente"))),
@@ -46,6 +49,8 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
     db.select({ n: count() }).from(tareas).where(and(eq(tareas.empresaId, empresaId), eq(tareas.tipo, "llamada"))),
     db.select({ n: count() }).from(eventos).where(eq(eventos.empresaId, empresaId)),
     db.select({ n: count() }).from(tareas).where(eq(tareas.empresaId, empresaId)),
+    db.select({ n: count() }).from(formularios).where(eq(formularios.empresaId, empresaId)),
+    tablaCatalogo ? db.select({ n: count() }).from(tablaCatalogo).where(eq(tablaCatalogo.empresaId, empresaId)) : Promise.resolve([{ n: 0 }]),
     db
       .select({ id: tareas.id, asunto: tareas.asunto, fechaVencimiento: tareas.fechaVencimiento, prioridad: tareas.prioridad })
       .from(tareas)
@@ -80,12 +85,27 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
       .limit(50),
   ]);
 
-  const pasos: PasoInicial[] = [
-    { id: "leads", titulo: "Agregue sus primeros leads", texto: "Cree uno o importe una lista en CSV.", href: "/ventas/o/candidatos?importar=1", icono: "UserPlus", hecho: (conLeads?.n ?? 0) > 0 },
-    { id: "llamada", titulo: "Registre una llamada", texto: "Con un clic deja el resultado y el seguimiento.", href: "/ventas/o/candidatos", icono: "PhoneCall", hecho: (conLlamadas?.n ?? 0) > 0 },
-    { id: "cita", titulo: "Agende una visita", texto: "Aparece en el calendario y en «Mis citas».", href: "/ventas/p/calendario", icono: "CalendarPlus", hecho: (conEventos?.n ?? 0) > 0 },
-    { id: "tarea", titulo: "Cree una tarea de seguimiento", texto: "Le aparece aquí el día que toca.", href: "/ventas/o/tareas?nuevo=1", icono: "ListChecks", hecho: (conTareas?.n ?? 0) > 0 },
-  ];
+  const paso = {
+    formulario: { id: "formulario", titulo: perfil.id === "machea" ? "Cree el formulario de demo" : "Cree su primer formulario", texto: "Arme las preguntas, ponga su marca y publíquelo.", href: "/formularios", icono: "ClipboardList", hecho: (conFormularios?.n ?? 0) > 0 },
+    catalogo: perfil.catalogo
+      ? {
+          id: "catalogo",
+          titulo: perfil.catalogo.objeto === "proyectos" ? "Cargue sus proyectos" : "Cargue sus inmuebles",
+          texto: "Los leads y los formularios pueden preguntar por uno.",
+          href: `/ventas/o/${perfil.catalogo.objeto}?nuevo=1`,
+          icono: perfil.catalogo.icono,
+          hecho: (conCatalogo?.n ?? 0) > 0,
+        }
+      : null,
+    leads: { id: "leads", titulo: perfil.id === "machea" ? "Agregue sus primeros prospectos" : "Agregue sus primeros leads", texto: "Cree uno o importe una lista en CSV.", href: "/ventas/o/candidatos?importar=1", icono: "UserPlus", hecho: (conLeads?.n ?? 0) > 0 },
+    llamada: { id: "llamada", titulo: "Registre una llamada", texto: "Con un clic deja el resultado y el seguimiento.", href: "/ventas/o/candidatos", icono: "PhoneCall", hecho: (conLlamadas?.n ?? 0) > 0 },
+    cita: { id: "cita", titulo: perfil.id === "machea" ? "Agende una demo" : perfil.id === "constructora" ? "Agende una visita" : "Agende una visita", texto: "Aparece en el calendario y en «Mis citas».", href: "/ventas/p/calendario", icono: "CalendarPlus", hecho: (conEventos?.n ?? 0) > 0 },
+    tarea: { id: "tarea", titulo: "Cree una tarea de seguimiento", texto: "Le aparece aquí el día que toca.", href: "/ventas/o/tareas?nuevo=1", icono: "ListChecks", hecho: (conTareas?.n ?? 0) > 0 },
+  };
+  const pasos: PasoInicial[] = (perfil.id === "machea"
+    ? [paso.formulario, paso.leads, paso.llamada, paso.cita, paso.tarea]
+    : [paso.formulario, paso.catalogo, paso.leads, paso.llamada, paso.cita]
+  ).filter((p): p is PasoInicial => p !== null);
   const completos = pasos.every((p) => p.hecho);
   const primerosPasosOcultos = prefs.sugerenciasOcultas.includes("primeros-pasos");
 
@@ -113,7 +133,7 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
     { etiqueta: "Leads calientes", valor: calientesTotal?.n ?? 0, detalle: "para llamar primero", icono: "Flame", href: "/ventas/o/candidatos?vista=calientes" },
     { etiqueta: "Mis citas", valor: citas.length, detalle: "en los próximos 7 días", icono: "CalendarDays", href: "/ventas/p/calendario" },
     { etiqueta: "Mis tareas para hoy", valor: tareasHoy.length, detalle: "incluye vencidas", icono: "ListChecks", href: "/ventas/o/tareas?vista=vencidas" },
-    { etiqueta: "Negocios abiertos", valor: formatoMoneda(Number(pipeline?.total ?? 0), config.moneda), detalle: `${pipeline?.n ?? 0} oportunidades`, icono: "Crown", href: "/ventas/o/oportunidades" },
+    { etiqueta: perfil.inicio.etiquetaNegocios, valor: formatoMoneda(Number(pipeline?.total ?? 0), config.moneda), detalle: `${pipeline?.n ?? 0} oportunidades`, icono: "Crown", href: "/ventas/o/oportunidades" },
   ];
 
   return (
@@ -123,21 +143,16 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
           <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
             {saludo}, {usuario.nombre.split(" ")[0]}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">Esto es lo que pasa hoy en {config.nombreEmpresa}.</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {config.nombreEmpresa}: {perfil.inicio.resumen}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <EnlaceBoton href="/ventas/o/candidatos?nuevo=1" variante="primario" icono="UserPlus">
-            Nuevo lead
-          </EnlaceBoton>
-          <EnlaceBoton href="/ventas/o/candidatos?importar=1" icono="Upload">
-            Importar leads
-          </EnlaceBoton>
-          <EnlaceBoton href="/contactos/o/contactos?nuevo=1" icono="Contact">
-            Nuevo contacto
-          </EnlaceBoton>
-          <EnlaceBoton href="/ventas/p/calendario" icono="CalendarDays">
-            Ver citas
-          </EnlaceBoton>
+          {perfil.inicio.acciones.map((a) => (
+            <EnlaceBoton key={a.href + a.etiqueta} href={a.href} variante={a.primario ? "primario" : "secundario"} icono={a.icono}>
+              {a.etiqueta}
+            </EnlaceBoton>
+          ))}
         </div>
       </header>
 

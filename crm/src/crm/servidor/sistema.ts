@@ -20,7 +20,7 @@ import {
 } from "@/db/esquema";
 import { obtenerObjeto } from "../objetos";
 import type { EstadoAccion } from "./acciones";
-import { obtenerConfiguracion, obtenerPreferencias } from "./consultas";
+import { empresaEsInterna, obtenerConfiguracion, obtenerPreferencias } from "./consultas";
 import { cargarDatosEjemplo } from "./datos-ejemplo";
 
 function error(e: unknown): EstadoAccion {
@@ -92,6 +92,7 @@ const esquemaConfig = z.object({
   moneda: z.enum(["COP", "USD", "EUR", "MXN"]),
   pais: z.string().trim().max(80).optional(),
   impuestoPorcentaje: z.coerce.number().min(0).max(100),
+  perfil: z.enum(["inmobiliaria", "constructora", "machea"]).optional(),
 });
 
 export async function guardarConfiguracion(formData: FormData): Promise<EstadoAccion> {
@@ -101,6 +102,8 @@ export async function guardarConfiguracion(formData: FormData): Promise<EstadoAc
     if (!datos.success) return { ok: false, mensaje: datos.error.issues[0]?.message ?? "Revise los datos." };
     const db = await bd();
     await obtenerConfiguracion();
+    // El perfil de Machea (ventas B2B) es solo de la empresa de Machea.
+    if (datos.data.perfil === "machea" && !(await empresaEsInterna())) return { ok: false, mensaje: "Ese tipo de empresa no está disponible." };
     await db
       .update(configuracion)
       .set({ ...datos.data, actualizadoEn: new Date() })

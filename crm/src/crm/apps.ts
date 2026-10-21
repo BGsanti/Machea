@@ -1,7 +1,10 @@
-/** `oculta`: no se muestra de entrada (queda en «Agregar más elementos» del lápiz de la navegación). */
+/**
+ * `oculta`: no se muestra de entrada (queda en «Agregar más elementos» del lápiz de la navegación).
+ * `soloPerfiles`: solo existe para esos tipos de empresa (src/crm/perfiles.ts), por ejemplo Proyectos en constructoras.
+ */
 export type Pestana =
-  | { tipo: "objeto"; id: string; etiqueta?: string; oculta?: boolean }
-  | { tipo: "pagina"; id: string; etiqueta: string; oculta?: boolean };
+  | { tipo: "objeto"; id: string; etiqueta?: string; oculta?: boolean; soloPerfiles?: string[] }
+  | { tipo: "pagina"; id: string; etiqueta: string; oculta?: boolean; soloPerfiles?: string[] };
 
 export interface App {
   id: string;
@@ -28,6 +31,8 @@ export const apps: App[] = [
     icono: "ChartNoAxesCombined",
     pestanas: [
       { tipo: "objeto", id: "candidatos" },
+      { tipo: "objeto", id: "proyectos", soloPerfiles: ["constructora"] },
+      { tipo: "objeto", id: "inmuebles", soloPerfiles: ["inmobiliaria"] },
       { tipo: "objeto", id: "contactos" },
       { tipo: "objeto", id: "cuentas" },
       { tipo: "objeto", id: "oportunidades" },
@@ -89,6 +94,8 @@ const appsPorObjeto: Record<string, string> = {
   cuentas: "cuentas",
   contactos: "contactos",
   candidatos: "ventas",
+  proyectos: "ventas",
+  inmuebles: "ventas",
   oportunidades: "ventas",
   productos: "ventas",
   "listas-precios": "ventas",
@@ -126,7 +133,8 @@ export function hrefPestana(app: string, pestana: Pestana): string {
 /**
  * Navegación de la barra lateral del panel de Machea. No quita nada: cada enlace lleva a una pestaña
  * que ya existe en `apps`, y las apps completas (Ventas, Servicio, Marketing…) siguen en «Más herramientas».
- * `prefijos` decide cuál queda marcado: gana el prefijo más largo que coincida con la ruta.
+ * `prefijos` decide cuál queda marcado: gana el prefijo más largo que coincida con la ruta. La parte principal
+ * de la barra depende del tipo de empresa (src/crm/perfiles.ts).
  */
 export interface EnlaceNav {
   id: string;
@@ -135,17 +143,6 @@ export interface EnlaceNav {
   href: string;
   prefijos: string[];
 }
-
-export const navPrincipal: EnlaceNav[] = [
-  { id: "inicio", etiqueta: "Inicio", icono: "House", href: "/inicio", prefijos: ["/inicio"] },
-  { id: "leads", etiqueta: "Leads", icono: "UserPlus", href: "/ventas/o/candidatos", prefijos: ["/ventas/o/candidatos"] },
-  { id: "contactos", etiqueta: "Contactos", icono: "Users", href: "/contactos", prefijos: ["/contactos", "/ventas/o/contactos"] },
-  { id: "empresas", etiqueta: "Empresas", icono: "Building", href: "/cuentas", prefijos: ["/cuentas", "/ventas/o/cuentas"] },
-  { id: "negocios", etiqueta: "Negocios", icono: "Crown", href: "/ventas/o/oportunidades", prefijos: ["/ventas/o/oportunidades"] },
-  { id: "citas", etiqueta: "Citas", icono: "CalendarDays", href: "/ventas/p/calendario", prefijos: ["/ventas/p/calendario", "/ventas/o/eventos"] },
-  { id: "analisis", etiqueta: "Análisis", icono: "ChartPie", href: "/ventas/p/analisis", prefijos: ["/ventas/p/analisis"] },
-  { id: "automatizacion", etiqueta: "Automatización", icono: "Workflow", href: "/automatizacion", prefijos: ["/automatizacion"] },
-];
 
 export const navMasHerramientas: EnlaceNav[] = [
   { id: "ventas", etiqueta: "Ventas (todo)", icono: "ChartNoAxesCombined", href: "/ventas", prefijos: ["/ventas"] },
@@ -156,9 +153,9 @@ export const navMasHerramientas: EnlaceNav[] = [
 ];
 
 /** El enlace de la barra lateral que corresponde a una ruta (el de prefijo más largo), o undefined. */
-export function enlaceActivo(ruta: string): EnlaceNav | undefined {
+export function enlaceActivo(ruta: string, principal: EnlaceNav[]): EnlaceNav | undefined {
   let mejor: { enlace: EnlaceNav; largo: number } | undefined;
-  for (const enlace of [...navPrincipal, ...navMasHerramientas]) {
+  for (const enlace of [...principal, ...navMasHerramientas]) {
     for (const prefijo of enlace.prefijos) {
       if ((ruta === prefijo || ruta.startsWith(`${prefijo}/`)) && (!mejor || prefijo.length > mejor.largo)) {
         mejor = { enlace, largo: prefijo.length };

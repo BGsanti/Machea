@@ -515,7 +515,7 @@ def procesar_resultado(body: Dict[str, Any]) -> Dict[str, Any]:
     nuevo = a.registrar_llamada({
         "prospecto_id": p["id"], "call_id": str(llamada.get("call_id") or llamada.get("id") or "") or None,
         "motivo_corte": razon or None, "duracion_ms": dur, "sin_contacto": sin_contacto, "resumen": str(resumen)[:1000], "analisis": datos,
-        **{k: v for k, v in grabaciones.extraer(llamada).items() if k != "duracion_ms"},
+        **({k: v for k, v in grabaciones.extraer(llamada).items() if k != "duracion_ms"} if grabaciones.habilitada("camila") else {}),
     })
     if not nuevo:
         return {"status": "duplicado", "prospecto_id": p["id"]}

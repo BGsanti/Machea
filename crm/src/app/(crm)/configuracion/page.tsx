@@ -3,7 +3,8 @@ import { ejemplosPermitidos, modoAuth } from "@/auth/servidor";
 import { requerirUsuario } from "@/auth/sesion";
 import { formatoFecha } from "@/crm/formato";
 import { monedas } from "@/crm/opciones";
-import { listaUsuarios, obtenerConfiguracion } from "@/crm/servidor/consultas";
+import { PERFILES } from "@/crm/perfiles";
+import { empresaEsInterna, listaUsuarios, obtenerConfiguracion } from "@/crm/servidor/consultas";
 import { Insignia, Tarjeta } from "@/ui/basicos";
 import { Icono } from "@/ui/icono";
 import { DatosEjemplo, FormularioEmpresa, NuevoUsuario } from "./cliente";
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Configuración" };
 
 export default async function Configuracion() {
   const usuario = await requerirUsuario();
-  const [config, usuarios] = await Promise.all([obtenerConfiguracion(), listaUsuarios()]);
+  const [config, usuarios, interna] = await Promise.all([obtenerConfiguracion(), listaUsuarios(), empresaEsInterna()]);
   const admin = usuario.rol === "admin";
   // Con el login de Machea, la cuenta es la empresa y su único usuario: no se crean más aquí.
   const usuariosPropios = modoAuth() === "local";
@@ -28,8 +29,11 @@ export default async function Configuracion() {
         <Tarjeta titulo="Empresa" icono={<Icono nombre="Building" className="size-4 text-slate-500" />}>
           <FormularioEmpresa
             admin={admin}
-            valores={{ nombreEmpresa: config.nombreEmpresa, moneda: config.moneda, pais: config.pais ?? "", impuestoPorcentaje: config.impuestoPorcentaje }}
+            valores={{ nombreEmpresa: config.nombreEmpresa, moneda: config.moneda, pais: config.pais ?? "", impuestoPorcentaje: config.impuestoPorcentaje, perfil: config.perfil }}
             monedas={monedas}
+            perfiles={Object.values(PERFILES)
+              .filter((p) => p.id !== "machea" || interna || config.perfil === "machea")
+              .map((p) => ({ valor: p.id, etiqueta: p.etiqueta, descripcion: p.descripcion }))}
           />
         </Tarjeta>
         <Tarjeta titulo={`Usuarios (${usuarios.length})`} icono={<Icono nombre="Users" className="size-4 text-slate-500" />} acciones={admin && usuariosPropios ? <NuevoUsuario /> : undefined} sinRelleno>

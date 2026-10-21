@@ -21,7 +21,7 @@ export default async function LayoutCrm({ children }: { children: React.ReactNod
   ]);
   return (
     <div className="flex h-screen overflow-hidden">
-      <BarraApps empresa={config.nombreEmpresa} />
+      <BarraApps empresa={config.nombreEmpresa} perfil={config.perfil} />
       <AvisosEnVivo />
       <div className="flex min-w-0 flex-1 flex-col">
         <Cabecera

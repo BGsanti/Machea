@@ -6,15 +6,17 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icono } from "@/ui/icono";
 import { LogoMachea, LogoMacheaCompleto } from "@/ui/logo-machea";
-import { enlaceActivo, navMasHerramientas, navPrincipal, type EnlaceNav } from "../../apps";
+import { enlaceActivo, navMasHerramientas, type EnlaceNav } from "../../apps";
+import { perfilDe } from "../../perfiles";
 
 /**
  * Barra lateral del panel de Machea. Pantallas anchas: logo, empresa y secciones con nombre.
  * Pantallas angostas: solo los íconos. Las apps completas del CRM quedan en «Más herramientas».
  */
-export function BarraApps({ empresa }: { empresa: string }) {
+export function BarraApps({ empresa, perfil }: { empresa: string; perfil: string }) {
   const ruta = usePathname();
-  const activo = enlaceActivo(ruta);
+  const def = perfilDe(perfil);
+  const activo = enlaceActivo(ruta, def.nav);
   const enMas = navMasHerramientas.some((e) => e.id === activo?.id);
   const [masAbierto, setMasAbierto] = useState(enMas);
   const inicialEmpresa = (empresa.trim()[0] ?? "M").toUpperCase();
@@ -30,13 +32,13 @@ export function BarraApps({ empresa }: { empresa: string }) {
         <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-marca-500 text-sm font-bold text-white">{inicialEmpresa}</span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-semibold">{empresa}</span>
-          <span className="block text-[11px] text-slate-300">Panel de leads</span>
+          <span className="block text-[11px] text-slate-300">{def.etiqueta}</span>
         </span>
       </div>
 
       <nav aria-label="Secciones" className="desplazable flex-1 overflow-y-auto px-2 pb-3 lg:px-3">
         <ul className="space-y-0.5">
-          {navPrincipal.map((e) => (
+          {def.nav.map((e) => (
             <li key={e.id}>
               <Enlace enlace={e} activo={activo?.id === e.id} />
             </li>

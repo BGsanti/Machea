@@ -1,8 +1,9 @@
 import { and, eq, sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { conEmpresa, type Usuario } from "@/db/contexto";
-import { bandejaLeads, candidatos, eventos, leadsMachea, tareas } from "@/db/esquema";
+import { bandejaLeads, candidatos, eventos, leadsMachea, notificaciones, tareas, usuarios } from "@/db/esquema";
 import { desdeHoraLocal, fechaLocal } from "../fechas";
+import { partirNombre } from "../formularios/validar";
 import * as repo from "./repositorio";
 
 /**
@@ -216,8 +217,255 @@ async function procesarResultado(empresaId: string, usuario: Usuario, d: Datos, 
   }
 }
 
+// ---------------------------------------------------------------------------
+// Machea como su propia empresa cliente: prospectos de Camila, demos pedidas en la web, llamadas y citas
+// ---------------------------------------------------------------------------
+
+const ESTADO_PROSPECTO: Record<string, string> = {
+  nuevo: "nuevo",
+  en_cola: "nuevo",
+  llamando: "nuevo",
+  contactado: "contactado",
+  calificado: "calificado",
+  demo_agendada: "calificado",
+  no_interesado: "no_calificado",
+  no_contactar: "no_calificado",
+  numero_invalido: "no_calificado",
+  sin_respuesta: "no_calificado",
+};
+const VALORACION_SCORE: Record<string, string> = { A: "caliente", B: "tibio", C: "frio", X: "frio" };
+const ORIGEN_PROSPECTO: Record<string, string> = { lista_frio: "camila", demo_web: "demo_web", referido: "referencia_externa", manual: "otro" };
+const ETIQUETAS_CALIFICACION: Record<string, string> = {
+  tipo_empresa_confirmado: "Tipo de empresa",
+  leads_mes: "Leads al mes",
+  inversion_pauta_mes: "Inversión en pauta al mes",
+  tiempo_respuesta: "Tiempo de respuesta a un lead",
+  crm_actual: "Qué usa hoy",
+  es_decisor: "¿Decide la compra?",
+  dolor_principal: "Lo que quiere resolver",
+  interes: "Nivel de interés",
+  motivo_no_demo: "Por qué no agendó la demo",
+  siguiente_paso: "Siguiente paso",
+  objecion_principal: "Objeción principal",
+};
+
+const aTexto = (v: unknown, max = 300): string | null => texto(v, max);
+
+function telefonoDeDigitos(digitos: string): string {
+  return digitos.length === 10 ? `+57 ${digitos.slice(0, 3)} ${digitos.slice(3, 6)} ${digitos.slice(6)}` : `+57${digitos}`;
+}
+
+function respuestasDe(pares: [string, string, unknown][]): { clave: string; etiqueta: string; valor: string }[] {
+  return pares.flatMap(([clave, etiqueta, valor]) => {
+    const t = Array.isArray(valor) ? valor.join(", ") : typeof valor === "object" && valor !== null ? null : texto(valor, 300);
+    return t ? [{ clave, etiqueta, valor: t }] : [];
+  });
+}
+
+async function avisarAdmins(empresaId: string, titulo: string, cuerpo: string, enlace: string) {
+  const db = await bd();
+  const admins = await db.select({ id: usuarios.id }).from(usuarios).where(and(eq(usuarios.empresaId, empresaId), eq(usuarios.rol, "admin")));
+  for (const a of admins) await db.insert(notificaciones).values({ usuarioId: a.id, titulo, cuerpo, enlace });
+}
+
+/** El lead de una empresa prospecto: lo encuentra por su teléfono (de Camila o de una demo pedida) o lo crea. */
+async function asegurarProspecto(empresaId: string, usuario: Usuario, digitos: string, valores: Datos): Promise<{ id: string; nuevo: boolean }> {
+  const db = await bd();
+  const existente = await candidatoDe(empresaId, digitos);
+  if (existente) return { id: existente, nuevo: false };
+  let id: string;
+  try {
+    id = await repo.crear("candidatos", { ...valores, telefono: valores.telefono ?? telefonoDeDigitos(digitos), pais: "Colombia", origenExterno: `machea:${digitos}` }, usuario.id);
+  } catch (e) {
+    const [ya] = await db.select({ id: candidatos.id }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), eq(candidatos.origenExterno, `machea:${digitos}`)));
+    if (!ya) throw e;
+    id = ya.id;
+  }
+  await db.insert(leadsMachea).values({ empresaId, telefonoDigitos: digitos, candidatoId: id }).onConflictDoNothing();
+  return { id: (await candidatoDe(empresaId, digitos)) ?? id, nuevo: true };
+}
+
+function digitosDe(d: Datos): string {
+  const v = texto(d.telefono_digitos, 20);
+  if (!v) throw new Error("La fila no trae teléfono.");
+  return v.replace(/\D/g, "").slice(-10);
+}
+
+/** Alguien pidió una demo en la web: es un lead caliente, con lo que contestó. */
+async function procesarDemo(empresaId: string, usuario: Usuario, d: Datos) {
+  const digitos = digitosDe(d);
+  const nombreCompleto = aTexto(d.nombre, 120) ?? "Interesado en una demo";
+  const { nombre, apellidos } = partirNombre(nombreCompleto);
+  const empresa = aTexto(d.empresa, 200);
+  const respuestas = respuestasDe([
+    ["tipo_empresa", "Tipo de empresa", d.tipo_empresa],
+    ["problema", "Lo que quiere resolver", d.problema],
+    ["fuente_leads", "De dónde le llegan los leads", d.fuente_leads],
+    ["pauta", "Pauta mensual", d.pauta_mensual],
+    ["leads_mes", "Leads al mes", d.leads_mes],
+    ["crm", "Qué usa hoy", d.crm],
+    ["sitio", "Sitio web", d.sitio],
+  ]);
+  const { id, nuevo } = await asegurarProspecto(empresaId, usuario, digitos, {
+    nombre,
+    apellidos,
+    compania: empresa ?? nombreCompleto,
+    email: aTexto(d.correo, 160),
+    sitioWeb: aTexto(d.sitio, 300),
+    estado: "nuevo",
+    valoracion: "caliente",
+    origen: "demo_web",
+    interes: aTexto(d.problema, 200),
+    descripcion: `Pidió una demo en la web${empresa ? ` para **${empresa}**` : ""}.`,
+    respuestas,
+  });
+  if (!nuevo) {
+    // Ya era un lead (por Camila): se marca caliente y se anota que pidió la demo.
+    await repo.actualizar("candidatos", id, { valoracion: "caliente", respuestas }, usuario.id);
+  }
+  await guardarActividad(
+    "tareas",
+    `demo:${digitos}`,
+    { asunto: `Atender la solicitud de demo${empresa ? ` de ${empresa}` : ""}`, tipo: "llamada", estado: "no_iniciada", fechaVencimiento: fechaLocal(), prioridad: "alta", quienObjeto: "candidatos", quienId: id },
+    usuario,
+  );
+  if (nuevo) await avisarAdmins(empresaId, `Demo pedida: ${empresa ?? nombreCompleto}`, "Pidió una demo en la web", `/ventas/o/candidatos/${id}`);
+}
+
+/** Una empresa de la lista de Camila (o una demo ya calificada): se crea o se actualiza su lead. */
+async function procesarProspecto(empresaId: string, usuario: Usuario, d: Datos) {
+  const digitos = digitosDe(d);
+  const calificacion = (d.calificacion && typeof d.calificacion === "object" ? d.calificacion : {}) as Datos;
+  const contacto = aTexto(d.contacto_nombre, 120);
+  const { nombre, apellidos } = contacto ? partirNombre(contacto) : { nombre: null, apellidos: "(sin contacto)" };
+  const empresa = aTexto(d.empresa, 200) ?? contacto ?? "Empresa";
+  const score = aTexto(d.score, 2);
+  const valores = {
+    nombre,
+    apellidos,
+    compania: empresa,
+    cargo: aTexto(d.contacto_cargo, 120),
+    email: aTexto(d.correo, 160),
+    ciudad: aTexto(d.ciudad, 120),
+    sitioWeb: aTexto(d.sitio, 300),
+    estado: ESTADO_PROSPECTO[String(d.estado ?? "nuevo")] ?? "nuevo",
+    valoracion: score ? (VALORACION_SCORE[score] ?? null) : null,
+    origen: ORIGEN_PROSPECTO[String(d.origen ?? "lista_frio")] ?? "camila",
+    interes: aTexto(calificacion.dolor_principal, 200) ?? aTexto(calificacion.interes, 200),
+    descripcion: [aTexto(d.notas, 1500), score ? `Puntaje de Camila: **${score}**${d.puntos !== undefined ? ` (${String(d.puntos)}/100)` : ""}.` : null].filter(Boolean).join("\n\n") || null,
+    respuestas: respuestasDe(Object.entries(ETIQUETAS_CALIFICACION).map(([k, etiqueta]) => [k, etiqueta, calificacion[k]] as [string, string, unknown])),
+  };
+  const { id, nuevo } = await asegurarProspecto(empresaId, usuario, digitos, { ...valores, telefono: telefonoDeDigitos(digitos) });
+  if (!nuevo) {
+    const actual = await repo.obtener("candidatos", id);
+    if (actual && !actual.convertido) {
+      // Lo que Camila va aprendiendo se actualiza; lo que la persona ya cambió a mano (estado avanzado) no se pisa hacia atrás.
+      const orden = ["nuevo", "contactado", "en_seguimiento", "calificado", "no_calificado"];
+      const estadoNuevo = orden.indexOf(valores.estado) > orden.indexOf(String(actual.estado)) ? valores.estado : actual.estado;
+      await repo.actualizar(
+        "candidatos",
+        id,
+        {
+          estado: estadoNuevo,
+          valoracion: valores.valoracion ?? actual.valoracion,
+          respuestas: valores.respuestas.length ? valores.respuestas : actual.respuestas,
+          interes: valores.interes ?? actual.interes,
+          cargo: actual.cargo ?? valores.cargo,
+          email: actual.email ?? valores.email,
+          ciudad: actual.ciudad ?? valores.ciudad,
+        },
+        usuario.id,
+      );
+    }
+  }
+}
+
+/** La llamada de Camila: queda como tarea completada con su resumen; la conversación y el audio quedan en la bandeja. */
+async function procesarLlamadaCamila(empresaId: string, usuario: Usuario, d: Datos, callId: string) {
+  const digitos = digitosDe(d);
+  const analisis = (d.analisis && typeof d.analisis === "object" ? d.analisis : {}) as Datos;
+  const empresa = aTexto(d.empresa, 200) ?? "la empresa";
+  const { id } = await asegurarProspecto(empresaId, usuario, digitos, {
+    nombre: null,
+    apellidos: "(sin contacto)",
+    compania: empresa,
+    estado: "nuevo",
+    origen: "camila",
+    descripcion: "Lo llamó Camila.",
+  });
+  const persona = await repo.obtener("candidatos", id);
+  const temperatura = typeof persona?.valoracion === "string" ? persona.valoracion : null;
+  const comentarios = [
+    d.sin_contacto === true ? "No se logró hablar con la persona (buzón, ocupado o filtro de llamadas)." : null,
+    aTexto(d.resumen, 1500),
+    aTexto(analisis.siguiente_paso, 400) ? `Siguiente paso: ${aTexto(analisis.siguiente_paso, 400)}` : null,
+    aTexto(analisis.dolor_principal, 300) ? `Lo que quiere resolver: ${aTexto(analisis.dolor_principal, 300)}` : null,
+    aTexto(analisis.objecion_principal, 300) ? `Objeción principal: ${aTexto(analisis.objecion_principal, 300)}` : null,
+    temperatura ? `Temperatura: ${temperatura}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  await guardarActividad(
+    "tareas",
+    `camila:${callId}`,
+    {
+      asunto: `Llamada de Camila – ${empresa}`.slice(0, 255),
+      tipo: "llamada",
+      estado: "completada",
+      completadaEn: new Date(),
+      fechaVencimiento: fechaLocal(),
+      prioridad: temperatura === "caliente" ? "alta" : "normal",
+      comentarios: comentarios || null,
+      quienObjeto: "candidatos",
+      quienId: id,
+    },
+    usuario,
+  );
+}
+
+/** La demo o la llamada de seguimiento que Camila dejó acordada: va al calendario. Sin hora exacta, queda una tarea. */
+async function procesarCitaCamila(empresaId: string, usuario: Usuario, d: Datos, citaId: string) {
+  const digitos = digitosDe(d);
+  const empresa = aTexto(d.empresa, 200) ?? "la empresa";
+  const { id } = await asegurarProspecto(empresaId, usuario, digitos, { nombre: null, apellidos: "(sin contacto)", compania: empresa, estado: "calificado", origen: "camila", descripcion: "Lo llamó Camila." });
+  const esDemo = String(d.tipo ?? "demo") === "demo";
+  const asunto = `${esDemo ? "Demo" : "Seguimiento"} – ${empresa}`.slice(0, 255);
+  const inicio = d.inicio ? new Date(String(d.inicio)) : null;
+  const canales: Record<string, string> = { llamada: "Llamada", videollamada: "Videollamada", whatsapp: "WhatsApp", presencial: "Presencial" };
+  const detalle = [aTexto(d.texto_acordado, 200) ? `Acordado: ${aTexto(d.texto_acordado, 200)}.` : null, aTexto(d.asesor, 80) ? `Atiende: ${aTexto(d.asesor, 80)}.` : null, aTexto(d.notas, 500)].filter(Boolean).join(" ");
+  const cancelada = ["cancelada", "no_show"].includes(String(d.estado ?? ""));
+  if (inicio && !Number.isNaN(inicio.getTime())) {
+    await guardarActividad(
+      "eventos",
+      `cita-camila:${citaId}`,
+      {
+        asunto: cancelada ? `Cancelada – ${asunto}` : asunto,
+        descripcion: detalle || null,
+        inicio,
+        fin: new Date(inicio.getTime() + 60 * 60 * 1000),
+        ubicacion: canales[String(d.canal ?? "")] ?? null,
+        quienObjeto: "candidatos",
+        quienId: id,
+      },
+      usuario,
+    );
+  } else if (!cancelada) {
+    await guardarActividad(
+      "tareas",
+      `cita-camila:${citaId}`,
+      { asunto: `Coordinar ${esDemo ? "la demo" : "el seguimiento"} – ${empresa}`, tipo: "llamada", estado: "no_iniciada", fechaVencimiento: fechaLocal(), prioridad: "alta", comentarios: detalle || null, quienObjeto: "candidatos", quienId: id },
+      usuario,
+    );
+  }
+}
+
 async function procesarFila(empresaId: string, usuario: Usuario, origen: string, origenId: string, d: Datos) {
   if (origen === "resultado") return procesarResultado(empresaId, usuario, d, origenId);
+  // Lo que sale de la base de Machea para su propia empresa (la fuente `interna`): demos pedidas, prospectos y llamadas de Camila.
+  if (origen === "demo") return procesarDemo(empresaId, usuario, d);
+  if (origen === "prospecto") return procesarProspecto(empresaId, usuario, d);
+  if (origen === "llamada_captacion") return procesarLlamadaCamila(empresaId, usuario, d, origenId);
+  if (origen === "cita") return procesarCitaCamila(empresaId, usuario, d, origenId);
   if (origen === "consulta" || origen === "solicitud") {
     await asegurarCandidato(empresaId, usuario, d, `machea:${texto(d.telefono_digitos, 20)}`);
     return;

@@ -275,7 +275,8 @@ def guardar_resultado(llamada: Dict[str, Any], body: Dict[str, Any], telefono_e1
             if v in (None, ""):
                 continue
             fila[c] = str(v)[:2000] if c in _TEXTOS_LIBRES or isinstance(v, str) else v
-        fila.update(grabaciones.extraer(llamada))
+        if grabaciones.habilitada("manuela"):
+            fila.update(grabaciones.extraer(llamada))
         almacen().guardar_resultado(fila)
     except Exception:  # noqa: BLE001 - guardar nunca rompe el webhook
         logger.exception("llamadas: no se pudo guardar el resultado de %s", telefono_e164[-4:])

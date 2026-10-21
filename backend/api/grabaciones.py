@@ -14,9 +14,29 @@ Lo que se guarda es lo mínimo para mostrarlo; nada de esto viaja al navegador d
 resultado que ve esa persona lo arma app.py aparte) y los registros del servidor lo omiten (`para_registro`).
 """
 
+import os
 import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
+
+def habilitada(agente: str) -> bool:
+    """¿Se guardan el audio y la transcripción de las llamadas de este agente («manuela» o «camila»)?
+
+    Es un interruptor aparte porque guardar la conversación es tratamiento de datos que la persona tiene que conocer:
+    la política de privacidad y la apertura de Manuela dicen hoy que la llamada NO se graba, aunque Dapta sí la graba
+    y la transcribe. Camila ya avisa que «la llamada puede ser grabada», así que por defecto solo se guardan las de
+    Camila. Variable GRABACIONES_GUARDAR: vacía = solo Camila; «todas» o «1» = las dos; «ninguna» o «0» = ninguna;
+    o una lista: «manuela,camila».
+    """
+    valor = os.environ.get("GRABACIONES_GUARDAR", "").strip().lower()
+    if valor == "":
+        return agente == "camila"
+    if valor in ("0", "no", "false", "ninguna"):
+        return False
+    if valor in ("1", "si", "sí", "true", "todas"):
+        return True
+    return agente in {x.strip() for x in valor.split(",")}
+
 
 MAX_TURNOS = 400
 MAX_TEXTO_TURNO = 800

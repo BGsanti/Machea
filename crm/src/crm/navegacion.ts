@@ -20,7 +20,7 @@ export async function pestanasDeApp(
   if (!app) return null;
   const [config, prefs, vistos] = await Promise.all([obtenerConfiguracion(), obtenerPreferencias(usuarioId), recientes(usuarioId, 80)]);
 
-  const todas = [...app.pestanas];
+  const todas = app.pestanas.filter((p) => !p.soloPerfiles || p.soloPerfiles.includes(config.perfil));
   if (app.id === "marketing" && config.marketingActivado) todas.push(pestanaCampanas);
   const porClave = new Map(todas.map((p) => [claveDe(p), p]));
   const elegidas = prefs.navegacion[app.id]?.filter((c) => porClave.has(c));

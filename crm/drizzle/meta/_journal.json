@@ -15,6 +15,13 @@
       "when": 1792358002093,
       "tag": "0001_leads_machea",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792615538319,
+      "tag": "0002_perfiles_catalogo_formularios",
+      "breakpoints": true
     }
   ]
 }

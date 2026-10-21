@@ -1,4 +1,5 @@
 import {
+  Link2,
   ArrowDown,
   ArrowRightLeft,
   ArrowUp,
@@ -81,6 +82,18 @@ import {
   PhoneOff,
   CircleX,
   Rocket,
+  Building2,
+  ClipboardList,
+  HardHat,
+  Code,
+  EyeOff,
+  Pause,
+  Play,
+  Trash2,
+  Palette,
+  Image,
+  Type,
+  Send,
   type LucideIcon,
 } from "lucide-react";
 
@@ -167,6 +180,19 @@ const iconos: Record<string, LucideIcon> = {
   PhoneOff,
   CircleX,
   Rocket,
+  Building2,
+  ClipboardList,
+  HardHat,
+  Code,
+  EyeOff,
+  Pause,
+  Play,
+  Link2,
+  Trash2,
+  Palette,
+  Image,
+  Type,
+  Send,
 };
 
 export function Icono({ nombre, className = "size-4", ...resto }: { nombre: string; className?: string; "aria-hidden"?: boolean }) {

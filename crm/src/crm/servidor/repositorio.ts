@@ -660,10 +660,19 @@ export async function ultimaLlamadaManuela(personaId: string): Promise<LlamadaMa
   if (!llamada) return null;
   const [prefijo, ...resto] = String(llamada.origenExterno).split(":");
   const llamadaId = resto.join(":");
+  // La cita de Manuela lleva el id de la llamada; la de Camila es de la persona (puede venir de otra llamada).
   const [cita] = await db
     .select()
     .from(eventos)
-    .where(and(eq(eventos.empresaId, empresaId), eq(eventos.origenExterno, `${prefijo === "camila" ? "cita-camila" : "cita"}:${llamadaId}`)))
+    .where(
+      and(
+        eq(eventos.empresaId, empresaId),
+        prefijo === "camila"
+          ? and(eq(eventos.quienId, personaId), like(eventos.origenExterno, "cita-camila:%"))
+          : eq(eventos.origenExterno, `cita:${llamadaId}`),
+      ),
+    )
+    .orderBy(desc(eventos.creadoEn))
     .limit(1);
   return {
     agente: prefijo === "camila" ? "Camila" : "Manuela",

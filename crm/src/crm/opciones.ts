@@ -52,6 +52,9 @@ export const origenesCandidato: Opcion[] = [
   { valor: "boca_a_boca", etiqueta: "Boca a boca" },
   // Leads que llegan de Machea (src/crm/servidor/ingesta.ts).
   { valor: "formulario_marca", etiqueta: "Formulario con su marca (Machea)" },
+  { valor: "formulario_empresa", etiqueta: "Formulario de la empresa" },
+  { valor: "camila", etiqueta: "Llamada de Camila" },
+  { valor: "demo_web", etiqueta: "Pidió una demo en la web" },
   { valor: "proyecto_machea", etiqueta: "Su proyecto en Machea" },
   { valor: "otro", etiqueta: "Otro" },
 ];
@@ -270,4 +273,42 @@ export const categoriasTexto: Opcion[] = [
   { valor: "respuestas", etiqueta: "Respuestas" },
   { valor: "despedidas", etiqueta: "Despedidas" },
   { valor: "preguntas_frecuentes", etiqueta: "Preguntas frecuentes" },
+];
+
+// Catálogo de constructoras (proyectos) y de inmobiliarias (inmuebles).
+
+export const etapasProyecto: Opcion[] = [
+  { valor: "sobre_planos", etiqueta: "Sobre planos", color: violeta },
+  { valor: "en_construccion", etiqueta: "En construcción", color: ambar },
+  { valor: "entrega_inmediata", etiqueta: "Entrega inmediata", color: verde },
+  { valor: "agotado", etiqueta: "Agotado", color: gris },
+];
+
+export const tiposVivienda: Opcion[] = [
+  { valor: "vip", etiqueta: "VIP" },
+  { valor: "vis", etiqueta: "VIS" },
+  { valor: "no_vis", etiqueta: "No VIS" },
+];
+
+export const operacionesInmueble: Opcion[] = [
+  { valor: "venta", etiqueta: "Venta", color: azul },
+  { valor: "arriendo", etiqueta: "Arriendo", color: violeta },
+];
+
+export const tiposInmueble: Opcion[] = [
+  { valor: "apartamento", etiqueta: "Apartamento" },
+  { valor: "casa", etiqueta: "Casa" },
+  { valor: "apartaestudio", etiqueta: "Apartaestudio" },
+  { valor: "local", etiqueta: "Local" },
+  { valor: "oficina", etiqueta: "Oficina" },
+  { valor: "bodega", etiqueta: "Bodega" },
+  { valor: "lote", etiqueta: "Lote" },
+];
+
+export const estadosInmueble: Opcion[] = [
+  { valor: "disponible", etiqueta: "Disponible", color: verde },
+  { valor: "reservado", etiqueta: "Reservado", color: ambar },
+  { valor: "vendido", etiqueta: "Vendido", color: gris },
+  { valor: "arrendado", etiqueta: "Arrendado", color: gris },
+  { valor: "retirado", etiqueta: "Retirado", color: rojo },
 ];

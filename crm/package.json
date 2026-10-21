@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "db:generar": "drizzle-kit generate",
     "db:migrar": "tsx --env-file-if-exists=.env.local scripts/migrar.ts"
   },

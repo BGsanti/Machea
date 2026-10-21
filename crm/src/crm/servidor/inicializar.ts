@@ -3,11 +3,11 @@ import { bd } from "@/db/cliente";
 import { carpetasTexto, configuracion, informes, listasPrecios, paneles } from "@/db/esquema";
 
 /** Datos mínimos de una empresa nueva: configuración, lista estándar, informes y paneles. */
-export async function inicializarOrganizacion(usuarioId: string, empresaId: string, empresa?: string): Promise<void> {
+export async function inicializarOrganizacion(usuarioId: string, empresaId: string, empresa?: string, perfil?: string): Promise<void> {
   const db = await bd();
   await db
     .insert(configuracion)
-    .values({ empresaId, nombreEmpresa: empresa?.trim() || "Mi empresa" })
+    .values({ empresaId, nombreEmpresa: empresa?.trim() || "Mi empresa", ...(perfil ? { perfil } : {}) })
     .onConflictDoNothing();
 
   const [estandar] = await db

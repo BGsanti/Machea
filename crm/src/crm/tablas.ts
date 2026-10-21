@@ -7,6 +7,8 @@ export const tablas: Record<string, PgTable> = {
   candidatos: t.candidatos,
   oportunidades: t.oportunidades,
   productos: t.productos,
+  proyectos: t.proyectos,
+  inmuebles: t.inmuebles,
   "listas-precios": t.listasPrecios,
   "entradas-lista-precios": t.entradasListaPrecios,
   "productos-oportunidad": t.productosOportunidad,

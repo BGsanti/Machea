@@ -184,7 +184,7 @@ class TestResultado(Base):
                    "recording_url": "https://files.dapta.ai/calls/llamada-1.ogg",
                    "transcript_object": [{"role": "agent", "content": "Hola, te habla Manuela.", "words": [{"start": 1.0}]},
                                          {"role": "user", "content": "Buenas.", "words": [{"start": 4.0}]}]}
-        with mock.patch.dict(os.environ, {"MANUELA_WEBHOOK_SECRET": SECRETO}):
+        with mock.patch.dict(os.environ, {"MANUELA_WEBHOOK_SECRET": SECRETO, "GRABACIONES_GUARDAR": "manuela"}):
             self.webhook({"data": llamada, "call": {}}, k=SECRETO)
         guardado = self.almacen.resultados["llamada-1"]
         self.assertEqual(guardado["grabacion_url"], "https://files.dapta.ai/calls/llamada-1.ogg")

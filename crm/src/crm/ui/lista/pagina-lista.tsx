@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { campoDe, obtenerObjeto } from "../../objetos";
 import { leerEstadoLista, type ParametrosUrl } from "../../parametros";
+import { perfilDe } from "../../perfiles";
 import { obtenerConfiguracion } from "../../servidor/consultas";
 import { agruparPor, listar, type Grupo } from "../../servidor/repositorio";
 import { etiquetaOpcion } from "../../formato";
@@ -57,6 +58,7 @@ export async function PaginaLista({
       moneda={config.moneda}
       grafico={grafico}
       campoGrafico={campoGrafico ?? null}
+      columnas={objeto === "candidatos" ? perfilDe(config.perfil).leads.columnas : undefined}
       abrirNuevo={parametros.nuevo === "1" && Boolean(def.acciones.nuevo)}
       abrirImportar={parametros.importar === "1" && Boolean(def.acciones.importar)}
     />

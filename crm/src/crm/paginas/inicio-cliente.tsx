@@ -57,7 +57,7 @@ export function PrimerosPasos({ pasos, esAdmin, sinLeads, oculto }: { pasos: Pas
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={porcentaje} aria-valuemin={0} aria-valuemax={100}>
         <div className="h-full rounded-full bg-marca-500 transition-[width] duration-700 ease-out" style={{ width: `${porcentaje}%` }} />
       </div>
-      <ul className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <ul className={`mt-4 grid gap-3 md:grid-cols-2 ${pasos.length >= 5 ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}>
         {pasos.map((p) => (
           <li key={p.id}>
             <Link

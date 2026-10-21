@@ -5,6 +5,7 @@ import { Tarjeta } from "@/ui/basicos";
 import { Icono, IconoObjeto } from "@/ui/icono";
 import { formatoMoneda, formatoNumero, nombreVisible, type FilaConNombres } from "../../formato";
 import { markdownSeguro } from "../../markdown";
+import { perfilDe } from "../../perfiles";
 import { campoDe, obtenerObjeto } from "../../objetos";
 import { lineasDe, miembrosDe, obtenerConfiguracion } from "../../servidor/consultas";
 import { detalleDeLlamada } from "../../servidor/grabaciones";
@@ -17,6 +18,7 @@ import { AccionesFicha } from "./acciones-ficha";
 import { NuevoRelacionado, PanelActividad } from "./actividad";
 import { TarjetaLlamadaManuela } from "./llamada-manuela";
 import { MiembrosCampana } from "./miembros";
+import { RespuestasFormulario, type RespuestaFormulario } from "./respuestas-formulario";
 import { Pestanas } from "./pestanas";
 import { Ruta } from "./ruta";
 
@@ -260,7 +262,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
           </div>
         </div>
         <dl className="flex flex-wrap gap-x-10 gap-y-2 px-5 pb-4">
-          {def.camposResaltados.map((n) => {
+          {(objeto === "candidatos" ? perfilDe(config.perfil).leads.resaltados : def.camposResaltados).map((n) => {
             const c = campoDe(def, n);
             return c ? (
               <div key={n} className="min-w-0">
@@ -312,6 +314,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
         ) : null}
       </div>
       {llamadaManuela ? <TarjetaLlamadaManuela llamada={llamadaManuela} detalle={detalleLlamada} /> : null}
+      {objeto === "candidatos" && Array.isArray(fila.respuestas) ? <RespuestasFormulario respuestas={fila.respuestas as RespuestaFormulario[]} /> : null}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <Pestanas pestanas={pestanas} inicial={actividades ? "detalles" : undefined} />
       </div>

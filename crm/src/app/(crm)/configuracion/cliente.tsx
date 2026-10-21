@@ -12,11 +12,14 @@ export function FormularioEmpresa({
   admin,
   valores,
   monedas,
+  perfiles,
 }: {
   admin: boolean;
-  valores: { nombreEmpresa: string; moneda: string; pais: string; impuestoPorcentaje: number };
+  valores: { nombreEmpresa: string; moneda: string; pais: string; impuestoPorcentaje: number; perfil: string };
   monedas: Opcion[];
+  perfiles: { valor: string; etiqueta: string; descripcion: string }[];
 }) {
+  const [perfil, setPerfil] = useState(valores.perfil);
   const [pendiente, iniciar] = useTransition();
   return (
     <form
@@ -36,6 +39,19 @@ export function FormularioEmpresa({
             Nombre de la empresa
           </Etiqueta>
           <input id="nombreEmpresa" name="nombreEmpresa" defaultValue={valores.nombreEmpresa} className={claseInput} />
+        </div>
+        <div className="sm:col-span-2">
+          <Etiqueta htmlFor="perfil">Tipo de empresa</Etiqueta>
+          <select id="perfil" name="perfil" value={perfil} onChange={(e) => setPerfil(e.target.value)} className={claseInput}>
+            {perfiles.map((p) => (
+              <option key={p.valor} value={p.valor}>
+                {p.etiqueta}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-500">
+            {perfiles.find((p) => p.valor === perfil)?.descripcion} Cambia la barra lateral, el catálogo, las columnas de los leads y las plantillas de formulario; sus datos no se tocan.
+          </p>
         </div>
         <div>
           <Etiqueta htmlFor="pais">País</Etiqueta>
@@ -139,8 +155,7 @@ export function DatosEjemplo() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <p className="max-w-2xl text-sm text-slate-600">
-        Carga cuentas, contactos, candidatos, oportunidades con productos, casos, eventos, tareas, artículos, una campaña y un flujo de ejemplo. Úselo para explorar el CRM; si lo pulsa dos veces, los datos se duplican.
-      </p>
+        Carga un catálogo, leads con llamadas de ejemplo (con su conversación), negocios, citas y tareas, según su tipo de empresa. Úselo para explorar el panel o para una demostración; no lo use en una empresa con datos reales.</p>
       <Boton
         icono="Sparkles"
         cargando={pendiente}

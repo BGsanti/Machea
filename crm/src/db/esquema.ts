@@ -203,6 +203,10 @@ export const candidatos = crm.table(
     oportunidadConvertidaId: uuid(),
     // Lo que lo trajo de Machea (ingesta.ts): evita repetirlo si la bandeja se procesa dos veces.
     origenExterno: text(),
+    /** Proyecto, inmueble o producto por el que preguntó. */
+    interes: text(),
+    /** Lo que contestó en un formulario: [{ clave, etiqueta, valor }], tal como lo vio la persona. */
+    respuestas: jsonb().$type<{ clave: string; etiqueta: string; valor: string }[]>(),
   },
   (t) => [
     index().on(t.apellidos),
@@ -643,9 +647,98 @@ export const configuracion = crm.table("configuracion", {
   moneda: text().notNull().default("COP"),
   pais: text().default("Colombia"),
   marketingActivado: boolean().notNull().default(false),
+  /** Qué tipo de empresa es: cambia la navegación, el catálogo, las plantillas y el inicio (src/crm/perfiles.ts). */
+  perfil: text().notNull().default("inmobiliaria"),
   impuestoPorcentaje: numeric({ precision: 5, scale: 2, mode: "number" }).notNull().default(19),
   actualizadoEn: marcaTiempo().notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Catálogo propio de cada tipo de empresa: proyectos (constructoras) e inmuebles (inmobiliarias)
+// ---------------------------------------------------------------------------
+
+export const proyectos = crm.table("proyectos", {
+  ...comunes(),
+  nombre: text().notNull(),
+  etapa: text().notNull().default("en_construccion"),
+  tipoVivienda: text(),
+  ciudad: text(),
+  barrio: text(),
+  direccion: text(),
+  estrato: integer(),
+  fechaEntrega: date({ mode: "string" }),
+  unidadesTotales: integer(),
+  unidadesDisponibles: integer(),
+  precioDesde: moneda(),
+  precioHasta: moneda(),
+  areaDesde: integer(),
+  areaHasta: integer(),
+  alcobas: text(),
+  aplicaSubsidio: boolean().notNull().default(false),
+  activo: boolean().notNull().default(true),
+  sitioWeb: text(),
+  descripcion: text(),
+});
+
+export const inmuebles = crm.table("inmuebles", {
+  ...comunes(),
+  titulo: text().notNull(),
+  codigo: text(),
+  operacion: text().notNull().default("venta"),
+  tipo: text(),
+  estado: text().notNull().default("disponible"),
+  ciudad: text(),
+  barrio: text(),
+  direccion: text(),
+  estrato: integer(),
+  precio: moneda(),
+  administracion: moneda(),
+  area: integer(),
+  alcobas: integer(),
+  banos: integer(),
+  parqueaderos: integer(),
+  /** Quién es el dueño del inmueble (un contacto). El responsable en Machea es `propietarioId`. */
+  duenoContactoId: uuid().references(() => contactos.id, { onDelete: "set null" }),
+  sitioWeb: text(),
+  descripcion: text(),
+});
+
+// ---------------------------------------------------------------------------
+// Formularios de la empresa (constructor de formularios): cada uno tiene una página pública y un código para
+// incrustarla; lo que se llena entra como lead de la empresa.
+// ---------------------------------------------------------------------------
+
+export const formularios = crm.table(
+  "formularios",
+  {
+    ...comunes(),
+    nombre: text().notNull(),
+    /** Va en la dirección pública /f/<slug>; es único entre todas las empresas. */
+    slug: text().notNull(),
+    estado: text().notNull().default("borrador"),
+    /** Campos, marca, textos y consentimiento (src/crm/formularios/tipos.ts). */
+    config: jsonb().$type<Record<string, unknown>>().notNull(),
+  },
+  (t) => [uniqueIndex().on(t.slug), index().on(t.empresaId)],
+);
+
+/** Cada envío, con lo que contestó y la prueba del consentimiento. La IP solo se guarda como huella (hash). */
+export const enviosFormulario = crm.table(
+  "envios_formulario",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empresaId: empresa(),
+    formularioId: uuid()
+      .notNull()
+      .references(() => formularios.id, { onDelete: "cascade" }),
+    candidatoId: uuid().references(() => candidatos.id, { onDelete: "set null" }),
+    respuestas: jsonb().$type<{ clave: string; etiqueta: string; valor: string }[]>().notNull(),
+    consentimiento: jsonb().$type<Record<string, unknown>>(),
+    ipHash: text(),
+    creadoEn: marcaTiempo().notNull().defaultNow(),
+  },
+  (t) => [index().on(t.formularioId, t.creadoEn), index().on(t.ipHash, t.creadoEn)],
+);
 
 // ---------------------------------------------------------------------------
 // Leads de Machea (design/crm/PLAN.md, fase 4)
