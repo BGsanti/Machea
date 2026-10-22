@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Hook de git: revisa lo que está por confirmarse y detiene el commit si trae una llave o contraseña real.
+# Se instala con:  bash scripts/seguridad/instalar-hooks.sh
+exec python3 "$(git rev-parse --show-toplevel)/scripts/seguridad/escanear-secretos.py" --staged

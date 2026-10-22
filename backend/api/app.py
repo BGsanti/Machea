@@ -26,6 +26,7 @@ from typing import Any, List, Optional, Union
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 logger = logging.getLogger("uvicorn.error")
@@ -51,7 +52,25 @@ from api import seguimiento
 from api.limites import Rechazo, ip_del_cliente, limites
 from api.metricas import enmascarar_telefono, metricas
 
-app = FastAPI(title="Machea Recomendador API", version="0.1")
+def _es_produccion() -> bool:
+    """En Render (o con ENTORNO=produccion) la API no publica su documentación ni su esquema."""
+    return bool(os.environ.get("RENDER")) or os.environ.get("ENTORNO", "").strip().lower() == "produccion"
+
+
+# /docs, /redoc y /openapi.json le dibujan el mapa completo de la API a quien la ataque: solo en desarrollo y en las
+# pruebas. En producción se enciende a propósito con API_DOCS=1.
+def _docs_habilitadas() -> bool:
+    return (not _es_produccion()) or os.environ.get("API_DOCS") == "1"
+
+
+_DOCS = _docs_habilitadas()
+app = FastAPI(
+    title="Machea Recomendador API",
+    version="0.1",
+    docs_url="/docs" if _DOCS else None,
+    redoc_url="/redoc" if _DOCS else None,
+    openapi_url="/openapi.json" if _DOCS else None,
+)
 
 # URL del webhook del flow de Dapta (Flow Studio) que dispara la llamada de
 # Manuela. Vacío -> modo mock: arma el payload y lo devuelve sin llamar a
@@ -123,26 +142,61 @@ _MOTIVO_COLGAR = {
     "call_transfer": "transferida a un asesor", "inactivity": "silencio prolongado", "max_duration_reached": "duración máxima",
 }
 
-@app.middleware("http")
-async def _cabeceras_del_panel(request: Request, call_next):
-    """Todo lo de /api/admin (también los errores 401/404/429) sale sin caché ni indexación.
+# Cabeceras que protegen a quien abra la API en un navegador (la API responde JSON, no HTML: nada de esto rompe a la landing).
+_CABECERAS_SEGURAS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Cross-Origin-Opener-Policy": "same-origin",
+}
+# Lo de sesión, cuentas y claves nunca se guarda en caché de nadie.
+_SIN_CACHE = ("/api/admin", "/api/sesion", "/api/cuentas", "/api/clave", "/api/captacion")
+# Ni siquiera el webhook de Dapta (con transcripciones) pasa de aquí.
+MAX_CUERPO_BYTES = int(os.environ.get("MAX_CUERPO_BYTES", str(2 * 1024 * 1024)))
 
-    No basta con ponerlas en cada ruta: al lanzar una HTTPException, FastAPI descarta las
-    cabeceras de la respuesta inyectada.
+
+@app.middleware("http")
+async def _cabeceras_y_limites(request: Request, call_next):
+    """Rechaza cuerpos enormes y pone las cabeceras de seguridad en TODA respuesta (también en los 401/404/429).
+
+    No basta con ponerlas en cada ruta: al lanzar una HTTPException, FastAPI descarta las cabeceras de la
+    respuesta inyectada. Lo de /api/admin (y sesión, cuentas, claves, captación) sale además sin caché ni indexación.
     """
+    declarado = request.headers.get("content-length")
+    if declarado and declarado.isdigit() and int(declarado) > MAX_CUERPO_BYTES:
+        return JSONResponse(status_code=413, content={"detail": "El envío es demasiado grande."}, headers=_CABECERAS_SEGURAS)
     respuesta = await call_next(request)
-    if request.url.path.startswith("/api/admin"):
+    for k, v in _CABECERAS_SEGURAS.items():
+        respuesta.headers.setdefault(k, v)
+    if request.url.path.startswith(_SIN_CACHE):
         respuesta.headers["Cache-Control"] = "no-store"
         respuesta.headers["X-Robots-Tag"] = "noindex, nofollow"
-        respuesta.headers["X-Content-Type-Options"] = "nosniff"
     return respuesta
 
 
+def _origenes_permitidos() -> list[str]:
+    """Quién puede llamar a la API desde un navegador: la landing y, si se agrega, lo de CORS_ORIGENES (coma)."""
+    base = ["https://www.machea.co", "https://machea.co", "https://my-project-orcin-chi.vercel.app"]
+    extra = [o.strip().rstrip("/") for o in os.environ.get("CORS_ORIGENES", "").split(",") if o.strip()]
+    return base + [o for o in extra if o not in base]
+
+
+# Las vistas previas de Vercel de la landing (my-project-<hash>-...vercel.app) y, solo fuera de producción, el
+# servidor de desarrollo. Antes era "*": cualquier página del mundo podía pedirle llamadas a la API desde el
+# navegador de sus visitantes.
+_REGEX_ORIGEN = r"^https://my-project-[a-z0-9-]+\.vercel\.app$" + (
+    "" if _es_produccion() else r"|^http://(localhost|127\.0\.0\.1)(:\d+)?$"
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_origenes_permitidos(),
+    allow_origin_regex=_REGEX_ORIGEN,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    max_age=600,
 )
 
 

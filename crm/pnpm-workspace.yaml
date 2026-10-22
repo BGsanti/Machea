@@ -1,2 +1,5 @@
 allowBuilds:
   esbuild: true
+# Seguridad: el cargador antiguo de drizzle-kit traía un esbuild vulnerable (GHSA-67mh-4wv8-2f99). Solo es de desarrollo.
+overrides:
+  '@esbuild-kit/core-utils>esbuild': 0.28.2

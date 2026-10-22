@@ -1,0 +1,23 @@
+# Dependabot avisa (y abre un cambio) cuando una dependencia tiene una versión con arreglo de seguridad.
+# Revisar los cambios abiertos cada semana; los de seguridad, el mismo día.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [dependencias, seguridad]
+  - package-ecosystem: npm            # el CRM usa pnpm: Dependabot lo cubre con este mismo ecosistema
+    directory: /crm
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [dependencias, seguridad]
+  - package-ecosystem: pip
+    directory: /backend
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    labels: [dependencias, seguridad]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+    labels: [dependencias, seguridad]

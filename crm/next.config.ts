@@ -23,6 +23,7 @@ const politica = [
   "base-uri 'none'",
   "form-action 'self'",
   "object-src 'none'",
+  "upgrade-insecure-requests",
 ].join("; ");
 
 // Las páginas públicas de los formularios (/f/*): se pueden incrustar en el sitio de cada empresa (frame-ancestors) y
@@ -44,12 +45,16 @@ const config: NextConfig = {
       { key: "X-Robots-Tag", value: "noindex, nofollow" },
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      // Solo por https: el navegador se acuerda y no vuelve a intentar http (Vercel ya sirve todo por https).
+      { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
     ];
     return [
       // Todo menos los formularios públicos: sin poder incrustarse en otros sitios.
       {
         source: "/:ruta((?!f/).*)",
-        headers: produccion ? [...comunes, { key: "Content-Security-Policy", value: politica }] : comunes,
+        headers: produccion ? [...comunes, { key: "X-Frame-Options", value: "DENY" }, { key: "Content-Security-Policy", value: politica }] : comunes,
       },
       {
         source: "/f/:slug",

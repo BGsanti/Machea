@@ -1,0 +1,13 @@
+# Configuración de gitleaks (también lo usa la acción de GitHub si se activa). Parte de las reglas por defecto.
+title = "Machea"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Llave anon de Supabase (pública por diseño) y datos de prueba"
+paths = [
+  '''frontend/public/experiencia/js/config\.js''',
+  '''backend/tests/''',
+  '''crm/\.env\.example''',
+]

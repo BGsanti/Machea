@@ -32,3 +32,31 @@ venv/
 /servicio_machea.py
 # Enlace local a web/public/experiencia/imagenes_proyectos. Roto y sin uso.
 /imagenes_proyectos
+
+# --- Secretos: nunca al repositorio (el repositorio es PÚBLICO) -----------------------------------------------------
+# Variables de entorno reales; solo se versionan los .env.example sin valores.
+.env
+.env.*
+!.env.example
+*.env.local
+# Llaves y certificados.
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa*
+id_ed25519*
+# Credenciales de servicios y respaldos de datos.
+service-account*.json
+credentials*.json
+*-NO-SUBIR*
+*secretos*.txt
+*.sqlite
+*.sqlite3
+*.dump
+*.sql.gz
+# Datos locales del CRM (PGlite) y de las herramientas de despliegue.
+.data/
+.vercel/
+.render/
