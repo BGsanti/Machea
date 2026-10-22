@@ -12,7 +12,7 @@
     "verificar:csp": "node scripts/verificar-csp.mjs"
   },
   "dependencies": {
-    "framer-motion": "^13.1.1",
+    "framer-motion": "^14.4.0",
     "lucide-react": "^1.34.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
