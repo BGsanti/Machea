@@ -35,4 +35,14 @@ for (const [ruta, archivo] of [["/", "../dist/index.html"], ["/experiencia/", ".
     }
   }
 }
+// Lo que otro proyecto sirve a través de un rewrite (el CRM en /crm) trae su propia política: la de la landing la
+// REEMPLAZARÍA (Vercel deja ganar las cabeceras de este vercel.json) y bloquearía sus scripts en línea.
+for (const r of vercel.rewrites ?? []) {
+  if (new URL(r.destination).hostname === "machea-api.onrender.com") continue;
+  const ruta = r.source.replace(/:\w+\*?/g, "x");
+  if (cspDe(ruta)) {
+    console.error(`✗ ${ruta}: lo sirve ${new URL(r.destination).hostname} con su propia política, pero la regla general de vercel.json también le pone la de la landing. Exclúyalo en el source de esa regla.`);
+    fallos++;
+  } else console.log(`✓ ${ruta}: sin la política de la landing (usa la de ${new URL(r.destination).hostname})`);
+}
 process.exit(fallos ? 1 : 0);
