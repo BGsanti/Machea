@@ -6,7 +6,7 @@ lxml>=5.0
 
 # features/scrap_identity: normaliza a PNG el logo que no viene en vector
 # (jpg, webp, ico) antes de envolverlo en el SVG que se guarda.
-Pillow>=10.0
+Pillow>=13.0.0
 
 # Capa HTTP para la landing (api.py)
 fastapi>=0.115
