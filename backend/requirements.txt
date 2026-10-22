@@ -11,7 +11,7 @@ Pillow>=10.0
 # Capa HTTP para la landing (api.py)
 fastapi>=0.115
 uvicorn[standard]>=0.32
-httpx>=0.27
+httpx>=0.28.1
 
 # Login (api/almacen_acceso.py): cuentas en Postgres con DATABASE_URL. `binary` trae libpq incluida
 # (no hay que instalar nada en Render); `pool` mantiene unas pocas conexiones abiertas.
