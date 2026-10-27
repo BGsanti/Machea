@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "db:generar": "drizzle-kit generate",
-    "db:migrar": "tsx --env-file-if-exists=.env.local scripts/migrar.ts"
+    "db:migrar": "tsx --env-file-if-exists=.env.local scripts/migrar.ts",
+    "prueba:sql": "tsx scripts/prueba-sql-supabase.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.10",

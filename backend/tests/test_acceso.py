@@ -107,7 +107,7 @@ class TestRegistro(Base):
     def test_la_clave_se_guarda_con_scrypt(self):
         self.registrar()
         fila = self.almacen.por_correo("ventas@andes.co")
-        self.assertTrue(fila["clave_hash"].startswith("scrypt$16384$8$1$"))
+        self.assertTrue(fila["clave_hash"].startswith("scrypt$32768$8$3$"))
         self.assertNotIn(CLAVE, fila["clave_hash"])
         self.assertTrue(acceso.verificar_clave(CLAVE, fila["clave_hash"]))
         self.assertFalse(acceso.verificar_clave("otra cosa larga", fila["clave_hash"]))

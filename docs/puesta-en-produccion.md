@@ -86,7 +86,7 @@ termine de desplegar (o apenas después: mientras tanto `/crm` responde con erro
 2. **Supabase (SQL Editor), en este orden:**
    - `20261021120000_grabaciones_llamadas.sql`: columnas de audio y transcripción. Se puede aplicar antes o después de desplegar Render.
    - `20261021130000_crm_interna.sql`: prospectos, demos, llamadas y citas de Camila hacia el CRM de Machea. No hace nada hasta que
-     exista la fuente `interna` (paso 6). **No se probó contra Postgres**: aplicarla primero en un proyecto de prueba si es posible.
+     exista la fuente `interna` (paso 6). Probada contra Postgres el 27-oct (`pnpm prueba:sql` en `crm/`, que aplica todas las migraciones en orden): se corrigió `crm.rellenar_interna()`.
 3. **Render:** Manual Deploy. Variable nueva `GRABACIONES_GUARDAR`: vacía = se guarda solo lo de Camila (ella avisa que la llamada
    «puede ser grabada»); `todas` o `manuela,camila` = también Manuela. **No poner `todas` antes de corregir los textos:** la política de
    privacidad y el aviso de Manuela dicen que la llamada NO se graba, y Dapta sí la graba y la transcribe. Ariel y Diego deben revisarlo.
@@ -106,3 +106,44 @@ termine de desplegar (o apenas después: mientras tanto `/crm` responde con erro
 
 **Para apagar rápido:** `GRABACIONES_GUARDAR=ninguna` en Render; pausar un formulario en `/crm/formularios`; quitar la fuente `interna`
 (`delete from crm.empresa_fuentes where tipo = 'interna';`).
+
+
+## Ola 3 (27-oct-2026): equipo y roles, reparto de leads, «Mi día», panel del gerente y paleta de comandos
+
+Lo que cambia para una empresa: ya no es «una cuenta = una persona». El dueño invita asesores y gerentes por enlace; cada asesor ve solo
+sus leads; los leads nuevos se reparten por turnos y el gerente ve cómo atiende el equipo.
+
+**Orden importante.** El CRM nuevo lee columnas y tablas nuevas. Si sube antes que la migración, ahora **no se rompe**: muestra una pantalla
+«Estamos actualizando Machea» con los pasos, pero nadie puede trabajar hasta migrar. Lo mejor es migrar primero y subir después.
+
+1. **Supabase (SQL Editor):** `20261027120000_equipo.sql` (agrega `acceso.cuentas.empresa_id`). Se puede correr dos veces. Si falta, el login y
+   el CRM siguen como siempre (no hay invitaciones hasta aplicarla).
+2. **CRM (`pnpm db:migrar` en `crm/`)**, con la cadena de administrador y `?sslmode=no-verify`, desde su propia terminal. Aplica
+   `0003_equipo_reparto` (invitaciones, reparto, tiempo de respuesta). Después, en Supabase: `select crm.cerrar_tablas();`
+3. **Subir a `main`** (Vercel `machea2` despliega solo).
+4. **Render:** Manual Deploy. Trae `POST /api/cuentas/unirse` (la persona invitada crea su acceso) y el cifrado de contraseñas más fuerte
+   (scrypt N=2^15, p=3). Las contraseñas existentes siguen sirviendo y se actualizan solas la próxima vez que cada persona entra.
+5. **Vercel (`machea2`), opcional:** `CRM_SALUD_CLAVE` (una frase larga). Con ella, `https://www.machea.co/crm/api/salud` (cabecera
+   `x-salud-clave`) devuelve el estado de la base, del esquema y de cuánto lleva esperando la bandeja de leads. Sin la cabecera solo dice
+   `{"ok":true}` o 503: sirve para un monitor externo (UptimeRobot, Better Stack) con alerta si no responde 200.
+6. **Verificación (10 minutos, con la cuenta de la empresa):**
+   - `/crm/equipo` → «Invitar a alguien» → asesor → copiar el enlace → abrirlo en una ventana de incógnito → crear usuario y contraseña → entra a «Mi día».
+   - Ese asesor solo ve sus leads; `/crm/equipo`, `/crm/formularios` y `/crm/automatizacion` lo devuelven al inicio.
+   - Publicar un formulario, llenarlo 2 veces: los leads se reparten por turnos y cada asesor recibe el aviso en la campana.
+   - Inicio del dueño: «Cómo va el equipo» con tiempo de respuesta, atrasados y embudo.
+   - `Cmd/Ctrl + K`: la paleta busca leads y salta a cualquier pantalla.
+
+**Roles:** *dueño* (todo, incluida la configuración), *gerente* (ve todo, reparte, equipo, formularios, importar, automatizaciones),
+*asesor* (solo lo suyo), *solo lectura*. Los permisos viven en `crm/src/auth/permisos.ts` y se aplican en el servidor
+(`crm/src/crm/servidor/repositorio.ts` y las acciones), no solo en los botones. Las pruebas (`pnpm test` en `crm/`) cubren reparto, aislamiento por
+asesor y por empresa, y el puente con el login de Machea.
+
+**Al agregar una migración nueva del CRM:** sumar su «sonda» en `crm/src/db/esquema-listo.ts` (es lo que permite la pantalla de «Actualizando»).
+
+**Para apagar rápido:** en `/crm/equipo`, «Reparto» → *Manual* (los leads nuevos quedan con el dueño); desactivar a una persona la saca sin borrar
+nada; quitar la invitación pendiente la cancela. Si hay que volver atrás del todo, el CRM sigue funcionando con las columnas nuevas (no estorban).
+
+## Mantenimiento de seguridad de las contraseñas
+
+El cifrado de contraseñas (scrypt) sube de N=2^14 a N=2^15, p=3 (OWASP). No hay que hacer nada: cada persona se actualiza sola al entrar. Para subirlo
+otra vez en el futuro, cambiar `_SCRYPT` en `backend/api/acceso.py`: `necesita_nuevo_hash` hace el resto.

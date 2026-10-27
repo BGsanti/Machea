@@ -31,6 +31,14 @@ export function urlMachea(): string {
 // La columna acceso.cuentas.empresa_id llega con la migración de equipo (20261027120000_equipo.sql). Mientras no esté, el
 // CRM sigue funcionando como siempre (una cuenta = una empresa): nunca se rompe el inicio de sesión por una migración tarde.
 let hayColumnaEmpresa: boolean | null = null;
+// Si no estaba, se vuelve a probar cada minuto: aplicar el SQL de equipo no exige reiniciar el CRM.
+let volverAProbarEn = 0;
+
+/** Para las pruebas: vuelve a mirar ya si la migración de equipo está aplicada (en producción, cada minuto). */
+export function olvidarSondaDeEquipo(): void {
+  hayColumnaEmpresa = null;
+  volverAProbarEn = 0;
+}
 
 const sinColumna = (e: unknown) => {
   const c = e as { code?: string; cause?: { code?: string } } | null;
@@ -41,7 +49,7 @@ export async function buscarSesionMachea(hash: string): Promise<CuentaMachea | n
   if (!/^[0-9a-f]{64}$/.test(hash)) return null;
   const db = await bd();
   type Fila = { id: string; usuario: string; correo: string; estado: string; empresa_id?: string | null };
-  if (hayColumnaEmpresa !== false) {
+  if (hayColumnaEmpresa !== false || Date.now() > volverAProbarEn) {
     try {
       const r = await db.execute<Fila>(sql`
         select c.id::text as id, c.usuario, c.correo, c.estado, c.empresa_id::text as empresa_id
@@ -56,6 +64,7 @@ export async function buscarSesionMachea(hash: string): Promise<CuentaMachea | n
     } catch (e) {
       if (!sinColumna(e)) throw e;
       hayColumnaEmpresa = false;
+      volverAProbarEn = Date.now() + 60_000;
     }
   }
   const r = await db.execute<Fila>(sql`

@@ -94,6 +94,7 @@ class AlmacenAcceso(Protocol):
     def por_id(self, id_: str) -> Optional[Dict[str, Any]]: ...
     def confirmar(self, id_: str) -> None: ...
     def cambiar_clave(self, id_: str, clave_hash: str) -> None: ...
+    def actualizar_hash(self, id_: str, clave_hash: str) -> None: ...
     def guardar_enlace(self, hash_: str, tipo: str, cuenta_id: str, expira) -> None: ...
     def ver_enlace(self, hash_: str, tipo: str) -> Optional[str]: ...
     def consumir_enlace(self, hash_: str, tipo: str) -> Optional[str]: ...
@@ -190,7 +191,9 @@ def validar_clave(clave: str, usuario: str = "", correo: str = "") -> Optional[s
 # Contraseñas y tokens
 # ---------------------------------------------------------------------------
 
-_SCRYPT = {"n": 2 ** 14, "r": 8, "p": 1}
+# OWASP: scrypt N=2^15, r=8, p=3 (32 MiB). Las contraseñas guardadas con parámetros más débiles (antes N=2^14, p=1) siguen
+# sirviendo y se vuelven a cifrar con estos la próxima vez que la persona entra (ver `necesita_nuevo_hash`).
+_SCRYPT = {"n": 2 ** 15, "r": 8, "p": 3}
 
 
 def _b64(b: bytes) -> str:
@@ -215,6 +218,15 @@ def verificar_clave(clave: str, guardado: Optional[str]) -> bool:
         calc = hashlib.scrypt(clave.encode(), salt=_b64d(sal), dklen=len(_b64d(dk)), n=int(n), r=int(r), p=int(p),
                               maxmem=64 * 1024 * 1024)
         return hmac.compare_digest(calc, _b64d(dk))
+    except (ValueError, TypeError):
+        return False
+
+
+def necesita_nuevo_hash(guardado: Optional[str]) -> bool:
+    """True si el hash guardado se hizo con parámetros más débiles que los actuales."""
+    try:
+        alg, n, r, p, _sal, _dk = (guardado or "").split("$")
+        return alg == "scrypt" and (int(n), int(r), int(p)) != (_SCRYPT["n"], _SCRYPT["r"], _SCRYPT["p"]) and int(n) * int(p) < _SCRYPT["n"] * _SCRYPT["p"]
     except (ValueError, TypeError):
         return False
 
@@ -565,6 +577,11 @@ def entrar(datos: EntradaSesion, request: Request, response: Response):
     almacen.limpiar_fallos(correo)
     if cuenta["estado"] == "sin_confirmar":
         raise _error(403, "correo_sin_confirmar")
+    if necesita_nuevo_hash(cuenta.get("clave_hash")):          # ya se sabe la contraseña: se guarda con el cifrado actual
+        try:
+            almacen.actualizar_hash(str(cuenta["id"]), hash_clave(datos.clave))
+        except Exception as exc:                                  # mejorar el cifrado nunca debe impedir entrar
+            logger.warning("acceso: no se pudo actualizar el hash de %s: %s", cuenta.get("id"), exc)
     return _abrir_sesion(request, response, cuenta, datos.recordar)
 
 

@@ -142,6 +142,13 @@ class AlmacenMemoria:
             if c and c["estado"] == "sin_confirmar":
                 c["estado"] = "pendiente"
 
+    def actualizar_hash(self, id_: str, clave_hash: str) -> None:
+        """Vuelve a cifrar la MISMA contraseña con parámetros más fuertes: no cierra sesiones ni cambia el estado."""
+        with self._lock:
+            c = self.cuentas.get(str(id_))
+            if c:
+                c["clave_hash"] = clave_hash
+
     def cambiar_clave(self, id_: str, clave_hash: str) -> None:
         """Nueva clave + cierra todas las sesiones de la cuenta. Abrir el enlace confirma el correo."""
         with self._lock:
@@ -390,6 +397,9 @@ class AlmacenPostgres:
     def confirmar(self, id_: str) -> None:
         self._ejecutar("update acceso.cuentas set estado = 'pendiente', confirmada_en = now() "
                        "where id = %s and estado = 'sin_confirmar'", (str(id_),))
+
+    def actualizar_hash(self, id_: str, clave_hash: str) -> None:
+        self._ejecutar("update acceso.cuentas set clave_hash = %s where id = %s and clave_hash is not null", (clave_hash, str(id_)))
 
     def cambiar_clave(self, id_: str, clave_hash: str) -> None:
         with self.pool.connection() as con:

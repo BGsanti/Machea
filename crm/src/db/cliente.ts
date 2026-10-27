@@ -7,6 +7,7 @@ import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { migrate as migrarPglite } from "drizzle-orm/pglite/migrator";
 import { Pool } from "pg";
 import * as esquema from "./esquema";
+import { verificarEsquema } from "./esquema-listo";
 
 export type BaseDatos = NodePgDatabase<typeof esquema>;
 
@@ -14,6 +15,8 @@ interface Estado {
   db: BaseDatos;
   migraciones: Promise<void>;
   migrar: () => Promise<void>;
+  /** Solo en producción (las migraciones no se aplican solas): comprueba que la base tenga el esquema que el código espera. */
+  verificar?: () => Promise<void>;
 }
 
 // En producción las migraciones las aplica una persona antes del despliegue (ver
@@ -35,7 +38,7 @@ function crear(): Estado {
     const pool = new Pool({ connectionString: url, max: Number(process.env.CRM_DB_MAX_CONEXIONES) || 5 });
     const db = drizzlePg(pool, { schema: esquema, casing: "snake_case" });
     const migrar = () => migrarPg(db, { migrationsFolder: carpetaMigraciones });
-    return { db, migrar, migraciones: migrarAlArrancar ? migrar() : Promise.resolve() };
+    return { db, migrar, migraciones: migrarAlArrancar ? migrar() : Promise.resolve(), verificar: migrarAlArrancar ? undefined : () => verificarEsquema(db) };
   }
   // Falla cerrado: en Vercel no hay disco para PGlite y los datos se perderían.
   if (process.env.VERCEL) throw new Error("En Vercel el CRM exige DATABASE_URL.");
@@ -62,6 +65,7 @@ function estado(): Estado {
 export async function bd(): Promise<BaseDatos> {
   const e = estado();
   await e.migraciones;
+  await e.verificar?.();
   return e.db;
 }
 
@@ -71,7 +75,9 @@ export function bdSinEsperar(): BaseDatos {
 }
 
 export async function migracionesListas(): Promise<void> {
-  await estado().migraciones;
+  const e = estado();
+  await e.migraciones;
+  await e.verificar?.();
 }
 
 /** Aplica las migraciones pendientes aunque CRM_MIGRAR_AL_ARRANCAR=false (lo usa `pnpm db:migrar`). */

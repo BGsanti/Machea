@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { and, count, eq, gte, lt, ne, notInArray, sql, sum } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
-import { candidatos, casos, eventos, formularios, inmuebles, oportunidades, proyectos, tareas } from "@/db/esquema";
+import { candidatos, casos, eventos, formularios, inmuebles, invitaciones, oportunidades, proyectos, tareas, usuarios } from "@/db/esquema";
 import { soloVeLoSuyo } from "@/auth/permisos";
 import type { Usuario } from "@/auth/sesion";
 import { Tarjeta } from "@/ui/basicos";
@@ -41,13 +41,15 @@ export async function PaginaInicio({ usuario, app, parametros = {} }: { usuario:
 
   const perfil = perfilDe(config.perfil);
   const tablaCatalogo = perfil.catalogo?.objeto === "proyectos" ? proyectos : perfil.catalogo?.objeto === "inmuebles" ? inmuebles : null;
-  const [[conLeads], [conLlamadas], [conEventos], [conTareas], [conFormularios], [conCatalogo], tareasHoy, citas] = await Promise.all([
+  const [[conLeads], [conLlamadas], [conEventos], [conTareas], [conFormularios], [conCatalogo], [conEquipo], [conInvitaciones], tareasHoy, citas] = await Promise.all([
     db.select({ n: count() }).from(candidatos).where(eq(candidatos.empresaId, empresaId)),
     db.select({ n: count() }).from(tareas).where(and(eq(tareas.empresaId, empresaId), eq(tareas.tipo, "llamada"))),
     db.select({ n: count() }).from(eventos).where(eq(eventos.empresaId, empresaId)),
     db.select({ n: count() }).from(tareas).where(eq(tareas.empresaId, empresaId)),
     db.select({ n: count() }).from(formularios).where(eq(formularios.empresaId, empresaId)),
     tablaCatalogo ? db.select({ n: count() }).from(tablaCatalogo).where(eq(tablaCatalogo.empresaId, empresaId)) : Promise.resolve([{ n: 0 }]),
+    db.select({ n: count() }).from(usuarios).where(eq(usuarios.empresaId, empresaId)),
+    db.select({ n: count() }).from(invitaciones).where(eq(invitaciones.empresaId, empresaId)),
     db
       .select({ id: tareas.id, asunto: tareas.asunto, fechaVencimiento: tareas.fechaVencimiento, prioridad: tareas.prioridad })
       .from(tareas)
@@ -81,14 +83,15 @@ export async function PaginaInicio({ usuario, app, parametros = {} }: { usuario:
           hecho: (conCatalogo?.n ?? 0) > 0,
         }
       : null,
+    equipo: { id: "equipo", titulo: "Invite a su equipo", texto: "Cada asesor ve solo sus leads y los nuevos se reparten por turnos.", href: "/equipo", icono: "UserCog", hecho: (conEquipo?.n ?? 0) > 1 || (conInvitaciones?.n ?? 0) > 0 },
     leads: { id: "leads", titulo: perfil.id === "machea" ? "Agregue sus primeros prospectos" : "Agregue sus primeros leads", texto: "Cree uno o importe una lista en CSV.", href: "/ventas/o/candidatos?importar=1", icono: "UserPlus", hecho: (conLeads?.n ?? 0) > 0 },
     llamada: { id: "llamada", titulo: "Registre una llamada", texto: "Con un clic deja el resultado y el seguimiento.", href: "/ventas/o/candidatos", icono: "PhoneCall", hecho: (conLlamadas?.n ?? 0) > 0 },
     cita: { id: "cita", titulo: perfil.id === "machea" ? "Agende una demo" : perfil.id === "constructora" ? "Agende una visita" : "Agende una visita", texto: "Aparece en el calendario y en «Mis citas».", href: "/ventas/p/calendario", icono: "CalendarPlus", hecho: (conEventos?.n ?? 0) > 0 },
     tarea: { id: "tarea", titulo: "Cree una tarea de seguimiento", texto: "Le aparece aquí el día que toca.", href: "/ventas/o/tareas?nuevo=1", icono: "ListChecks", hecho: (conTareas?.n ?? 0) > 0 },
   };
   const pasos: PasoInicial[] = (perfil.id === "machea"
-    ? [paso.formulario, paso.leads, paso.llamada, paso.cita, paso.tarea]
-    : [paso.formulario, paso.catalogo, paso.leads, paso.llamada, paso.cita]
+    ? [paso.formulario, paso.leads, paso.equipo, paso.llamada, paso.cita, paso.tarea]
+    : [paso.formulario, paso.catalogo, paso.equipo, paso.leads, paso.llamada, paso.cita]
   ).filter((p): p is PasoInicial => p !== null);
   const completos = pasos.every((p) => p.hecho);
   const primerosPasosOcultos = prefs.sugerenciasOcultas.includes("primeros-pasos");

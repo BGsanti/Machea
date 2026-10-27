@@ -18,7 +18,7 @@ import { ModalCorreoLista } from "../lista/acciones-masivas";
 
 type Ventana = "editar" | "convertir" | "correo" | "productos" | "miembros" | null;
 
-export function AccionesFicha({ objeto, app, fila, nombre }: { objeto: string; app: string; fila: FilaConNombres; nombre: string }) {
+export function AccionesFicha({ objeto, app, fila, nombre, puedeEliminar = true }: { objeto: string; app: string; fila: FilaConNombres; nombre: string; puedeEliminar?: boolean }) {
   const router = useRouter();
   const [ventana, setVentana] = useState<Ventana>(null);
   const [pendiente, iniciar] = useTransition();
@@ -106,7 +106,17 @@ export function AccionesFicha({ objeto, app, fila, nombre }: { objeto: string; a
           Modificar
         </Boton>
       ) : null}
-      <Boton variante="fantasma" icono="Trash" onClick={eliminar} aria-label="Eliminar" title="Eliminar" />
+      {objeto === "candidatos" || objeto === "contactos" ? (
+        <a
+          href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/datos/${objeto}/${fila.id}`}
+          download
+          title="Descarga todo lo que se sabe de esta persona (Habeas Data)"
+          className={clasesBoton("fantasma")}
+        >
+          <Icono nombre="Download" /> Sus datos
+        </a>
+      ) : null}
+      {puedeEliminar ? <Boton variante="fantasma" icono="Trash" onClick={eliminar} aria-label="Eliminar" title="Eliminar" /> : null}
 
       {ventana === "editar" ? <FormularioRegistro objeto={objeto} app={app} abierto registro={fila} alCerrar={() => setVentana(null)} /> : null}
       {ventana === "productos" ? (

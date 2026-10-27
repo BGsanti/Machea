@@ -46,8 +46,8 @@ Fuentes: [aviso de Vercel](https://vercel.com/kb/bulletin/node-js-security-advis
 | S-06 | Media | `.gitignore` sin reglas para `.env`, llaves ni archivos de secretos, en un repositorio público | **Corregido** |
 | S-07 | Baja | Herramientas de desarrollo con vulnerabilidades (Vite alto; esbuild moderado, solo del servidor de desarrollo) | **Corregido** (`npm audit` y `pnpm audit` en 0) |
 | S-08 | Media | Sin revisión automática de secretos ni de dependencias | **Parcial** (Dependabot, escáner y hook activos; los dos workflows de GitHub esperan en `scripts/seguridad/workflows-pendientes/`, ver sección 5) |
-| S-09 | Media | El CRM no tiene aislamiento por empresa en la base (RLS): depende de que cada consulta filtre por `empresa_id`. Se revisaron todas y filtran, pero un olvido futuro filtraría datos entre empresas | **Pendiente** (`design/crm/PLAN.md`, fase 6; antes de la segunda empresa) |
-| S-10 | Baja | Contraseñas con scrypt N=2^14, p=1 (OWASP pide más memoria) | **Pendiente** (subir a 2^16 y volver a cifrar al iniciar sesión) |
+| S-09 | Media | El CRM no tiene aislamiento por empresa en la base (RLS): depende de que cada consulta filtre por `empresa_id`. Se revisaron todas y filtran, pero un olvido futuro filtraría datos entre empresas | **Parcial** (pruebas automáticas de aislamiento por empresa y por asesor en `crm/src/crm/servidor/equipo.test.ts`; el RLS en la base sigue pendiente, `design/crm/PLAN.md` fase 6, antes de la segunda empresa) |
+| S-10 | Baja | Contraseñas con scrypt N=2^14, p=1 (OWASP pide más memoria) | **Corregido** (N=2^15, p=3 y se vuelven a cifrar solas al iniciar sesión) |
 | S-11 | Baja | Dependencias de la API sin versión fija (`>=`) | **Parcial** (`pip-audit` en CI; falta un archivo de versiones fijas) |
 | S-12 | Info | Render corre Python 3.11 | Subir a 3.12 o 3.13 cuando se pueda |
 | S-13 | Info | La política de privacidad y el aviso provisional dicen que Manuela no graba; Dapta sí graba y transcribe | Corregir los textos antes de `GRABACIONES_GUARDAR=todas` |

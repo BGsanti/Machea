@@ -1,6 +1,8 @@
 import { urlMachea } from "@/auth/machea";
 import { modoAuth } from "@/auth/servidor";
 import { requerirUsuario } from "@/auth/sesion";
+import { esEsquemaIncompleto } from "@/db/esquema-listo";
+import { Actualizando } from "@/ui/actualizando";
 import { notificacionesDe, obtenerConfiguracion, tareasAbiertas } from "@/crm/servidor/consultas";
 import { procesarBandeja } from "@/crm/servidor/ingesta";
 import { BarraApps } from "@/crm/ui/shell/barra-apps";
@@ -10,7 +12,14 @@ import { PaletaComandos } from "@/crm/ui/shell/paleta-comandos";
 import { Cabecera } from "@/crm/ui/shell/cabecera";
 
 export default async function LayoutCrm({ children }: { children: React.ReactNode }) {
-  const usuario = await requerirUsuario();
+  let usuario;
+  try {
+    usuario = await requerirUsuario();
+  } catch (e) {
+    // La migración de la base no está aplicada todavía: pantalla clara en vez de un error. (Las redirecciones pasan de largo.)
+    if (esEsquemaIncompleto(e)) return <Actualizando error={e} />;
+    throw e;
+  }
   // Leads nuevos de Machea (ingesta.ts): se procesan al entrar, en lotes cortos. Un fallo no tumba la página.
   if (modoAuth() === "machea") {
     await procesarBandeja(usuario).catch((e) => console.error("[crm] bandeja de leads:", e));

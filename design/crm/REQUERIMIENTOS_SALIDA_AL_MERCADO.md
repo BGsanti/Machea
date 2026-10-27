@@ -172,6 +172,22 @@ las llamadas de Manuela guardadas (P-4). Entregable: una demostración en vivo c
 | UX-12 | «¿Cómo te fue?» en dos toques (contestó interesado, no contestó, no le interesa, número equivocado), con nota opcional; mueve el estado y deja «Volver a llamar» mañana | Reportes al gerente (UX-14) |
 | UX-13 | **Aviso en pantalla** (cada 30 s con la pestaña visible) cuando entra un lead nuevo o Manuela deja uno caliente, con botón «Abrir» | Aviso por WhatsApp, correo o push (necesita P-9) |
 
+## 8.3 Estado de la Ola 3 (27-oct-2026)
+
+| ID | Qué quedó | Falta |
+|---|---|---|
+| UX-15 | **Equipo y permisos:** roles (dueño, gerente, asesor, solo lectura), invitar por enlace (WhatsApp o copiar), cambiar rol, desactivar con traspaso de leads, `/crm/equipo`. El asesor solo ve y edita lo suyo (leads, contactos, tareas, citas, audios, avisos); lo de gestión no existe para él. Permisos en el servidor, con pruebas. | Invitar por correo desde el sistema (hoy se manda el enlace a mano); salir de «una cuenta de Machea por persona» no es necesario. |
+| UX-16 | **Reparto de leads:** por turnos o manual; los leads que entran (bandeja, formularios) van al siguiente asesor y se le avisa en la campana; reasignar en masa (de una persona a otra o por turnos); tiempo de respuesta configurable. | Reparto por proyecto o por disponibilidad/horario; límite de leads por asesor. |
+| UX-9 | **«Mi día»** del asesor: leads por contactar con reloj de respuesta en vivo (verde, ámbar, rojo), Llamar / WhatsApp / Resultado, citas de hoy y de la semana, tareas, y sus cifras de la semana. | Aviso por WhatsApp o push (P-9). |
+| UX-14 | **Panel del gerente** en Inicio: leads nuevos, % contactados a tiempo, tiempo de respuesta (mediana), citas, negocios; tendencia contra el periodo anterior (7, 30 y 90 días); tabla por asesor; embudo; fuentes; leads esperando respuesta con alerta. | Alerta por correo o WhatsApp al gerente; conversión por proyecto; costo por cita; citas «realizadas» y «no asistió». |
+| UX-6 | **Paleta de comandos** (Cmd/Ctrl + K o «/»): busca leads, contactos, empresas y negocios (el asesor solo los suyos), ir a cualquier pantalla y crear; atajos `N`, `G I`, `G L`, `G C`, `G E` y `?`. | — |
+| UX-3 | **Deshacer** al cambiar de etapa, mover una tarjeta y completar una tarea. | Deshacer al eliminar (requiere papelera). |
+| UX-5 | «Invite a su equipo» entra en Primeros pasos y se marca solo. | Conectar el formulario y probar a Manuela (P-13, UX-17). |
+| P-5 | **Parcial:** pruebas automáticas de que una empresa no ve a otra y un asesor no ve a otro asesor (PGlite). | RLS en la base. |
+| P-6 | **Parcial:** `/crm/api/salud` para un monitor externo (estado de la base, del esquema y de la bandeja) y pantalla «Actualizando» si el código llega antes que la migración. | Sentry, alertas, panel de salud de integraciones, Render con despliegue automático. |
+| P-8 | **Exportar:** botón «Sus datos» en cada lead y contacto (JSON con datos, historial, formularios, llamadas y autorización); eliminar ya existía (solo gerente o dueño). | Regla de retención y borrado por empresa completa. |
+| Seguridad | S-10: scrypt más fuerte con actualización silenciosa. SQL de «Machea como cliente» probado y corregido (`pnpm prueba:sql`). | S-09 (RLS), S-11, S-12. |
+
 ## 9. Riesgos principales
 
 - **Legal antes que código:** sin acuerdos firmados y sin el responsable del tratamiento definido, el CRM no puede recibir

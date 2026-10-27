@@ -157,5 +157,37 @@ class TestUnirse(Base):
         self.assertNotIn("laura.gomez", usuarios)
 
 
+class TestHashDeLaClave(Base):
+    """La contraseña se guarda con scrypt más fuerte y las antiguas se actualizan solas al entrar."""
+
+    def test_los_hashes_nuevos_usan_parametros_actuales(self):
+        partes = acceso.hash_clave(CLAVE).split("$")
+        self.assertEqual((partes[1], partes[2], partes[3]), ("32768", "8", "3"))
+        self.assertFalse(acceso.necesita_nuevo_hash(acceso.hash_clave(CLAVE)))
+
+    def test_un_hash_antiguo_sirve_y_se_actualiza_al_entrar(self):
+        import base64
+        import hashlib
+
+        sal = b"s" * 16
+        dk = hashlib.scrypt(CLAVE.encode(), salt=sal, dklen=32, n=2 ** 14, r=8, p=1, maxmem=64 * 1024 * 1024)
+        b64 = lambda b: base64.urlsafe_b64encode(b).decode().rstrip("=")
+        antiguo = f"scrypt$16384$8$1${b64(sal)}${b64(dk)}"
+        self.assertTrue(acceso.verificar_clave(CLAVE, antiguo))
+        self.assertTrue(acceso.necesita_nuevo_hash(antiguo))
+
+        self.almacen.cuentas[self.duena["id"]]["clave_hash"] = antiguo
+        r = self.c.post("/api/sesion", json={"correo": "ventas@andes.co", "clave": CLAVE, "recordar": True}, headers=ORIGEN)
+        self.assertEqual(r.status_code, 200, r.text)
+        nuevo = self.almacen.cuentas[self.duena["id"]]["clave_hash"]
+        self.assertNotEqual(nuevo, antiguo)
+        self.assertFalse(acceso.necesita_nuevo_hash(nuevo))
+        self.assertTrue(acceso.verificar_clave(CLAVE, nuevo))     # la misma contraseña sigue sirviendo
+        # Un intento con clave equivocada no toca el hash.
+        self.almacen.cuentas[self.duena["id"]]["clave_hash"] = antiguo
+        self.c.post("/api/sesion", json={"correo": "ventas@andes.co", "clave": "otra frase larga 2026", "recordar": True}, headers=ORIGEN)
+        self.assertEqual(self.almacen.cuentas[self.duena["id"]]["clave_hash"], antiguo)
+
+
 if __name__ == "__main__":
     unittest.main()

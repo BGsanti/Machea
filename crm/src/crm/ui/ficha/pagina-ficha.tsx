@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { puede } from "@/auth/permisos";
+import { usuarioActual } from "@/auth/sesion";
 import { EnlaceBoton } from "@/ui/boton";
 import { Tarjeta } from "@/ui/basicos";
 import { Icono, IconoObjeto } from "@/ui/icono";
@@ -105,6 +107,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
   const fila = await obtener(objeto, id);
   if (!fila) notFound();
   await registrarVisto(usuarioId, objeto, id);
+  const puedeEliminar = puede((await usuarioActual())?.rol, "eliminar");
   const config = await obtenerConfiguracion();
   const moneda = config.moneda;
   const nombre = nombreVisible(def, fila);
@@ -258,7 +261,7 @@ export async function PaginaFicha({ app, objeto, id, usuarioId }: { app: string;
           <div className="flex flex-wrap items-center gap-2">
             {personas.includes(objeto) && fila.telefono ? <AccionesContacto telefono={fila.telefono} nombre={nombre} tamano="md" /> : null}
             {personas.includes(objeto) && !fila.convertido ? <ResultadoLlamadaBoton objeto={objeto} id={id} /> : null}
-            <AccionesFicha objeto={objeto} app={app} fila={fila} nombre={nombre} />
+            <AccionesFicha objeto={objeto} app={app} fila={fila} nombre={nombre} puedeEliminar={puedeEliminar} />
           </div>
         </div>
         <dl className="flex flex-wrap gap-x-10 gap-y-2 px-5 pb-4">

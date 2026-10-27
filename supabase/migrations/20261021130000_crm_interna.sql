@@ -192,20 +192,24 @@ set search_path = ''
 as $$
 declare
   n integer := 0;
-  r record;
+  p public.prospectos;
+  d public.solicitudes_demo;
+  l public.llamadas_captacion;
+  c public.citas;
 begin
   -- En este orden: la empresa antes que sus llamadas y citas (la bandeja se procesa por id).
-  for r in select * from public.prospectos order by creado_en loop
-    perform crm.bandeja_prospecto(r); n := n + 1;
+  -- Cada variable lleva el tipo de su tabla: las funciones crm.bandeja_* piden esa fila, no un «record» genérico.
+  for p in select * from public.prospectos order by creado_en loop
+    perform crm.bandeja_prospecto(p); n := n + 1;
   end loop;
-  for r in select * from public.solicitudes_demo order by creado_en loop
-    perform crm.bandeja_demo(r); n := n + 1;
+  for d in select * from public.solicitudes_demo order by creado_en loop
+    perform crm.bandeja_demo(d); n := n + 1;
   end loop;
-  for r in select * from public.llamadas_captacion order by creado_en loop
-    perform crm.bandeja_llamada_captacion(r); n := n + 1;
+  for l in select * from public.llamadas_captacion order by creado_en loop
+    perform crm.bandeja_llamada_captacion(l); n := n + 1;
   end loop;
-  for r in select * from public.citas order by creado_en loop
-    perform crm.bandeja_cita(r); n := n + 1;
+  for c in select * from public.citas order by creado_en loop
+    perform crm.bandeja_cita(c); n := n + 1;
   end loop;
   return n;
 end;
