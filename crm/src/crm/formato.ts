@@ -1,6 +1,12 @@
 import { aHoraLocal, ZONA_HORARIA } from "./fechas";
 import type { Campo, DefObjeto, FilaRegistro } from "./tipos";
 
+/** Dinero abreviado para tarjetas angostas: «$ 2.330 M» (millones). Por debajo del millón, el formato completo. */
+export function formatoMonedaCorto(valor: number, moneda: string): string {
+  if (Math.abs(valor) >= 1_000_000) return `$ ${new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(valor / 1_000_000)} M`;
+  return formatoMoneda(valor, moneda);
+}
+
 /** Nombres resueltos de los campos de búsqueda: { campo: nombreVisible }. */
 export type NombresBusqueda = Record<string, string | null>;
 

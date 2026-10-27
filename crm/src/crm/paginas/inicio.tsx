@@ -1,29 +1,34 @@
 import Link from "next/link";
-import { and, count, desc, eq, gte, lt, ne, notInArray, sql, sum } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { and, count, eq, gte, lt, ne, notInArray, sql, sum } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
 import { candidatos, casos, eventos, formularios, inmuebles, oportunidades, proyectos, tareas } from "@/db/esquema";
+import { soloVeLoSuyo } from "@/auth/permisos";
 import type { Usuario } from "@/auth/sesion";
 import { Tarjeta } from "@/ui/basicos";
 import { EnlaceBoton } from "@/ui/boton";
 import { Icono, IconoObjeto } from "@/ui/icono";
-import { NumeroAnimado } from "@/ui/numero-animado";
 import { appDeObjeto, enlaceRegistro } from "../apps";
 import { fechaLocal, inicioMes, ZONA_HORARIA } from "../fechas";
 import { formatoFechaHora, formatoMoneda } from "../formato";
 import { obtenerObjeto } from "../objetos";
-import { etapasCerradas, origenesCandidato } from "../opciones";
+import { etapasCerradas } from "../opciones";
 import { perfilDe } from "../perfiles";
 import { ejecutarInforme, listaInformes, obtenerConfiguracion, obtenerPreferencias } from "../servidor/consultas";
 import { recientes } from "../servidor/repositorio";
+import { periodoDe, resumenPanel } from "../servidor/panel";
 import { ListaParaHoy } from "./inicio-hoy";
+import { PaginaMiDia } from "./mi-dia";
+import { PanelGerente } from "./panel-gerente";
 import { PrimerosPasos, TarjetaInformes, type InformeWidget, type PasoInicial } from "./inicio-cliente";
 
-export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: string }) {
+export async function PaginaInicio({ usuario, app, parametros = {} }: { usuario: Usuario; app: string; parametros?: Record<string, string | string[] | undefined> }) {
+  // Un asesor ve «Mi día»: solo lo suyo. El gerente, el dueño y quien solo consulta ven el panel del equipo.
+  if (soloVeLoSuyo(usuario.rol)) return <PaginaMiDia usuario={usuario} />;
   const db = await bd();
   const empresaId = await empresaActual();
   const ahora = new Date();
-  const hace7 = new Date(ahora.getTime() - 7 * 864e5);
   const en7 = new Date(ahora.getTime() + 7 * 864e5);
   const hoy = fechaLocal();
 
@@ -36,15 +41,7 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
 
   const perfil = perfilDe(config.perfil);
   const tablaCatalogo = perfil.catalogo?.objeto === "proyectos" ? proyectos : perfil.catalogo?.objeto === "inmuebles" ? inmuebles : null;
-  const abiertosDeLaEmpresa = and(eq(candidatos.empresaId, empresaId), eq(candidatos.convertido, false));
-  const [[abiertos], [nuevos], [calientesTotal], [pipeline], [conLeads], [conLlamadas], [conEventos], [conTareas], [conFormularios], [conCatalogo], tareasHoy, calientes, citas] = await Promise.all([
-    db.select({ n: count() }).from(candidatos).where(abiertosDeLaEmpresa),
-    db.select({ n: count() }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), gte(candidatos.creadoEn, hace7))),
-    db.select({ n: count() }).from(candidatos).where(and(abiertosDeLaEmpresa, eq(candidatos.valoracion, "caliente"))),
-    db
-      .select({ total: sum(oportunidades.importe), n: count() })
-      .from(oportunidades)
-      .where(and(eq(oportunidades.empresaId, empresaId), notInArray(oportunidades.etapa, etapasCerradas))),
+  const [[conLeads], [conLlamadas], [conEventos], [conTareas], [conFormularios], [conCatalogo], tareasHoy, citas] = await Promise.all([
     db.select({ n: count() }).from(candidatos).where(eq(candidatos.empresaId, empresaId)),
     db.select({ n: count() }).from(tareas).where(and(eq(tareas.empresaId, empresaId), eq(tareas.tipo, "llamada"))),
     db.select({ n: count() }).from(eventos).where(eq(eventos.empresaId, empresaId)),
@@ -64,19 +61,6 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
       )
       .orderBy(tareas.fechaVencimiento)
       .limit(50),
-    // Calientes sin llamar: los que ya tienen una llamada registrada a mano hoy no se vuelven a pedir.
-    db
-      .select({ id: candidatos.id, nombre: candidatos.nombre, apellidos: candidatos.apellidos, telefono: candidatos.telefono, origen: candidatos.origen, ciudad: candidatos.ciudad })
-      .from(candidatos)
-      .where(
-        and(
-          abiertosDeLaEmpresa,
-          eq(candidatos.valoracion, "caliente"),
-          sql`not exists (select 1 from ${tareas} t where t.quien_id = ${candidatos.id} and t.tipo = 'llamada' and t.estado = 'completada' and t.origen_externo is null and t.fecha_vencimiento >= ${hoy}::date)`,
-        ),
-      )
-      .orderBy(desc(candidatos.creadoEn))
-      .limit(6),
     db
       .select({ id: eventos.id, asunto: eventos.asunto, inicio: eventos.inicio })
       .from(eventos)
@@ -125,16 +109,9 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
 
   const hora = Number(new Intl.DateTimeFormat("es-CO", { timeZone: ZONA_HORARIA, hour: "numeric", hourCycle: "h23" }).format(ahora));
   const saludo = hora < 5 ? "Buenas noches" : hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
-  const nombreCompleto = (c: { nombre: string | null; apellidos: string }) => [c.nombre, c.apellidos].filter(Boolean).join(" ");
-  const etiquetaOrigen = (valor: string | null) => origenesCandidato.find((o) => o.valor === valor)?.etiqueta ?? null;
 
-  const kpis: { etiqueta: string; valor: number | string; detalle: string; icono: string; href: string }[] = [
-    { etiqueta: "Leads abiertos", valor: abiertos?.n ?? 0, detalle: `${nuevos?.n ?? 0} nuevos en 7 días`, icono: "UserPlus", href: "/ventas/o/candidatos" },
-    { etiqueta: "Leads calientes", valor: calientesTotal?.n ?? 0, detalle: "para llamar primero", icono: "Flame", href: "/ventas/o/candidatos?vista=calientes" },
-    { etiqueta: "Mis citas", valor: citas.length, detalle: "en los próximos 7 días", icono: "CalendarDays", href: "/ventas/p/calendario" },
-    { etiqueta: "Mis tareas para hoy", valor: tareasHoy.length, detalle: "incluye vencidas", icono: "ListChecks", href: "/ventas/o/tareas?vista=vencidas" },
-    { etiqueta: perfil.inicio.etiquetaNegocios, valor: formatoMoneda(Number(pipeline?.total ?? 0), config.moneda), detalle: `${pipeline?.n ?? 0} oportunidades`, icono: "Crown", href: "/ventas/o/oportunidades" },
-  ];
+  const dias = periodoDe(parametros.dias);
+  const resumen = await resumenPanel(dias, config.slaMinutos);
 
   return (
     <div className="space-y-6">
@@ -156,38 +133,15 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
         </div>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {kpis.map((k, i) => (
-          <Link
-            key={k.etiqueta}
-            href={k.href}
-            style={{ animationDelay: `${i * 45}ms` }}
-            className={`animate-subir group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-marca-500 hover:shadow-md ${i === kpis.length - 1 ? "sm:max-xl:col-span-2" : ""}`}
-          >
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-medium">{k.etiqueta}</span>
-              <span className="inline-flex size-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors group-hover:bg-marca-50 group-hover:text-marca-700">
-                <Icono nombre={k.icono} className="size-4" />
-              </span>
-            </div>
-            <p className="mt-2 truncate text-2xl font-semibold text-slate-800">{typeof k.valor === "number" ? <NumeroAnimado valor={k.valor} /> : k.valor}</p>
-            <p className="text-xs text-slate-500">{k.detalle}</p>
-          </Link>
-        ))}
-      </div>
+      <PanelGerente r={resumen} moneda={config.moneda} etiquetaNegocios={perfil.inicio.etiquetaNegocios} dias={dias} />
 
       {completos ? null : <PrimerosPasos pasos={pasos} esAdmin={usuario.rol === "admin"} sinLeads={(conLeads?.n ?? 0) === 0} oculto={primerosPasosOcultos} />}
 
       <div className="grid gap-4 xl:grid-cols-3">
-        <Tarjeta titulo="Para hacer hoy" icono={<Icono nombre="ListChecks" className="size-4 text-marca-700" />} className="xl:col-span-2" sinRelleno>
+        <Tarjeta titulo="Mis tareas para hoy" icono={<Icono nombre="ListChecks" className="size-4 text-marca-700" />} className="xl:col-span-2" sinRelleno>
           <ListaParaHoy
             hoy={hoy}
-            calientes={calientes.map((c) => ({
-              id: c.id,
-              nombre: nombreCompleto(c),
-              detalle: [etiquetaOrigen(c.origen), c.ciudad].filter(Boolean).join(" · ") || null,
-              telefono: c.telefono,
-            }))}
+            calientes={[]}
             tareas={tareasHoy.map((t) => ({ id: t.id, asunto: t.asunto, fechaVencimiento: t.fechaVencimiento, prioridad: t.prioridad }))}
           />
         </Tarjeta>
@@ -263,6 +217,8 @@ export async function PaginaInicio({ usuario, app }: { usuario: Usuario; app: st
 }
 
 export async function PaginaInformacionGeneral({ usuario, app }: { usuario: Usuario; app: string }) {
+  // El pipeline y los números de toda la empresa no son para un asesor: su pantalla es «Mi día».
+  if (soloVeLoSuyo(usuario.rol)) redirect("/inicio");
   const db = await bd();
   const empresaId = await empresaActual();
   const config = await obtenerConfiguracion();

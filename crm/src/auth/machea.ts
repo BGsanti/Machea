@@ -1,6 +1,6 @@
-import { sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
-import { empresas, usuarios } from "@/db/esquema";
+import { empresas, invitaciones, usuarios } from "@/db/esquema";
 import { inicializarOrganizacion } from "@/crm/servidor/inicializar";
 
 /**
@@ -19,6 +19,8 @@ export interface CuentaMachea {
   usuario: string;
   correo: string;
   estado: string;
+  /** null = la cuenta es una empresa (su dueña). Con valor = es una persona del equipo de esa empresa (invitada). */
+  empresaId?: string | null;
 }
 
 /** URL pública de Machea, para mandar al login. Sin barra al final. */
@@ -26,17 +28,45 @@ export function urlMachea(): string {
   return (process.env.MACHEA_URL ?? "https://www.machea.co").replace(/\/+$/, "");
 }
 
+// La columna acceso.cuentas.empresa_id llega con la migración de equipo (20261027120000_equipo.sql). Mientras no esté, el
+// CRM sigue funcionando como siempre (una cuenta = una empresa): nunca se rompe el inicio de sesión por una migración tarde.
+let hayColumnaEmpresa: boolean | null = null;
+
+const sinColumna = (e: unknown) => {
+  const c = e as { code?: string; cause?: { code?: string } } | null;
+  return c?.code === "42703" || c?.cause?.code === "42703";
+};
+
 export async function buscarSesionMachea(hash: string): Promise<CuentaMachea | null> {
   if (!/^[0-9a-f]{64}$/.test(hash)) return null;
   const db = await bd();
-  const r = await db.execute<{ id: string; usuario: string; correo: string; estado: string }>(sql`
+  type Fila = { id: string; usuario: string; correo: string; estado: string; empresa_id?: string | null };
+  if (hayColumnaEmpresa !== false) {
+    try {
+      const r = await db.execute<Fila>(sql`
+        select c.id::text as id, c.usuario, c.correo, c.estado, c.empresa_id::text as empresa_id
+        from acceso.sesiones s
+        join acceso.cuentas c on c.id = s.cuenta_id
+        where s.hash = ${hash} and s.expira > now()
+        limit 1
+      `);
+      hayColumnaEmpresa = true;
+      const f = r.rows[0];
+      return f ? { id: f.id, usuario: f.usuario, correo: f.correo, estado: f.estado, empresaId: f.empresa_id ?? null } : null;
+    } catch (e) {
+      if (!sinColumna(e)) throw e;
+      hayColumnaEmpresa = false;
+    }
+  }
+  const r = await db.execute<Fila>(sql`
     select c.id::text as id, c.usuario, c.correo, c.estado
     from acceso.sesiones s
     join acceso.cuentas c on c.id = s.cuenta_id
     where s.hash = ${hash} and s.expira > now()
     limit 1
   `);
-  return r.rows[0] ?? null;
+  const f = r.rows[0];
+  return f ? { id: f.id, usuario: f.usuario, correo: f.correo, estado: f.estado, empresaId: null } : null;
 }
 
 /**
@@ -70,4 +100,53 @@ export async function asegurarEmpresaMachea(cuenta: CuentaMachea): Promise<void>
   // inicializarOrganizacion no repite lo que ya existe. El perfil sale del tipo con que se aprobó la cuenta.
   await inicializarOrganizacion(cuenta.id, cuenta.id, cuenta.usuario, await perfilDeLaCuenta(cuenta.id));
   conocidas.add(cuenta.id);
+}
+
+export interface MiembroMachea {
+  id: string;
+  name: string;
+  rol: string;
+  activo: boolean;
+}
+
+// Para no escribir `ultimo_acceso` en cada petición.
+const ultimoRegistro = new Map<string, number>();
+
+/**
+ * La persona del equipo que entró con una cuenta invitada. La primera vez se crea su usuario del CRM con el rol y el
+ * nombre de la invitación que aceptó; una cuenta con `empresa_id` pero sin invitación no entra.
+ */
+export async function asegurarMiembroMachea(cuenta: CuentaMachea): Promise<MiembroMachea | null> {
+  if (!cuenta.empresaId) return null;
+  const db = await bd();
+  let [fila] = await db
+    .select({ id: usuarios.id, name: usuarios.name, rol: usuarios.rol, activo: usuarios.activo, empresaId: usuarios.empresaId })
+    .from(usuarios)
+    .where(eq(usuarios.id, cuenta.id))
+    .limit(1);
+  if (!fila) {
+    const [inv] = await db
+      .select()
+      .from(invitaciones)
+      .where(and(eq(invitaciones.cuentaId, cuenta.id), eq(invitaciones.empresaId, cuenta.empresaId)))
+      .limit(1);
+    if (!inv) return null;
+    await db
+      .insert(usuarios)
+      .values({ id: cuenta.id, empresaId: cuenta.empresaId, name: inv.nombre, email: cuenta.correo, emailVerified: true, rol: inv.rol, recibeLeads: inv.rol === "asesor" })
+      .onConflictDoNothing();
+    [fila] = await db
+      .select({ id: usuarios.id, name: usuarios.name, rol: usuarios.rol, activo: usuarios.activo, empresaId: usuarios.empresaId })
+      .from(usuarios)
+      .where(eq(usuarios.id, cuenta.id))
+      .limit(1);
+  }
+  // Un usuario del CRM de otra empresa con ese id no debería existir; si pasara, no entra.
+  if (!fila || fila.empresaId !== cuenta.empresaId) return null;
+  const ahora = Date.now();
+  if (fila.activo && ahora - (ultimoRegistro.get(cuenta.id) ?? 0) > 10 * 60_000) {
+    ultimoRegistro.set(cuenta.id, ahora);
+    await db.update(usuarios).set({ ultimoAcceso: new Date() }).where(eq(usuarios.id, cuenta.id));
+  }
+  return { id: fila.id, name: fila.name, rol: fila.rol, activo: fila.activo };
 }

@@ -4,6 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import { eq } from "drizzle-orm";
 import { bd, bdSinEsperar } from "@/db/cliente";
 import { cuentasAuth, sesiones, usuarios, verificaciones } from "@/db/esquema";
+import type { Rol } from "./permisos";
 
 /**
  * "machea": la sesión es la del login de Machea (ver machea.ts). Es el único modo permitido en Vercel.
@@ -61,7 +62,7 @@ export function auth(): Auth {
 /** Crea un usuario con contraseña sin iniciar sesión como él (modo local). */
 export async function crearUsuarioLocal(
   datos: { nombre: string; email: string; password: string },
-  rol: "admin" | "usuario",
+  rol: Rol,
   empresaId: string,
 ): Promise<string> {
   const ctx = await auth().$context;

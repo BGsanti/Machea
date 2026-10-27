@@ -3,8 +3,8 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { crearUsuarioLocal, ejemplosPermitidos, modoAuth } from "@/auth/servidor";
-import { requerirAdmin, requerirUsuario } from "@/auth/sesion";
+import { ejemplosPermitidos } from "@/auth/servidor";
+import { requerirAdmin, requerirPermiso, requerirUsuario } from "@/auth/sesion";
 import { bd } from "@/db/cliente";
 import {
   configuracion,
@@ -76,7 +76,7 @@ export async function guardarNavegacion(app: string, pestanas: string[]): Promis
 // ---------------------------------------------------------------------------
 
 export async function activarMarketing(activar: boolean): Promise<EstadoAccion> {
-  const usuario = await requerirAdmin();
+  const usuario = await requerirPermiso("configurar");
   const db = await bd();
   await obtenerConfiguracion();
   await db
@@ -97,7 +97,7 @@ const esquemaConfig = z.object({
 
 export async function guardarConfiguracion(formData: FormData): Promise<EstadoAccion> {
   try {
-    const usuario = await requerirAdmin();
+    const usuario = await requerirPermiso("configurar");
     const datos = esquemaConfig.safeParse(Object.fromEntries(formData));
     if (!datos.success) return { ok: false, mensaje: datos.error.issues[0]?.message ?? "Revise los datos." };
     const db = await bd();
@@ -110,31 +110,6 @@ export async function guardarConfiguracion(formData: FormData): Promise<EstadoAc
       .where(eq(configuracion.empresaId, usuario.empresaId));
     revalidatePath("/", "layout");
     return { ok: true, mensaje: "Configuración guardada." };
-  } catch (e) {
-    return error(e);
-  }
-}
-
-const esquemaUsuario = z.object({
-  nombre: z.string().trim().min(2, "Escriba el nombre."),
-  email: z.email("Escriba un correo válido."),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
-  rol: z.enum(["admin", "usuario"]),
-});
-
-export async function crearUsuario(formData: FormData): Promise<EstadoAccion> {
-  try {
-    const admin = await requerirAdmin();
-    // Con el login de Machea, una cuenta es una empresa y su único usuario (D3).
-    if (modoAuth() === "machea") return { ok: false, mensaje: "Las cuentas se gestionan en Machea." };
-    const datos = esquemaUsuario.safeParse(Object.fromEntries(formData));
-    if (!datos.success) return { ok: false, mensaje: datos.error.issues[0]?.message ?? "Revise los datos." };
-    const db = await bd();
-    const [existe] = await db.select({ id: usuarios.id }).from(usuarios).where(eq(usuarios.email, datos.data.email.toLowerCase()));
-    if (existe) return { ok: false, mensaje: "Ya existe un usuario con ese correo." };
-    await crearUsuarioLocal(datos.data, datos.data.rol, admin.empresaId);
-    revalidatePath("/", "layout");
-    return { ok: true, mensaje: `Usuario ${datos.data.nombre} creado.` };
   } catch (e) {
     return error(e);
   }
@@ -174,7 +149,7 @@ export type DatosInforme = z.input<typeof esquemaInforme>;
 
 export async function guardarInforme(id: string | null, datos: DatosInforme): Promise<EstadoAccion> {
   try {
-    const usuario = await requerirUsuario();
+    const usuario = await requerirPermiso("informes");
     const r = esquemaInforme.safeParse(datos);
     if (!r.success) return { ok: false, mensaje: r.error.issues[0]?.message ?? "Revise los datos." };
     const valores = {
@@ -207,7 +182,7 @@ export async function guardarInforme(id: string | null, datos: DatosInforme): Pr
 }
 
 export async function eliminarInforme(id: string): Promise<EstadoAccion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("informes");
   const db = await bd();
   await db.delete(informes).where(and(eq(informes.id, id), eq(informes.empresaId, usuario.empresaId)));
   revalidatePath("/", "layout");
@@ -227,7 +202,7 @@ export async function alternarFavorito(tipo: "informe" | "panel", id: string, fa
 
 export async function guardarPanel(id: string | null, nombre: string, descripcion: string, ids: string[]): Promise<EstadoAccion> {
   try {
-    const usuario = await requerirUsuario();
+    const usuario = await requerirPermiso("informes");
     if (!nombre.trim()) return { ok: false, mensaje: "Escriba el nombre del panel." };
     const db = await bd();
     // Un panel solo puede mostrar informes de la misma empresa.
@@ -267,7 +242,7 @@ export async function guardarPanel(id: string | null, nombre: string, descripcio
 }
 
 export async function eliminarPanel(id: string): Promise<EstadoAccion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("informes");
   const db = await bd();
   await db.delete(paneles).where(and(eq(paneles.id, id), eq(paneles.empresaId, usuario.empresaId)));
   revalidatePath("/", "layout");
@@ -305,7 +280,7 @@ export type DatosFlujo = z.input<typeof esquemaFlujo>;
 
 export async function guardarFlujo(id: string | null, datos: DatosFlujo): Promise<EstadoAccion> {
   try {
-    const usuario = await requerirUsuario();
+    const usuario = await requerirPermiso("automatizar");
     const r = esquemaFlujo.safeParse(datos);
     if (!r.success) return { ok: false, mensaje: r.error.issues[0]?.message ?? "Revise el flujo." };
     const db = await bd();

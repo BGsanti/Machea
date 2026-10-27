@@ -60,6 +60,7 @@ const citas = (etiqueta = "Citas"): EnlaceNav => ({
   prefijos: ["/ventas/p/calendario", "/ventas/o/eventos"],
 });
 const formularios: EnlaceNav = { id: "formularios", etiqueta: "Formularios", icono: "ClipboardList", href: "/formularios", prefijos: ["/formularios"] };
+const equipo: EnlaceNav = { id: "equipo", etiqueta: "Equipo", icono: "UserCog", href: "/equipo", prefijos: ["/equipo"] };
 const analisis: EnlaceNav = { id: "analisis", etiqueta: "Análisis", icono: "ChartPie", href: "/ventas/p/analisis", prefijos: ["/ventas/p/analisis"] };
 const automatizacion: EnlaceNav = { id: "automatizacion", etiqueta: "Automatización", icono: "Workflow", href: "/automatizacion", prefijos: ["/automatizacion"] };
 
@@ -80,6 +81,7 @@ export const PERFILES: Record<PerfilId, Perfil> = {
       citas(),
       negocios,
       formularios,
+      equipo,
       analisis,
       automatizacion,
     ],
@@ -109,6 +111,7 @@ export const PERFILES: Record<PerfilId, Perfil> = {
       citas("Visitas"),
       negocios,
       formularios,
+      equipo,
       analisis,
       automatizacion,
     ],
@@ -130,7 +133,7 @@ export const PERFILES: Record<PerfilId, Perfil> = {
     etiqueta: "Machea (ventas B2B)",
     descripcion: "Machea vendiéndole a inmobiliarias y constructoras: sus leads son empresas.",
     catalogo: null,
-    nav: [inicio, leads(), empresas, contactos, citas("Demos"), negocios, formularios, analisis, automatizacion],
+    nav: [inicio, leads(), empresas, contactos, citas("Demos"), negocios, formularios, equipo, analisis, automatizacion],
     leads: {
       columnas: ["nombre", "compania", "cargo", "telefono", "valoracion", "estado", "origen", "creadoEn"],
       resaltados: ["compania", "cargo", "telefono", "email", "valoracion"],

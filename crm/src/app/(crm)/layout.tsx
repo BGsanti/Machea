@@ -6,6 +6,7 @@ import { procesarBandeja } from "@/crm/servidor/ingesta";
 import { BarraApps } from "@/crm/ui/shell/barra-apps";
 import { AvisosEnVivo } from "@/crm/ui/shell/avisos-en-vivo";
 import { BarraUtilidades } from "@/crm/ui/shell/barra-utilidades";
+import { PaletaComandos } from "@/crm/ui/shell/paleta-comandos";
 import { Cabecera } from "@/crm/ui/shell/cabecera";
 
 export default async function LayoutCrm({ children }: { children: React.ReactNode }) {
@@ -21,8 +22,9 @@ export default async function LayoutCrm({ children }: { children: React.ReactNod
   ]);
   return (
     <div className="flex h-screen overflow-hidden">
-      <BarraApps empresa={config.nombreEmpresa} perfil={config.perfil} />
+      <BarraApps empresa={config.nombreEmpresa} perfil={config.perfil} rol={usuario.rol} />
       <AvisosEnVivo />
+      <PaletaComandos rol={usuario.rol} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Cabecera
           usuario={usuario}

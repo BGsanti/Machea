@@ -36,6 +36,14 @@ class UsuarioOcupado(Exception):
     pass
 
 
+class InvitacionInvalida(Exception):
+    """La invitación no existe, venció, ya se usó o su empresa ya no está aprobada."""
+
+
+class EquipoNoInstalado(Exception):
+    """Falta la migración de equipo (acceso.cuentas.empresa_id y crm.invitaciones)."""
+
+
 def ahora() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -77,6 +85,35 @@ class AlmacenMemoria:
         self.enlaces: Dict[str, Dict[str, Any]] = {}
         self.sesiones: Dict[str, Dict[str, Any]] = {}
         self.intentos: List[Dict[str, Any]] = []
+        self.invitaciones: Dict[str, Dict[str, Any]] = {}     # hash -> invitación (la crea el CRM; aquí, las pruebas)
+
+    # --- equipo: personas invitadas por una empresa (las invitaciones las crea el CRM en crm.invitaciones)
+    def invitacion(self, hash_: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            i = self.invitaciones.get(hash_)
+            if not i or i.get("usada_en") or i["expira"] <= ahora():
+                return None
+            return {k: i[k] for k in ("empresa_id", "nombre", "correo", "rol")}
+
+    def aceptar_invitacion(self, hash_: str, usuario: str, clave_hash: str) -> Dict[str, Any]:
+        with self._lock:
+            i = self.invitaciones.get(hash_)
+            if not i or i.get("usada_en") or i["expira"] <= ahora():
+                raise InvitacionInvalida(hash_)
+            duena = self.cuentas.get(str(i["empresa_id"]))
+            if not duena or duena["estado"] != "aprobada" or not duena.get("tipo") or duena.get("empresa_id"):
+                raise InvitacionInvalida(hash_)
+            if any(c["correo"] == i["correo"] for c in self.cuentas.values()):
+                raise CorreoOcupado(i["correo"])
+            if any(c["usuario"] == usuario for c in self.cuentas.values()):
+                raise UsuarioOcupado(usuario)
+            fila = {"id": str(uuid.uuid4()), "usuario": usuario, "correo": i["correo"], "clave_hash": clave_hash,
+                    "google_sub": None, "estado": "aprobada", "tipo": duena["tipo"], "creada_en": ahora(),
+                    "empresa_id": str(i["empresa_id"])}
+            self.cuentas[fila["id"]] = fila
+            i["usada_en"] = ahora()
+            i["cuenta_id"] = fila["id"]
+            return dict(fila)
 
     # --- cuentas
     def crear_cuenta(self, usuario: str, correo: str, clave_hash: str) -> Dict[str, Any]:
@@ -169,7 +206,8 @@ class AlmacenMemoria:
     # --- /admin (cuentas.AlmacenCuentas)
     def listar(self, estado: Optional[str]) -> List[Dict[str, Any]]:
         with self._lock:
-            return [publica(c) for c in self.cuentas.values() if estado is None or c["estado"] == estado]
+            return [publica(c) for c in self.cuentas.values()
+                    if not c.get("empresa_id") and (estado is None or c["estado"] == estado)]
 
     def _decidir(self, id_: str, estado: str, tipo: Optional[str]) -> Dict[str, Any]:
         with self._lock:
@@ -278,6 +316,52 @@ class AlmacenPostgres:
         with self.pool.connection() as con:
             return con.execute(sql, params).rowcount
 
+    # --- equipo
+    def invitacion(self, hash_: str) -> Optional[Dict[str, Any]]:
+        import psycopg
+
+        try:
+            f = self._uno("select empresa_id::text as empresa_id, nombre, correo, rol from crm.invitaciones "
+                          "where hash = %s and usada_en is null and expira > now()", (hash_,))
+        except psycopg.errors.UndefinedTable as exc:
+            raise EquipoNoInstalado() from exc
+        return dict(f) if f else None
+
+    def aceptar_invitacion(self, hash_: str, usuario: str, clave_hash: str) -> Dict[str, Any]:
+        """Crea la cuenta de la persona invitada, ya aprobada y del tipo de su empresa, y gasta la invitación.
+        Todo en una transacción: dos pestañas no pueden usar la misma invitación."""
+        import psycopg
+
+        try:
+            with self.pool.connection() as con:
+                with con.transaction():
+                    inv = con.execute("select id, empresa_id::text as empresa_id, correo from crm.invitaciones "
+                                      "where hash = %s and usada_en is null and expira > now() for update",
+                                      (hash_,)).fetchone()
+                    if inv is None:
+                        raise InvitacionInvalida(hash_)
+                    duena = con.execute("select tipo, estado, empresa_id from acceso.cuentas where id = %s::uuid",
+                                        (inv["empresa_id"],)).fetchone()
+                    if not duena or duena["estado"] != "aprobada" or not duena["tipo"] or duena["empresa_id"]:
+                        raise InvitacionInvalida(hash_)
+                    try:
+                        with con.transaction():
+                            fila = con.execute(
+                                f"insert into acceso.cuentas (usuario, correo, clave_hash, estado, tipo, empresa_id, "
+                                f"confirmada_en, decidida_en) values (%s, %s, %s, 'aprobada', %s, %s::uuid, now(), now()) "
+                                f"returning {_COLUMNAS}",
+                                (usuario, inv["correo"], clave_hash, duena["tipo"], inv["empresa_id"])).fetchone()
+                    except psycopg.errors.UniqueViolation as exc:
+                        restriccion = getattr(getattr(exc, "diag", None), "constraint_name", "") or ""
+                        if "correo" in restriccion:
+                            raise CorreoOcupado(inv["correo"]) from exc
+                        raise UsuarioOcupado(usuario) from exc
+                    con.execute("update crm.invitaciones set usada_en = now(), cuenta_id = %s where id = %s",
+                                (str(fila["id"]), inv["id"]))
+        except (psycopg.errors.UndefinedTable, psycopg.errors.UndefinedColumn) as exc:
+            raise EquipoNoInstalado() from exc
+        return dict(fila)  # type: ignore[arg-type]
+
     # --- cuentas
     def crear_cuenta(self, usuario: str, correo: str, clave_hash: str) -> Dict[str, Any]:
         import psycopg
@@ -362,13 +446,23 @@ class AlmacenPostgres:
 
     # --- /admin (cuentas.AlmacenCuentas)
     def listar(self, estado: Optional[str]) -> List[Dict[str, Any]]:
-        with self.pool.connection() as con:
-            if estado:
-                filas = con.execute(f"select {_COLUMNAS} from acceso.cuentas where estado = %s "
-                                    "order by creada_en desc limit 500", (estado,)).fetchall()
-            else:
-                filas = con.execute(f"select {_COLUMNAS} from acceso.cuentas order by creada_en desc limit 500").fetchall()
-        return [publica(f) for f in filas]
+        import psycopg
+
+        # Las personas de equipo (empresa_id) no se revisan: entran con la aprobación de su empresa. Sin la
+        # migración de equipo la columna no existe y se listan todas, como siempre.
+        for solo_empresas in ("empresa_id is null", "true"):
+            try:
+                with self.pool.connection() as con:
+                    if estado:
+                        filas = con.execute(f"select {_COLUMNAS} from acceso.cuentas where estado = %s and {solo_empresas} "
+                                            "order by creada_en desc limit 500", (estado,)).fetchall()
+                    else:
+                        filas = con.execute(f"select {_COLUMNAS} from acceso.cuentas where {solo_empresas} "
+                                            "order by creada_en desc limit 500").fetchall()
+                return [publica(f) for f in filas]
+            except psycopg.errors.UndefinedColumn:
+                continue
+        return []
 
     def _decidir(self, id_: str, estado: str, tipo: Optional[str]) -> Dict[str, Any]:
         actual = self.por_id(id_)

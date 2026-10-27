@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requerirUsuario } from "@/auth/sesion";
+import { requerirPagina } from "@/auth/sesion";
 import { obtenerFormulario, opcionesDeCatalogo, ultimosEnvios } from "@/crm/formularios/datos";
 import { EditorFormulario } from "./editor";
 
 export const metadata: Metadata = { title: "Editar formulario" };
 
 export default async function PaginaEditorFormulario({ params }: { params: Promise<{ id: string }> }) {
-  await requerirUsuario();
+  await requerirPagina("formularios");
   const { id } = await params;
   const f = await obtenerFormulario(id);
   if (!f) notFound();

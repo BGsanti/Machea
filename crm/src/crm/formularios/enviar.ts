@@ -5,6 +5,7 @@ import { bd } from "@/db/cliente";
 import { conEmpresa } from "@/db/contexto";
 import { candidatos, enviosFormulario, leadsMachea, notificaciones, usuarios } from "@/db/esquema";
 import { fechaLocal } from "../fechas";
+import { avisar, elegirAsesor } from "../servidor/reparto";
 import * as repo from "../servidor/repositorio";
 import { contarEnvios, edadDelToken, formularioPorSlug, huellaDeIp, type FormularioPublico } from "./datos";
 import { validarEnvio, type EnvioValido } from "./validar";
@@ -80,6 +81,7 @@ async function registrar(form: FormularioPublico, envio: EnvioValido, ipHash: st
 
   const descripcion = `Llenó el formulario **${form.nombre}**.${lead.interes ? ` Le interesa **${lead.interes}**.` : ""}`;
   let nuevo = false;
+  let asesor: { usuarioId: string } | null = null;
   if (candidatoId) {
     const actual = await repo.obtener("candidatos", candidatoId);
     await repo.actualizar(
@@ -90,10 +92,12 @@ async function registrar(form: FormularioPublico, envio: EnvioValido, ipHash: st
     );
     await repo.crear("tareas", { asunto: `Volvió a llenar «${form.nombre}»`, tipo: "llamada", fechaVencimiento: fechaLocal(), prioridad: "alta", quienObjeto: "candidatos", quienId: candidatoId }, responsable);
   } else {
+    asesor = await elegirAsesor(empresaId);
     try {
       candidatoId = await repo.crear(
         "candidatos",
         {
+          ...(asesor ? { propietarioId: asesor.usuarioId } : {}),
           nombre: lead.nombre,
           apellidos: lead.apellidos,
           compania: lead.compania,
@@ -119,7 +123,8 @@ async function registrar(form: FormularioPublico, envio: EnvioValido, ipHash: st
       candidatoId = ya.id;
     }
     await db.insert(leadsMachea).values({ empresaId, telefonoDigitos: digitos, candidatoId }).onConflictDoNothing();
-    await repo.crear("tareas", { asunto: `Contactar a ${nombreVisible} (${form.nombre})`, tipo: "llamada", fechaVencimiento: fechaLocal(), prioridad: "alta", quienObjeto: "candidatos", quienId: candidatoId }, responsable);
+    await repo.crear("tareas", { asunto: `Contactar a ${nombreVisible} (${form.nombre})`, tipo: "llamada", fechaVencimiento: fechaLocal(), prioridad: "alta", quienObjeto: "candidatos", quienId: candidatoId }, asesor?.usuarioId ?? responsable);
+    if (asesor) await avisar(asesor.usuarioId, `Nuevo lead para ti: ${nombreVisible}`, `Por el formulario «${form.nombre}»${lead.interes ? ` · ${lead.interes}` : ""}`, `/ventas/o/candidatos/${candidatoId}`);
   }
 
   await db.insert(enviosFormulario).values({

@@ -1,9 +1,11 @@
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
-import { bandejaLeads, flujos, textosRapidos } from "@/db/esquema";
+import { and, asc, eq } from "drizzle-orm";
+import { bandejaLeads, candidatos, eventos, flujos, tareas, textosRapidos } from "@/db/esquema";
 import { desdeHoraLocal, hoyMas } from "../fechas";
 import { perfilDe, type PerfilId } from "../perfiles";
 import { obtenerConfiguracion } from "./consultas";
+import { enElReparto } from "./reparto";
 import { crear } from "./repositorio";
 
 const dia = hoyMas;
@@ -61,6 +63,7 @@ export async function cargarDatosEjemplo(usuarioId: string): Promise<number> {
 
   if (perfil.id === "machea") await ejemploMachea(ctx);
   else await ejemploVivienda(ctx, perfil.id);
+  await repartirEntreElEquipo(empresaId, usuarioId);
 
   await db.insert(textosRapidos).values({
     empresaId,
@@ -380,4 +383,39 @@ async function ejemploMachea(ctx: Contexto) {
   await ctx.nuevo("tareas", { asunto: "Enviar la comparación a Paola Giraldo", fechaVencimiento: dia(0), prioridad: "normal", quienObjeto: "candidatos", quienId: ids[2] });
   await ctx.nuevo("tareas", { asunto: "Preparar la demo con la marca de Constructora Aurora", fechaVencimiento: dia(1), prioridad: "alta", quienObjeto: "candidatos", quienId: ids[0] });
   await ctx.nuevo("tareas", { asunto: "Volver a contactar a Constructora Pórtico", fechaVencimiento: dia(-1), prioridad: "baja", quienObjeto: "candidatos", quienId: ids[5] });
+}
+
+/**
+ * Si la empresa ya tiene asesores en el reparto, los leads de ejemplo se reparten entre ellos con tiempos de respuesta
+ * variados (uno recién llegado, otros contactados en minutos, otros esperando horas), para ver el panel del gerente y
+ * «Mi día» con vida. Solo toca lo que quedó a nombre del dueño.
+ */
+async function repartirEntreElEquipo(empresaId: string, duenoId: string): Promise<void> {
+  const asesores = await enElReparto(empresaId);
+  if (asesores.length === 0) return;
+  const db = await bd();
+  const propios = await db
+    .select({ id: candidatos.id, estado: candidatos.estado })
+    .from(candidatos)
+    .where(and(eq(candidatos.empresaId, empresaId), eq(candidatos.propietarioId, duenoId), eq(candidatos.convertido, false)))
+    .orderBy(asc(candidatos.creadoEn));
+  // Horas desde que llegó el lead y minutos que tardó el primer contacto, en el mismo orden de los leads.
+  const horasAtras = [0.05, 5, 30, 0.2, 52, 9, 80, 2, 27, 6];
+  const minutosHastaContacto = [2, 4, 3, 3, 18, 1, 6, 12, 2, 5];
+  for (const [i, c] of propios.entries()) {
+    const asesor = asesores[i % asesores.length]!;
+    const llego = new Date(Date.now() - horasAtras[i % horasAtras.length]! * 3_600_000);
+    const contactado = c.estado !== "nuevo";
+    await db
+      .update(candidatos)
+      .set({
+        propietarioId: asesor.id,
+        creadoEn: llego,
+        asignadoEn: llego,
+        primerContactoEn: contactado ? new Date(llego.getTime() + minutosHastaContacto[i % minutosHastaContacto.length]! * 60_000) : null,
+      })
+      .where(eq(candidatos.id, c.id));
+    await db.update(tareas).set({ propietarioId: asesor.id }).where(and(eq(tareas.empresaId, empresaId), eq(tareas.quienId, c.id), eq(tareas.propietarioId, duenoId)));
+    await db.update(eventos).set({ propietarioId: asesor.id }).where(and(eq(eventos.empresaId, empresaId), eq(eventos.quienId, c.id), eq(eventos.propietarioId, duenoId)));
+  }
 }

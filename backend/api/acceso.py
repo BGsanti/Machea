@@ -53,7 +53,7 @@ from pydantic import BaseModel, Field
 
 from api import correo as correo_mod
 from api import demo as demo_mod
-from api.almacen_acceso import CorreoOcupado, UsuarioOcupado, ahora, publica
+from api.almacen_acceso import CorreoOcupado, EquipoNoInstalado, InvitacionInvalida, UsuarioOcupado, ahora, publica
 from api.limites import Rechazo, ip_del_cliente, limites
 from api.metricas import metricas
 
@@ -83,6 +83,8 @@ MENSAJES = {
     "demasiados_intentos": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
     "no_disponible": "El acceso todavía no está disponible.",
     "origen": "Petición no permitida.",
+    "invitacion_invalida": "La invitación venció o ya se usó. Pídele una nueva a quien te invitó.",
+    "correo_con_cuenta": "Ese correo ya tiene una cuenta de Machea. Pídele a quien te invitó que use otro correo.",
 }
 
 
@@ -430,6 +432,12 @@ class EntradaRegistro(BaseModel):
     clave: str = Field(max_length=300)
 
 
+class EntradaUnirse(BaseModel):
+    token: str = Field(max_length=200)
+    usuario: str = Field(max_length=60)
+    clave: str = Field(max_length=300)
+
+
 class EntradaToken(BaseModel):
     token: str = Field(max_length=200)
 
@@ -473,6 +481,44 @@ def crear_cuenta(datos: EntradaRegistro, request: Request, response: Response, t
     tareas.add_task(enviar_correo, _avisar_equipo(usuario, correo))
     metricas.registrar("cuenta_creada", f"Cuenta nueva por confirmar: {usuario}", "info")
     return {"correo": correo}
+
+
+@router.post("/cuentas/unirse", status_code=201)
+def unirse_a_equipo(datos: EntradaUnirse, request: Request, response: Response):
+    """Una persona invitada por una empresa (desde el CRM, Equipo) crea su acceso con el enlace que le mandaron.
+
+    El CRM guarda solo la huella de la invitación (crm.invitaciones). Aquí se crea la cuenta, ya aprobada y del mismo
+    tipo que la de su empresa, con el correo al que se mandó la invitación (por eso no hace falta confirmarlo), y se abre
+    su sesión. El rol y el nombre los lee el CRM de la invitación la primera vez que entra."""
+    _exigir_origen(request)
+    _no_store(response)
+    almacen = _alm()
+    _tope(f"unirse-ip:{_ip(request)}", 20, 3600)
+    huella = _sha(datos.token)
+    _tope(f"unirse-token:{huella[:16]}", 10, 3600)
+    try:
+        invitacion = almacen.invitacion(huella)
+    except EquipoNoInstalado:
+        raise _error(503, "no_disponible")
+    if not invitacion:
+        raise _error(400, "invitacion_invalida")
+    usuario = datos.usuario.strip().lower()
+    campos = {k: v for k, v in {"usuario": validar_usuario(usuario),
+                                "clave": validar_clave(datos.clave, usuario, invitacion["correo"])}.items() if v}
+    if campos:
+        raise _error(422, "datos_invalidos", campos)
+    try:
+        cuenta = almacen.aceptar_invitacion(huella, usuario, hash_clave(datos.clave))
+    except InvitacionInvalida:
+        raise _error(400, "invitacion_invalida")
+    except UsuarioOcupado:
+        raise _error(409, "usuario_ocupado")
+    except CorreoOcupado:
+        raise _error(409, "correo_con_cuenta")
+    except EquipoNoInstalado:
+        raise _error(503, "no_disponible")
+    metricas.registrar("miembro_unido", f"Se sumó a un equipo: {usuario}", "info")
+    return _abrir_sesion(request, response, cuenta, True)
 
 
 @router.post("/cuentas/confirmar", status_code=204)

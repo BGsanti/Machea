@@ -68,6 +68,19 @@
     0%, 100% { box-shadow: 0 0 0 0 rgb(255 98 89 / 0.35); }
     50% { box-shadow: 0 0 0 6px rgb(255 98 89 / 0); }
   }
+  @keyframes alerta {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(225 29 72 / 0.45); }
+    50% { box-shadow: 0 0 0 7px rgb(225 29 72 / 0); }
+  }
+  @keyframes anillo {
+    from { stroke-dashoffset: var(--anillo-largo); }
+  }
+  --animate-alerta: alerta 1.6s ease-in-out infinite;
+}
+
+/* El anillo del panel se llena al aparecer. */
+.anillo-relleno {
+  animation: anillo 900ms var(--ease-salida) backwards;
 }
 
 /* Quien prefiere menos movimiento no ve animaciones: todo aparece de una vez. */

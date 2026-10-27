@@ -22,6 +22,13 @@
       "when": 1792615538319,
       "tag": "0002_perfiles_catalogo_formularios",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793080857940,
+      "tag": "0003_equipo_reparto",
+      "breakpoints": true
     }
   ]
 }

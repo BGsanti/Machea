@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requerirUsuario } from "@/auth/sesion";
+import { requerirPagina } from "@/auth/sesion";
 import { listarFormularios } from "@/crm/formularios/datos";
 import { perfilDe } from "@/crm/perfiles";
 import { obtenerConfiguracion } from "@/crm/servidor/consultas";
@@ -8,7 +8,7 @@ import { ListaFormularios } from "./lista";
 export const metadata: Metadata = { title: "Formularios" };
 
 export default async function PaginaFormularios() {
-  await requerirUsuario();
+  await requerirPagina("formularios");
   const [config, filas] = await Promise.all([obtenerConfiguracion(), listarFormularios()]);
   const perfil = perfilDe(config.perfil);
   return (

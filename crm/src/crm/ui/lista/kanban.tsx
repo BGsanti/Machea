@@ -21,9 +21,10 @@ export function Kanban({ objeto, app, filas, moneda }: { objeto: string; app: st
   const valorDe = (f: FilaConNombres) => locales[f.id] ?? String(f[campo.nombre] ?? "");
   const secundarios = def.columnas.filter((c) => c !== def.camposNombre[0] && c !== campo.nombre && c !== "propietarioId").slice(0, 3);
 
-  const mover = (id: string, valor: string) => {
+  const mover = (id: string, valor: string, deshacible = true) => {
     const fila = filas.find((f) => f.id === id);
     if (!fila || valorDe(fila) === valor) return;
+    const anterior = valorDe(fila);
     setLocales((l) => ({ ...l, [id]: valor }));
     iniciar(async () => {
       const r = await actualizarCampo(objeto, id, campo.nombre, valor);
@@ -34,6 +35,11 @@ export function Kanban({ objeto, app, filas, moneda }: { objeto: string; app: st
           delete copia[id];
           return copia;
         });
+        return;
+      }
+      if (deshacible) {
+        const destino = campo.opciones?.find((o) => o.valor === valor)?.etiqueta ?? valor;
+        avisar(`Movido a «${destino}»`, "exito", { accion: { texto: "Deshacer", alClic: () => mover(id, anterior, false) }, duracion: 6000 });
       }
     });
   };

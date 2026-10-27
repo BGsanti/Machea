@@ -10,7 +10,7 @@ interface Aviso {
   id: number;
   texto: string;
   tipo: TipoAviso;
-  accion?: { texto: string; href: string };
+  accion?: { texto: string; href?: string; alClic?: () => void };
 }
 
 let avisos: Aviso[] = [];
@@ -59,10 +59,22 @@ export function Avisos() {
             className="mt-0.5 size-4 shrink-0"
           />
           <span className="flex-1">{a.texto}</span>
-          {a.accion ? (
+          {a.accion?.href ? (
             <Link href={a.accion.href} onClick={() => cerrar(a.id)} className="rounded bg-white/20 px-2 py-0.5 text-xs font-semibold hover:bg-white/30">
               {a.accion.texto}
             </Link>
+          ) : null}
+          {a.accion?.alClic ? (
+            <button
+              type="button"
+              onClick={() => {
+                cerrar(a.id);
+                a.accion?.alClic?.();
+              }}
+              className="rounded bg-white/20 px-2 py-0.5 text-xs font-semibold hover:bg-white/30"
+            >
+              {a.accion.texto}
+            </button>
           ) : null}
           <button type="button" onClick={() => cerrar(a.id)} className="opacity-80 hover:opacity-100" aria-label="Cerrar aviso">
             <Icono nombre="X" />

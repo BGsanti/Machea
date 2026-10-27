@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requerirUsuario } from "@/auth/sesion";
+import { requerirPermiso, requerirUsuario } from "@/auth/sesion";
 import { campoDe, obtenerObjeto } from "../objetos";
 import type { DefObjeto } from "../tipos";
 import { camposFormulario, convertirValor, validarCampos, validarFormulario } from "../validacion";
@@ -41,7 +41,7 @@ export async function guardarRegistro(objeto: string, id: string | null, formDat
 }
 
 export async function eliminarRegistros(objeto: string, ids: string[]): Promise<EstadoAccion> {
-  await requerirUsuario();
+  await requerirPermiso("eliminar");
   const def = defObjeto(objeto);
   try {
     const n = await repo.eliminar(objeto, ids);
@@ -56,7 +56,7 @@ export async function eliminarRegistros(objeto: string, ids: string[]): Promise<
 }
 
 export async function cambiarPropietario(objeto: string, ids: string[], propietarioId: string): Promise<EstadoAccion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("repartir");
   defObjeto(objeto);
   if (!propietarioId) return { ok: false, mensaje: "Elija un usuario." };
   try {
@@ -98,7 +98,7 @@ export interface ResultadoImportacion extends EstadoAccion {
 
 /** Importa filas ya asociadas a campos del objeto: [{ campo: valor }]. */
 export async function importarRegistros(objeto: string, filas: Record<string, string>[]): Promise<ResultadoImportacion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("importar");
   const def = defObjeto(objeto);
   const campos = camposFormulario(def).filter((c) => c.tipo !== "polimorfico");
   const fallidos: ResultadoImportacion["fallidos"] = [];

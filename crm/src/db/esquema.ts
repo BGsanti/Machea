@@ -63,11 +63,42 @@ export const usuarios = crm.table("usuarios", {
   email: text().notNull().unique(),
   emailVerified: boolean().notNull().default(false),
   image: text(),
+  /** admin (dueño), gerente, asesor o lectura (src/auth/permisos.ts). El valor antiguo «usuario» cuenta como asesor. */
   rol: text().notNull().default("usuario"),
   alias: text(),
+  /** Una persona desactivada no puede entrar, pero sus registros se conservan. */
+  activo: boolean().notNull().default(true),
+  /** Si entra en el reparto de leads nuevos. Se enciende al invitar a un asesor; el dueño y los gerentes no entran salvo que se pida. */
+  recibeLeads: boolean().notNull().default(false),
+  /** Para avisarle por WhatsApp cuando le llega un lead (más adelante). */
+  telefono: text(),
+  ultimoAcceso: marcaTiempo(),
   createdAt: marcaTiempo().notNull().defaultNow(),
   updatedAt: marcaTiempo().notNull().defaultNow(),
 });
+
+/**
+ * Invitaciones al equipo. Solo se guarda el SHA-256 del token del enlace. Con el login de Machea el backend
+ * (api/acceso.py, `POST /api/cuentas/unirse`) crea la cuenta de la persona invitada y marca la invitación como usada.
+ */
+export const invitaciones = crm.table(
+  "invitaciones",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empresaId: empresa(),
+    hash: text().notNull().unique(),
+    nombre: text().notNull(),
+    correo: text().notNull(),
+    rol: text().notNull(),
+    invitadaPorId: text().references(() => usuarios.id, { onDelete: "set null" }),
+    expira: marcaTiempo().notNull(),
+    usadaEn: marcaTiempo(),
+    /** La cuenta de Machea que se creó al aceptarla (solo con el login de Machea). */
+    cuentaId: text(),
+    creadaEn: marcaTiempo().notNull().defaultNow(),
+  },
+  (t) => [index().on(t.empresaId), index().on(t.cuentaId)],
+);
 
 export const sesiones = crm.table("sesiones", {
   id: text().primaryKey(),
@@ -207,10 +238,15 @@ export const candidatos = crm.table(
     interes: text(),
     /** Lo que contestó en un formulario: [{ clave, etiqueta, valor }], tal como lo vio la persona. */
     respuestas: jsonb().$type<{ clave: string; etiqueta: string; valor: string }[]>(),
+    /** Cuándo se le asignó a su asesor: con él se mide el tiempo de primera respuesta. */
+    asignadoEn: marcaTiempo(),
+    /** La primera vez que alguien lo contactó (resultado de llamada, cambio de estado). */
+    primerContactoEn: marcaTiempo(),
   },
   (t) => [
     index().on(t.apellidos),
     index().on(t.estado),
+    index().on(t.propietarioId),
     uniqueIndex().on(t.empresaId, t.origenExterno).where(sql`${t.origenExterno} is not null`),
   ],
 );
@@ -649,6 +685,12 @@ export const configuracion = crm.table("configuracion", {
   marketingActivado: boolean().notNull().default(false),
   /** Qué tipo de empresa es: cambia la navegación, el catálogo, las plantillas y el inicio (src/crm/perfiles.ts). */
   perfil: text().notNull().default("inmobiliaria"),
+  /** Cómo se reparten los leads nuevos: «turnos» (uno a cada asesor, en orden) o «manual» (quedan con el dueño). */
+  reparto: text().notNull().default("turnos"),
+  /** Último asesor que recibió un lead por turnos. */
+  repartoUltimoId: text(),
+  /** En cuántos minutos debe contactarse un lead nuevo: más allá, se marca como atrasado. */
+  slaMinutos: integer().notNull().default(5),
   impuestoPorcentaje: numeric({ precision: 5, scale: 2, mode: "number" }).notNull().default(19),
   actualizadoEn: marcaTiempo().notNull().defaultNow(),
 });

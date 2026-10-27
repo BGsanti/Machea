@@ -48,7 +48,7 @@ export default async function PaginaEspecial({
 
   switch (pagina) {
     case "inicio":
-      return <PaginaInicio usuario={usuario} app={app} />;
+      return <PaginaInicio usuario={usuario} app={app} parametros={parametros} />;
     case "informacion-general":
       return <PaginaInformacionGeneral usuario={usuario} app={app} />;
     case "calendario":

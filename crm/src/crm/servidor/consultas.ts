@@ -1,6 +1,6 @@
 import { and, asc, count, desc, eq, gte, inArray, lt, ne, or, sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
-import { empresaActual } from "@/db/empresa";
+import { empresaActual, soloDe } from "@/db/empresa";
 import {
   candidatos,
   configuracion,
@@ -109,6 +109,8 @@ export async function tareasAbiertas(usuarioId: string, limite = 30) {
 
 export async function eventosEntre(inicio: Date, fin: Date, usuarioId: string, soloMios: boolean) {
   const db = await bd();
+  // Un asesor solo ve sus citas, aunque pida ver las de todos.
+  if (await soloDe()) soloMios = true;
   return db
     .select()
     .from(eventos)

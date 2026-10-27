@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { cerrarSesion } from "@/auth/acciones";
 import { Icono } from "@/ui/icono";
 import { formatoFechaHora, iniciales } from "../../formato";
 import { marcarNotificacionesLeidas } from "../../servidor/sistema";
+import { EVENTO_ABRIR_PALETA } from "./paleta-comandos";
 
 interface Notificacion {
   id: string;
@@ -29,33 +29,27 @@ export function Cabecera({
   /** Con el login de Machea: su URL, para cerrar la sesión allá. */
   urlMachea?: string;
 }) {
-  const router = useRouter();
   const [menu, setMenu] = useState<"notificaciones" | "perfil" | "ayuda" | null>(null);
   const [, iniciar] = useTransition();
+  // ⌘K en Mac, Ctrl K en lo demás (se decide en el navegador: el servidor no sabe cuál es).
+  const [atajo, setAtajo] = useState("Ctrl K");
+  useEffect(() => {
+    if (/Mac|iPhone|iPad/.test(navigator.platform)) setAtajo("⌘K");
+  }, []);
   const alternar = (m: typeof menu) => setMenu((actual) => (actual === m ? null : m));
 
   return (
     <header className="relative z-20 flex h-14 shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-4">
-      <form
-        role="search"
-        className="mr-auto w-full max-w-xl"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const q = new FormData(e.currentTarget).get("q");
-          if (typeof q === "string" && q.trim()) router.push(`/buscar?q=${encodeURIComponent(q.trim())}`);
-        }}
+      <button
+        type="button"
+        onClick={() => window.dispatchEvent(new Event(EVENTO_ABRIR_PALETA))}
+        aria-label="Buscar o ejecutar un comando"
+        className="group relative mr-auto flex h-9 w-full max-w-xl items-center gap-2 rounded-md border border-slate-300 bg-slate-50 px-3 text-left text-sm text-slate-400 transition-[border-color,background-color,box-shadow] duration-150 hover:border-slate-400 hover:bg-white focus-visible:border-marca-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca-600/20"
       >
-        <label className="relative block">
-          <span className="sr-only">Buscar en el CRM</span>
-          <Icono nombre="Search" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-          <input
-            name="q"
-            type="search"
-            placeholder="Buscar..."
-            className="h-9 w-full rounded-md border border-slate-300 bg-slate-50 pr-3 pl-9 text-sm focus:border-marca-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-marca-600/20"
-          />
-        </label>
-      </form>
+        <Icono nombre="Search" className="size-4 shrink-0" />
+        <span className="min-w-0 flex-1 truncate">Buscar leads, contactos o ir a…</span>
+        <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500 sm:inline">{atajo}</kbd>
+      </button>
 
       <div className="flex items-center gap-1">
         <div className="relative">

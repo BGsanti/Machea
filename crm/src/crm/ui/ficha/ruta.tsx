@@ -37,14 +37,22 @@ export function Ruta({
   const seleccion = elegida ?? actual;
   const siguiente = finales.includes(actual ?? "") ? undefined : opciones[indiceActual + 1];
 
-  const guardar = (valor: string) =>
+  const guardar = (valor: string, deshacible = true) => {
+    const anterior = actual;
     iniciar(async () => {
       setActual(valor);
       setElegida(null);
       const r = await actualizarCampo(objeto, id, campo, valor);
-      avisar(r.ok ? `${etiquetaCampo}: ${opciones.find((o) => o.valor === valor)?.etiqueta}` : (r.mensaje ?? "Error"), r.ok ? "exito" : "error");
-      if (r.ok) setElegida(null);
+      const etiqueta = opciones.find((o) => o.valor === valor)?.etiqueta;
+      if (!r.ok) {
+        avisar(r.mensaje ?? "Error", "error");
+        return;
+      }
+      setElegida(null);
+      // Un clic equivocado en la ruta se corrige con «Deshacer» sin buscar el valor anterior.
+      avisar(`${etiquetaCampo}: ${etiqueta}`, "exito", deshacible && anterior ? { accion: { texto: "Deshacer", alClic: () => guardar(anterior, false) }, duracion: 6000 } : undefined);
     });
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 px-5 py-3">

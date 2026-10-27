@@ -4,7 +4,7 @@ import { and, eq, gt, inArray } from "drizzle-orm";
 import { requerirUsuario } from "@/auth/sesion";
 import { modoAuth } from "@/auth/servidor";
 import { bd } from "@/db/cliente";
-import { empresaActual } from "@/db/empresa";
+import { empresaActual, soloDe } from "@/db/empresa";
 import { bandejaLeads, candidatos, enviosFormulario, formularios, leadsMachea } from "@/db/esquema";
 import { procesarBandeja } from "./ingesta";
 
@@ -71,6 +71,15 @@ export async function novedadesDeLeads(desdeMs: number): Promise<{ ahoraMs: numb
         detalle: e.interes ?? e.formulario,
         candidatoId: e.candidatoId,
       });
+    }
+    // Un asesor solo se entera de lo que pasa con SUS leads.
+    const solo = await soloDe();
+    if (solo) {
+      const ids = novedades.map((n) => n.candidatoId).filter((x): x is string => Boolean(x));
+      const mios = ids.length
+        ? new Set((await db.select({ id: candidatos.id }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), eq(candidatos.propietarioId, solo), inArray(candidatos.id, ids)))).map((f) => f.id))
+        : new Set<string>();
+      return { ahoraMs, novedades: novedades.filter((n) => n.candidatoId !== null && mios.has(n.candidatoId)) };
     }
     return { ahoraMs, novedades };
   } catch (e) {

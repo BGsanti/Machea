@@ -1,10 +1,13 @@
 import { createHash } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { migracionesListas } from "@/db/cliente";
+import { bd, migracionesListas } from "@/db/cliente";
 import { contextoActual, type Usuario } from "@/db/contexto";
-import { asegurarEmpresaMachea, buscarSesionMachea, COOKIE_MACHEA, urlMachea, type CuentaMachea } from "./machea";
+import { usuarios } from "@/db/esquema";
+import { asegurarEmpresaMachea, asegurarMiembroMachea, buscarSesionMachea, COOKIE_MACHEA, urlMachea, type CuentaMachea } from "./machea";
+import { ErrorPermiso, puede, rolDe, type Permiso } from "./permisos";
 import { auth, modoAuth } from "./servidor";
 
 export type { Usuario } from "@/db/contexto";
@@ -34,17 +37,36 @@ const cuentaDeLaCookie = cache(async (): Promise<CuentaMachea | null> => {
 async function usuarioMachea(): Promise<Usuario | null> {
   const cuenta = await cuentaDeLaCookie();
   if (!cuenta || cuenta.estado !== "aprobada") return null;
+  // Una persona invitada al equipo: su empresa es la de quien la invitó y su rol sale de la invitación.
+  if (cuenta.empresaId) {
+    const miembro = await asegurarMiembroMachea(cuenta);
+    if (!miembro?.activo) return null;
+    return { id: cuenta.id, nombre: miembro.name, email: cuenta.correo, rol: rolDe(miembro.rol), empresaId: cuenta.empresaId };
+  }
   await asegurarEmpresaMachea(cuenta);
-  // Una cuenta = una empresa: su único usuario es administrador de su propio CRM.
+  // La cuenta de la empresa es su dueña: administradora de su propio CRM.
   return { id: cuenta.id, nombre: cuenta.usuario, email: cuenta.correo, rol: "admin", empresaId: cuenta.id };
 }
+
+/** La cuenta de Machea tiene sesión y está aprobada, pero la persona del equipo fue desactivada. */
+export const accesoDesactivado = cache(async (): Promise<boolean> => {
+  if (modoAuth() !== "machea") return false;
+  const cuenta = await cuentaDeLaCookie();
+  return Boolean(cuenta && cuenta.estado === "aprobada" && cuenta.empresaId && !(await usuarioMachea()));
+});
 
 async function usuarioLocal(): Promise<Usuario | null> {
   const sesion = await auth().api.getSession({ headers: await headers() });
   if (!sesion) return null;
-  const u = sesion.user as typeof sesion.user & { rol?: string | null; empresaId?: string | null };
-  if (!u.empresaId) return null;
-  return { id: u.id, nombre: u.name, email: u.email, rol: u.rol ?? "usuario", empresaId: u.empresaId };
+  // El rol y si está activa se leen de la base en cada petición: un cambio del gerente rige de inmediato.
+  const db = await bd();
+  const [fila] = await db
+    .select({ rol: usuarios.rol, activo: usuarios.activo, empresaId: usuarios.empresaId })
+    .from(usuarios)
+    .where(eq(usuarios.id, sesion.user.id))
+    .limit(1);
+  if (!fila?.empresaId || !fila.activo) return null;
+  return { id: sesion.user.id, nombre: sesion.user.name, email: sesion.user.email, rol: rolDe(fila.rol), empresaId: fila.empresaId };
 }
 
 /** Usuario de la sesión; si no hay sesión, redirige al inicio de sesión. */
@@ -54,6 +76,7 @@ export async function requerirUsuario(): Promise<Usuario> {
   if (modoAuth() === "machea") {
     // Con sesión pero sin aprobar: /inicio/ le dice "en revisión". Mandarla a /acceso/ sería un bucle, porque
     // /acceso/ devuelve a quien ya tiene sesión a la página de la que venía.
+    if (await accesoDesactivado()) redirect("/sin-acceso");
     if (await cuentaDeLaCookie()) redirect(`${urlMachea()}/inicio/`);
     redirect(`${urlMachea()}/acceso/?volver=${encodeURIComponent("/crm/")}`);
   }
@@ -62,6 +85,21 @@ export async function requerirUsuario(): Promise<Usuario> {
 
 export async function requerirAdmin(): Promise<Usuario> {
   const usuario = await requerirUsuario();
-  if (usuario.rol !== "admin") throw new Error("Solo un administrador puede hacer esto.");
+  if (usuario.rol !== "admin") throw new Error("Solo el dueño de la cuenta puede hacer esto.");
+  return usuario;
+}
+
+/** Usuario de la sesión con el permiso pedido (src/auth/permisos.ts); si no, lanza un error que la acción devuelve como mensaje. */
+export async function requerirPermiso(permiso: Permiso): Promise<Usuario> {
+  const usuario = await requerirUsuario();
+  if (!puede(usuario.rol, permiso)) throw new ErrorPermiso();
+  return usuario;
+}
+
+
+/** Para páginas: si la persona no tiene el permiso, vuelve al inicio en vez de mostrar un error. */
+export async function requerirPagina(permiso: Permiso): Promise<Usuario> {
+  const usuario = await requerirUsuario();
+  if (!puede(usuario.rol, permiso)) redirect("/inicio");
   return usuario;
 }

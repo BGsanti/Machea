@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { enlacePermitido } from "@/auth/permisos";
 import { requerirUsuario } from "@/auth/sesion";
 import { pestanasDeApp } from "@/crm/navegacion";
 import { CabeceraApp } from "@/crm/ui/shell/cabecera-app";
@@ -6,6 +8,8 @@ import { CabeceraApp } from "@/crm/ui/shell/cabecera-app";
 export default async function LayoutApp({ children, params }: { children: React.ReactNode; params: Promise<{ app: string }> }) {
   const { app: id } = await params;
   const usuario = await requerirUsuario();
+  // Lo que la barra esconde, el servidor también lo niega (automatización, plan y cuenta).
+  if (!enlacePermitido(usuario.rol, id)) redirect("/inicio");
   const nav = await pestanasDeApp(id, usuario.id);
   if (!nav) notFound();
   return (

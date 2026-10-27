@@ -39,7 +39,8 @@ function crear(): Estado {
   }
   // Falla cerrado: en Vercel no hay disco para PGlite y los datos se perderían.
   if (process.env.VERCEL) throw new Error("En Vercel el CRM exige DATABASE_URL.");
-  const carpetaDatos = path.join(process.cwd(), ".data", "pglite");
+  // CRM_PGLITE_DIR: otra carpeta de datos (las pruebas y los servidores de prueba no pisan los datos de desarrollo).
+  const carpetaDatos = process.env.CRM_PGLITE_DIR ?? path.join(process.cwd(), ".data", "pglite");
   mkdirSync(carpetaDatos, { recursive: true });
   const cliente = new PGlite(carpetaDatos);
   const db = drizzlePglite(cliente, { schema: esquema, casing: "snake_case" });

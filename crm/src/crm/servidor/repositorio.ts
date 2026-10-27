@@ -17,8 +17,9 @@ import {
   type SQL,
 } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
+import { esObjetoDeGestion, esObjetoPersonal as esObjetoPersonalDe } from "@/auth/permisos";
 import { bd, type BaseDatos } from "@/db/cliente";
-import { empresaActual } from "@/db/empresa";
+import { deLoSuyo, empresaActual, exigirPermiso, soloDe } from "@/db/empresa";
 import { contadores, eventos, oportunidades, productosOportunidad, tareas, usuarios, vistosRecientemente } from "@/db/esquema";
 import { fechaLocal, inicioMes, ZONA_HORARIA } from "../fechas";
 import { nombreVisible, type FilaConNombres, type NombresBusqueda } from "../formato";
@@ -62,6 +63,14 @@ function columna(objeto: string, campo: string): PgColumn {
 
 async function deLaEmpresa(objeto: string): Promise<SQL> {
   return eq(columna(objeto, "empresaId"), await empresaActual());
+}
+
+/** La empresa y, para un asesor, solo lo suyo: el filtro de TODA lectura y escritura de registros desde una persona. */
+async function visibleParaMi(objeto: string): Promise<SQL> {
+  // Lo de gestión (flujos, conexiones, campañas…) no es para un asesor, ni escribiendo la dirección a mano.
+  if (esObjetoDeGestion(objeto) && (await soloDe())) return sql`false`;
+  const suyo = await deLoSuyo(objeto, tabla(objeto));
+  return suyo ? (and(await deLaEmpresa(objeto), suyo) as SQL) : await deLaEmpresa(objeto);
 }
 
 /** El registro existe y es de la empresa actual. */
@@ -207,7 +216,7 @@ async function condicionesListado(db: BaseDatos, objeto: string, o: OpcionesList
     o.vista === SIN_VISTA
       ? undefined
       : (d.vistas.find((v) => v.id === o.vista) ?? d.vistas.find((v) => v.id === d.vistaPorDefecto));
-  const partes: (SQL | undefined)[] = [await deLaEmpresa(objeto)];
+  const partes: (SQL | undefined)[] = [await visibleParaMi(objeto)];
   let recientes: string[] | null = null;
 
   for (const c of [...(vista?.condiciones ?? []), ...(o.filtros ?? []), ...(o.donde ?? [])]) partes.push(sqlCondicion(objeto, c));
@@ -350,7 +359,7 @@ export async function obtener(objeto: string, id: string): Promise<FilaConNombre
   const [fila] = (await db
     .select()
     .from(tabla(objeto))
-    .where(and(eq(cols.id!, id), await deLaEmpresa(objeto)))
+    .where(and(eq(cols.id!, id), await visibleParaMi(objeto)))
     .limit(1)) as FilaRegistro[];
   if (!fila) return null;
   const [conNombres] = await resolverNombres(db, def(objeto), [fila]);
@@ -371,7 +380,14 @@ function prepararDatos(objeto: string, datos: Record<string, unknown>): Record<s
   return salida;
 }
 
+/** Escribir exige «escribir»; lo que es de toda la empresa (catálogo, listas, textos) exige además «catalogo». */
+async function exigirEscritura(objeto: string): Promise<void> {
+  await exigirPermiso("escribir");
+  if (!esObjetoPersonalDe(objeto)) await exigirPermiso("catalogo");
+}
+
 export async function crear(objeto: string, datos: Record<string, unknown>, usuarioId: string): Promise<string> {
+  await exigirEscritura(objeto);
   const db = await bd();
   const cols = columnas(objeto);
   const errores = aplicarReglas(objeto, datos, null);
@@ -381,7 +397,10 @@ export async function crear(objeto: string, datos: Record<string, unknown>, usua
   const empresaId = await empresaActual();
   valores.empresaId = empresaId;
   if (cols.propietarioId && !valores.propietarioId) valores.propietarioId = usuarioId;
+  // Lo que crea un asesor es suyo: no puede dejárselo a otra persona (quien reparte lo reasigna después).
+  if (cols.propietarioId && esObjetoPersonalDe(objeto) && (await soloDe())) valores.propietarioId = usuarioId;
   if (cols.creadoPorId) valores.creadoPorId = usuarioId;
+  if (objeto === "candidatos" && valores.propietarioId) valores.asignadoEn = new Date();
   if (cols.numero && (objeto === "facturas" || objeto === "casos")) valores.numero = await siguienteNumero(db, objeto, empresaId);
 
   const [nuevo] = (await db
@@ -395,16 +414,28 @@ export async function crear(objeto: string, datos: Record<string, unknown>, usua
 }
 
 export async function actualizar(objeto: string, id: string, datos: Record<string, unknown>, usuarioId: string): Promise<void> {
+  await exigirEscritura(objeto);
   const db = await bd();
   const cols = columnas(objeto);
-  const where = and(eq(cols.id!, id), await deLaEmpresa(objeto));
+  const where = and(eq(cols.id!, id), await visibleParaMi(objeto));
   const [anterior] = (await db.select().from(tabla(objeto)).where(where).limit(1)) as FilaRegistro[];
   if (!anterior) throw new Error("El registro ya no existe.");
+  // Un asesor no se pasa un registro a otra persona ni se lo quita a sí mismo: eso lo hace quien reparte.
+  if (cols.propietarioId && "propietarioId" in datos && datos.propietarioId !== anterior.propietarioId && (await soloDe())) {
+    throw new Error("Solo quien reparte los leads puede cambiar el asesor.");
+  }
   const errores = aplicarReglas(objeto, datos, anterior);
   if (errores) throw new ErrorValidacion(errores);
   const valores = prepararDatos(objeto, datos);
   await validarReferencias(db, objeto, valores);
   if (cols.actualizadoEn) valores.actualizadoEn = new Date();
+  if (objeto === "candidatos") {
+    // Con estos dos momentos se mide cuánto tarda cada asesor en contactar a un lead nuevo (panel del gerente).
+    if ("propietarioId" in valores && valores.propietarioId !== anterior.propietarioId) valores.asignadoEn = new Date();
+    if (typeof valores.estado === "string" && valores.estado !== "nuevo" && anterior.estado === "nuevo" && !anterior.primerContactoEn) {
+      valores.primerContactoEn = new Date();
+    }
+  }
 
   const [nuevo] = (await db
     .update(tabla(objeto))
@@ -418,11 +449,12 @@ export async function actualizar(objeto: string, id: string, datos: Record<strin
 
 export async function eliminar(objeto: string, ids: string[]): Promise<number> {
   if (ids.length === 0) return 0;
+  await exigirPermiso("eliminar");
   const db = await bd();
   const cols = columnas(objeto);
   const borrados = (await db
     .delete(tabla(objeto))
-    .where(and(inArray(cols.id!, ids), await deLaEmpresa(objeto)))
+    .where(and(inArray(cols.id!, ids), await visibleParaMi(objeto)))
     .returning()) as FilaRegistro[];
   for (const fila of borrados) await despuesDeGuardar(db, objeto, fila);
   if (borrados.length > 0) {
@@ -477,7 +509,7 @@ export async function buscarParaCampo(objeto: string, q: string, limite = 8): Pr
     .map((n) => cols[n])
     .filter((c): c is PgColumn => Boolean(c) && c!.dataType === "string");
   const coincide = texto ? or(...buscables.map((c) => ilike(c, `%${texto}%`)), nombreCompletoContiene(objeto, texto)) : undefined;
-  const where = and(await deLaEmpresa(objeto), coincide);
+  const where = and(await visibleParaMi(objeto), coincide);
   const orden = cols.actualizadoEn ? desc(cols.actualizadoEn) : asc(cols.id!);
   const filas = (await db.select().from(tabla(objeto)).where(where).orderBy(orden).limit(limite)) as FilaRegistro[];
   const conNombres = await resolverNombres(db, d, filas);

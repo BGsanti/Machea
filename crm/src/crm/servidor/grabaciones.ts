@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { bd } from "@/db/cliente";
-import { empresaActual } from "@/db/empresa";
-import { bandejaLeads } from "@/db/esquema";
+import { empresaActual, soloDe } from "@/db/empresa";
+import { bandejaLeads, candidatos, leadsMachea } from "@/db/esquema";
 
 /** Un turno de la conversación: quién habla (a = agente, u = persona), qué dijo y en qué segundo. */
 export interface TurnoLlamada {
@@ -61,6 +61,25 @@ function turnos(valor: unknown): TurnoLlamada[] {
  * La conversación y el audio de una llamada de la empresa. Salen de la bandeja de leads (que guarda lo que mandó
  * la base de Machea), siempre filtrados por la empresa de quien mira: nadie ve la llamada de otra empresa.
  */
+/**
+ * Un asesor solo accede a las llamadas de SUS leads: la llamada se une al lead por el teléfono (leads_machea) y el lead
+ * tiene que ser suyo. Los demás roles ven todas las de la empresa.
+ */
+async function llamadaVisible(empresaId: string, datos: Record<string, unknown>): Promise<boolean> {
+  const solo = await soloDe();
+  if (!solo) return true;
+  const digitos = typeof datos.telefono_digitos === "string" ? datos.telefono_digitos : null;
+  if (!digitos) return false;
+  const db = await bd();
+  const [lead] = await db
+    .select({ id: candidatos.id })
+    .from(leadsMachea)
+    .innerJoin(candidatos, eq(candidatos.id, leadsMachea.candidatoId))
+    .where(and(eq(leadsMachea.empresaId, empresaId), eq(leadsMachea.telefonoDigitos, digitos), eq(candidatos.propietarioId, solo)))
+    .limit(1);
+  return Boolean(lead);
+}
+
 export async function detalleDeLlamada(llamadaId: string, origenes: string[] = ["resultado", "llamada_captacion"]): Promise<DetalleLlamada | null> {
   if (!/^[A-Za-z0-9_-]{4,120}$/.test(llamadaId)) return null;
   const db = await bd();
@@ -70,7 +89,7 @@ export async function detalleDeLlamada(llamadaId: string, origenes: string[] = [
     .from(bandejaLeads)
     .where(and(eq(bandejaLeads.empresaId, empresaId), eq(bandejaLeads.origenId, llamadaId)));
   const fila = filas.find((f) => origenes.includes(f.origen));
-  if (!fila) return null;
+  if (!fila || !(await llamadaVisible(empresaId, fila.datos ?? {}))) return null;
   const d = fila.datos ?? {};
   const url = typeof d.grabacion_url === "string" ? d.grabacion_url : null;
   const duracion = Number(d.duracion_ms);
@@ -93,5 +112,6 @@ export async function urlDelAudio(llamadaId: string): Promise<URL | null> {
     .from(bandejaLeads)
     .where(and(eq(bandejaLeads.empresaId, empresaId), eq(bandejaLeads.origenId, llamadaId)));
   const fila = filas.find((f) => f.origen === "resultado" || f.origen === "llamada_captacion");
-  return urlDeAudioValida(fila?.datos?.grabacion_url);
+  if (!fila || !(await llamadaVisible(empresaId, fila.datos ?? {}))) return null;
+  return urlDeAudioValida(fila.datos?.grabacion_url);
 }

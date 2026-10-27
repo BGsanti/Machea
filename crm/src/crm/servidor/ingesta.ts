@@ -1,10 +1,11 @@
 import { and, eq, sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { conEmpresa, type Usuario } from "@/db/contexto";
-import { bandejaLeads, candidatos, eventos, leadsMachea, notificaciones, tareas, usuarios } from "@/db/esquema";
+import { bandejaLeads, candidatos, contactos, eventos, leadsMachea, notificaciones, tareas, usuarios } from "@/db/esquema";
 import { desdeHoraLocal, fechaLocal } from "../fechas";
 import { partirNombre } from "../formularios/validar";
 import * as repo from "./repositorio";
+import { avisar, elegirAsesor, usuarioSistema } from "./reparto";
 
 /**
  * Leads de Machea dentro del CRM de cada empresa (design/crm/PLAN.md, fase 4).
@@ -100,11 +101,14 @@ async function asegurarCandidato(empresaId: string, usuario: Usuario, d: Datos, 
   ]
     .filter(Boolean)
     .join("\n\n");
+  // Cada lead nuevo le toca a un asesor por turnos (reparto.ts); sin asesores, queda con el dueño.
+  const asesor = await elegirAsesor(empresaId);
   let id: string;
   try {
     id = await repo.crear(
       "candidatos",
       {
+        ...(asesor ? { propietarioId: asesor.usuarioId } : {}),
         nombre,
         apellidos: apellido || (nombre ? "(sin apellido)" : "Interesado de Machea"),
         // El CRM pide compañía; en vivienda la persona es el cliente.
@@ -130,7 +134,17 @@ async function asegurarCandidato(empresaId: string, usuario: Usuario, d: Datos, 
     id = ya.id;
   }
   await db.insert(leadsMachea).values({ empresaId, telefonoDigitos: digitos, candidatoId: id }).onConflictDoNothing();
+  if (asesor) await avisar(asesor.usuarioId, "Nuevo lead para ti", [nombre, apellido].filter(Boolean).join(" ") || "Un interesado", `/ventas/o/candidatos/${id}`);
   return (await candidatoDe(empresaId, digitos)) ?? id;
+}
+
+/** El asesor dueño de la persona (lead o contacto) a la que se refiere una actividad. */
+async function duenoDe(quienObjeto: unknown, quienId: unknown): Promise<string | null> {
+  if ((quienObjeto !== "candidatos" && quienObjeto !== "contactos") || typeof quienId !== "string") return null;
+  const db = await bd();
+  const tabla = quienObjeto === "candidatos" ? candidatos : contactos;
+  const [f] = await db.select({ propietario: tabla.propietarioId }).from(tabla).where(eq(tabla.id, quienId));
+  return f?.propietario ?? null;
 }
 
 /** Crea o actualiza un registro de actividad identificado por su origen externo. */
@@ -142,7 +156,11 @@ async function guardarActividad(objeto: "tareas" | "eventos", origenExterno: str
     .from(tabla)
     .where(and(eq(tabla.empresaId, usuario.empresaId), eq(tabla.origenExterno, origenExterno)));
   if (ya) await repo.actualizar(objeto, ya.id, valores, usuario.id);
-  else await repo.crear(objeto, { ...valores, origenExterno }, usuario.id);
+  else {
+    // La tarea o la cita de un lead es de su asesor: así la ve en «Mi día» y no queda a nombre del dueño.
+    const dueno = await duenoDe(valores.quienObjeto, valores.quienId);
+    await repo.crear(objeto, { ...valores, origenExterno, ...(dueno ? { propietarioId: dueno } : {}) }, usuario.id);
+  }
 }
 
 async function procesarResultado(empresaId: string, usuario: Usuario, d: Datos, callId: string) {
@@ -273,15 +291,17 @@ async function asegurarProspecto(empresaId: string, usuario: Usuario, digitos: s
   const db = await bd();
   const existente = await candidatoDe(empresaId, digitos);
   if (existente) return { id: existente, nuevo: false };
+  const asesor = await elegirAsesor(empresaId);
   let id: string;
   try {
-    id = await repo.crear("candidatos", { ...valores, telefono: valores.telefono ?? telefonoDeDigitos(digitos), pais: "Colombia", origenExterno: `machea:${digitos}` }, usuario.id);
+    id = await repo.crear("candidatos", { ...(asesor ? { propietarioId: asesor.usuarioId } : {}), ...valores, telefono: valores.telefono ?? telefonoDeDigitos(digitos), pais: "Colombia", origenExterno: `machea:${digitos}` }, usuario.id);
   } catch (e) {
     const [ya] = await db.select({ id: candidatos.id }).from(candidatos).where(and(eq(candidatos.empresaId, empresaId), eq(candidatos.origenExterno, `machea:${digitos}`)));
     if (!ya) throw e;
     id = ya.id;
   }
   await db.insert(leadsMachea).values({ empresaId, telefonoDigitos: digitos, candidatoId: id }).onConflictDoNothing();
+  if (asesor) await avisar(asesor.usuarioId, "Nuevo lead para ti", String(valores.compania ?? valores.nombre ?? "Un interesado"), `/ventas/o/candidatos/${id}`);
   return { id: (await candidatoDe(empresaId, digitos)) ?? id, nuevo: true };
 }
 
@@ -477,9 +497,12 @@ async function procesarFila(empresaId: string, usuario: Usuario, origen: string,
  * Procesa hasta LOTE filas pendientes de la empresa. Devuelve cuántas quedaron hechas. Nunca lanza: una fila
  * que falla guarda su error y se reintenta hasta MAX_INTENTOS veces.
  */
-export async function procesarBandeja(usuario: Usuario, limite = LOTE): Promise<number> {
+export async function procesarBandeja(quienAbrio: Usuario, limite = LOTE): Promise<number> {
   const db = await bd();
-  const empresaId = usuario.empresaId;
+  const empresaId = quienAbrio.empresaId;
+  // Lo procesa el sistema (el dueño de la empresa), no quien abrió la página: si fuera un asesor, todo quedaría a su
+  // nombre y con sus permisos. Cada lead va a su asesor por el reparto.
+  const usuario = await usuarioSistema(empresaId);
   const tomadas = await db.execute<{ id: number; origen: string; origen_id: string; datos: Datos }>(sql`
     update ${bandejaLeads} set tomado_en = now(), intentos = intentos + 1
     where id in (

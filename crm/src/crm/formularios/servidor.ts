@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { requerirAdmin } from "@/auth/sesion";
+import { requerirPermiso } from "@/auth/sesion";
 import { bd } from "@/db/cliente";
 import { formularios } from "@/db/esquema";
 import type { EstadoAccion } from "../servidor/acciones";
@@ -22,7 +22,7 @@ const mensajeDeError = (e: unknown) => (e instanceof Error ? e.message : "Ocurri
 /** Crea un formulario de borrador a partir de una plantilla y devuelve su id para abrir el editor. */
 export async function crearFormulario(plantilla: PlantillaId): Promise<ResultadoFormulario> {
   try {
-    const usuario = await requerirAdmin();
+    const usuario = await requerirPermiso("formularios");
     const config = await obtenerConfiguracion();
     const p = plantillaFormulario(plantilla, config.nombreEmpresa);
     const db = await bd();
@@ -41,7 +41,7 @@ export async function crearFormulario(plantilla: PlantillaId): Promise<Resultado
 /** Guarda el nombre y la configuración. Si ya está activo, también tiene que quedar completo. */
 export async function guardarFormulario(id: string, nombre: string, configNueva: unknown): Promise<ResultadoFormulario> {
   try {
-    const usuario = await requerirAdmin();
+    const usuario = await requerirPermiso("formularios");
     const existente = await obtenerFormulario(id);
     if (!existente) return { ok: false, mensaje: "El formulario ya no existe." };
     const nombreLimpio = String(nombre ?? "").trim().slice(0, 120);
@@ -66,7 +66,7 @@ export async function guardarFormulario(id: string, nombre: string, configNueva:
 /** Publica, pausa o vuelve a borrador. Para publicar el formulario tiene que estar completo. */
 export async function cambiarEstadoFormulario(id: string, estado: EstadoFormulario): Promise<ResultadoFormulario> {
   try {
-    const usuario = await requerirAdmin();
+    const usuario = await requerirPermiso("formularios");
     if (!["borrador", "activo", "pausado"].includes(estado)) return { ok: false, mensaje: "Estado no válido." };
     const existente = await obtenerFormulario(id);
     if (!existente) return { ok: false, mensaje: "El formulario ya no existe." };
@@ -91,7 +91,7 @@ export async function cambiarEstadoFormulario(id: string, estado: EstadoFormular
 
 export async function eliminarFormulario(id: string): Promise<ResultadoFormulario> {
   try {
-    const usuario = await requerirAdmin();
+    const usuario = await requerirPermiso("formularios");
     const db = await bd();
     await db.delete(formularios).where(and(eq(formularios.id, id), eq(formularios.empresaId, usuario.empresaId)));
     revalidatePath("/formularios");

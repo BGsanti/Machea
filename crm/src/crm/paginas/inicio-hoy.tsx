@@ -86,8 +86,20 @@ export function ListaParaHoy({ calientes, tareas, hoy }: { calientes: LeadHoy[];
                 resolver(`t:${t.id}`);
                 iniciar(async () => {
                   const r = await completarTarea(t.id, true);
-                  if (r.ok) avisar("Tarea completada.");
-                  else {
+                  if (r.ok) {
+                    avisar("Tarea completada.", "exito", {
+                      duracion: 6000,
+                      accion: {
+                        texto: "Deshacer",
+                        alClic: () => {
+                          deshacer(`t:${t.id}`);
+                          iniciar(async () => {
+                            await completarTarea(t.id, false);
+                          });
+                        },
+                      },
+                    });
+                  } else {
                     deshacer(`t:${t.id}`);
                     avisar(r.mensaje ?? "No se pudo completar la tarea.", "error");
                   }

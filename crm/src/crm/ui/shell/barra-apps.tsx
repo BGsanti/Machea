@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Icono } from "@/ui/icono";
 import { LogoMachea, LogoMacheaCompleto } from "@/ui/logo-machea";
+import { enlacePermitido } from "@/auth/permisos";
 import { enlaceActivo, navMasHerramientas, type EnlaceNav } from "../../apps";
 import { perfilDe } from "../../perfiles";
 
@@ -13,11 +14,13 @@ import { perfilDe } from "../../perfiles";
  * Barra lateral del panel de Machea. Pantallas anchas: logo, empresa y secciones con nombre.
  * Pantallas angostas: solo los íconos. Las apps completas del CRM quedan en «Más herramientas».
  */
-export function BarraApps({ empresa, perfil }: { empresa: string; perfil: string }) {
+export function BarraApps({ empresa, perfil, rol }: { empresa: string; perfil: string; rol: string }) {
   const ruta = usePathname();
   const def = perfilDe(perfil);
-  const activo = enlaceActivo(ruta, def.nav);
-  const enMas = navMasHerramientas.some((e) => e.id === activo?.id);
+  const principal = def.nav.filter((e) => enlacePermitido(rol, e.id));
+  const activo = enlaceActivo(ruta, principal);
+  const mas = navMasHerramientas.filter((e) => enlacePermitido(rol, e.id));
+  const enMas = mas.some((e) => e.id === activo?.id);
   const [masAbierto, setMasAbierto] = useState(enMas);
   const inicialEmpresa = (empresa.trim()[0] ?? "M").toUpperCase();
 
@@ -38,7 +41,7 @@ export function BarraApps({ empresa, perfil }: { empresa: string; perfil: string
 
       <nav aria-label="Secciones" className="desplazable flex-1 overflow-y-auto px-2 pb-3 lg:px-3">
         <ul className="space-y-0.5">
-          {def.nav.map((e) => (
+          {principal.map((e) => (
             <li key={e.id}>
               <Enlace enlace={e} activo={activo?.id === e.id} />
             </li>
@@ -56,7 +59,7 @@ export function BarraApps({ empresa, perfil }: { empresa: string; perfil: string
             <Icono nombre={masAbierto ? "ChevronDown" : "ChevronRight"} className="size-4" />
           </button>
           <ul className={clsx("space-y-0.5", !masAbierto && "hidden", "max-lg:block")}>
-            {navMasHerramientas.map((e) => (
+            {mas.map((e) => (
               <li key={e.id}>
                 <Enlace enlace={e} activo={activo?.id === e.id} />
               </li>

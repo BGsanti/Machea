@@ -2,8 +2,9 @@
 
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { requerirUsuario } from "@/auth/sesion";
+import { requerirPermiso, requerirUsuario } from "@/auth/sesion";
 import { bd } from "@/db/cliente";
+import { deLoSuyo } from "@/db/empresa";
 import {
   campanas,
   candidatos,
@@ -43,12 +44,12 @@ export interface ResultadoConversion extends EstadoAccion {
 }
 
 export async function convertirCandidato(candidatoId: string, formData: FormData): Promise<ResultadoConversion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("escribir");
   const db = await bd();
   const [c] = await db
     .select()
     .from(candidatos)
-    .where(and(eq(candidatos.id, candidatoId), eq(candidatos.empresaId, usuario.empresaId)))
+    .where(and(eq(candidatos.id, candidatoId), eq(candidatos.empresaId, usuario.empresaId), await deLoSuyo("candidatos", candidatos)))
     .limit(1);
   if (!c) return { ok: false, mensaje: "El lead ya no existe." };
   if (c.convertido) return { ok: false, mensaje: "Este lead ya se convirtió." };
@@ -184,12 +185,12 @@ export async function precioProducto(productoId: string, oportunidadId?: string)
 }
 
 export async function generarFactura(oportunidadId: string): Promise<EstadoAccion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("escribir");
   const db = await bd();
   const [o] = await db
     .select()
     .from(oportunidades)
-    .where(and(eq(oportunidades.id, oportunidadId), eq(oportunidades.empresaId, usuario.empresaId)))
+    .where(and(eq(oportunidades.id, oportunidadId), eq(oportunidades.empresaId, usuario.empresaId), await deLoSuyo("oportunidades", oportunidades)))
     .limit(1);
   if (!o) return { ok: false, mensaje: "La oportunidad ya no existe." };
   const lineas = await db
@@ -248,7 +249,7 @@ export async function generarFactura(oportunidadId: string): Promise<EstadoAccio
 // ---------------------------------------------------------------------------
 
 export async function agregarACampana(objeto: string, ids: string[], campanaId: string): Promise<EstadoAccion> {
-  const { empresaId } = await requerirUsuario();
+  const { empresaId } = await requerirPermiso("catalogo");
   if (!["contactos", "candidatos"].includes(objeto)) return { ok: false, mensaje: "Solo contactos y leads." };
   if (!campanaId) return { ok: false, mensaje: "Elija una campaña." };
   const db = await bd();
@@ -276,7 +277,7 @@ export async function agregarACampana(objeto: string, ids: string[], campanaId: 
 }
 
 export async function quitarDeCampana(miembroId: string): Promise<EstadoAccion> {
-  const { empresaId } = await requerirUsuario();
+  const { empresaId } = await requerirPermiso("catalogo");
   const db = await bd();
   await db.delete(miembrosCampana).where(and(eq(miembrosCampana.id, miembroId), eq(miembrosCampana.empresaId, empresaId)));
   revalidatePath("/", "layout");
@@ -289,7 +290,7 @@ export async function enviarCorreoLista(
   asunto: string,
   cuerpo: string,
 ): Promise<EstadoAccion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("catalogo");
   if (!["contactos", "candidatos"].includes(objeto)) return { ok: false, mensaje: "Solo contactos y leads." };
   if (!asunto.trim() || !cuerpo.trim()) return { ok: false, mensaje: "Escriba el asunto y el mensaje." };
   const db = await bd();
@@ -349,7 +350,7 @@ export async function enviarCorreoLista(
 // ---------------------------------------------------------------------------
 
 export async function cambiarEstadoArticulos(ids: string[], accion: "publicar" | "archivar" | "nueva_version"): Promise<EstadoAccion> {
-  const usuario = await requerirUsuario();
+  const usuario = await requerirPermiso("catalogo");
   try {
     for (const id of ids) {
       const actual = await repo.obtener("articulos", id);
