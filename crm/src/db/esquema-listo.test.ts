@@ -24,3 +24,17 @@ test("sin migrar, la base se reconoce incompleta; tras migrar, queda lista", asy
   await aplicarMigraciones();
   await verificarEsquema(db); // no lanza
 });
+
+test("al compilar (next build) no consulta la base de datos", async () => {
+  const { verificarEsquema } = await import("./esquema-listo");
+  const sinBase = { execute: () => Promise.reject(new Error("no debe consultar la base al compilar")) } as never;
+  const antes = process.env.NEXT_PHASE;
+  process.env.NEXT_PHASE = "phase-production-build";
+  try {
+    // Aunque la base no esté (o no tenga el esquema), el build no se cae.
+    await verificarEsquema(sinBase);
+  } finally {
+    if (antes === undefined) delete process.env.NEXT_PHASE;
+    else process.env.NEXT_PHASE = antes;
+  }
+});

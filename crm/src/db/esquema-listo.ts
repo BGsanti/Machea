@@ -46,6 +46,9 @@ let verificado = false;
 /** Lanza `EsquemaIncompleto` si falta algo. Cuando todo está, no vuelve a consultar (hasta que se reinicie la instancia). */
 export async function verificarEsquema(db: BaseDatos): Promise<void> {
   if (verificado) return;
+  // Al compilar (next build) no hay base de datos que consultar: el build nunca debe conectarse a ella. La verificación
+  // corre con las peticiones reales, no al prerenderizar.
+  if (process.env.NEXT_PHASE === "phase-production-build") return;
   for (const s of SONDAS) {
     try {
       await db.execute(sql.raw(s.consulta));
