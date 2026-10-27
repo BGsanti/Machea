@@ -55,6 +55,16 @@ export const accesoDesactivado = cache(async (): Promise<boolean> => {
   return Boolean(cuenta && cuenta.estado === "aprobada" && cuenta.empresaId && !(await usuarioMachea()));
 });
 
+// «Última vez que entró» en el modo local: se anota como mucho cada 10 minutos por persona.
+const ultimoAcceso = new Map<string, number>();
+
+function marcarAcceso(id: string): void {
+  const ahora = Date.now();
+  if (ahora - (ultimoAcceso.get(id) ?? 0) < 10 * 60_000) return;
+  ultimoAcceso.set(id, ahora);
+  void bd().then((db) => db.update(usuarios).set({ ultimoAcceso: new Date() }).where(eq(usuarios.id, id))).catch(() => undefined);
+}
+
 async function usuarioLocal(): Promise<Usuario | null> {
   const sesion = await auth().api.getSession({ headers: await headers() });
   if (!sesion) return null;
@@ -66,6 +76,7 @@ async function usuarioLocal(): Promise<Usuario | null> {
     .where(eq(usuarios.id, sesion.user.id))
     .limit(1);
   if (!fila?.empresaId || !fila.activo) return null;
+  marcarAcceso(sesion.user.id);
   return { id: sesion.user.id, nombre: sesion.user.name, email: sesion.user.email, rol: rolDe(fila.rol), empresaId: fila.empresaId };
 }
 

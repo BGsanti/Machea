@@ -44,10 +44,10 @@ export function Cabecera({
         type="button"
         onClick={() => window.dispatchEvent(new Event(EVENTO_ABRIR_PALETA))}
         aria-label="Buscar o ejecutar un comando"
-        className="group relative mr-auto flex h-9 w-full max-w-xl items-center gap-2 rounded-md border border-slate-300 bg-slate-50 px-3 text-left text-sm text-slate-400 transition-[border-color,background-color,box-shadow] duration-150 hover:border-slate-400 hover:bg-white focus-visible:border-marca-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca-600/20"
+        className="group relative mr-auto flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-md border sm:w-full sm:max-w-xl sm:justify-start border-slate-300 bg-slate-50 px-0 text-left text-sm text-slate-400 transition-[border-color,background-color,box-shadow] sm:px-3 duration-150 hover:border-slate-400 hover:bg-white focus-visible:border-marca-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca-600/20"
       >
         <Icono nombre="Search" className="size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate">Buscar leads, contactos o ir a…</span>
+        <span className="hidden min-w-0 flex-1 truncate sm:inline">Buscar leads, contactos o ir a…</span>
         <kbd className="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500 sm:inline">{atajo}</kbd>
       </button>
 
@@ -63,7 +63,7 @@ export function Cabecera({
                 <ul className="mt-2 space-y-1.5">
                   <li>Use la barra lateral para cambiar de sección; las demás herramientas están en «Más herramientas».</li>
                   <li>Las pestañas de cada sección se pueden ordenar con el lápiz de la derecha.</li>
-                  <li>Busque cualquier lead, contacto o empresa con el buscador superior.</li>
+                  <li>Busque cualquier lead, contacto o empresa con el buscador superior (Ctrl o ⌘ + K). Pulse «?» para ver todos los atajos.</li>
                   <li>Automatice tareas desde Automatización › Flujos.</li>
                 </ul>
               </div>

@@ -18,7 +18,7 @@ import { ModalCorreoLista } from "../lista/acciones-masivas";
 
 type Ventana = "editar" | "convertir" | "correo" | "productos" | "miembros" | null;
 
-export function AccionesFicha({ objeto, app, fila, nombre, puedeEliminar = true }: { objeto: string; app: string; fila: FilaConNombres; nombre: string; puedeEliminar?: boolean }) {
+export function AccionesFicha({ objeto, app, fila, nombre, puedeEliminar = true, puedeEscribir = true }: { objeto: string; app: string; fila: FilaConNombres; nombre: string; puedeEliminar?: boolean; puedeEscribir?: boolean }) {
   const router = useRouter();
   const [ventana, setVentana] = useState<Ventana>(null);
   const [pendiente, iniciar] = useTransition();
@@ -36,7 +36,7 @@ export function AccionesFicha({ objeto, app, fila, nombre, puedeEliminar = true 
   };
 
   const estadoArticulo = String(fila.estado ?? "");
-  const puedeEditar = objeto !== "articulos" || estadoArticulo === "borrador";
+  const puedeEditar = puedeEscribir && (objeto !== "articulos" || estadoArticulo === "borrador");
 
   return (
     <>

@@ -52,6 +52,8 @@ jobs:
       - run: pnpm audit --audit-level high
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Todas las migraciones de Supabase aplican en orden (Postgres real)
+        run: pnpm prueba:sql
 
   backend:
     runs-on: ubuntu-latest

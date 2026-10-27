@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { puede } from "@/auth/permisos";
+import { usuarioActual } from "@/auth/sesion";
 import { campoDe, obtenerObjeto } from "../../objetos";
 import { leerEstadoLista, type ParametrosUrl } from "../../parametros";
 import { perfilDe } from "../../perfiles";
@@ -31,7 +33,7 @@ export async function PaginaLista({
     usuarioId,
     porPagina: estado.modo === "kanban" ? 200 : 50,
   };
-  const [datos, config] = await Promise.all([listar(objeto, opciones), obtenerConfiguracion()]);
+  const [datos, config, usuario] = await Promise.all([listar(objeto, opciones), obtenerConfiguracion(), usuarioActual()]);
 
   const campoGrafico = def.campoKanban ?? def.columnas.find((c) => campoDe(def, c)?.tipo === "lista");
   let grafico: { campo: string; etiqueta: string; grupos: { etiqueta: string; total: number; suma: number }[] } | null = null;
@@ -60,7 +62,8 @@ export async function PaginaLista({
       campoGrafico={campoGrafico ?? null}
       columnas={objeto === "candidatos" ? perfilDe(config.perfil).leads.columnas : undefined}
       abrirNuevo={parametros.nuevo === "1" && Boolean(def.acciones.nuevo)}
-      abrirImportar={parametros.importar === "1" && Boolean(def.acciones.importar)}
+      abrirImportar={parametros.importar === "1" && Boolean(def.acciones.importar) && puede(usuario?.rol, "importar")}
+      permisos={{ eliminar: puede(usuario?.rol, "eliminar"), repartir: puede(usuario?.rol, "repartir"), importar: puede(usuario?.rol, "importar"), escribir: puede(usuario?.rol, "escribir") }}
     />
   );
 }

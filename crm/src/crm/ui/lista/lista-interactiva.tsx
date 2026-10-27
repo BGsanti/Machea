@@ -38,6 +38,7 @@ export function ListaInteractiva({
   columnas: columnasPropias,
   abrirNuevo = false,
   abrirImportar = false,
+  permisos = { eliminar: true, repartir: true, importar: true, escribir: true },
 }: {
   objeto: string;
   app: string;
@@ -54,6 +55,8 @@ export function ListaInteractiva({
   columnas?: string[];
   abrirNuevo?: boolean;
   abrirImportar?: boolean;
+  /** Lo que el rol puede hacer; el servidor lo vuelve a exigir, esto solo evita mostrar botones que fallarían. */
+  permisos?: { eliminar: boolean; repartir: boolean; importar: boolean; escribir: boolean };
 }) {
   const router = useRouter();
   const def = obtenerObjeto(objeto)!;
@@ -152,7 +155,7 @@ export function ListaInteractiva({
                     Agregar a campaña
                   </Boton>
                 ) : null}
-                {def.acciones.cambiarPropietario ? (
+                {def.acciones.cambiarPropietario && permisos.repartir ? (
                   <Boton icono="UserCog" onClick={() => setModal("propietario")}>
                     Cambiar propietario
                   </Boton>
@@ -183,13 +186,15 @@ export function ListaInteractiva({
                     </Boton>
                   </>
                 ) : null}
-                <Boton variante="peligro" icono="Trash" cargando={pendiente} onClick={() => eliminar(seleccion)}>
-                  Eliminar
-                </Boton>
+                {permisos.eliminar ? (
+                  <Boton variante="peligro" icono="Trash" cargando={pendiente} onClick={() => eliminar(seleccion)}>
+                    Eliminar
+                  </Boton>
+                ) : null}
               </>
             ) : (
               <>
-                {def.acciones.importar ? (
+                {def.acciones.importar && permisos.importar ? (
                   <Boton icono="Upload" onClick={() => setModal("importar")}>
                     Importar
                   </Boton>
@@ -199,7 +204,7 @@ export function ListaInteractiva({
                     Enviar correo electrónico
                   </Boton>
                 ) : null}
-                {def.acciones.nuevo ? (
+                {def.acciones.nuevo && permisos.escribir ? (
                   esFlujo ? (
                     <Link href={`/${app}/p/flujo`} className={clasesBoton("primario")}>
                       <Icono nombre="Plus" /> {nuevoTexto}
@@ -293,7 +298,7 @@ export function ListaInteractiva({
               texto={estado.q || estado.filtros.length ? "Pruebe con otra búsqueda o quite filtros." : (def.vacio?.texto ?? "No hay nada aún en su lista. Pruebe a agregar un nuevo registro.")}
               icono={def.icono}
             >
-              {def.acciones.nuevo && !estado.q && !estado.filtros.length ? (
+              {def.acciones.nuevo && permisos.escribir && !estado.q && !estado.filtros.length ? (
                 esFlujo ? (
                   <Link href={`/${app}/p/flujo`} className={clasesBoton("primario")}>
                     {def.vacio?.boton ?? nuevoTexto}
@@ -394,16 +399,18 @@ export function ListaInteractiva({
                                   Modificar
                                 </button>
                               )}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setMenuFila(null);
-                                  eliminar([fila.id]);
-                                }}
-                                className="block w-full px-3 py-1.5 text-left text-sm text-rose-700 hover:bg-rose-50"
-                              >
-                                Eliminar
-                              </button>
+                              {permisos.eliminar ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMenuFila(null);
+                                    eliminar([fila.id]);
+                                  }}
+                                  className="block w-full px-3 py-1.5 text-left text-sm text-rose-700 hover:bg-rose-50"
+                                >
+                                  Eliminar
+                                </button>
+                              ) : null}
                             </div>
                           </>
                         ) : null}
