@@ -310,3 +310,33 @@ export async function datosMiDia(usuarioId: string, slaMinutos: number): Promise
     abiertos: num(abiertos.rows[0]?.n),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Medidor de la barra lateral
+// ---------------------------------------------------------------------------
+
+export interface MedidorRespuesta {
+  /** % de leads contactados dentro del tiempo de la empresa en los últimos 7 días (null si aún no hay con plazo cumplido). */
+  pct: number | null;
+  medianaMin: number | null;
+  slaMinutos: number;
+  /** De quién es: «tu» (un asesor, solo lo suyo) o «el equipo». */
+  alcance: "tu" | "equipo";
+}
+
+/** La cifra que acompaña a todas las pantallas: qué tan rápido se está atendiendo. Un asesor ve la suya; los demás, la del equipo. */
+export async function medidorRespuesta(usuarioId: string | null, slaMinutos: number): Promise<MedidorRespuesta> {
+  const db = await bd();
+  const empresaId = await empresaActual();
+  const dueno = usuarioId ? sql`and propietario_id = ${usuarioId}` : sql``;
+  const r = await db.execute<{ debidos: string; en_tiempo: string; mediana: string | null }>(sql`
+    select
+      count(*) filter (where primer_contacto_en is not null or ${inicioReloj} < now() - make_interval(mins => (${slaMinutos})::int)) as debidos,
+      count(*) filter (where primer_contacto_en is not null and ${minutosHastaContacto} <= ${slaMinutos}) as en_tiempo,
+      percentile_cont(0.5) within group (order by ${minutosHastaContacto}) filter (where primer_contacto_en is not null) as mediana
+    from crm.candidatos
+    where empresa_id = ${empresaId} and creado_en >= now() - interval '7 days' ${dueno}`);
+  const f = r.rows[0]!;
+  const debidos = num(f.debidos);
+  return { pct: debidos > 0 ? Math.round((num(f.en_tiempo) / debidos) * 100) : null, medianaMin: numONull(f.mediana), slaMinutos, alcance: usuarioId ? "tu" : "equipo" };
+}

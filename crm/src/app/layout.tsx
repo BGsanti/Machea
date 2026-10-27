@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Avisos } from "@/ui/avisos";
+import { SCRIPT_TEMA } from "@/ui/tema";
 import "./globals.css";
 
 // Archivo, la tipografía de Machea. Con next/font la ruta del archivo respeta el basePath (/crm).
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={archivo.variable}>
+    <html lang="es" className={archivo.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+      </head>
       <body className="antialiased">
         {children}
         <Avisos />

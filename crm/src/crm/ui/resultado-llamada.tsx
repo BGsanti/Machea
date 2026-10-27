@@ -36,7 +36,7 @@ export function ResultadoLlamadaBoton({ objeto, id, etiqueta = "Registrar result
         type="button"
         onClick={() => setAbierto(!abierto)}
         aria-expanded={abierto}
-        className="inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 transition-[color,background-color,border-color,transform] duration-150 hover:border-marca-500 hover:text-marca-700 active:translate-y-px"
+        className="inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 transition-[color,background-color,border-color,transform] duration-150 hover:border-marca-500 hover:text-marca-700 active:translate-y-px"
       >
         <Icono nombre="ListChecks" className="size-3.5" /> {etiqueta}
       </button>

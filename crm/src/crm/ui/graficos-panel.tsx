@@ -31,7 +31,7 @@ export function Sparkline({ valores, className, color = "var(--color-marca-600)"
 }
 
 /** Anillo de porcentaje (0–100) con el valor al centro. */
-export function Anillo({ pct, tamano = 64, color = "var(--color-marca-600)", children }: { pct: number | null; tamano?: number; color?: string; children?: React.ReactNode }) {
+export function Anillo({ pct, tamano = 64, color = "var(--color-marca-600)", pista = "text-slate-100", children }: { pct: number | null; tamano?: number; color?: string; pista?: string; children?: React.ReactNode }) {
   const grosor = 7;
   const r = (tamano - grosor) / 2;
   const c = 2 * Math.PI * r;
@@ -39,7 +39,7 @@ export function Anillo({ pct, tamano = 64, color = "var(--color-marca-600)", chi
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: tamano, height: tamano }}>
       <svg width={tamano} height={tamano} viewBox={`0 0 ${tamano} ${tamano}`} aria-hidden className="-rotate-90">
-        <circle cx={tamano / 2} cy={tamano / 2} r={r} fill="none" stroke="currentColor" strokeWidth={grosor} className="text-slate-100" />
+        <circle cx={tamano / 2} cy={tamano / 2} r={r} fill="none" stroke="currentColor" strokeWidth={grosor} className={pista} />
         <circle
           cx={tamano / 2}
           cy={tamano / 2}
@@ -54,7 +54,7 @@ export function Anillo({ pct, tamano = 64, color = "var(--color-marca-600)", chi
           style={{ ["--anillo-largo" as string]: c }}
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-slate-800">{children}</div>
+      <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold">{children}</div>
     </div>
   );
 }

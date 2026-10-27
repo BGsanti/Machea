@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
 import { enlacePermitido } from "@/auth/permisos";
 import { requerirUsuario } from "@/auth/sesion";
+import { obtenerConfiguracion } from "@/crm/servidor/consultas";
 import { pestanasDeApp } from "@/crm/navegacion";
 import { CabeceraApp } from "@/crm/ui/shell/cabecera-app";
 
@@ -14,7 +15,7 @@ export default async function LayoutApp({ children, params }: { children: React.
   if (!nav) notFound();
   return (
     <>
-      <CabeceraApp app={nav.app.id} etiqueta={nav.app.etiqueta} pestanas={nav.visibles} disponibles={nav.disponibles} />
+      <CabeceraApp app={nav.app.id} etiqueta={nav.app.etiqueta} pestanas={nav.visibles} disponibles={nav.disponibles} perfil={(await obtenerConfiguracion()).perfil} />
       <main className="desplazable min-h-0 flex-1 overflow-y-auto p-4">{children}</main>
     </>
   );

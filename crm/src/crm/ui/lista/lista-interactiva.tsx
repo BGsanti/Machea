@@ -239,15 +239,15 @@ export function ListaInteractiva({
                   type="search"
                   defaultValue={estado.q}
                   placeholder="Buscar en esta lista..."
-                  className="h-8 w-56 rounded-md border border-slate-300 pr-2 pl-8 text-sm focus:border-marca-600 focus:outline-none focus:ring-2 focus:ring-marca-600/20"
+                  className="h-8 w-56 rounded-full border border-slate-200 bg-white pr-3 pl-8 text-sm focus:border-marca-600 focus:outline-none focus:ring-2 focus:ring-marca-600/20"
                 />
               </label>
             </form>
             {def.campoKanban ? (
-              <div className="flex overflow-hidden rounded-md border border-slate-300" role="group" aria-label="Visualización">
+              <div className="flex overflow-hidden rounded-full border border-slate-200" role="group" aria-label="Visualización">
                 <Link
                   href={url({ modo: null })}
-                  className={clsx("p-1.5", estado.modo === "tabla" ? "bg-marca-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50")}
+                  className={clsx("px-2.5 py-1.5", estado.modo === "tabla" ? "bg-marca-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50")}
                   title="Tabla"
                   aria-label="Ver como tabla"
                 >
@@ -255,7 +255,7 @@ export function ListaInteractiva({
                 </Link>
                 <Link
                   href={url({ modo: "kanban", pagina: null })}
-                  className={clsx("p-1.5", estado.modo === "kanban" ? "bg-marca-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50")}
+                  className={clsx("px-2.5 py-1.5", estado.modo === "kanban" ? "bg-marca-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50")}
                   title="Kanban"
                   aria-label="Ver como Kanban"
                 >
@@ -263,9 +263,6 @@ export function ListaInteractiva({
                 </Link>
               </div>
             ) : null}
-            <button type="button" onClick={() => router.refresh()} className={clasesBoton("secundario", "sm")} title="Actualizar" aria-label="Actualizar">
-              <Icono nombre="RefreshCw" />
-            </button>
             {campoGrafico ? (
               <Link
                 href={url({ graficos: estado.graficos ? null : "1" })}

@@ -7,6 +7,7 @@ import { puede, type Permiso } from "@/auth/permisos";
 import { Icono, IconoObjeto } from "@/ui/icono";
 import { obtenerObjeto } from "../../objetos";
 import { buscarEnTodo, recientesParaPaleta, type ResultadoPaleta } from "../../servidor/paleta";
+import { EVENTO_ATAJOS } from "./cuenta-menu";
 
 export const EVENTO_ABRIR_PALETA = "machea:abrir-paleta";
 
@@ -106,11 +107,14 @@ export function PaletaComandos({ rol }: { rol: string }) {
       }
     };
     const alPedir = () => setAbierta(true);
+    const alPedirAtajos = () => setAyuda(true);
     window.addEventListener("keydown", alTeclear);
     window.addEventListener(EVENTO_ABRIR_PALETA, alPedir);
+    window.addEventListener(EVENTO_ATAJOS, alPedirAtajos);
     return () => {
       window.removeEventListener("keydown", alTeclear);
       window.removeEventListener(EVENTO_ABRIR_PALETA, alPedir);
+      window.removeEventListener(EVENTO_ATAJOS, alPedirAtajos);
     };
   }, [ir, rol]);
 

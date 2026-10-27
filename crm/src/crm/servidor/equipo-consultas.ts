@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
 import { invitaciones, usuarios } from "@/db/esquema";
@@ -99,4 +99,11 @@ export async function personasAsignables(): Promise<{ id: string; nombre: string
     .from(usuarios)
     .where(and(eq(usuarios.empresaId, await empresaActual()), eq(usuarios.activo, true)))
     .orderBy(asc(usuarios.name));
+}
+
+/** Cuántas personas con acceso tiene la empresa (para saber si invitar al equipo sigue pendiente). */
+export async function cuantasPersonas(): Promise<number> {
+  const db = await bd();
+  const [r] = await db.select({ n: count() }).from(usuarios).where(eq(usuarios.empresaId, await empresaActual()));
+  return Number(r?.n ?? 0);
 }

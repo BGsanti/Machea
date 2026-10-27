@@ -8,7 +8,9 @@ import { avisar } from "@/ui/avisos";
 import { Boton } from "@/ui/boton";
 import { Icono } from "@/ui/icono";
 import { Modal } from "@/ui/modal";
+import { enlaceActivo } from "../../apps";
 import { obtenerObjeto } from "../../objetos";
+import { perfilDe } from "../../perfiles";
 import { guardarNavegacion } from "../../servidor/sistema";
 
 export interface PestanaVisible {
@@ -24,11 +26,13 @@ export function CabeceraApp({
   etiqueta,
   pestanas,
   disponibles,
+  perfil,
 }: {
   app: string;
   etiqueta: string;
   pestanas: PestanaVisible[];
   disponibles: { clave: string; etiqueta: string }[];
+  perfil: string;
 }) {
   const ruta = usePathname();
   const [menu, setMenu] = useState<string | null>(null);
@@ -41,6 +45,12 @@ export function CabeceraApp({
       ? { clave: `o:${objetoActual}`, etiqueta: obtenerObjeto(objetoActual)?.etiquetaPlural ?? objetoActual, href: `/${app}/o/${objetoActual}` }
       : null;
   const activa = (href: string) => ruta === href || ruta.startsWith(`${href}/`);
+
+  // Las pantallas que ya están en la barra lateral (Leads, Citas, Inicio…) no repiten las pestañas: el título está arriba y
+  // menos opciones a la vista. Las pestañas quedan para las apps completas de «Más herramientas».
+  const nav = perfilDe(perfil).nav;
+  const enBarra = enlaceActivo(ruta, nav);
+  if (enBarra && nav.some((e) => e.id === enBarra.id)) return null;
 
   return (
     <div className="shrink-0 border-b border-slate-200 bg-white px-5">

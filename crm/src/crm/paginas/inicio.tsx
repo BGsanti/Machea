@@ -7,7 +7,6 @@ import { candidatos, casos, eventos, formularios, inmuebles, invitaciones, oport
 import { soloVeLoSuyo } from "@/auth/permisos";
 import type { Usuario } from "@/auth/sesion";
 import { Tarjeta } from "@/ui/basicos";
-import { EnlaceBoton } from "@/ui/boton";
 import { Icono, IconoObjeto } from "@/ui/icono";
 import { appDeObjeto, enlaceRegistro } from "../apps";
 import { fechaLocal, inicioMes, ZONA_HORARIA } from "../fechas";
@@ -18,6 +17,7 @@ import { perfilDe } from "../perfiles";
 import { ejecutarInforme, listaInformes, obtenerConfiguracion, obtenerPreferencias } from "../servidor/consultas";
 import { recientes } from "../servidor/repositorio";
 import { periodoDe, resumenPanel } from "../servidor/panel";
+import { EncabezadoInicio } from "./encabezado-inicio";
 import { ListaParaHoy } from "./inicio-hoy";
 import { PaginaMiDia } from "./mi-dia";
 import { PanelGerente } from "./panel-gerente";
@@ -118,23 +118,12 @@ export async function PaginaInicio({ usuario, app, parametros = {} }: { usuario:
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
-            {saludo}, {usuario.nombre.split(" ")[0]}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {config.nombreEmpresa}: {perfil.inicio.resumen}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {perfil.inicio.acciones.map((a) => (
-            <EnlaceBoton key={a.href + a.etiqueta} href={a.href} variante={a.primario ? "primario" : "secundario"} icono={a.icono}>
-              {a.etiqueta}
-            </EnlaceBoton>
-          ))}
-        </div>
-      </header>
+      <EncabezadoInicio
+        saludo={saludo}
+        nombre={usuario.nombre.split(" ")[0] ?? usuario.nombre}
+        resumen={`${config.nombreEmpresa}: ${perfil.inicio.resumen}`}
+        accesos={perfil.inicio.acciones}
+      />
 
       <PanelGerente r={resumen} moneda={config.moneda} etiquetaNegocios={perfil.inicio.etiquetaNegocios} dias={dias} />
 

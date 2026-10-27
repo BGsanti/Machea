@@ -6,17 +6,18 @@ import { Icono } from "./icono";
 export type Variante = "primario" | "secundario" | "peligro" | "fantasma" | "enlace";
 
 const estilos: Record<Variante, string> = {
-  primario: "bg-marca-700 text-white hover:bg-marca-800 border border-marca-700 shadow-sm",
-  secundario: "bg-white text-marca-800 border border-slate-300 hover:bg-slate-50 shadow-sm",
-  peligro: "bg-rose-600 text-white border border-rose-600 hover:bg-rose-700 shadow-sm",
+  // Un solo botón de acento por pantalla (el primario); los demás son discretos: borde fino, sin sombra, sin color de marca.
+  primario: "bg-marca-700 text-white hover:bg-marca-800 border border-marca-700",
+  secundario: "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+  peligro: "bg-rose-600 text-white border border-rose-600 hover:bg-rose-700",
   fantasma: "text-slate-700 hover:bg-slate-100 border border-transparent",
   enlace: "text-marca-700 hover:underline border border-transparent px-0",
 };
 
 export function clasesBoton(variante: Variante = "secundario", tamano: "sm" | "md" = "md", extra?: string) {
   return clsx(
-    "inline-flex items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600",
-    tamano === "sm" ? "h-8 px-2.5 text-xs" : "h-9 px-3.5 text-sm",
+    "inline-flex items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca-600",
+    tamano === "sm" ? "h-8 px-3 text-xs" : "h-9 px-4 text-sm",
     estilos[variante],
     extra,
   );

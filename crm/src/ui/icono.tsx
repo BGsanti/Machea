@@ -124,10 +124,20 @@ import {
   Smile,
   Database,
   Activity,
+  Monitor,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronsUpDown,
+  ChevronUp,
   type LucideIcon,
 } from "lucide-react";
 
 const iconos: Record<string, LucideIcon> = {
+  Monitor,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronsUpDown,
+  ChevronUp,
   Shield,
   ShieldCheck,
   Share2,

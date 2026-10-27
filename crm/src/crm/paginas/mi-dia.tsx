@@ -5,7 +5,6 @@ import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
 import { tareas } from "@/db/esquema";
 import { Tarjeta } from "@/ui/basicos";
-import { EnlaceBoton } from "@/ui/boton";
 import { Icono } from "@/ui/icono";
 import { NumeroAnimado } from "@/ui/numero-animado";
 import { enlaceRegistro } from "../apps";
@@ -15,6 +14,7 @@ import { perfilDe } from "../perfiles";
 import { obtenerConfiguracion } from "../servidor/consultas";
 import { datosMiDia } from "../servidor/panel";
 import { duracionCorta } from "../ui/graficos-panel";
+import { EncabezadoInicio } from "./encabezado-inicio";
 import { ListaParaHoy } from "./inicio-hoy";
 import { ListaPorContactar } from "./mi-dia-cliente";
 
@@ -47,30 +47,20 @@ export async function PaginaMiDia({ usuario }: { usuario: Usuario }) {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
-            {saludo}, {usuario.nombre.split(" ")[0]}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {d.totalPorContactar > 0 ? (
-              <>
-                Tienes <strong className="text-slate-800">{d.totalPorContactar}</strong> lead{d.totalPorContactar === 1 ? "" : "s"} por contactar. Cada minuto cuenta: la meta es menos de {d.slaMinutos} min.
-              </>
-            ) : (
-              <>Estás al día con tus leads nuevos. {perfil.inicio.resumen}</>
-            )}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <EnlaceBoton href="/ventas/o/candidatos?nuevo=1" variante="primario" icono="UserPlus">
-            Nuevo lead
-          </EnlaceBoton>
-          <EnlaceBoton href="/ventas/p/calendario" icono="CalendarDays">
-            Mi calendario
-          </EnlaceBoton>
-        </div>
-      </header>
+      <EncabezadoInicio
+        saludo={saludo}
+        nombre={usuario.nombre.split(" ")[0] ?? usuario.nombre}
+        resumen={
+          d.totalPorContactar > 0
+            ? `Tienes ${d.totalPorContactar} lead${d.totalPorContactar === 1 ? "" : "s"} por contactar. Cada minuto cuenta: la meta es menos de ${d.slaMinutos} min.`
+            : `Estás al día con tus leads nuevos. ${perfil.inicio.resumen}`
+        }
+        accesos={[
+          { etiqueta: "Nuevo lead", href: "/ventas/o/candidatos?nuevo=1", icono: "UserPlus", primario: true },
+          { etiqueta: "Mi calendario", href: "/ventas/p/calendario", icono: "CalendarDays" },
+          { etiqueta: "Mis tareas", href: "/ventas/o/tareas?vista=mias_abiertas", icono: "ListChecks" },
+        ]}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {tiles.map((t, i) => (
