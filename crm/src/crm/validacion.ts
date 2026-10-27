@@ -11,6 +11,20 @@ const esquemaUrl = z.url();
 const esquemaFecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const esquemaId = z.string().min(1).max(64);
 
+/** Tope de un número escrito a mano: lo que cabe sin perder precisión en un número de coma flotante. */
+const MAXIMO_NUMERO = 1e15;
+
+/**
+ * Un teléfono escrito a mano: de 7 a 15 dígitos, con espacios, «+», paréntesis, puntos o guiones, y opcionalmente una
+ * extensión al final («ext. 12»). No exige el formato de Colombia: un lead puede ser de otro país.
+ */
+export function telefonoValido(texto: string): boolean {
+  const m = /^(\+?[\d\s().-]+?)(?:\s*(?:ext\.?|x)\s*\d{1,6})?$/i.exec(texto.trim());
+  if (!m) return false;
+  const digitos = m[1]!.replace(/\D/g, "").length;
+  return digitos >= 7 && digitos <= 15;
+}
+
 /** Campos que aparecen en el formulario de un objeto, en orden. */
 export function camposFormulario(def: DefObjeto): Campo[] {
   const nombres = def.secciones.flatMap((s) => s.campos.flatMap((c) => (typeof c === "string" ? [c] : c.campos)));
@@ -70,11 +84,17 @@ export function convertirValor(
       if (!esquemaUrl.safeParse(url).success) return { error: "Escriba una dirección web válida." };
       return { valor: { [campo.nombre]: url } };
     }
+    case "telefono": {
+      if (!telefonoValido(bruto)) return { error: "Escriba un teléfono válido, por ejemplo 312 555 1001." };
+      return { valor: { [campo.nombre]: bruto } };
+    }
     case "numero":
     case "moneda":
     case "porcentaje": {
       const n = Number(bruto.replace(/\s/g, "").replace(",", "."));
       if (!Number.isFinite(n)) return { error: "Escriba un número." };
+      if (Math.abs(n) > MAXIMO_NUMERO) return { error: "El número es demasiado grande." };
+      if (campo.min !== undefined && n < campo.min) return { error: `No puede ser menor que ${campo.min}.` };
       if (campo.tipo === "porcentaje" && (n < 0 || n > 100)) return { error: "Debe estar entre 0 y 100." };
       return { valor: { [campo.nombre]: n } };
     }

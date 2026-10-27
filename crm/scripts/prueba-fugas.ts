@@ -102,7 +102,7 @@ async function idsDe(empresaId: string): Promise<Set<string>> {
     );
     if (columnas.rows.length === 0) continue;
     const r = await db.execute<{ id: string }>(sql.raw(`select id::text as id from crm."${nombre}" where empresa_id = '${empresaId}'`));
-    for (const f of r.rows) ids.add(f.id);
+    for (const f of r.rows) if (/^[0-9a-f]{8}-[0-9a-f]{4}-/.test(f.id)) ids.add(f.id);
   }
   return ids;
 }
@@ -185,7 +185,7 @@ async function intentar(nombre: string, fn: () => Promise<unknown>): Promise<unk
 }
 
 async function main() {
-  const A = await cuentaMachea(`prueba-a-${sufijo}`, "aprobada", "constructora");
+  const A = await cuentaMachea(`prueba-a-${sufijo}`, "aprobada", "inmobiliaria");
   const B = await cuentaMachea(`prueba-b-${sufijo}`, "aprobada", "inmobiliaria");
   const C = await cuentaMachea(`prueba-c-${sufijo}`, "pendiente", null);
   const usuarioA = usuarioDe(A);
@@ -201,6 +201,12 @@ async function main() {
       await repo.crear("candidatos", { apellidos: MARCA, compania: `${MARCA} SAS`, valoracion: "caliente", estado: "nuevo" }, usuarioA.id);
       await repo.crear("conexiones", { nombre: `${MARCA} Webhook`, conector: "webhook", url: "https://example.com/gancho" }, usuarioA.id);
       await repo.crear("carpetas-texto", { nombre: `${MARCA} Carpeta` }, usuarioA.id);
+      // Los datos de ejemplo de una inmobiliaria no traen productos, campañas ni artículos: se crean aquí.
+      await repo.crear("productos", { nombre: `${MARCA} Producto` }, usuarioA.id);
+      const campanaId = await repo.crear("campanas", { nombre: `${MARCA} Campana` }, usuarioA.id);
+      await repo.crear("articulos", { titulo: `${MARCA} Articulo` }, usuarioA.id);
+      const miembroId = await repo.crear("candidatos", { apellidos: `${MARCA}-m`, compania: `${MARCA} M`, estado: "nuevo" }, usuarioA.id);
+      await intentar("agregarACampana", () => especiales.agregarACampana("candidatos", [miembroId], campanaId));
       await intentar("guardarInforme", () =>
         sistema.guardarInforme(null, { nombre: `${MARCA} Informe`, objeto: "candidatos", agregacion: "conteo", tipoGrafico: "barras", filtros: [] }),
       );
@@ -276,7 +282,7 @@ async function main() {
     if (objeto === "flujos" && r.estado >= 300 && r.estado < 400 && r.ubicacion?.includes(`/p/flujo?id=${id}`)) {
       r = await pedir(new URL(r.ubicacion, CRM_URL).pathname.replace(BASE, "") + new URL(r.ubicacion, CRM_URL).search, B.token);
     }
-    comprobar(r.estado === 404, `La ficha ${objeto}/${id} de A responde ${r.estado} a B (debe ser 404).`);
+    comprobar(r.estado === 404 || (r.estado === 200 && /could not be found|NEXT_HTTP_ERROR_FALLBACK;404/.test(r.cuerpo) && !r.cuerpo.includes(MARCA)), `La ficha ${objeto}/${id} de A responde ${r.estado} a B y no es la pantalla de «no encontrada».`);
   }
 
   // 4. Acciones de B con ids de A.

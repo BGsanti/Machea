@@ -71,13 +71,18 @@ const de = (...ids: string[]): CampoForm[] => ids.map((id) => bibliotecaPorId.ge
  * la empresa y debe revisarlo su abogado. Dice que una asistente virtual puede llamar y que la conversación puede
  * grabarse y transcribirse, porque es lo que hace el agente de voz.
  */
+/** Quién trata los datos. Si la empresa es la propia Machea, no hay un encargado aparte: ella misma es la responsable. */
+function responsabilidad(nombre: string): string {
+  if (nombre.trim().toLowerCase() === "machea") return "Machea es la responsable del tratamiento.";
+  return `${nombre} es la responsable del tratamiento y Machea actúa como su encargado, sin usar mis datos para fines propios.`;
+}
+
 export function textoAutorizacion(empresa: string): string {
   const nombre = empresa.trim() || "[nombre de la empresa]";
   return (
     `Autorizo a ${nombre} a tratar mis datos personales (nombre, teléfono, correo y mis respuestas) para contactarme por llamada, ` +
     `WhatsApp o correo, informarme sobre su oferta y hacer seguimiento a mi solicitud. Una asistente virtual puede llamarme; ` +
-    `la llamada puede ser grabada y transcrita para resumirla a un asesor. ${nombre} es la responsable del tratamiento y Machea ` +
-    `actúa como su encargado, sin usar mis datos para fines propios. Puedo consultar, actualizar, rectificar o suprimir mis datos y ` +
+    `la llamada puede ser grabada y transcrita para resumirla a un asesor. ${responsabilidad(nombre)} Puedo consultar, actualizar, rectificar o suprimir mis datos y ` +
     `revocar esta autorización escribiendo a [correo de la empresa]. Política de tratamiento: [enlace a la política de la empresa].`
   );
 }

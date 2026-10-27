@@ -51,6 +51,13 @@ export function desdeHoraLocal(texto: string): Date | null {
   return new Date(instante);
 }
 
+/** ¿Es una fecha AAAA-MM-DD que existe en el calendario? («2026-13-45» y «2026-02-30» no.) */
+export function esFechaValida(texto: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
+  const f = new Date(`${texto}T12:00:00Z`);
+  return !Number.isNaN(f.getTime()) && f.toISOString().slice(0, 10) === texto;
+}
+
 /** Suma días a una fecha AAAA-MM-DD. */
 export function sumarDias(fecha: string, dias: number): string {
   const [a, m, d] = fecha.split("-").map(Number);

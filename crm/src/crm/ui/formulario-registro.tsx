@@ -40,6 +40,7 @@ export function FormularioRegistro({
   const router = useRouter();
   const def = obtenerObjeto(objeto);
   const formulario = useRef<HTMLFormElement>(null);
+  const enviando = useRef(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
@@ -79,24 +80,31 @@ export function FormularioRegistro({
   };
 
   const enviar = (formData: FormData, yNuevo: boolean) => {
+    // Un doble clic llega antes de que React pinte el botón como «guardando»: este candado evita crear el registro dos veces.
+    if (enviando.current) return;
+    enviando.current = true;
     iniciar(async () => {
-      const r = await guardarRegistro(objeto, registro?.id ?? null, formData);
-      if (!r.ok) {
-        setErrores(r.errores ?? {});
-        setMensaje(r.mensaje ?? "No se pudo guardar.");
-        return;
+      try {
+        const r = await guardarRegistro(objeto, registro?.id ?? null, formData);
+        if (!r.ok) {
+          setErrores(r.errores ?? {});
+          setMensaje(r.mensaje ?? "No se pudo guardar.");
+          return;
+        }
+        setErrores({});
+        setMensaje(null);
+        avisar(r.mensaje ?? "Guardado.");
+        if (r.id) alGuardar?.(r.id);
+        if (yNuevo) {
+          setVersion((v) => v + 1);
+          return;
+        }
+        alCerrar();
+        if (!editando && irAlRegistro && r.id) router.push(enlaceRegistro(objeto, r.id, app));
+        else router.refresh();
+      } finally {
+        enviando.current = false;
       }
-      setErrores({});
-      setMensaje(null);
-      avisar(r.mensaje ?? "Guardado.");
-      if (r.id) alGuardar?.(r.id);
-      if (yNuevo) {
-        setVersion((v) => v + 1);
-        return;
-      }
-      alCerrar();
-      if (!editando && irAlRegistro && r.id) router.push(enlaceRegistro(objeto, r.id, app));
-      else router.refresh();
     });
   };
 

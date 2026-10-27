@@ -25,8 +25,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ llamada:
   }
   if (!origen.ok && origen.status !== 206) return new Response("El audio ya no está disponible.", { status: origen.status === 404 ? 404 : 502 });
 
-  const cabeceras = new Headers({ "Cache-Control": "private, max-age=600", "Accept-Ranges": "bytes" });
-  cabeceras.set("Content-Type", origen.headers.get("content-type") ?? "audio/ogg");
+  // Solo se sirve audio: si el proveedor devolviera otra cosa (HTML, un script), el navegador la ejecutaría desde el
+  // dominio del CRM. Sin tipo, o genérico, se asume audio.
+  const tipo = (origen.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
+  const esAudio = tipo.startsWith("audio/") || tipo === "video/ogg" || tipo === "video/mp4" || tipo === "video/webm";
+  if (tipo && tipo !== "application/octet-stream" && tipo !== "binary/octet-stream" && !esAudio) {
+    return new Response("El archivo de esa llamada no es un audio.", { status: 502 });
+  }
+  const cabeceras = new Headers({
+    "Cache-Control": "private, max-age=600",
+    "Accept-Ranges": "bytes",
+    "Content-Security-Policy": "sandbox",
+    "Content-Disposition": "inline",
+  });
+  cabeceras.set("Content-Type", esAudio ? tipo : "audio/ogg");
   for (const h of ["content-length", "content-range"]) {
     const v = origen.headers.get(h);
     if (v) cabeceras.set(h, v);

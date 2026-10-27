@@ -22,9 +22,10 @@ import { obtenerObjeto } from "../objetos";
 import type { EstadoAccion } from "./acciones";
 import { empresaEsInterna, obtenerConfiguracion, obtenerPreferencias } from "./consultas";
 import { cargarDatosEjemplo } from "./datos-ejemplo";
+import { textoDeError } from "./errores";
 
 function error(e: unknown): EstadoAccion {
-  return { ok: false, mensaje: e instanceof Error ? e.message : "Ocurrió un error inesperado." };
+  return { ok: false, mensaje: textoDeError(e) };
 }
 
 // ---------------------------------------------------------------------------

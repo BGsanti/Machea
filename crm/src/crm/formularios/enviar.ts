@@ -79,7 +79,7 @@ async function registrar(form: FormularioPublico, envio: EnvioValido, ipHash: st
     candidatoId = previo?.id ?? null;
   }
 
-  const descripcion = `Llenó el formulario **${form.nombre}**.${lead.interes ? ` Le interesa **${lead.interes}**.` : ""}`;
+  const descripcion = `Llenó el formulario «${form.nombre}».${lead.interes ? ` Le interesa ${lead.interes}.` : ""}`;
   let nuevo = false;
   let asesor: { usuarioId: string } | null = null;
   if (candidatoId) {

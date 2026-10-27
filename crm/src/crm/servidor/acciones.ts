@@ -5,6 +5,7 @@ import { requerirPermiso, requerirUsuario } from "@/auth/sesion";
 import { campoDe, obtenerObjeto } from "../objetos";
 import type { DefObjeto } from "../tipos";
 import { camposFormulario, convertirValor, validarCampos, validarFormulario } from "../validacion";
+import { textoDeError } from "./errores";
 import * as repo from "./repositorio";
 
 export interface EstadoAccion {
@@ -22,7 +23,7 @@ function defObjeto(objeto: string): DefObjeto {
 
 function mensajeError(e: unknown): EstadoAccion {
   if (e instanceof repo.ErrorValidacion) return { ok: false, mensaje: e.message, errores: e.errores };
-  return { ok: false, mensaje: e instanceof Error ? e.message : "Ocurrió un error inesperado." };
+  return { ok: false, mensaje: textoDeError(e) };
 }
 
 export async function guardarRegistro(objeto: string, id: string | null, formData: FormData): Promise<EstadoAccion> {
@@ -139,7 +140,7 @@ export async function importarRegistros(objeto: string, filas: Record<string, st
       await repo.crear(objeto, r.datos, usuario.id);
       creados++;
     } catch (e) {
-      fallidos.push({ fila: i + 2, mensaje: e instanceof Error ? e.message : "Error" });
+      fallidos.push({ fila: i + 2, mensaje: textoDeError(e) });
     }
   }
   revalidatePath("/", "layout");

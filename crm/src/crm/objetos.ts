@@ -143,8 +143,8 @@ const camposCandidato: Campo[] = [
   { nombre: "ciudad", etiqueta: "Ciudad", tipo: "texto" },
   { nombre: "estadoProvincia", etiqueta: "Estado o provincia", tipo: "texto" },
   { nombre: "codigoPostal", etiqueta: "Código postal", tipo: "texto" },
-  { nombre: "numeroEmpleados", etiqueta: "Número de empleados", tipo: "numero" },
-  { nombre: "ingresosAnuales", etiqueta: "Ingresos anuales", tipo: "moneda" },
+  { nombre: "numeroEmpleados", etiqueta: "Número de empleados", tipo: "numero", min: 0 },
+  { nombre: "ingresosAnuales", etiqueta: "Ingresos anuales", tipo: "moneda", min: 0 },
   { nombre: "origen", etiqueta: "Origen del lead", tipo: "lista", opciones: op.origenesCandidato },
   { nombre: "sector", etiqueta: "Sector", tipo: "lista", opciones: op.sectores },
   { nombre: "convertido", etiqueta: "Convertido", tipo: "casilla", soloLectura: true },
@@ -338,7 +338,7 @@ const entradasListaPrecios: DefObjeto = {
   campos: [
     { nombre: "listaPreciosId", etiqueta: "Lista de precios", tipo: "busqueda", objetoDestino: "listas-precios", requerido: true },
     { nombre: "productoId", etiqueta: "Producto", tipo: "busqueda", objetoDestino: "productos", requerido: true },
-    { nombre: "precio", etiqueta: "Precio", tipo: "moneda", requerido: true },
+    { nombre: "precio", etiqueta: "Precio", tipo: "moneda", requerido: true, min: 0 },
     { nombre: "activo", etiqueta: "Activo", tipo: "casilla", porDefecto: true },
     ...sistema,
   ],
@@ -363,8 +363,8 @@ const productosOportunidad: DefObjeto = {
   campos: [
     { nombre: "oportunidadId", etiqueta: "Oportunidad", tipo: "busqueda", objetoDestino: "oportunidades", requerido: true },
     { nombre: "productoId", etiqueta: "Producto", tipo: "busqueda", objetoDestino: "productos", requerido: true },
-    { nombre: "cantidad", etiqueta: "Cantidad", tipo: "numero", requerido: true, porDefecto: 1 },
-    { nombre: "precioUnitario", etiqueta: "Precio unitario", tipo: "moneda", requerido: true },
+    { nombre: "cantidad", etiqueta: "Cantidad", tipo: "numero", requerido: true, porDefecto: 1, min: 0 },
+    { nombre: "precioUnitario", etiqueta: "Precio unitario", tipo: "moneda", requerido: true, min: 0 },
     { nombre: "descuento", etiqueta: "Descuento (%)", tipo: "porcentaje" },
     { nombre: "descripcion", etiqueta: "Descripción", tipo: "texto" },
     ...sistema,
@@ -512,7 +512,7 @@ const videollamadas: DefObjeto = {
   campos: [
     { nombre: "asunto", etiqueta: "Asunto", tipo: "texto", requerido: true },
     { nombre: "inicio", etiqueta: "Inicio", tipo: "fechaHora", requerido: true },
-    { nombre: "duracionMinutos", etiqueta: "Duración (minutos)", tipo: "numero", porDefecto: 30 },
+    { nombre: "duracionMinutos", etiqueta: "Duración (minutos)", tipo: "numero", porDefecto: 30, min: 0 },
     { nombre: "enlace", etiqueta: "Enlace de la reunión", tipo: "url" },
     { nombre: "estado", etiqueta: "Estado", tipo: "lista", opciones: op.estadosVideollamada, porDefecto: "programada" },
     {
