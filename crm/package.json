@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.10",
-    "better-auth": "1.7.10",
+    "better-auth": "1.7.12",
     "clsx": "2.1.1",
     "drizzle-orm": "0.45.4",
     "lucide-react": "1.50.0",
