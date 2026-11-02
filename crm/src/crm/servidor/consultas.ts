@@ -280,7 +280,10 @@ export async function listaInformes(objeto?: string) {
     .orderBy(desc(informes.actualizadoEn));
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function obtenerInforme(id: string) {
+  if (!UUID.test(id)) return null;
   const db = await bd();
   const [i] = await db
     .select()
@@ -299,6 +302,7 @@ export async function listaPaneles() {
 }
 
 export async function obtenerPanel(id: string) {
+  if (!UUID.test(id)) return null;
   const db = await bd();
   const [p] = await db
     .select()

@@ -37,6 +37,8 @@ export interface Campo {
   objetosPermitidos?: string[];
   soloLectura?: boolean;
   porDefecto?: string | number | boolean;
+  /** Valor mínimo de un número o una moneda (por ejemplo 0 para cantidades que no pueden ser negativas). */
+  min?: number;
   /** Sugerencias para un texto libre (por ejemplo, el asunto de un evento). */
   sugerencias?: string[];
   ayuda?: string;

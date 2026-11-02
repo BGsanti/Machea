@@ -5,7 +5,6 @@ import {
   desc,
   eq,
   getTableColumns,
-  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -28,6 +27,7 @@ import { tablas } from "../tablas";
 import type { Condicion, DefObjeto, FilaRegistro } from "../tipos";
 import { ejecutarFlujos } from "./flujos";
 import { aplicarReglas } from "./reglas";
+import { ACENTOS_A, ACENTOS_DE, digitosDeTelefono, limpiarBusqueda, patronContiene } from "./texto";
 
 export class ErrorValidacion extends Error {
   constructor(public errores: Record<string, string>) {
@@ -122,6 +122,11 @@ async function siguienteNumero(db: BaseDatos, objeto: string, empresaId: string)
 // Condiciones
 // ---------------------------------------------------------------------------
 
+/** El valor (columna o expresión) contiene el texto, sin distinguir mayúsculas ni acentos: «gomez» encuentra «Gómez». */
+function contieneSinAcentos(valor: SQL | PgColumn, texto: string): SQL {
+  return sql`lower(translate(${valor}::text, ${ACENTOS_DE}, ${ACENTOS_A})) like ${patronContiene(texto)}`;
+}
+
 function sqlCondicion(objeto: string, c: Condicion): SQL | undefined {
   const cols = columnas(objeto);
   const col = cols[c.campo];
@@ -149,7 +154,7 @@ function sqlCondicion(objeto: string, c: Condicion): SQL | undefined {
     case "falso":
       return eq(col, false);
     case "contiene":
-      return unico ? ilike(sql`${col}::text`, `%${unico}%`) : undefined;
+      return unico ? contieneSinAcentos(col, unico) : undefined;
     case "mayor":
       return unico === undefined ? undefined : sql`${col} > ${unico}`;
     case "menor":
@@ -169,7 +174,7 @@ function nombreCompletoContiene(objeto: string, texto: string): SQL | undefined 
   if (d.camposNombre.length < 2) return undefined;
   const cols = columnas(objeto);
   const partes = d.camposNombre.map((n) => cols[n]).filter((c): c is PgColumn => Boolean(c));
-  return ilike(sql`concat_ws(' ', ${sql.join(partes, sql`, `)})`, `%${texto}%`);
+  return contieneSinAcentos(sql`concat_ws(' ', ${sql.join(partes, sql`, `)})`, texto);
 }
 
 /** Fecha de una columna en la zona del negocio (las marcas de tiempo se convierten). */
@@ -225,12 +230,17 @@ async function condicionesListado(db: BaseDatos, objeto: string, o: OpcionesList
     recientes = await idsRecientes(db, objeto, o.usuarioId);
     partes.push(recientes.length ? inArray(cols.id!, recientes) : sql`false`);
   }
-  const q = o.q?.trim();
+  const q = limpiarBusqueda(o.q ?? "");
   if (q) {
     const buscables = d.busqueda.map((n) => cols[n]).filter((c): c is PgColumn => Boolean(c));
     const numero = Number(q);
     const porNumero = cols.numero && Number.isInteger(numero) ? [eq(cols.numero, numero)] : [];
-    partes.push(or(...buscables.map((c) => ilike(c, `%${q}%`)), ...porNumero, nombreCompletoContiene(objeto, q)) ?? sql`false`);
+    // Un teléfono se encuentra se escriba como se escriba («300 111 2233», «+57 300 111 2233»): se compara solo por dígitos.
+    const digitos = digitosDeTelefono(q);
+    const porTelefono = digitos && cols.telefono ? [sql`regexp_replace(${cols.telefono}::text, '[^0-9]', '', 'g') like ${`%${digitos}%`}`] : [];
+    partes.push(
+      or(...buscables.map((c) => contieneSinAcentos(c, q)), ...porNumero, ...porTelefono, nombreCompletoContiene(objeto, q)) ?? sql`false`,
+    );
   }
   return { where: and(...partes.filter((p): p is SQL => Boolean(p))), vista, recientes };
 }
@@ -366,6 +376,8 @@ export async function obtener(objeto: string, id: string): Promise<FilaConNombre
   return conNombres ?? null;
 }
 
+const ENTERO_MAXIMO = 2_147_483_647;
+
 /** Ajusta los números a las columnas enteras y descarta campos que la tabla no tiene. */
 function prepararDatos(objeto: string, datos: Record<string, unknown>): Record<string, unknown> {
   const cols = columnas(objeto);
@@ -374,8 +386,11 @@ function prepararDatos(objeto: string, datos: Record<string, unknown>): Record<s
     const col = cols[clave];
     // La empresa nunca la decide quien envía los datos.
     if (!col || clave === "id" || clave === "empresaId") continue;
-    if (typeof valor === "number" && (col.columnType === "PgInteger" || col.columnType === "PgSerial")) salida[clave] = Math.round(valor);
-    else salida[clave] = valor;
+    if (typeof valor === "number" && (col.columnType === "PgInteger" || col.columnType === "PgSerial")) {
+      // Un entero de PostgreSQL llega a ±2.147.483.647: más allá, el guardado fallaría con un error de la base.
+      if (Math.abs(valor) > ENTERO_MAXIMO) throw new ErrorValidacion({ [clave]: "El número es demasiado grande." });
+      salida[clave] = Math.round(valor);
+    } else salida[clave] = valor;
   }
   return salida;
 }
@@ -504,11 +519,11 @@ export async function buscarParaCampo(objeto: string, q: string, limite = 8): Pr
   const db = await bd();
   const d = def(objeto);
   const cols = columnas(objeto);
-  const texto = q.trim();
+  const texto = limpiarBusqueda(q);
   const buscables = [...new Set([...d.camposNombre, ...d.busqueda])]
     .map((n) => cols[n])
     .filter((c): c is PgColumn => Boolean(c) && c!.dataType === "string");
-  const coincide = texto ? or(...buscables.map((c) => ilike(c, `%${texto}%`)), nombreCompletoContiene(objeto, texto)) : undefined;
+  const coincide = texto ? or(...buscables.map((c) => contieneSinAcentos(c, texto)), nombreCompletoContiene(objeto, texto)) : undefined;
   const where = and(await visibleParaMi(objeto), coincide);
   const orden = cols.actualizadoEn ? desc(cols.actualizadoEn) : asc(cols.id!);
   const filas = (await db.select().from(tabla(objeto)).where(where).orderBy(orden).limit(limite)) as FilaRegistro[];

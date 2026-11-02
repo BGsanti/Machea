@@ -23,6 +23,7 @@ import {
 import { fechaLocal, hoyMas } from "../fechas";
 import type { EstadoAccion } from "./acciones";
 import { obtenerConfiguracion } from "./consultas";
+import { textoDeError } from "./errores";
 import * as repo from "./repositorio";
 
 // Cada consulta directa de este archivo se limita a la empresa del usuario; lo que pasa por
@@ -30,7 +31,7 @@ import * as repo from "./repositorio";
 
 
 function error(e: unknown): EstadoAccion {
-  return { ok: false, mensaje: e instanceof Error ? e.message : "Ocurrió un error inesperado." };
+  return { ok: false, mensaje: textoDeError(e) };
 }
 
 // ---------------------------------------------------------------------------

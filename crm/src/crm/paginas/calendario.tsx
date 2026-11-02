@@ -1,5 +1,5 @@
 import type { Usuario } from "@/auth/sesion";
-import { desdeHoraLocal, diaSemana, fechaLocal, sumarDias } from "../fechas";
+import { desdeHoraLocal, diaSemana, esFechaValida, fechaLocal, sumarDias } from "../fechas";
 import { eventosEntre } from "../servidor/consultas";
 import { CalendarioCliente, type EventoCalendario } from "./calendario-cliente";
 
@@ -16,7 +16,7 @@ export async function PaginaCalendario({
 }) {
   const vista: Vista = parametros.vista === "dia" || parametros.vista === "mes" ? parametros.vista : "semana";
   const hoy = fechaLocal();
-  const fecha = typeof parametros.fecha === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parametros.fecha) ? parametros.fecha : hoy;
+  const fecha = typeof parametros.fecha === "string" && esFechaValida(parametros.fecha) ? parametros.fecha : hoy;
   const todos = parametros.todos === "1";
 
   // Todas las fechas son AAAA-MM-DD en la zona del negocio.
