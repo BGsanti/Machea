@@ -21,6 +21,10 @@ test("un teléfono se reconoce por sus dígitos", () => {
   assert.equal(digitosDeTelefono("300 111 2233"), "3001112233");
   assert.equal(digitosDeTelefono("+57 300 111 2233"), "3001112233");
   assert.equal(digitosDeTelefono("573001112233"), "3001112233");
+  assert.equal(digitosDeTelefono("+57 300 123"), "300123", "a medio escribir, con «+», el 57 es el indicativo");
+  assert.equal(digitosDeTelefono("+57 3001"), "3001");
+  assert.equal(digitosDeTelefono("+57 300"), "57300", "sin 4 dígitos después del indicativo queda como se escribió");
+  assert.equal(digitosDeTelefono("57300"), "57300", "sin «+» un 57 corto puede ser parte del número");
   assert.equal(digitosDeTelefono("(601) 234-5678"), "6012345678");
   assert.equal(digitosDeTelefono("123"), null, "muy corto para ser un teléfono");
   assert.equal(digitosDeTelefono("Gómez"), null);
