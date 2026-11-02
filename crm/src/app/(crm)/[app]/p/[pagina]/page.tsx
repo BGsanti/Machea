@@ -6,6 +6,7 @@ import { PaginaAnalisis } from "@/crm/paginas/analisis";
 import { PaginaCalendario } from "@/crm/paginas/calendario";
 import { PaginaFlujo } from "@/crm/paginas/flujo";
 import { PaginaInformacionGeneral, PaginaInicio } from "@/crm/paginas/inicio";
+import { PaginaLeadsAtascados } from "@/crm/paginas/leads-atascados";
 import { PaginaTextosRapidos } from "@/crm/paginas/textos-rapidos";
 import {
   PaginaAutomatizacion,
@@ -29,6 +30,7 @@ const titulos: Record<string, string> = {
   supervisar: "Supervisar",
   "centro-accion": "Centro de acción",
   flujo: "Flujo",
+  "leads-atascados": "Leads atascados",
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ pagina: string }> }): Promise<Metadata> {
@@ -71,6 +73,8 @@ export default async function PaginaEspecial({
       return <PaginaCentroAccion />;
     case "flujo":
       return <PaginaFlujo app={app} parametros={parametros} />;
+    case "leads-atascados":
+      return <PaginaLeadsAtascados usuario={usuario} app={app} />;
     default:
       notFound();
   }

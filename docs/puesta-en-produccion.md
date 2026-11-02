@@ -124,7 +124,9 @@ sus leads; los leads nuevos se reparten por turnos y el gerente ve cómo atiende
 4. **Render:** Manual Deploy. Trae `POST /api/cuentas/unirse` (la persona invitada crea su acceso) y el cifrado de contraseñas más fuerte
    (scrypt N=2^15, p=3). Las contraseñas existentes siguen sirviendo y se actualizan solas la próxima vez que cada persona entra.
 5. **Vercel (`machea2`), opcional:** `CRM_SALUD_CLAVE` (una frase larga). Con ella, `https://www.machea.co/crm/api/salud` (cabecera
-   `x-salud-clave`) devuelve el estado de la base, del esquema y de cuánto lleva esperando la bandeja de leads. Sin la cabecera solo dice
+   `x-salud-clave`) devuelve el estado de la base, del esquema y de la bandeja de leads: cuántos esperan (`pendientes`), cuánto lleva el más
+   viejo (`masViejaMin`) y cuántos están **atascados** (`atascados`: fallaron 5 veces y ya no se reintentan solos; el dueño de cada cuenta los ve en
+   el Inicio y los reintenta desde «Leads atascados»; un valor mayor que 0 merece una alerta). Sin la cabecera solo dice
    `{"ok":true}` o 503: sirve para un monitor externo (UptimeRobot, Better Stack) con alerta si no responde 200.
 6. **Verificación (10 minutos, con la cuenta de la empresa):**
    - `/crm/equipo` → «Invitar a alguien» → asesor → copiar el enlace → abrirlo en una ventana de incógnito → crear usuario y contraseña → entra a «Mi día».
