@@ -160,6 +160,7 @@ function rutasDeRecorrido(idsA: Record<string, string>): string[] {
     }
   }
   rutas.add("/marketing/o/campanas");
+  rutas.add("/ventas/p/leads-atascados");
   rutas.add("/ventas/p/calendario?vista=mes&todos=1");
   rutas.add(`/servicio/p/textos-rapidos?filtro=todos&carpeta=${idsA.carpeta}`);
   rutas.add("/automatizacion/p/integraciones?conector=webhook");
@@ -225,6 +226,10 @@ async function main() {
   };
   const todosIdsA = await idsDe(A.id);
   const textosA = [MARCA, "Café Andino", "Textiles del Valle", A.usuario];
+  // Un lead atascado de A (fallo 5 veces en la bandeja): ni su aviso ni su lista pueden aparecer en otra empresa.
+  await (await bd()).execute(sql`
+    insert into crm.bandeja_leads (empresa_id, origen, origen_id, datos, intentos, error)
+    values (${A.id}::uuid, 'consulta', ${`fuga-${sufijo}`}, ${JSON.stringify({ nombre: MARCA, telefono_digitos: "3009998877" })}::jsonb, 5, 'Connection terminated unexpectedly')`);
 
   // 3a. Sesión: sin cookie, cuenta pendiente y registro de Better Auth.
   const sinSesion = await pedir("/ventas/o/candidatos");
@@ -242,6 +247,10 @@ async function main() {
   // 3b. Control: como A se ven sus marcas.
   const deA = await pedir(`/ventas/o/candidatos?q=${MARCA}`, A.token);
   comprobar(deA.estado === 200 && deA.cuerpo.includes(MARCA), "Como A no se ve su propio candidato: el recorrido no sirve.");
+  const atascadosA = await pedir("/ventas/p/leads-atascados", A.token);
+  comprobar(atascadosA.estado === 200 && atascadosA.cuerpo.includes(MARCA), "Como A no se ve su lead atascado: la prueba de la lista no sirve.");
+  const inicioA = await pedir("/ventas/p/inicio", A.token);
+  comprobar(inicioA.estado === 200 && inicioA.cuerpo.includes("no pudo entrar al CRM"), "Como A no sale el aviso de leads atascados en el Inicio.");
 
   // 3c. Como B no se ve nada de A.
   const idsEnRutas = new Set(Object.values(idsA));

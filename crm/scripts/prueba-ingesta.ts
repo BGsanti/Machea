@@ -15,7 +15,8 @@ import { asegurarEmpresaMachea } from "../src/auth/machea";
 import { bd } from "../src/db/cliente";
 import type { Usuario } from "../src/db/contexto";
 import { bandejaLeads, candidatos, ejecucionesFlujo, eventos, tareas } from "../src/db/esquema";
-import { procesarBandeja } from "../src/crm/servidor/ingesta";
+import { contarAtascados } from "../src/crm/servidor/atascados";
+import { procesarBandeja, reintentarAtascado } from "../src/crm/servidor/ingesta";
 
 const admin = new Pool({ connectionString: process.env.ADMIN_URL });
 const fallos: string[] = [];
@@ -61,8 +62,8 @@ async function solicitud(telefono: string, marca: string, dueno: [string, string
 }
 
 async function bandeja(empresaId: string) {
-  const r = await admin.query("select origen, origen_id, datos, procesado_en, error from crm.bandeja_leads where empresa_id = $1 order by id", [empresaId]);
-  return r.rows as { origen: string; origen_id: string; datos: Record<string, unknown>; procesado_en: Date | null; error: string | null }[];
+  const r = await admin.query("select id, origen, origen_id, datos, procesado_en, intentos, error from crm.bandeja_leads where empresa_id = $1 order by id", [empresaId]);
+  return r.rows as { id: number; origen: string; origen_id: string; datos: Record<string, unknown>; procesado_en: Date | null; intentos: number; error: string | null }[];
 }
 
 async function main() {
@@ -149,6 +150,33 @@ async function main() {
 
   const pendientes = await db.select().from(bandejaLeads).where(eq(bandejaLeads.empresaId, B.id));
   ok(pendientes.every((f) => f.procesadoEn && !f.error), "Quedaron filas de B sin procesar o con error.");
+
+  // Leads atascados (docs/specs/2026-11_leads-atascados): fallaron 5 veces y la bandeja ya no los toma.
+  const p5 = tel(5);
+  await consulta(p5, "Atascado", "amarilo"); // formulario de Amarilo → A
+  const atascada = (await bandeja(A.id)).find((f) => f.datos.telefono_digitos === p5);
+  ok(Boolean(atascada), "El lead que se va a atascar no llegó a la bandeja de A.");
+  const idAtascada = atascada!.id;
+  await admin.query("update crm.bandeja_leads set intentos = 5, error = 'Connection terminated unexpectedly' where id = $1", [idAtascada]);
+  ok((await contarAtascados(A.id)) === 1, "A no cuenta su lead atascado.");
+  ok((await contarAtascados(B.id)) === 0, "B cuenta un atascado que no es suyo.");
+  ok((await procesarBandeja(usuarioDe(A))) === 0, "La bandeja automática tocó un lead atascado.");
+  ok((await reintentarAtascado(usuarioDe(B), idAtascada)) === "no_atascado", "B pudo reintentar un lead atascado de A.");
+  const dosA = await Promise.all([reintentarAtascado(usuarioDe(A), idAtascada), reintentarAtascado(usuarioDe(A), idAtascada)]);
+  ok(dosA.filter((r) => r === "hecho").length === 1, `Dos reintentos a la vez: ${dosA}.`);
+  const deP5 = await db.select().from(candidatos).where(and(eq(candidatos.empresaId, A.id), eq(candidatos.origenExterno, `machea:${p5}`)));
+  ok(deP5.length === 1, `El lead reintentado quedó ${deP5.length} veces en Candidatos.`);
+  ok((await contarAtascados(A.id)) === 0, "El lead reintentado sigue contando como atascado.");
+  // Solo el resultado de una llamada se reinicia solo: si Dapta manda otro evento de la misma llamada, el trigger deja la
+  // fila con intentos 0 y sin error (consulta y solicitud usan «do nothing»: un lead que vuelve a llegar es otra fila).
+  const filaResultado = (await bandeja(B.id)).find((f) => f.origen === "resultado");
+  await admin.query("update crm.bandeja_leads set procesado_en = null, intentos = 5, error = 'otra vez' where id = $1", [filaResultado!.id]);
+  ok((await contarAtascados(B.id)) === 1, "El resultado no se atascó para la prueba del trigger.");
+  await admin.query("update public.resultados_llamada set fecha_hora_cita = '2026-10-21 18:00' where call_id = $1", [`c-${s}`]);
+  const reiniciada = (await bandeja(B.id)).find((f) => f.id === filaResultado!.id);
+  ok(reiniciada && reiniciada.intentos === 0 && !reiniciada.procesado_en && !reiniciada.error, `El trigger no reinició la fila: ${JSON.stringify(reiniciada && { i: reiniciada.intentos, p: reiniciada.procesado_en, e: reiniciada.error })}.`);
+  ok((await contarAtascados(B.id)) === 0, "Un resultado que volvió a llegar sigue atascado.");
+  ok((await procesarBandeja(usuarioDe(B))) === 1, "El resultado que volvió a llegar no se procesó.");
 
   // Un trigger que falla no rompe el guardado del lead en Machea.
   await admin.query("alter table crm.bandeja_leads rename to bandeja_leads_x");
