@@ -18,6 +18,11 @@
   var seleccionEntorno = [];
   var enPreguntaEntorno = false;
 
+  /* Ultimas respuestas y paso que llegaron por `actualizar`. `previsualizar`
+     parte de aqui para mostrar un valor que todavia no se ha confirmado
+     (los contadores de preferencias), sin tocar `state`. */
+  var ultimo = null;
+
   /* Se cae al plano 2D de recortes —que ya funciona— en vez de mostrar un
      hueco. El 3D es una mejora, no un requisito. */
   function soportado() {
@@ -108,6 +113,7 @@
     /* Reconstruir el plano en cada repintado seria tirar el CSG a la basura sin
        motivo: la anfitriona llama aqui tambien por cambios que no tocan las
        respuestas. */
+    ultimo = { answers: answers, paso: paso };
     var clave = paso + '|' + JSON.stringify(answers);
     if (clave !== ultimaClave) {
       ultimaClave = clave;
@@ -134,6 +140,24 @@
     if (escena && enPreguntaEntorno) escena.fijarEntorno(listaEntorno({}), true);
   }
 
+  /* Muestra en el plano un valor de la pregunta EN CURSO antes de confirmarlo:
+     los contadores de "preferencias principales" (habitaciones, banos...) no
+     pasan a `state` hasta "Continuar", pero el apartamento tiene que crecer o
+     encogerse con cada toque del + y el -. Se construye como si la pregunta en
+     curso ya estuviera contestada (`paso + 1`), que es lo que desbloquea las
+     alcobas en perfil.js. Al confirmar, `actualizar` llega con ese mismo plan
+     y la clave coincide, asi que no se reconstruye dos veces. */
+  function previsualizar(cambios) {
+    if (!escena || !ultimo) return false;
+    var answers = Object.assign({}, ultimo.answers, cambios || {});
+    var paso = ultimo.paso + 1;
+    var clave = paso + '|' + JSON.stringify(answers);
+    if (clave === ultimaClave) return true;
+    ultimaClave = clave;
+    escena.aplicarPlan(G.construirPlan(answers, paso));
+    return true;
+  }
+
   // Sube la camara a vista cenital una unica vez, al terminar el quiz. `cb` es
   // obligatorio para la anfitriona: solo despues de que llega es seguro pasar
   // a la pantalla de resultados sin cortar la animacion a medio camino. Si no
@@ -146,6 +170,7 @@
   window.GDF3D.actualizar = actualizar;
   window.GDF3D.finalizarVistaSuperior = finalizarVistaSuperior;
   window.GDF3D.seleccionarEntorno = seleccionarEntorno;
+  window.GDF3D.previsualizar = previsualizar;
   window.GDF3D.activo = function () { return !!escena && !apagado; };
   window.GDF3D.escena = function () { return escena; };
 })();

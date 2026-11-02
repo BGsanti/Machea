@@ -89,6 +89,9 @@
   /* Mientras no se conteste cuantas alcobas, se estima por el tamano del hogar.
      Sin estimacion la planta se dimensionaria para una sola y al contestar
      tendria que crecer entera. */
+  // Tope del plano: el contador de habitaciones llega hasta 5 (data.js).
+  var MAX_ALCOBAS = 5;
+
   function sugeridaAlcobas(answers) {
     return Math.min(3, Math.max(1, 1 + Math.ceil(personasACargo(answers) / 2)));
   }
@@ -100,7 +103,14 @@
     var etapas = etapasPara(answers);
     var contestadas = paso;
     var n;
-    if (contestadas >= etapas.alcobas && answers.habitaciones) {
+    /* Con los contadores de "preferencias principales" el numero exacto viene
+       en `preferencias.habitaciones` (1 a 5). `answers.habitaciones` guarda a
+       la vez un valor compatible ('1'|'2'|'3+') para el motor y el backend,
+       que topa en 3: si el plano leyera solo ese, 4 y 5 se verian iguales a 3. */
+    var exactas = answers.preferencias && Number(answers.preferencias.habitaciones);
+    if (contestadas >= etapas.alcobas && exactas) {
+      n = Math.min(MAX_ALCOBAS, Math.max(1, Math.round(exactas)));
+    } else if (contestadas >= etapas.alcobas && answers.habitaciones) {
       n = answers.habitaciones === '3+' ? 3 : Number(answers.habitaciones);
     } else {
       n = contestadas >= etapas.cocina ? sugeridaAlcobas(answers) : 2;

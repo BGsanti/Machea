@@ -200,21 +200,59 @@
       });
 
       // Un lado solo sirve de puerta si le queda muro a ambos costados del vano.
-      var utiles = libres.filter(function (k) {
-        return largo(tramoPuerta[k]) - o.holguraPuerta >= 0.7;
-      });
+      var holgura = o.holguraPuerta;
+      var admiteVano = function (k) { return largo(tramoPuerta[k]) - holgura >= 0.7; };
+      var utiles = libres.filter(admiteVano);
 
-      /* Preferencias de por donde se entra, filtradas por las que admiten vano:
-         elegir el lado "correcto" y descubrir despues que mide 1.2 m deja el
-         ambiente sin puerta, que es peor que entrar por un lado menos natural. */
-      var ladoPuerta = null;
-      if (r.id === 'banoPriv') {
-        // El bano principal abre desde la alcoba principal, este donde este.
-        var a1 = zon.completo.filter(function (q) { return q.id === 'alcoba1'; })[0];
-        if (a1) ladoPuerta = ladoHaciaCirculacion(rect, [a1], utiles);
+      /* Que hay al otro lado de cada lado: el ambiente (o la circulacion) que
+         contiene un punto apenas pasado el tramo de la puerta. null = fachada o
+         una muesca. */
+      function vecinoDe(k) {
+        var s = tramoPuerta[k];
+        var px = (s.a[0] + s.b[0]) / 2 + (k === 'o' ? -0.15 : k === 'e' ? 0.15 : 0);
+        var pz = (s.a[1] + s.b[1]) / 2 + (k === 'n' ? -0.15 : k === 's' ? 0.15 : 0);
+        return huella.filter(function (h) {
+          var q = h.rect;
+          return h.id !== r.id && px > q.x && px < q.x + q.w && pz > q.z && pz < q.z + q.d;
+        })[0] || null;
       }
-      if (!ladoPuerta) ladoPuerta = ladoHaciaCirculacion(rect, zon.corredores, utiles);
-      if (!ladoPuerta) ladoPuerta = ladoHaciaCirculacion(rect, zon.zonasAcceso, utiles);
+
+      /* Cuanto sirve un lado como puerta, segun adonde da: menor es mejor, 9 =
+         nunca. Una puerta no puede abrir a otra habitacion —no se llega a la
+         zona de ropa pasando por un bano ni a la cocina por una alcoba—, salvo
+         las parejas que si tienen sentido: el bano principal desde la alcoba
+         principal y la zona de ropa desde la cocina. */
+      function destino(k) {
+        var v = vecinoDe(k);
+        if (!v) return 9;
+        if (r.id === 'banoPriv' && v.id === 'alcoba1') return 0;
+        if (r.id === 'ropas' && v.id === 'cocina') return 0;
+        if (v.zona === 'circulacion') return 1;
+        if (v.zona === 'social') return 2;
+        if (r.id === 'cocina' && v.id === 'ropas') return 3;
+        return 9;
+      }
+      function elegirLado(lados) {
+        var mejor = null;
+        lados.forEach(function (k) {
+          var d = destino(k);
+          if (d >= 9) return;
+          if (!mejor || d < destino(mejor) || (d === destino(mejor) && largo(tramoPuerta[k]) > largo(tramoPuerta[mejor]))) mejor = k;
+        });
+        return mejor;
+      }
+
+      /* Elegir el lado "correcto" y descubrir despues que mide 1.2 m deja el
+         ambiente sin puerta: por eso primero se miran los lados que admiten
+         vano. Si ninguno de ellos da a un lugar valido, se acepta una puerta
+         mas angosta (0.4 m de muro a cada lado) antes que abrir a otra
+         habitacion; y solo si tampoco asi hay salida, el lado mas largo. */
+      var ladoPuerta = elegirLado(utiles);
+      if (!ladoPuerta) {
+        holgura = 0.4;
+        ladoPuerta = elegirLado(libres.filter(admiteVano));
+        if (!ladoPuerta) holgura = o.holguraPuerta;
+      }
       if (!ladoPuerta) {
         ladoPuerta = utiles.slice().sort(function (x, y) {
           return largo(tramoPuerta[y]) - largo(tramoPuerta[x]);
@@ -231,7 +269,7 @@
         puertas.push({
           horiz: seg.horiz, fija: seg.horiz ? seg.a[1] : seg.a[0],
           centro: seg.horiz ? (seg.a[0] + seg.b[0]) / 2 : (seg.a[1] + seg.b[1]) / 2,
-          ancho: Math.min(o.anchoPuerta, largo(seg) - o.holguraPuerta),
+          ancho: Math.min(o.anchoPuerta, largo(seg) - holgura),
           /* Vano de altura completa: en un muro de 1.3 m no cabe dintel sobre
              una hoja de 2.05, y el paso se lee mejor abierto de arriba abajo. */
           alto: o.alturaMuro,

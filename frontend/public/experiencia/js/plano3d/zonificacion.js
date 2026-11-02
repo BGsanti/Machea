@@ -243,6 +243,10 @@
     function recortar(r, cara, porFondo) {
       var q = r.rect;
       var orden = porFondo ? ['fondo', 'ancho'] : ['ancho', 'fondo'];
+      /* La zona social solo se muerde de ANCHO: quitarle fondo la separa de la
+         cocina o del bano vecinos, que son los que se abren hacia ella, y la
+         cocina quedaba sin puerta salvo a la zona de ropa. */
+      if (r.zona === 'social') orden = ['ancho'];
       for (var i = 0; i < orden.length; i++) {
         if (orden[i] === 'ancho') {
           var mw = Math.min(MUESCA_MAX, Math.max(MUESCA_MIN, q.w * 0.32));

@@ -6167,19 +6167,13 @@ html[data-marca='machea'] .gdf-confirm-resumen-reco strong {
 }
 
 /* ============ ZONA Y MAPA (T7) ============
-   Mapa sobrio: los mismos mosaicos de OpenStreetMap de siempre (sin
-   proveedor nuevo, mismos terminos y la misma atribucion), pero en gris claro
-   para que el unico color sea la seleccion en rojo. Decision de Diego
-   (2026-10-03) frente a CARTO o Stadia, que piden licencia comercial.
-   Solo Machea: las constructoras siguen con el mapa a color. */
-html[data-marca='machea'] .gdf-mapa-real {
-  background: var(--papel-2);
-}
-/* El filtro va sobre el PANEL DE MOSAICOS, no sobre el mapa: los poligonos
-   (localidades y barrio elegido) viven en otro panel y conservan su color. */
-html[data-marca='machea'] .gdf-mapa-real .leaflet-tile-pane {
-  filter: grayscale(1) contrast(0.92) brightness(1.06);
-}
+   El mapa va A COLOR también en Machea, como en las constructoras: los
+   mosaicos de OpenStreetMap de siempre, sin filtro encima. Entre el
+   2026-10-03 y el 2026-10-21 llevó `grayscale(1)` sobre el panel de mosaicos
+   ("mapa sobrio", para que el único color fuera la selección en rojo); se
+   quitó a pedido de Santiago, porque el mapa en gris se leía apagado y sin
+   vida (mismo motivo por el que .gdf-mapa-real no lleva filtro, ver arriba).
+   La selección en rojo y los controles de marca de abajo se conservan. */
 html[data-marca='machea'] .gdf-mapa-real .leaflet-control-attribution {
   background: rgba(255, 255, 255, 0.85);
   color: var(--tinta-suave);
@@ -6723,4 +6717,77 @@ html[data-demo='1'] .gdf-confirm-llamada--error {
     font-size: 12px;
     padding: 6px 12px;
   }
+}
+
+/* ============ BARRA DE EDAD ============
+   `type: 'number'` con `barra: true` (data.js): la cifra grande arriba y una
+   barra que se arrastra. El tramo recorrido se pinta con el acento de la marca
+   leyendo `--p` (el porcentaje, lo fija pintarBarraNumero() en main.js). */
+.gdf-barra-num {
+  gap: 14px;
+}
+.gdf-barra-cifra {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  color: var(--tinta);
+  line-height: 1;
+}
+.gdf-barra-cifra b {
+  font-size: clamp(3rem, 9vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.gdf-barra-cifra span {
+  font-size: 1.05rem;
+  color: var(--tinta-suave, var(--tinta));
+  opacity: 0.8;
+}
+.gdf-barra-input {
+  --p: 0%;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  margin: 8px 0 0;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--acento) 0%, var(--acento) var(--p), var(--borde) var(--p), var(--borde) 100%);
+  outline: none;
+  cursor: pointer;
+  touch-action: none;
+}
+.gdf-barra-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--acento);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s;
+}
+.gdf-barra-input::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--acento);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.gdf-barra-input:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.gdf-barra-input:focus-visible {
+  box-shadow: 0 0 0 3px var(--fondo, transparent), 0 0 0 5px var(--acento);
+}
+.gdf-barra-extremos {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--tinta-suave, var(--tinta));
+  opacity: 0.75;
+  margin-top: -4px;
 }
