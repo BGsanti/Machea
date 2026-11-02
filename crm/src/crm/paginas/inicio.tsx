@@ -20,6 +20,7 @@ import { periodoDe, resumenPanel } from "../servidor/panel";
 import { EncabezadoInicio } from "./encabezado-inicio";
 import { ListaParaHoy } from "./inicio-hoy";
 import { PaginaMiDia } from "./mi-dia";
+import { AvisoLeadsAtascados } from "./leads-atascados";
 import { PanelGerente } from "./panel-gerente";
 import { PrimerosPasos, TarjetaInformes, type InformeWidget, type PasoInicial } from "./inicio-cliente";
 
@@ -124,6 +125,8 @@ export async function PaginaInicio({ usuario, app, parametros = {} }: { usuario:
         resumen={`${config.nombreEmpresa}: ${perfil.inicio.resumen}`}
         accesos={perfil.inicio.acciones}
       />
+
+      {usuario.rol === "admin" ? <AvisoLeadsAtascados empresaId={empresaId} app={app} /> : null}
 
       <PanelGerente r={resumen} moneda={config.moneda} etiquetaNegocios={perfil.inicio.etiquetaNegocios} dias={dias} />
 

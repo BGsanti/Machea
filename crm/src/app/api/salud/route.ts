@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { esEsquemaIncompleto } from "@/db/esquema-listo";
+import { MAX_INTENTOS } from "@/crm/servidor/atascados";
 
 export const dynamic = "force-dynamic";
 
@@ -19,14 +20,17 @@ export async function GET(req: Request) {
   try {
     const db = await bd(); // en producción también comprueba que las migraciones estén aplicadas
     if (!detallado) return Response.json({ ok: true }, { headers: cabeceras });
-    const r = await db.execute<{ pendientes: string; mas_vieja_min: string | null }>(sql`
-      select count(*) as pendientes,
-        extract(epoch from (now() - min(creado_en))) / 60.0 as mas_vieja_min
-      from crm.bandeja_leads where procesado_en is null and intentos < 5`);
+    // «Pendientes» son los que la bandeja aún reintenta; «atascados», los que agotaron sus intentos y ya no se tocan
+    // solos (de todas las empresas: es un chequeo del sistema, sin datos de nadie).
+    const r = await db.execute<{ pendientes: string; mas_vieja_min: string | null; atascados: string }>(sql`
+      select count(*) filter (where intentos < ${MAX_INTENTOS}) as pendientes,
+        extract(epoch from (now() - min(creado_en) filter (where intentos < ${MAX_INTENTOS}))) / 60.0 as mas_vieja_min,
+        count(*) filter (where intentos >= ${MAX_INTENTOS}) as atascados
+      from crm.bandeja_leads where procesado_en is null`);
     const f = r.rows[0]!;
     const masViejaMin = f.mas_vieja_min === null ? null : Math.round(Number(f.mas_vieja_min));
     return Response.json(
-      { ok: true, baseDeDatos: "ok", esquema: "al día", bandeja: { pendientes: Number(f.pendientes), masViejaMin } },
+      { ok: true, baseDeDatos: "ok", esquema: "al día", bandeja: { pendientes: Number(f.pendientes), masViejaMin, atascados: Number(f.atascados) } },
       { headers: cabeceras },
     );
   } catch (e) {

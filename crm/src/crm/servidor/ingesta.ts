@@ -5,6 +5,7 @@ import { bandejaLeads, candidatos, contactos, eventos, leadsMachea, notificacion
 import { desdeHoraLocal, fechaLocal } from "../fechas";
 import { partirNombre } from "../formularios/validar";
 import * as repo from "./repositorio";
+import { MAX_INTENTOS } from "./atascados";
 import { avisar, elegirAsesor, usuarioSistema } from "./reparto";
 
 /**
@@ -26,7 +27,6 @@ import { avisar, elegirAsesor, usuarioSistema } from "./reparto";
 type Datos = Record<string, unknown>;
 
 const LOTE = 20;
-const MAX_INTENTOS = 5;
 
 function texto(v: unknown, max = 500): string | null {
   if (v === null || v === undefined) return null;
@@ -519,17 +519,57 @@ export async function procesarBandeja(quienAbrio: Usuario, limite = LOTE): Promi
   // En orden: la persona (consulta, solicitud) antes que el resultado de su llamada.
   const filas = [...tomadas.rows].sort((a, b) => a.id - b.id);
   for (const f of filas) {
-    try {
-      await conEmpresa(empresaId, () => procesarFila(empresaId, usuario, f.origen, f.origen_id, f.datos ?? {}), usuario);
-      await db.update(bandejaLeads).set({ procesadoEn: new Date(), error: null }).where(eq(bandejaLeads.id, f.id));
-      hechas++;
-    } catch (e) {
-      const mensaje = e instanceof Error ? e.message : String(e);
-      await db
-        .update(bandejaLeads)
-        .set({ error: mensaje.slice(0, 500), tomadoEn: null })
-        .where(eq(bandejaLeads.id, f.id));
-    }
+    if (await intentarFila(empresaId, usuario, f)) hechas++;
   }
   return hechas;
+}
+
+type FilaTomada = { id: number; origen: string; origen_id: string; datos: Datos };
+
+/** Procesa una fila ya tomada: si sale bien la marca como hecha; si falla guarda el error. Devuelve si salió bien. */
+async function intentarFila(empresaId: string, usuario: Usuario, f: FilaTomada): Promise<boolean> {
+  const db = await bd();
+  try {
+    await conEmpresa(empresaId, () => procesarFila(empresaId, usuario, f.origen, f.origen_id, f.datos ?? {}), usuario);
+    await db.update(bandejaLeads).set({ procesadoEn: new Date(), error: null }).where(eq(bandejaLeads.id, f.id));
+    return true;
+  } catch (e) {
+    const mensaje = e instanceof Error ? e.message : String(e);
+    await db
+      .update(bandejaLeads)
+      .set({ error: mensaje.slice(0, 500), tomadoEn: null })
+      .where(eq(bandejaLeads.id, f.id));
+    return false;
+  }
+}
+
+export type ResultadoReintento = "hecho" | "fallo" | "ocupado" | "ya_entro" | "no_atascado";
+
+/**
+ * Reintenta ahora un lead atascado de la empresa. La fila se toma con un UPDATE atómico, igual que en
+ * `procesarBandeja`: con doble clic, o con dos administradores a la vez, solo uno la procesa y el otro recibe
+ * «ocupado». Es idempotente por `origenExterno`, así que un lead que ya entró no se duplica. No suma intentos: el
+ * límite de reintentos automáticos no cambia.
+ */
+export async function reintentarAtascado(quienAbrio: Usuario, id: number): Promise<ResultadoReintento> {
+  const db = await bd();
+  const empresaId = quienAbrio.empresaId;
+  const usuario = await usuarioSistema(empresaId);
+  const tomadas = await db.execute<FilaTomada>(sql`
+    update ${bandejaLeads} set tomado_en = now()
+    where id = ${id} and empresa_id = ${empresaId} and procesado_en is null and intentos >= ${MAX_INTENTOS}
+      and (tomado_en is null or tomado_en < now() - interval '5 minutes')
+    returning id, origen, origen_id, datos
+  `);
+  const fila = tomadas.rows[0];
+  if (!fila) {
+    const [actual] = await db
+      .select({ procesadoEn: bandejaLeads.procesadoEn, intentos: bandejaLeads.intentos })
+      .from(bandejaLeads)
+      .where(and(eq(bandejaLeads.id, id), eq(bandejaLeads.empresaId, empresaId)));
+    if (!actual) return "no_atascado";
+    if (actual.procesadoEn) return "ya_entro";
+    return actual.intentos >= MAX_INTENTOS ? "ocupado" : "no_atascado";
+  }
+  return (await intentarFila(empresaId, usuario, fila)) ? "hecho" : "fallo";
 }
