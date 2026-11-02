@@ -29,6 +29,13 @@
       "when": 1793080857940,
       "tag": "0003_equipo_reparto",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793660703216,
+      "tag": "0004_limpiar_asteriscos_descripcion",
+      "breakpoints": true
     }
   ]
 }

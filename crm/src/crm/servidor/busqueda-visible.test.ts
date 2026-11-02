@@ -63,6 +63,21 @@ test("la búsqueda no distingue acentos ni mayúsculas", async () => {
   assert.equal((await buscar(gerente, "jose")).length, 2, "«jose» encuentra José y Josefa, no a Josué de otra empresa");
 });
 
+test("un número que no cabe en la columna «numero» no rompe la búsqueda, y un teléfono de corrido se encuentra", async () => {
+  const listar = (objeto: string, q: string) => m.conEmpresa(EMPRESA_1, () => m.repo.listar(objeto, { usuarioId: dueno.id, q, vista: m.repo.SIN_VISTA }), dueno);
+  await m.conEmpresa(
+    EMPRESA_1,
+    () => m.repo.crear("candidatos", { nombre: "Laura", apellidos: "Corrido", compania: "Corrido", estado: "nuevo", propietarioId: dueno.id, telefono: "+57 300 111 2233" }, dueno.id),
+    dueno,
+  );
+  for (const objeto of ["casos", "facturas"]) {
+    for (const q of ["3001112233", "2147483648", "99999999999999999999", "1e30", "2147483647"]) {
+      assert.equal((await listar(objeto, q)).total, 0, `${objeto} con «${q}»`);
+    }
+  }
+  assert.equal((await listar("candidatos", "3001112233")).filas[0]?.apellidos, "Corrido");
+});
+
 test("un asesor solo encuentra lo suyo; el gerente, todo su equipo; nadie, lo de otra empresa", async () => {
   const deAna = await buscar(ana, "pena");
   assert.equal(deAna.length, 1);

@@ -196,7 +196,7 @@ async function ejemploVivienda(ctx: Contexto, tipo: Extract<PerfilId, "construct
         ...c,
         pais: "Colombia",
         interes,
-        descripcion: `Pidió hablar con un asesor sobre **${interes}**.`,
+        descripcion: `Pidió hablar con un asesor sobre ${interes}.`,
         respuestas: [
           { clave: "interes", etiqueta: constructora ? "Proyecto de interés" : "Inmueble de interés", valor: interes },
           { clave: "presupuesto", etiqueta: "Presupuesto", valor: new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(precios[i]!) },
@@ -304,7 +304,7 @@ async function ejemploMachea(ctx: Contexto) {
       await ctx.nuevo("candidatos", {
         ...p,
         pais: "Colombia",
-        descripcion: `**${p.compania}** — ${p.interes}.`,
+        descripcion: `${p.compania} — ${p.interes}.`,
         respuestas: [
           { clave: "leads_mes", etiqueta: "¿Cuántos leads recibe al mes?", valor: ["Más de 300", "Entre 100 y 300", "Menos de 100"][prospectos.indexOf(p) % 3]! },
           { clave: "pauta", etiqueta: "¿Invierte en pauta?", valor: prospectos.indexOf(p) % 2 === 0 ? "Sí, en Meta y Google" : "No por ahora" },
