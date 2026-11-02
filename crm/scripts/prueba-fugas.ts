@@ -249,8 +249,9 @@ async function main() {
   comprobar(deA.estado === 200 && deA.cuerpo.includes(MARCA), "Como A no se ve su propio candidato: el recorrido no sirve.");
   const atascadosA = await pedir("/ventas/p/leads-atascados", A.token);
   comprobar(atascadosA.estado === 200 && atascadosA.cuerpo.includes(MARCA), "Como A no se ve su lead atascado: la prueba de la lista no sirve.");
-  const inicioA = await pedir("/ventas/p/inicio", A.token);
-  comprobar(inicioA.estado === 200 && inicioA.cuerpo.includes("no pudo entrar al CRM"), "Como A no sale el aviso de leads atascados en el Inicio.");
+  const inicioA = await pedir("/inicio/p/inicio", A.token);
+  // El texto del aviso llega partido por comentarios de React: se busca su enlace a la lista.
+  comprobar(inicioA.estado === 200 && inicioA.cuerpo.includes("/p/leads-atascados"), "Como A no sale el aviso de leads atascados en el Inicio.");
 
   // 3c. Como B no se ve nada de A.
   const idsEnRutas = new Set(Object.values(idsA));
