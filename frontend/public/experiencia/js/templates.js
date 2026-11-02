@@ -679,7 +679,25 @@
     var q = derived.q;
     var answerAreaHtml = '';
 
-    if (q && q.type === 'number') {
+    if (q && q.type === 'number' && q.barra) {
+      // Barra deslizante (edad): la cifra grande cambia al arrastrar (la
+      // actualiza pintarBarraNumero() en main.js, sin re-render). Mismo id
+      // `quizNumberInput` que el campo numérico: 'answerQuizNumber' lo lee
+      // igual. Siempre tiene un valor válido, así que Continuar sale activo.
+      var previoNum = Number(state.answers && state.answers[q.id]);
+      var valorNum = previoNum >= q.min && previoNum <= q.max ? previoNum : (q.inicial != null ? q.inicial : q.min);
+      var pctNum = ((valorNum - q.min) / (q.max - q.min)) * 100;
+      answerAreaHtml =
+        '<div class="gdf-quiz-freeform gdf-barra-num">' +
+        '<div class="gdf-barra-cifra" aria-hidden="true"><b id="quizNumberValor">' + valorNum + '</b><span>años</span></div>' +
+        '<input class="gdf-barra-input" id="quizNumberInput" type="range" step="1"' +
+        ' min="' + q.min + '" max="' + q.max + '" value="' + valorNum + '"' +
+        ' style="--p:' + pctNum.toFixed(2) + '%"' +
+        ' aria-label="' + esc(q.title) + '" aria-valuetext="' + valorNum + ' años" />' +
+        '<div class="gdf-barra-extremos" aria-hidden="true"><span>' + q.min + '</span><span>' + q.max + '</span></div>' +
+        '<button class="gdf-btn-primary enabled" data-action="answerQuizNumber" data-qid="' + q.id + '">Continuar ' + ic('flecha-derecha') + '</button>' +
+        '</div>';
+    } else if (q && q.type === 'number') {
       answerAreaHtml =
         '<div class="gdf-quiz-freeform">' +
         '<input class="gdf-input" id="quizNumberInput" type="number" inputmode="numeric"' +

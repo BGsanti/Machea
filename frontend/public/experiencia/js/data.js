@@ -192,13 +192,18 @@
       // Entero exacto (no rango): el contrato de leads con el backend
       // (SenalBowl, ver js/leads.js) pide `edad` como number, no un bucket.
       // quiz() en templates.js renderiza un input numérico para q.type
-      // === 'number' en vez de la grilla de botones de siempre.
+      // === 'number' en vez de la grilla de botones de siempre. Con
+      // `barra: true` ese input es una barra deslizante (<input type=range>)
+      // con la cifra en grande encima, que cambia al arrastrar. El valor que
+      // viaja sigue siendo el mismo entero.
       id: 'edad',
       title: '¿Cuántos años tienes?',
       sub: 'Algunos proyectos tienen condiciones especiales según tu edad.',
       type: 'number',
+      barra: true,
       min: 18,
       max: 99,
+      inicial: 30,
       placeholder: 'Ej: 31',
     },
   ];

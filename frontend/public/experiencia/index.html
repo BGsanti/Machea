@@ -28,7 +28,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="css/styles.css?v=137" />
+    <link rel="stylesheet" href="css/styles.css?v=138" />
   </head>
   <body>
     <div id="root"></div>
@@ -103,7 +103,7 @@
          que el buscador responde sin red; lo que no este aqui lo completa el
          geocodificador en vivo (ver PHOTON_URL en js/main.js). -->
     <script src="js/mapa_lugares.js?v=108"></script>
-    <script src="js/data.js?v=115"></script>
+    <script src="js/data.js?v=116"></script>
     <!-- La libreria del mapa y el modulo que la envuelve. `defer` no: el resto
          de este front se carga sincrono y js/mapa.js solo toca a Leaflet en
          tiempo de ejecucion, cuando main.js lo monta. Si la red falla, window.L
@@ -139,23 +139,23 @@
     <script src="js/arriendo.js?v=1"></script>
     <!-- Textos de autorización y la regla de la hoja "Antes de llamarte" (antes de templates y state). -->
     <script src="js/consentimiento.js?v=2"></script>
-    <script src="js/templates.js?v=127"></script>
+    <script src="js/templates.js?v=128"></script>
     <script src="js/state.js?v=117"></script>
     <!-- plano 3D. El bundle de three va aparte porque la app no tiene bundler,
          y TODOS estos van despues del document.write de arriba: moverlo o
          ponerle defer borra el documento entero. -->
     <script src="vendor/gdf-three.bundle.js?v=108"></script>
-    <script src="js/plano3d/perfil.js?v=110"></script>
-    <script src="js/plano3d/zonificacion.js?v=108"></script>
-    <script src="js/plano3d/muros.js?v=108"></script>
+    <script src="js/plano3d/perfil.js?v=111"></script>
+    <script src="js/plano3d/zonificacion.js?v=109"></script>
+    <script src="js/plano3d/muros.js?v=109"></script>
     <script src="js/plano3d/floorplan.js?v=108"></script>
     <script src="js/plano3d/materiales.js?v=108"></script>
     <script src="js/plano3d/geometria.js?v=108"></script>
     <script src="js/plano3d/muebles.js?v=108"></script>
     <script src="js/plano3d/entorno.js?v=108"></script>
     <script src="js/plano3d/escena.js?v=108"></script>
-    <script src="js/plano3d/index.js?v=109"></script>
+    <script src="js/plano3d/index.js?v=110"></script>
     <script src="js/datos.js?v=3"></script>
-    <script src="js/main.js?v=125"></script>
+    <script src="js/main.js?v=126"></script>
   </body>
 </html>

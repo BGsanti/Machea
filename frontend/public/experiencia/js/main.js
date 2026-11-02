@@ -173,6 +173,12 @@
     var quizNumberInput = document.getElementById('quizNumberInput');
     if (quizNumberInput) {
       quizNumberInput.addEventListener('input', updateQuizNumberButton);
+      // Barra deslizante (edad, `barra: true` en data.js): la cifra grande y
+      // el tramo relleno de la barra siguen al dedo en cada movimiento.
+      if (quizNumberInput.type === 'range') {
+        quizNumberInput.addEventListener('input', pintarBarraNumero);
+        pintarBarraNumero();
+      }
       quizNumberInput.addEventListener('keydown', function (e) {
         if (e.key !== 'Enter') return;
         var btn = document.querySelector('[data-action="answerQuizNumber"]');
@@ -296,7 +302,24 @@
         preferenciasActual[c.id] = previo && previo[c.id] != null ? previo[c.id] : c.inicial;
         pintarContador(c, preferenciasActual[c.id]);
       });
+      // El plano muestra desde ya las habitaciones de partida. Diferido: este
+      // bloque corre ANTES de que render()/updateQuizDOM le pasen a la escena
+      // el estado de esta pregunta (GDF3D.actualizar), y la previsualización
+      // tiene que partir de ese estado, no del de la pregunta anterior.
+      setTimeout(previsualizarPreferencias, 0);
     }
+  }
+
+  // Lleva al plano 3D lo que marcan los contadores AHORA, antes de
+  // "Continuar": cada toque del + o el − en Habitaciones agrega o quita una
+  // alcoba. Mismas dos claves que guarda 'answerPreferencias' en state.js.
+  function previsualizarPreferencias() {
+    if (!preferenciasActual || !window.GDF3D || !window.GDF3D.previsualizar) return;
+    var n = Number(preferenciasActual.habitaciones) || 1;
+    window.GDF3D.previsualizar({
+      preferencias: Object.assign({}, preferenciasActual),
+      habitaciones: n >= 3 ? '3+' : String(n),
+    });
   }
 
   // El número de un contador de Arriendo y sus extremos: el − se apaga en el
@@ -959,6 +982,17 @@
   // El botón de la pregunta numérica del quiz (edad) empieza deshabilitado
   // (ver quiz() en templates.js) hasta que el valor tipeado esté dentro de
   // min/max — mismo patrón visual que el botón de escarapela.
+  function pintarBarraNumero() {
+    var input = document.getElementById('quizNumberInput');
+    if (!input || input.type !== 'range') return;
+    var v = Number(input.value);
+    var min = Number(input.min), max = Number(input.max);
+    var cifra = document.getElementById('quizNumberValor');
+    if (cifra) cifra.textContent = v;
+    input.style.setProperty('--p', (max > min ? ((v - min) / (max - min)) * 100 : 0).toFixed(2) + '%');
+    input.setAttribute('aria-valuetext', v + ' años');
+  }
+
   function updateQuizNumberButton() {
     var input = document.getElementById('quizNumberInput');
     var btn = document.querySelector('[data-action="answerQuizNumber"]');
@@ -2023,6 +2057,9 @@
       var nuevo = Math.min(campo.max, Math.max(campo.min, actual + delta));
       preferenciasActual[campo.id] = nuevo;
       pintarContador(campo, nuevo);
+      // Solo Habitaciones cambia la planta; los demás campos no tienen pieza
+      // en el 3D y reconstruir el plano por ellos sería gastar CSG en nada.
+      if (campo.id === 'habitaciones') previsualizarPreferencias();
       return;
     }
     if (el.dataset.action === 'answerPreferencias') {
