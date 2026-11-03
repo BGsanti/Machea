@@ -29,6 +29,9 @@ import { ejecutarFlujos } from "./flujos";
 import { aplicarReglas } from "./reglas";
 import { ACENTOS_A, ACENTOS_DE, digitosDeTelefono, limpiarBusqueda, patronContiene } from "./texto";
 
+/** Lo más grande que cabe en una columna integer de PostgreSQL. */
+const ENTERO_MAXIMO = 2_147_483_647;
+
 export class ErrorValidacion extends Error {
   constructor(public errores: Record<string, string>) {
     super("Revise los campos marcados.");
@@ -234,7 +237,8 @@ async function condicionesListado(db: BaseDatos, objeto: string, o: OpcionesList
   if (q) {
     const buscables = d.busqueda.map((n) => cols[n]).filter((c): c is PgColumn => Boolean(c));
     const numero = Number(q);
-    const porNumero = cols.numero && Number.isInteger(numero) ? [eq(cols.numero, numero)] : [];
+    // Un teléfono de corrido también es un entero, pero no cabe en la columna: compararlo haría fallar toda la consulta.
+    const porNumero = cols.numero && Number.isInteger(numero) && Math.abs(numero) <= ENTERO_MAXIMO ? [eq(cols.numero, numero)] : [];
     // Un teléfono se encuentra se escriba como se escriba («300 111 2233», «+57 300 111 2233»): se compara solo por dígitos.
     const digitos = digitosDeTelefono(q);
     const porTelefono = digitos && cols.telefono ? [sql`regexp_replace(${cols.telefono}::text, '[^0-9]', '', 'g') like ${`%${digitos}%`}`] : [];
@@ -375,8 +379,6 @@ export async function obtener(objeto: string, id: string): Promise<FilaConNombre
   const [conNombres] = await resolverNombres(db, def(objeto), [fila]);
   return conNombres ?? null;
 }
-
-const ENTERO_MAXIMO = 2_147_483_647;
 
 /** Ajusta los números a las columnas enteras y descarta campos que la tabla no tiene. */
 function prepararDatos(objeto: string, datos: Record<string, unknown>): Record<string, unknown> {

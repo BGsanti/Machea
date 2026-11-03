@@ -50,7 +50,7 @@ function valoracion(v: unknown): string | null {
 }
 
 /** Las respuestas del formulario, legibles, para la descripción del candidato. */
-function respuestasMarkdown(respuestas: unknown): string {
+function respuestasTexto(respuestas: unknown): string {
   if (!respuestas || typeof respuestas !== "object") return "";
   const nombres: Record<string, string> = {
     operacion: "Busca",
@@ -69,9 +69,9 @@ function respuestasMarkdown(respuestas: unknown): string {
   for (const [clave, etiqueta] of Object.entries(nombres)) {
     const v = (respuestas as Datos)[clave];
     const valor = Array.isArray(v) ? v.join(", ") : texto(v, 120);
-    if (valor) lineas.push(`- **${etiqueta}:** ${valor}`);
+    if (valor) lineas.push(`- ${etiqueta}: ${valor}`);
   }
-  return lineas.length ? `**Respuestas del formulario de Machea**\n\n${lineas.join("\n")}` : "";
+  return lineas.length ? `Respuestas del formulario de Machea\n\n${lineas.join("\n")}` : "";
 }
 
 async function candidatoDe(empresaId: string, digitos: string): Promise<string | null> {
@@ -96,8 +96,8 @@ async function asegurarCandidato(empresaId: string, usuario: Usuario, d: Datos, 
   const apellido = texto(d.apellido, 80);
   const proyecto = texto(d.nombre_proyecto, 160);
   const descripcion = [
-    proyecto ? `Pidió hablar con un asesor sobre **${proyecto}**.` : null,
-    respuestasMarkdown(d.respuestas),
+    proyecto ? `Pidió hablar con un asesor sobre ${proyecto}.` : null,
+    respuestasTexto(d.respuestas),
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -336,7 +336,7 @@ async function procesarDemo(empresaId: string, usuario: Usuario, d: Datos) {
     valoracion: "caliente",
     origen: "demo_web",
     interes: aTexto(d.problema, 200),
-    descripcion: `Pidió una demo en la web${empresa ? ` para **${empresa}**` : ""}.`,
+    descripcion: `Pidió una demo en la web${empresa ? ` para ${empresa}` : ""}.`,
     respuestas,
   });
   if (!nuevo) {
@@ -372,7 +372,7 @@ async function procesarProspecto(empresaId: string, usuario: Usuario, d: Datos) 
     valoracion: score ? (VALORACION_SCORE[score] ?? null) : null,
     origen: ORIGEN_PROSPECTO[String(d.origen ?? "lista_frio")] ?? "camila",
     interes: aTexto(calificacion.dolor_principal, 200) ?? aTexto(calificacion.interes, 200),
-    descripcion: [aTexto(d.notas, 1500), score ? `Puntaje de Camila: **${score}**${d.puntos !== undefined ? ` (${String(d.puntos)}/100)` : ""}.` : null].filter(Boolean).join("\n\n") || null,
+    descripcion: [aTexto(d.notas, 1500), score ? `Puntaje de Camila: ${score}${d.puntos !== undefined ? ` (${String(d.puntos)}/100)` : ""}.` : null].filter(Boolean).join("\n\n") || null,
     respuestas: respuestasDe(Object.entries(ETIQUETAS_CALIFICACION).map(([k, etiqueta]) => [k, etiqueta, calificacion[k]] as [string, string, unknown])),
   };
   const { id, nuevo } = await asegurarProspecto(empresaId, usuario, digitos, { ...valores, telefono: telefonoDeDigitos(digitos) });
