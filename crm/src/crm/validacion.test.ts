@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { campoDe, obtenerObjeto } from "./objetos";
 import type { Campo } from "./tipos";
 import { convertirValor, telefonoValido } from "./validacion";
 
@@ -20,6 +21,22 @@ test("un campo de teléfono rechaza texto y acepta vacío", () => {
   assert.deepEqual(convertir(campo, "abc123"), { error: "Escriba un teléfono válido, por ejemplo 312 555 1001." });
   assert.deepEqual(convertir(campo, "300 123 4567"), { valor: { x: "300 123 4567" } });
   assert.deepEqual(convertir(campo, ""), { valor: { x: null } });
+});
+
+test("importes, precios y medidas no aceptan negativos", () => {
+  const casos: [string, string[]][] = [
+    ["oportunidades", ["importe"]],
+    ["campanas", ["presupuesto"]],
+    ["proyectos", ["estrato", "unidadesTotales", "unidadesDisponibles", "precioDesde", "precioHasta", "areaDesde", "areaHasta"]],
+    ["inmuebles", ["estrato", "precio", "administracion", "area", "alcobas", "banos", "parqueaderos"]],
+  ];
+  for (const [objeto, campos] of casos) {
+    for (const nombre of campos) {
+      const campo = campoDe(obtenerObjeto(objeto)!, nombre)!;
+      assert.equal(campo.min, 0, `${objeto}.${nombre}`);
+      assert.deepEqual(convertirValor(campo, () => "-1", () => ["-1"]), { error: "No puede ser menor que 0." }, `${objeto}.${nombre}`);
+    }
+  }
 });
 
 test("números: tope, mínimo y porcentaje", () => {

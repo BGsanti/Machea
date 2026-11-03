@@ -21,6 +21,13 @@ function defObjeto(objeto: string): DefObjeto {
   return def;
 }
 
+/** «Teléfono: Escriba un teléfono válido.»: en una importación, cada fila dice qué campo falló. */
+function erroresConEtiqueta(def: DefObjeto, errores: Record<string, string>): string {
+  return Object.entries(errores)
+    .map(([c, m]) => `${campoDe(def, c)?.etiqueta ?? c}: ${m}`)
+    .join("; ");
+}
+
 function mensajeError(e: unknown): EstadoAccion {
   if (e instanceof repo.ErrorValidacion) return { ok: false, mensaje: e.message, errores: e.errores };
   return { ok: false, mensaje: textoDeError(e) };
@@ -133,14 +140,14 @@ export async function importarRegistros(objeto: string, filas: Record<string, st
       (n) => (fila[n] ?? "").split(/[;,]/).map((v) => v.trim()),
     );
     if (!r.ok) {
-      fallidos.push({ fila: i + 2, mensaje: Object.entries(r.errores).map(([c, m]) => `${campoDe(def, c)?.etiqueta ?? c}: ${m}`).join("; ") });
+      fallidos.push({ fila: i + 2, mensaje: erroresConEtiqueta(def, r.errores) });
       continue;
     }
     try {
       await repo.crear(objeto, r.datos, usuario.id);
       creados++;
     } catch (e) {
-      fallidos.push({ fila: i + 2, mensaje: textoDeError(e) });
+      fallidos.push({ fila: i + 2, mensaje: e instanceof repo.ErrorValidacion ? erroresConEtiqueta(def, e.errores) : textoDeError(e) });
     }
   }
   revalidatePath("/", "layout");

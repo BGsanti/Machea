@@ -31,6 +31,8 @@ export function digitosDeTelefono(texto: string): string | null {
   if (!/^\+?[\d\s().-]+$/.test(t)) return null;
   let digitos = t.replace(/\D/g, "");
   if (digitos.length < 4) return null;
-  if (digitos.length > 10 && digitos.startsWith("57")) digitos = digitos.slice(2);
+  // Con «+» es seguro aunque el número esté a medio escribir («+57 300»); sin él, un 57 corto puede ser parte del número.
+  const conIndicativo = t.startsWith("+") ? digitos.length >= 6 : digitos.length > 10;
+  if (conIndicativo && digitos.startsWith("57")) digitos = digitos.slice(2);
   return digitos;
 }

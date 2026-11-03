@@ -7,6 +7,7 @@ import { bd } from "@/db/cliente";
 import { formularios } from "@/db/esquema";
 import type { EstadoAccion } from "../servidor/acciones";
 import { obtenerConfiguracion } from "../servidor/consultas";
+import { textoDeError } from "../servidor/errores";
 import { configDe, obtenerFormulario, slugUnico } from "./datos";
 import { plantillaFormulario, type PlantillaId } from "./plantillas";
 import { esquemaConfig, pendientesParaPublicar, type EstadoFormulario } from "./tipos";
@@ -16,8 +17,6 @@ export interface ResultadoFormulario extends EstadoAccion {
   /** Lo que falta para poder publicarlo, si no está listo. */
   pendientes?: string[];
 }
-
-const mensajeDeError = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error inesperado.");
 
 /** Crea un formulario de borrador a partir de una plantilla y devuelve su id para abrir el editor. */
 export async function crearFormulario(plantilla: PlantillaId): Promise<ResultadoFormulario> {
@@ -34,7 +33,7 @@ export async function crearFormulario(plantilla: PlantillaId): Promise<Resultado
     revalidatePath("/formularios");
     return { ok: true, id: fila!.id, mensaje: "Formulario creado." };
   } catch (e) {
-    return { ok: false, mensaje: mensajeDeError(e) };
+    return { ok: false, mensaje: textoDeError(e) };
   }
 }
 
@@ -59,7 +58,7 @@ export async function guardarFormulario(id: string, nombre: string, configNueva:
     revalidatePath(`/formularios/${id}`);
     return { ok: true, mensaje: "Cambios guardados.", pendientes };
   } catch (e) {
-    return { ok: false, mensaje: mensajeDeError(e) };
+    return { ok: false, mensaje: textoDeError(e) };
   }
 }
 
@@ -85,7 +84,7 @@ export async function cambiarEstadoFormulario(id: string, estado: EstadoFormular
     revalidatePath(`/formularios/${id}`);
     return { ok: true, mensaje: estado === "activo" ? "Formulario publicado." : estado === "pausado" ? "Formulario pausado: ya no recibe respuestas." : "Vuelve a ser un borrador." };
   } catch (e) {
-    return { ok: false, mensaje: mensajeDeError(e) };
+    return { ok: false, mensaje: textoDeError(e) };
   }
 }
 
@@ -97,6 +96,6 @@ export async function eliminarFormulario(id: string): Promise<ResultadoFormulari
     revalidatePath("/formularios");
     return { ok: true, mensaje: "Formulario eliminado. Los leads que llegaron por él se quedan en su CRM." };
   } catch (e) {
-    return { ok: false, mensaje: mensajeDeError(e) };
+    return { ok: false, mensaje: textoDeError(e) };
   }
 }

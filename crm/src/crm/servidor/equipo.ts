@@ -12,10 +12,11 @@ import { requerirPermiso } from "@/auth/sesion";
 import { bd } from "@/db/cliente";
 import { candidatos, configuracion, eventos, invitaciones, tareas, usuarios } from "@/db/esquema";
 import type { EstadoAccion } from "./acciones";
+import { textoDeError } from "./errores";
 import { elegirAsesor } from "./reparto";
 
 function error(e: unknown): EstadoAccion {
-  return { ok: false, mensaje: e instanceof Error ? e.message : "Ocurrió un error inesperado." };
+  return { ok: false, mensaje: textoDeError(e) };
 }
 
 const VIGENCIA_INVITACION_DIAS = 7;
