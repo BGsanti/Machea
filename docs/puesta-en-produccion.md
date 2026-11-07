@@ -88,8 +88,8 @@ termine de desplegar (o apenas después: mientras tanto `/crm` responde con erro
    - `20261021130000_crm_interna.sql`: prospectos, demos, llamadas y citas de Camila hacia el CRM de Machea. No hace nada hasta que
      exista la fuente `interna` (paso 6). Probada contra Postgres el 27-oct (`pnpm prueba:sql` en `crm/`, que aplica todas las migraciones en orden): se corrigió `crm.rellenar_interna()`.
 3. **Render:** Manual Deploy. Variable nueva `GRABACIONES_GUARDAR`: vacía = se guarda solo lo de Camila (ella avisa que la llamada
-   «puede ser grabada»); `todas` o `manuela,camila` = también Manuela. **No poner `todas` antes de corregir los textos:** la política de
-   privacidad y el aviso de Manuela dicen que la llamada NO se graba, y Dapta sí la graba y la transcribe. Ariel y Diego deben revisarlo.
+   «puede ser grabada»); `todas` o `manuela,camila` = también Manuela. **No poner `todas` hasta que la apertura v2.2 de Manuela
+   (avisa que la llamada se graba y se transcribe) esté cargada en Dapta.** Los textos de privacidad ya se corrigieron (2026-11-07).
 4. **Dapta:** para escuchar el audio en el CRM, encender «Public call link» en cada agente (Ajustes → Call Settings & Behavior).
    Con eso cualquiera que tenga el enlace puede oír la llamada; el CRM no lo expone al navegador (lo sirve él mismo, solo con sesión).
 5. **Vercel (proyecto `machea2`), opcional:** `FORMULARIOS_SECRETO` (24+ caracteres aleatorios) para firmar los formularios públicos;

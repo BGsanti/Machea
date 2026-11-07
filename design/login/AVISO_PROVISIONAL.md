@@ -29,7 +29,8 @@ Recogemos, guardamos y usamos los datos que nos das en machea.co (nombre, correo
 
 - recomendarte proyectos de vivienda;
 - atender tu solicitud;
-- llamarte con una asistente virtual, que no graba la llamada pero hace un resumen de la conversación;
+- llamarte con una asistente virtual. La llamada se graba y se transcribe, y con eso se hace un resumen de la
+  conversación. La asistente te lo avisa al comenzar;
 - agendar visitas y hacer seguimiento por llamada, WhatsApp o correo.
 
 **Solo si lo autorizas expresamente** al pedir la llamada, compartimos tus datos con la constructora o inmobiliaria
@@ -37,7 +38,7 @@ dueña del proyecto que elegiste, para que te contacte sobre ese proyecto. Desde
 responsable, con su propia política.
 
 Usamos proveedores tecnológicos, algunos en Estados Unidos (servidores, base de datos, llamadas y correo), que tratan
-los datos por encargo nuestro.
+los datos por encargo nuestro. Nuestro proveedor de llamadas es quien graba y transcribe las llamadas.
 
 ### Tus derechos
 
