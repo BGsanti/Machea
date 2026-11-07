@@ -25,7 +25,8 @@ Además, la autorización no se guarda en ningún lado. Lo que pide la ley, en l
   como encargada de Machea. Por eso la persona tiene que autorizar que se le entreguen, y conviene nombrar a la
   empresa.
 
-No pedimos datos sensibles: ingresos, edad y personas a cargo no lo son. La llamada no se graba.
+No pedimos datos sensibles: ingresos, edad y personas a cargo no lo son. La llamada se graba y se transcribe
+(corregido el 2026-11-07: antes este texto decía que no; ver `design/login/TEXTOS_AUTORIZACION_V2.md`, F).
 
 ## Propuesta
 

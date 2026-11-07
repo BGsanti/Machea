@@ -74,7 +74,8 @@ En esta política, "Machea", "nosotros" y "nuestro" se refieren a esos responsab
 - **Resultados:** los proyectos que el sistema te recomendó, el que elegiste y la empresa a la que pertenece.
 - **De qué formulario llegaste:** el de Machea o el de una constructora o inmobiliaria.
 - **Tus autorizaciones:** qué texto aceptaste, en qué versión y cuándo. Lo guardamos como prueba (sección 5).
-- **Datos de la llamada con Manuela**, si la pediste. **No grabamos la llamada.** Sí guardamos lo que resulta de ella:
+- **Datos de la llamada con Manuela**, si la pediste. **La llamada se graba y se transcribe.** Guardamos el audio, la
+  transcripción y lo que resulta de la llamada:
   - si se pudo hablar contigo;
   - un resumen de la conversación;
   - tu nivel de interés;
@@ -85,10 +86,12 @@ En esta política, "Machea", "nosotros" y "nuestro" se refieren a esos responsab
   - una recomendación para el asesor;
   - la cita o la fecha de seguimiento, si se acordó una, y el canal.
 
-  Manuela te avisa al comenzar que la llamada no se graba y que lo que digas se procesa para hacer ese resumen. El
-  resumen lo genera nuestro proveedor de llamadas (Dapta) por encargo nuestro, y lo usamos para atender tu solicitud
-  y, si lo autorizaste, para entregárselo a la empresa dueña del proyecto. [VERIFICAR con Dapta: si conserva el audio o
-  la transcripción de su lado, por cuánto tiempo, y si usa los datos para entrenar modelos.]
+  Manuela te avisa al comenzar que la llamada se graba y se transcribe para tomar nota de tu solicitud. Si no estás de
+  acuerdo, termina la llamada y te escribimos por WhatsApp. La grabación, la transcripción y el resumen los hace nuestro
+  proveedor de llamadas (Dapta) por encargo nuestro, y los guardamos en nuestro CRM. Los usamos para atender tu
+  solicitud, revisar la calidad de las llamadas y, si lo autorizaste, para que la empresa dueña del proyecto los vea en
+  su CRM y te atienda. [PENDIENTE: cuánto tiempo guardamos el audio y la transcripción.] [VERIFICAR con Dapta: cuánto
+  tiempo conserva el audio y la transcripción de su lado, y si usa los datos para entrenar modelos.]
 - **Seguimiento por WhatsApp:** si la llamada no se completó o quedó una cita, te podemos escribir por WhatsApp al
   número que nos diste.
 
@@ -377,4 +380,6 @@ Ley 1581 de 2012, Decreto 1377 de 2013 (compilado en el Decreto Único Reglament
 > - [ ] Enlazarla desde el pie de la landing y desde "Agenda una demo" (hoy esa casilla no la enlaza).
 > - [ ] Confirmar con Dapta qué guarda de las llamadas de Manuela y de Camila.
 > - [ ] Versionar las autorizaciones de "Agenda una demo" y del registro de cuentas.
-> - [x] La llamada de Manuela no se graba (confirmado por Diego, 2026-10-13).
+> - [x] ~~La llamada de Manuela no se graba (confirmado por Diego, 2026-10-13).~~ **Corregido el 2026-11-07:** Dapta
+>   graba y transcribe todas las llamadas, y el CRM guarda el audio y la transcripción (`backend/api/grabaciones.py`).
+>   La política, el aviso, los textos de las casillas y la apertura de Manuela ya lo dicen.

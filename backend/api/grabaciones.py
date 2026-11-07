@@ -22,10 +22,10 @@ from urllib.parse import urlparse
 def habilitada(agente: str) -> bool:
     """¿Se guardan el audio y la transcripción de las llamadas de este agente («manuela» o «camila»)?
 
-    Es un interruptor aparte porque guardar la conversación es tratamiento de datos que la persona tiene que conocer:
-    la política de privacidad y la apertura de Manuela dicen hoy que la llamada NO se graba, aunque Dapta sí la graba
-    y la transcribe. Camila ya avisa que «la llamada puede ser grabada», así que por defecto solo se guardan las de
-    Camila. Variable GRABACIONES_GUARDAR: vacía = solo Camila; «todas» o «1» = las dos; «ninguna» o «0» = ninguna;
+    Es un interruptor aparte porque guardar la conversación es tratamiento de datos que la persona tiene que conocer.
+    Desde el 2026-11-07 la política de privacidad dice que la llamada se graba y se transcribe, y la apertura v2.2 de
+    Manuela lo avisa; hasta que esa versión esté cargada en Dapta, por defecto solo se guardan las de Camila, que ya
+    avisa que «la llamada puede ser grabada». Variable GRABACIONES_GUARDAR: vacía = solo Camila; «todas» o «1» = las dos; «ninguna» o «0» = ninguna;
     o una lista: «manuela,camila».
     """
     valor = os.environ.get("GRABACIONES_GUARDAR", "").strip().lower()

@@ -130,6 +130,11 @@ correo de la persona. ¿Es suficiente como prueba (Decreto 1377, art. 8)?
 
 **10. Grabaciones.** La llamada de Manuela no se graba, pero el proveedor genera un resumen. La de Camila "puede ser
 grabada".
+
+> **Corrección (2026-11-07):** la premisa era falsa. Dapta graba y transcribe **todas** las llamadas, también las de
+> Manuela, y el CRM guarda el audio y la transcripción. Hay que volver a hacerle esta pregunta a Ariel y al abogado
+> con el dato correcto, en especial si basta con avisar al comenzar y cerrar la llamada cuando la persona no acepta
+> (lo que hace Manuela v2.2), o si hay que ofrecer seguir sin grabar.
 - ¿Qué hay que informar en cada caso?
 - ¿Hace falta otra autorización para grabar?
 

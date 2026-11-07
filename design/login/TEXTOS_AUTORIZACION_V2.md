@@ -31,8 +31,8 @@ para que Diego decida.
 
 **Propuesta compacta (v2):**
 > Autorizo a [Nombre 1], [Nombre 2] y [Nombre 3], responsables del proyecto Machea, a guardar y analizar mi nombre,
-> correo, teléfono y respuestas para recomendarme vivienda en Bogotá, llamarme con una asistente virtual que no graba
-> pero resume la conversación, y escribirme por WhatsApp o correo sobre mi solicitud y los proyectos que elija. Puedo
+> correo, teléfono y respuestas para recomendarme vivienda en Bogotá, llamarme con una asistente virtual que graba,
+> transcribe y resume la conversación, y escribirme por WhatsApp o correo sobre mi solicitud y los proyectos que elija. Puedo
 > consultar, actualizar, rectificar o suprimir mis datos y revocar esta autorización en [privacidad@machea.co] o
 > [teléfono]. [Política de datos]
 
@@ -56,14 +56,16 @@ para que Diego decida.
 - que sin esto no se puede pedir la llamada.
 
 **Propuesta compacta (v2):**
-> Autorizo a los responsables de Machea a entregar a {Constructora} mi nombre, correo, teléfono, respuestas y el
-> resumen y la calificación de la llamada, para que me contacte sobre {Proyecto}, me informe y haga seguimiento a mi
+> Autorizo a los responsables de Machea a entregar a {Constructora} mi nombre, correo, teléfono, respuestas y la
+> grabación, la transcripción, el resumen y la calificación de la llamada, para que me contacte sobre {Proyecto}, me informe y haga seguimiento a mi
 > solicitud. {Constructora} los tratará como responsable, según su [política]. Puedo ejercer mis derechos ante Machea
 > ([privacidad@machea.co]) y ante {Constructora} ([contacto]). Sin esta autorización no podemos pedir esta llamada.
 
 - **El botón** pasa de "Hablar con un asesor" a **"Pedir llamada de {Constructora}"**, como sugiere Ariel.
-- **"Resultado de la llamada"** quiere decir el resumen y la calificación. **Manuela no graba la llamada**, así que
-  no se entrega audio ni transcripción. [VERIFICAR con Dapta]
+- **"Resultado de la llamada"** quiere decir la grabación, la transcripción, el resumen y la calificación. **La llamada
+  sí se graba** (corregido el 2026-11-07): Dapta graba y transcribe todas, y el CRM de la empresa muestra el audio y la
+  transcripción en la ficha del lead (`crm/src/crm/ui/ficha/conversacion-llamada.tsx`). Si no se quiere entregar el
+  audio, hay que quitarlo del CRM antes de encender la hoja, y entonces sacarlo de este texto.
 
 ## C. Formulario con la marca de una empresa (`registro-marca-v2`)
 
@@ -122,8 +124,14 @@ para que Diego decida.
 ### Manuela: apertura (cambio en `backend/dapta/prompt-manuela.md` y en el agente de Dapta)
 
 > Hola, soy Manuela, la asistente virtual de Machea. Te llamo por la solicitud que hiciste sobre {Proyecto}. Esta
-> llamada no se graba; lo que me cuentes lo uso para hacer un resumen de tu solicitud y agendar tu visita. Si en algún
-> momento no quieres seguir, me dices.
+> llamada se graba y se transcribe para tomar nota de tu solicitud y agendar tu visita. Si en algún momento no quieres
+> seguir, me dices.
+
+- **Corregido el 2026-11-07:** la versión anterior decía "no se graba", y Dapta graba todas las llamadas. En el
+  prompt (v2.2) el aviso va en la segunda frase, porque la primera tiene que pasar el filtro de llamadas del iPhone.
+- **Si la persona no acepta la grabación**, Manuela no sigue: le dice que le escriben por WhatsApp y termina. No
+  sabemos si Dapta deja apagar la grabación en una llamada ya empezada [VERIFICAR con Dapta]; mientras tanto, cerrar
+  es lo único que cumple lo que dice la política.
 
 - **Si se compartirá con la constructora** (autorizó en la hoja), agregar: "El resumen se lo pasamos a {Constructora}
   para que te atienda, como autorizaste."

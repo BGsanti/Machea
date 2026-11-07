@@ -50,7 +50,7 @@ Fuentes: [aviso de Vercel](https://vercel.com/kb/bulletin/node-js-security-advis
 | S-10 | Baja | Contraseñas con scrypt N=2^14, p=1 (OWASP pide más memoria) | **Corregido** (N=2^15, p=3 y se vuelven a cifrar solas al iniciar sesión) |
 | S-11 | Baja | Dependencias de la API sin versión fija (`>=`) | **Parcial** (`pip-audit` en CI; falta un archivo de versiones fijas) |
 | S-12 | Info | Render corre Python 3.11 | Subir a 3.12 o 3.13 cuando se pueda |
-| S-13 | Info | La política de privacidad y el aviso provisional dicen que Manuela no graba; Dapta sí graba y transcribe | Corregir los textos antes de `GRABACIONES_GUARDAR=todas` |
+| S-13 | Info | La política de privacidad y el aviso provisional dicen que Manuela no graba; Dapta sí graba y transcribe | **Corregido en los textos** (2026-11-07). Falta cargar la apertura v2.2 de Manuela en Dapta antes de `GRABACIONES_GUARDAR=todas` |
 
 ### Lo que ya estaba bien (se verificó)
 - **Supabase:** todas las tablas de `public` con RLS; todas las funciones `SECURITY DEFINER` fijan `search_path`; la clave `anon` solo ejecuta 5 funciones.
