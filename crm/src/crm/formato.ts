@@ -75,7 +75,11 @@ export function formatoFechaHora(valor: unknown): string {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: ZONA_HORARIA,
-  }).format(fecha);
+  })
+    .format(fecha)
+    // Node escribe «p. m.» con espacios especiales (U+00A0, U+202F) y el navegador con espacios normales: sin esto,
+    // el mismo texto sale distinto en el servidor y en el cliente y React marca error de hidratación.
+    .replace(/\s/g, " ");
 }
 
 /** Texto plano de un valor, para listas, exportación y búsquedas. */

@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
-import { ZONA_HORARIA } from "../fechas";
+import { ZONA_HORARIA, fechaLocal } from "../fechas";
 
 // Datos del panel del gerente y de «Mi día» del asesor. No lleva "use server": se llama desde las páginas del servidor.
 // Todas las consultas se limitan a la empresa actual.
@@ -144,7 +144,7 @@ export async function resumenPanel(dias: Periodo, slaMinutos: number): Promise<R
       ) a on a.propietario_id = u.id
       left join (
         select propietario_id, count(*) as vencidas from crm.tareas
-        where empresa_id = ${empresaId} and estado <> 'completada' and fecha_vencimiento <= current_date
+        where empresa_id = ${empresaId} and estado <> 'completada' and fecha_vencimiento < ${fechaLocal()}::date
         group by propietario_id
       ) t on t.propietario_id = u.id
       where u.empresa_id = ${empresaId} and u.activo and u.rol <> 'lectura'
