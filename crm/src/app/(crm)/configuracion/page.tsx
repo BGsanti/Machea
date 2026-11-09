@@ -4,7 +4,9 @@ import { ejemplosPermitidos } from "@/auth/servidor";
 import { requerirUsuario } from "@/auth/sesion";
 import { monedas } from "@/crm/opciones";
 import { PERFILES } from "@/crm/perfiles";
+import { consumoDelMes } from "@/crm/servidor/consumo";
 import { empresaEsInterna, listaUsuarios, obtenerConfiguracion } from "@/crm/servidor/consultas";
+import { ConsumoMes } from "@/crm/ui/consumo-mes";
 import { Tarjeta } from "@/ui/basicos";
 import { EnlaceBoton } from "@/ui/boton";
 import { Icono } from "@/ui/icono";
@@ -16,6 +18,7 @@ export default async function Configuracion() {
   const usuario = await requerirUsuario();
   const [config, usuarios, interna] = await Promise.all([obtenerConfiguracion(), listaUsuarios(), empresaEsInterna()]);
   const admin = puede(usuario.rol, "configurar");
+  const consumo = admin ? await consumoDelMes() : null;
 
   return (
     <main className="desplazable min-h-0 flex-1 overflow-y-auto p-4">
@@ -47,6 +50,11 @@ export default async function Configuracion() {
             ) : null}
           </div>
         </Tarjeta>
+        {consumo ? (
+          <Tarjeta titulo="Consumo del mes" icono={<Icono nombre="Gauge" className="size-4 text-slate-500" />}>
+            <ConsumoMes consumo={consumo} />
+          </Tarjeta>
+        ) : null}
         {admin && ejemplosPermitidos() ? (
           <Tarjeta titulo="Datos de ejemplo" icono={<Icono nombre="Sparkles" className="size-4 text-amber-500" />}>
             <DatosEjemplo />

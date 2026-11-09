@@ -29,7 +29,7 @@ import json
 import logging
 import os
 from collections import OrderedDict
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from api import exclusiones, horario, programados
 from api.limites import DIA, Rechazo, limites
@@ -46,6 +46,9 @@ COLGO = {"user_hangup", "inactivity", "max_duration_reached"}
 DURACION_MINIMA_MS = 8_000          # menos que esto no hubo conversación, aunque la razón sea otra
 
 _ENVIADAS: "OrderedDict[str, bool]" = OrderedDict()
+
+# Quién se entera de cada envío que salió bien (app.py registra llamadas.marcar_whatsapp para contar el consumo).
+AL_ENVIAR: List[Callable[[Dict[str, Any]], None]] = []
 _MAX_ENVIADAS = 2000
 
 
@@ -126,6 +129,7 @@ def preparar(llamada: Dict[str, Any], telefono_e164: str) -> Optional[Dict[str, 
         except ValueError:
             datos = {}
     return {
+        "call_id": call_id or None,
         "telefono": telefono_e164,
         "plantilla": _plantilla(caso),
         "caso": caso,
@@ -154,6 +158,16 @@ def enviar(pedido: Dict[str, Any]) -> None:
         logger.info("seguimiento WhatsApp enviado: caso=%s tel=...%s", pedido["caso"], pedido["telefono"][-4:])
     except Exception as exc:
         logger.warning("seguimiento WhatsApp falló: %s", exc)
+        return
+    _avisar_envio(pedido)
+
+
+def _avisar_envio(pedido: Dict[str, Any]) -> None:
+    for f in AL_ENVIAR:
+        try:
+            f(pedido)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("seguimiento: aviso de envío falló: %s", exc)
 
 
 def despachar(pedido: Dict[str, Any], ahora: Optional[Any] = None) -> str:
@@ -180,6 +194,7 @@ def _enviar_programado(pedido: Dict[str, Any]) -> None:
     with httpx.Client(timeout=15.0) as c:
         c.post(url, json=pedido).raise_for_status()
     logger.info("seguimiento WhatsApp programado enviado: caso=%s tel=...%s", pedido.get("caso"), str(pedido.get("telefono"))[-4:])
+    _avisar_envio(pedido)
 
 
 programados.EJECUTORES["whatsapp"] = _enviar_programado

@@ -467,6 +467,8 @@ def _llamada_programada(datos: dict[str, Any]) -> None:
 
 
 programados.EJECUTORES["llamada"] = _llamada_programada
+# Cada WhatsApp de seguimiento que sale queda contado en su llamada (consumo de la empresa, crm/src/crm/servidor/consumo.ts).
+seguimiento.AL_ENVIAR.append(llamadas.marcar_whatsapp)
 
 
 @app.post("/api/llamar")
