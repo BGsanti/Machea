@@ -85,7 +85,7 @@ async function candidatoDe(empresaId: string, digitos: string): Promise<string |
 }
 
 /** El candidato de esta persona en la empresa: lo encuentra o lo crea. */
-async function asegurarCandidato(empresaId: string, usuario: Usuario, d: Datos, origenExterno: string): Promise<string> {
+async function asegurarCandidato(empresaId: string, usuario: Usuario, d: Datos, origenExterno: string, llegada?: Date | null): Promise<string> {
   const digitos = texto(d.telefono_digitos, 20);
   if (!digitos) throw new Error("La fila no trae teléfono.");
   const existente = await candidatoDe(empresaId, digitos);
@@ -124,6 +124,9 @@ async function asegurarCandidato(empresaId: string, usuario: Usuario, d: Datos, 
       },
       usuario.id,
     );
+    // El reloj de respuesta corre desde que el lead llegó a la bandeja, no desde que el CRM lo procesó (si nadie
+    // tenía el CRM abierto, eso pudo ser mucho después). Se fija aparte para no dejar que un formulario lo decida.
+    if (llegada) await db.update(candidatos).set({ creadoEn: llegada, asignadoEn: llegada }).where(and(eq(candidatos.id, id), eq(candidatos.empresaId, empresaId)));
   } catch (e) {
     // Otra pestaña lo creó a la vez: se usa ese.
     const [ya] = await db
@@ -163,8 +166,8 @@ async function guardarActividad(objeto: "tareas" | "eventos", origenExterno: str
   }
 }
 
-async function procesarResultado(empresaId: string, usuario: Usuario, d: Datos, callId: string) {
-  const candidatoId = await asegurarCandidato(empresaId, usuario, d, `machea:${texto(d.telefono_digitos, 20)}`);
+async function procesarResultado(empresaId: string, usuario: Usuario, d: Datos, callId: string, llegada?: Date | null) {
+  const candidatoId = await asegurarCandidato(empresaId, usuario, d, `machea:${texto(d.telefono_digitos, 20)}`, llegada);
   const candidato = await repo.obtener("candidatos", candidatoId);
   // Si ya se convirtió, las actividades van al contacto.
   const quien =
@@ -176,6 +179,17 @@ async function procesarResultado(empresaId: string, usuario: Usuario, d: Datos, 
   const temperatura = valoracion(d.temperatura_lead);
   if (temperatura && candidato && candidato.valoracion !== temperatura && !candidato.convertido) {
     await repo.actualizar("candidatos", candidatoId, { valoracion: temperatura }, usuario.id);
+  }
+
+  // Si Manuela habló con la persona, eso es el primer contacto (decisión de Diego, 2026-11-09): el lead deja de estar
+  // «nuevo» y el reloj de respuesta se detiene en la hora en que llegó el resultado de la llamada.
+  if (d.sin_contacto !== true && candidato && !candidato.convertido && !candidato.primerContactoEn) {
+    if (candidato.estado === "nuevo") await repo.actualizar("candidatos", candidatoId, { estado: "contactado" }, usuario.id);
+    const db = await bd();
+    await db
+      .update(candidatos)
+      .set({ primerContactoEn: llegada ?? new Date() })
+      .where(and(eq(candidatos.id, candidatoId), eq(candidatos.empresaId, empresaId)));
   }
 
   const comentarios = [
@@ -479,15 +493,15 @@ async function procesarCitaCamila(empresaId: string, usuario: Usuario, d: Datos,
   }
 }
 
-async function procesarFila(empresaId: string, usuario: Usuario, origen: string, origenId: string, d: Datos) {
-  if (origen === "resultado") return procesarResultado(empresaId, usuario, d, origenId);
+async function procesarFila(empresaId: string, usuario: Usuario, origen: string, origenId: string, d: Datos, llegada?: Date | null) {
+  if (origen === "resultado") return procesarResultado(empresaId, usuario, d, origenId, llegada);
   // Lo que sale de la base de Machea para su propia empresa (la fuente `interna`): demos pedidas, prospectos y llamadas de Camila.
   if (origen === "demo") return procesarDemo(empresaId, usuario, d);
   if (origen === "prospecto") return procesarProspecto(empresaId, usuario, d);
   if (origen === "llamada_captacion") return procesarLlamadaCamila(empresaId, usuario, d, origenId);
   if (origen === "cita") return procesarCitaCamila(empresaId, usuario, d, origenId);
   if (origen === "consulta" || origen === "solicitud") {
-    await asegurarCandidato(empresaId, usuario, d, `machea:${texto(d.telefono_digitos, 20)}`);
+    await asegurarCandidato(empresaId, usuario, d, `machea:${texto(d.telefono_digitos, 20)}`, llegada);
     return;
   }
   throw new Error(`Origen desconocido: ${origen}`);
@@ -503,7 +517,7 @@ export async function procesarBandeja(quienAbrio: Usuario, limite = LOTE): Promi
   // Lo procesa el sistema (el dueño de la empresa), no quien abrió la página: si fuera un asesor, todo quedaría a su
   // nombre y con sus permisos. Cada lead va a su asesor por el reparto.
   const usuario = await usuarioSistema(empresaId);
-  const tomadas = await db.execute<{ id: number; origen: string; origen_id: string; datos: Datos }>(sql`
+  const tomadas = await db.execute<FilaTomada>(sql`
     update ${bandejaLeads} set tomado_en = now(), intentos = intentos + 1
     where id in (
       select id from ${bandejaLeads}
@@ -513,7 +527,7 @@ export async function procesarBandeja(quienAbrio: Usuario, limite = LOTE): Promi
       limit ${limite}
       for update skip locked
     )
-    returning id, origen, origen_id, datos
+    returning id, origen, origen_id, datos, creado_en
   `);
   let hechas = 0;
   // En orden: la persona (consulta, solicitud) antes que el resultado de su llamada.
@@ -524,13 +538,15 @@ export async function procesarBandeja(quienAbrio: Usuario, limite = LOTE): Promi
   return hechas;
 }
 
-type FilaTomada = { id: number; origen: string; origen_id: string; datos: Datos };
+/** creado_en: cuándo llegó a la bandeja. Puede venir como texto según el driver (pg o PGlite). */
+type FilaTomada = { id: number; origen: string; origen_id: string; datos: Datos; creado_en?: Date | string | null };
 
 /** Procesa una fila ya tomada: si sale bien la marca como hecha; si falla guarda el error. Devuelve si salió bien. */
 async function intentarFila(empresaId: string, usuario: Usuario, f: FilaTomada): Promise<boolean> {
   const db = await bd();
   try {
-    await conEmpresa(empresaId, () => procesarFila(empresaId, usuario, f.origen, f.origen_id, f.datos ?? {}), usuario);
+    const llegada = f.creado_en ? new Date(f.creado_en) : null;
+    await conEmpresa(empresaId, () => procesarFila(empresaId, usuario, f.origen, f.origen_id, f.datos ?? {}, llegada && !Number.isNaN(llegada.getTime()) ? llegada : null), usuario);
     await db.update(bandejaLeads).set({ procesadoEn: new Date(), error: null }).where(eq(bandejaLeads.id, f.id));
     return true;
   } catch (e) {
@@ -559,7 +575,7 @@ export async function reintentarAtascado(quienAbrio: Usuario, id: number): Promi
     update ${bandejaLeads} set tomado_en = now()
     where id = ${id} and empresa_id = ${empresaId} and procesado_en is null and intentos >= ${MAX_INTENTOS}
       and (tomado_en is null or tomado_en < now() - interval '5 minutes')
-    returning id, origen, origen_id, datos
+    returning id, origen, origen_id, datos, creado_en
   `);
   const fila = tomadas.rows[0];
   if (!fila) {
