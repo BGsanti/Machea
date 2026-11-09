@@ -90,7 +90,13 @@ async function registrar(form: FormularioPublico, envio: EnvioValido, ipHash: st
       { respuestas, ...(lead.interes ? { interes: lead.interes } : {}), ...(lead.email && !actual?.email ? { email: lead.email } : {}) },
       responsable,
     );
-    await repo.crear("tareas", { asunto: `Volvió a llenar «${form.nombre}»`, tipo: "llamada", fechaVencimiento: fechaLocal(), prioridad: "alta", quienObjeto: "candidatos", quienId: candidatoId }, responsable);
+    // La tarea y el aviso son para el asesor que ya atiende a la persona; el dueño de la cuenta solo si nadie la tiene.
+    const encargado = (actual?.propietarioId as string | null | undefined) ?? responsable;
+    await repo.crear("tareas", { asunto: `Volvió a llenar «${form.nombre}»`, tipo: "llamada", fechaVencimiento: fechaLocal(), prioridad: "alta", quienObjeto: "candidatos", quienId: candidatoId, propietarioId: encargado }, responsable);
+    if (!admins.some((a) => a.id === encargado)) {
+      const cambioInteres = lead.interes && lead.interes !== actual?.interes;
+      await avisar(encargado, `${nombreVisible} volvió a llenar «${form.nombre}»`, cambioInteres ? `Ahora le interesa ${lead.interes}` : null, `/ventas/o/candidatos/${candidatoId}`);
+    }
   } else {
     asesor = await elegirAsesor(empresaId);
     try {

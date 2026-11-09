@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requerirPermiso, requerirUsuario } from "@/auth/sesion";
 import { bd } from "@/db/cliente";
@@ -441,6 +441,14 @@ export async function registrarResultadoLlamada(objeto: string, id: string, resu
       },
       usuario.id,
     );
+    // La llamada ya se hizo: «Contactar a…», «Volver a llamar» o «Volvió a llenar» de esta persona quedan cumplidas.
+    // Se cierran con repo.actualizar para que corran las reglas y los flujos como si las cerrara el asesor.
+    const db = await bd();
+    const abiertas = await db
+      .select({ id: tareas.id })
+      .from(tareas)
+      .where(and(eq(tareas.empresaId, usuario.empresaId), eq(tareas.quienObjeto, objeto), eq(tareas.quienId, id), eq(tareas.tipo, "llamada"), ne(tareas.estado, "completada")));
+    for (const t of abiertas) await repo.actualizar("tareas", t.id, { estado: "completada" }, usuario.id);
     if (objeto === "candidatos" && def.estadoLead && def.desdeEstados.includes(String(persona.estado ?? ""))) {
       await repo.actualizar("candidatos", id, { estado: def.estadoLead }, usuario.id);
     }

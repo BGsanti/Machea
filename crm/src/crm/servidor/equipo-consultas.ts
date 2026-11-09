@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { bd } from "@/db/cliente";
 import { empresaActual } from "@/db/empresa";
 import { invitaciones, usuarios } from "@/db/esquema";
+import { fechaLocal } from "../fechas";
 import { obtenerConfiguracion } from "./consultas";
 
 // Consultas del equipo. Aquí no va "use server": estas funciones no se pueden llamar desde el navegador.
@@ -22,7 +23,7 @@ export interface MiembroEquipo {
   sinContactar: number;
   /** De esos, los que pasaron el tiempo de respuesta de la empresa sin que nadie los contacte. */
   atrasados: number;
-  /** Tareas pendientes que vencen hoy o ya vencieron. */
+  /** Tareas pendientes que ya vencieron: antes de hoy, en la zona del negocio (las de hoy todavía están a tiempo). */
   tareasVencidas: number;
 }
 
@@ -48,7 +49,7 @@ export async function equipoConCarga(): Promise<MiembroEquipo[]> {
   const tareas = await db.execute<{ propietario: string | null; vencidas: string }>(sql`
     select propietario_id as propietario, count(*) as vencidas
     from crm.tareas
-    where empresa_id = ${empresaId} and estado <> 'completada' and fecha_vencimiento <= current_date
+    where empresa_id = ${empresaId} and estado <> 'completada' and fecha_vencimiento < ${fechaLocal()}::date
     group by propietario_id`);
   const porLead = new Map(leads.rows.map((r) => [r.propietario, r]));
   const porTarea = new Map(tareas.rows.map((r) => [r.propietario, Number(r.vencidas)]));
