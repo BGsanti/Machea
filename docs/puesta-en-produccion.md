@@ -133,6 +133,11 @@ sus leads; los leads nuevos se reparten por turnos y el gerente ve cómo atiende
    viejo (`masViejaMin`) y cuántos están **atascados** (`atascados`: fallaron 5 veces y ya no se reintentan solos; el dueño de cada cuenta los ve en
    el Inicio y los reintenta desde «Leads atascados»; un valor mayor que 0 merece una alerta). Sin la cabecera solo dice
    `{"ok":true}` o 503: sirve para un monitor externo (UptimeRobot, Better Stack) con alerta si no responde 200.
+   **Bandeja sin depender de que alguien abra el CRM (2026-11-09):** poner `CRON_SECRET` (24+ caracteres aleatorios) en Vercel (`machea2`)
+   y crear un cron externo (cron-job.org, como el de Camila) cada **5 minutos**: `POST https://www.machea.co/crm/api/cron/bandeja` con la
+   cabecera `Authorization: Bearer <CRON_SECRET>`. Sin él, un lead que llega de noche entra solo cuando alguien abre el CRM. No se usa el cron
+   de Vercel porque uno cada pocos minutos exige el plan Pro. Desde ese cambio, el reloj de respuesta cuenta desde que el lead llegó a la
+   bandeja, y si Manuela habló con la persona el lead pasa a «contactado» con esa hora como primer contacto.
 6. **Verificación (10 minutos, con la cuenta de la empresa):**
    - `/crm/equipo` → «Invitar a alguien» → asesor → copiar el enlace → abrirlo en una ventana de incógnito → crear usuario y contraseña → entra a «Mi día».
    - Ese asesor solo ve sus leads; `/crm/equipo`, `/crm/formularios` y `/crm/automatizacion` lo devuelven al inicio.
