@@ -20,6 +20,9 @@ from api import admin, correo  # noqa: E402
 from api import app as m  # noqa: E402
 from api.limites import limites  # noqa: E402
 from api.metricas import enmascarar_ip, enmascarar_telefono, metricas  # noqa: E402
+
+# /api/llamar respeta el horario de la Ley 2300 (api/horario.py): estas pruebas corren como si fuera hora hábil.
+mock.patch.object(m, "_en_horario_de_llamadas", return_value=True).start()
 from tests.test_limites import Base as BaseLlamadas, FakeCliente, cuerpo  # noqa: E402
 
 CLAVE = "clave-de-prueba-bien-larga-123"

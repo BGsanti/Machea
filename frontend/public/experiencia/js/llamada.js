@@ -170,6 +170,12 @@
           if (d.status === 'mock_enqueued') {
             console.warn('[GDF/llamada] modo mock — DAPTA_FLOW_WEBHOOK_URL no configurada en el backend.', d);
           }
+          // Fuera del horario de la Ley 2300 el backend la programa y dice cuándo llama (api/programados.py).
+          // real: false, porque todavía no hay resumen que esperar.
+          if (d.status === 'programada') {
+            cb({ estado: 'lista', real: false, telefono: d.telefono || null, mensaje: d.detalle });
+            return;
+          }
           cb({
             estado: 'lista',
             real: d.status === 'enviado',

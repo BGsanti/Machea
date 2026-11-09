@@ -46,6 +46,9 @@ from api import captacion as captacion_mod
 from api import cuentas as cuentas_mod
 from api import fuentes as fuentes_mod
 from api import demo as demo_mod
+from api import exclusiones
+from api import horario
+from api import programados
 from api import grabaciones as grabaciones_mod
 from api import llamadas
 from api import seguimiento
@@ -435,6 +438,37 @@ class SolicitudLlamada(BaseModel):
     apartamento: ApartamentoLlamada
 
 
+def _en_horario_de_llamadas() -> bool:
+    """Ley 2300 (api/horario.py). Aparte para que las pruebas lo puedan fijar."""
+    return horario.ventana_permitida()[0]
+
+
+def _pedir_llamada_a_dapta(payload_dapta: dict[str, Any]) -> None:
+    import httpx
+
+    headers = {"x-api-key": DAPTA_API_KEY} if DAPTA_API_KEY else {}
+    with httpx.Client(timeout=20.0) as client:
+        r = client.post(DAPTA_FLOW_WEBHOOK_URL, json=payload_dapta, headers=headers)
+        r.raise_for_status()
+
+
+def _llamada_programada(datos: dict[str, Any]) -> None:
+    """La cola (api/programados.py) dispara una llamada que se pidió fuera de horario."""
+    if not DAPTA_FLOW_WEBHOOK_URL:
+        raise RuntimeError("DAPTA_FLOW_WEBHOOK_URL no está configurado")
+    # Manuela calcula "hoy" y "mañana" con current_time: tiene que ser la hora de la llamada, no la del pedido.
+    payload_dapta = {**datos["dapta"], "current_time": datetime.now(TZ_BOGOTA).strftime("%Y-%m-%d %H:%M")}
+    RESULTADOS_LLAMADAS.pop(payload_dapta.get("telefono"), None)
+    _pedir_llamada_a_dapta(payload_dapta)
+    metricas.registrar("llamada_enviada", "Llamada programada de Manuela pedida a Dapta · "
+                       f"{enmascarar_telefono(str(payload_dapta.get('telefono') or ''))}", "ok")
+    if datos.get("solicitud"):
+        llamadas.guardar_solicitud(datos["solicitud"])
+
+
+programados.EJECUTORES["llamada"] = _llamada_programada
+
+
 @app.post("/api/llamar")
 def api_llamar(payload: SolicitudLlamada, request: Request, tareas: BackgroundTasks):
     telefono_e164 = normalizar_telefono_e164(payload.telefono)
@@ -512,8 +546,6 @@ def api_llamar(payload: SolicitudLlamada, request: Request, tareas: BackgroundTa
             "payload_enviado": payload_dapta,
         }
 
-    import httpx
-
     # TOPES (ver api/limites.py): este endpoint llama de verdad a un móvil, sin
     # login y con CORS abierto. Se aplican solo en modo real: en mock no se
     # llama a nadie y no hay nada que proteger (ni que gastar).
@@ -529,16 +561,33 @@ def api_llamar(payload: SolicitudLlamada, request: Request, tareas: BackgroundTa
             status_code=429, detail=exc.mensaje, headers={"Retry-After": str(exc.reintentar_en)}
         ) from exc
 
+    # Pedir la llamada otra vez es una solicitud nueva y expresa: si el número estaba en la lista de exclusión
+    # (dijo "no me llamen más" en una llamada anterior), sale de ella (design/legal/LLAMADAS_LEY_2300.md).
+    exclusiones.readmitir(telefono_e164)
+
+    # Ley 2300: fuera de su horario no se llama. Se programa para cuando abra y se le dice a la persona cuándo.
+    if not _en_horario_de_llamadas():
+        cuando = horario.proxima_ventana()
+        if not programados.programar("llamada", telefono_e164, {"dapta": payload_dapta, "solicitud": solicitud}, cuando):
+            reserva.liberar()
+            raise HTTPException(status_code=503, detail="No pudimos programar la llamada. Intenta de nuevo en unos minutos.")
+        metricas.registrar("llamada_programada", f"Llamada de Manuela programada fuera de horario · "
+                           f"{enmascarar_telefono(telefono_e164)}", "info")
+        return {
+            "status": "programada",
+            "detalle": f"Por ley solo podemos llamar de lunes a viernes de 7 a. m. a 7 p. m. y los sábados de 8 a. m. "
+                       f"a 3 p. m. Manuela te llama {horario.describir(cuando)}.",
+            "programada_para": cuando.isoformat(),
+            "telefono": telefono_e164,
+        }
+
     # Se limpia cualquier resultado viejo para este número: si vuelve a llamar
     # (reintento o segunda vuelta), que el polling no devuelva el resumen de la
     # llamada anterior mientras la nueva sigue en curso.
     RESULTADOS_LLAMADAS.pop(telefono_e164, None)
 
-    headers = {"x-api-key": DAPTA_API_KEY} if DAPTA_API_KEY else {}
     try:
-        with httpx.Client(timeout=20.0) as client:
-            r = client.post(DAPTA_FLOW_WEBHOOK_URL, json=payload_dapta, headers=headers)
-            r.raise_for_status()
+        _pedir_llamada_a_dapta(payload_dapta)
     except Exception:
         # Si Dapta no recibió el pedido, el cupo se devuelve: un fallo nuestro
         # no puede dejar a la persona sin poder reintentar durante una hora.
@@ -698,13 +747,19 @@ async def webhook_resultado_llamada(request: Request, tareas: BackgroundTasks):
     # o la llamada salió completa. Solo si el flow de envío está configurado, y solo para
     # llamadas salientes (en una entrante, `to_number` es el nuestro, no el del lead).
     # A la base solo llega lo que trae el secreto: es lo que verá la empresa en su CRM.
-    if guardar and str(llamada.get("direction") or "outbound") != "inbound":
+    saliente = str(llamada.get("direction") or "outbound") != "inbound"
+    if guardar and saliente:
         tareas.add_task(llamadas.guardar_resultado, llamada, body, telefono_e164, dict(nuevo))
 
-    if os.environ.get("DAPTA_WHATSAPP_FLOW_URL") and str(llamada.get("direction") or "outbound") != "inbound":
+    # "No me llamen más": el número entra a la lista de exclusión (api/exclusiones.py) y no se le escribe por WhatsApp.
+    pidio_no_contactar = nuevo.get("motivo_no_agenda") == "pidio_no_ser_contactado"
+    if pidio_no_contactar and saliente:
+        tareas.add_task(exclusiones.excluir, telefono_e164, "manuela", "pidio_no_ser_contactado")
+
+    if os.environ.get("DAPTA_WHATSAPP_FLOW_URL") and saliente and not pidio_no_contactar:
         pedido = seguimiento.preparar(llamada, telefono_e164)
         if pedido:
-            tareas.add_task(seguimiento.enviar, pedido)
+            tareas.add_task(seguimiento.despachar, pedido)
     return {"status": "ok"}
 
 

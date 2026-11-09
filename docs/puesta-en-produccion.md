@@ -43,6 +43,11 @@ Carpeta `~/Desktop/MACHEA/SUPABASE/` (copia de `supabase/migrations/`):
 4. Corra `6-crm_ingesta.sql` (crea el rol `crm_app` y los triggers). Después ponga la clave del rol a mano:
    `alter role crm_app with password '<clave larga>';` — nunca en el repo ni en un chat.
 5. Verifique con `0-que-falta.sql`: todo en `true`.
+6. **Lista de exclusión y llamadas fuera de horario (2026-11-09):** corra `supabase/migrations/20261109120000_exclusiones_y_programados.sql`
+   (idempotente). Sin ella el backend no guarda los "no me llamen más" y no puede programar las llamadas pedidas fuera del horario de la
+   Ley 2300 (`design/legal/LLAMADAS_LEY_2300.md`). Esas llamadas y los WhatsApp aplazados los dispara el **mismo cron de Camila**
+   (`POST /api/captacion/cola` con `X-Captacion-Key`, cada ~10 minutos, docs/agente-captacion.md §6): **ese cron tiene que estar activo**,
+   aunque Camila no esté llamando. También existe `POST /api/programados/cola` con la misma clave.
 
 ### 4. Render (`machea-api`) · Environment, luego Manual Deploy
 | Variable | Para qué |
