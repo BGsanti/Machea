@@ -140,6 +140,11 @@ class AlmacenMemoria:
             previo = self.resultados.get(fila["call_id"], {})
             self.resultados[fila["call_id"]] = {**previo, **fila}
 
+    def marcar_whatsapp(self, call_id: str, cambios: Dict[str, Any]) -> None:
+        with self._cerrojo:
+            if call_id in self.resultados:
+                self.resultados[call_id].update(cambios)
+
 
 class AlmacenSupabase:
     """PostgREST con la clave service_role, como AlmacenSupabase de api/captacion.py."""
@@ -183,6 +188,9 @@ class AlmacenSupabase:
             logger.warning("llamadas: falta aplicar la migración del audio y la transcripción; se guarda sin ellos")
             enviar(grabaciones.sin_columnas_nuevas(fila))
 
+    def marcar_whatsapp(self, call_id: str, cambios: Dict[str, Any]) -> None:
+        self._req("PATCH", "/resultados_llamada", params={"call_id": f"eq.{call_id}"}, cuerpo=cambios)
+
 
 _ALMACEN: Any = None
 
@@ -205,6 +213,19 @@ def configurar_almacen(a: Any) -> None:
 # ---------------------------------------------------------------------------
 # Lo que usa app.py
 # ---------------------------------------------------------------------------
+
+def marcar_whatsapp(pedido: Dict[str, Any]) -> None:
+    """El seguimiento por WhatsApp de esta llamada ya salió (api/seguimiento.py). Queda en resultados_llamada para
+    contar los mensajes de cada empresa (su bolsa del mes) y llega al CRM con el resto del resultado."""
+    call_id = str(pedido.get("call_id") or "").strip()[:120]
+    if not call_id:
+        return
+    try:
+        almacen().marcar_whatsapp(call_id, {"whatsapp_enviado_en": _ahora().isoformat(),
+                                            "whatsapp_caso": str(pedido.get("caso") or "")[:20] or None})
+    except Exception as exc:  # noqa: BLE001 - contar nunca rompe el envío
+        logger.warning("llamadas: no se pudo marcar el WhatsApp de %s (¿falta la migración?): %s", call_id, exc)
+
 
 def nueva_solicitud(*, telefono_e164: str, nombre: Optional[str], marca: str, tipo_operacion: str,
                     tipo_inmueble: Optional[str],
@@ -275,8 +296,13 @@ def guardar_resultado(llamada: Dict[str, Any], body: Dict[str, Any], telefono_e1
             if v in (None, ""):
                 continue
             fila[c] = str(v)[:2000] if c in _TEXTOS_LIBRES or isinstance(v, str) else v
+        extra = grabaciones.extraer(llamada)
         if grabaciones.habilitada("manuela"):
-            fila.update(grabaciones.extraer(llamada))
+            fila.update(extra)
+        elif "duracion_ms" in extra:
+            # La duración no es la grabación: se guarda siempre, porque es lo que mide el consumo de cada empresa
+            # (minutos de su bolsa). El audio y la transcripción siguen dependiendo de GRABACIONES_GUARDAR.
+            fila["duracion_ms"] = extra["duracion_ms"]
         almacen().guardar_resultado(fila)
     except Exception:  # noqa: BLE001 - guardar nunca rompe el webhook
         logger.exception("llamadas: no se pudo guardar el resultado de %s", telefono_e164[-4:])
