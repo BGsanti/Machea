@@ -46,7 +46,11 @@ from pydantic import BaseModel, Field
 
 from api import admin as admin_mod
 from api import demo as demo_mod
+from api import exclusiones
 from api import grabaciones
+from api import horario
+from api import programados
+from api.horario import TZ, es_festivo, festivos_colombia  # noqa: F401  (las pruebas y otros módulos los usan desde aquí)
 from api import seguimiento
 from api.limites import DIA, Rechazo, entero_env, ip_del_cliente, limites
 from api.metricas import enmascarar_telefono, metricas
@@ -54,7 +58,6 @@ from api.metricas import enmascarar_telefono, metricas
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
 
-TZ = timezone(timedelta(hours=-5))          # Colombia no tiene horario de verano
 MAX_INTENTOS = 3
 ESTADOS_NO_LLAMAR = {"no_contactar", "numero_invalido", "no_interesado", "demo_agendada"}
 
@@ -105,77 +108,19 @@ def _digitos(e164: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Horario: nunca domingos ni festivos de Colombia
+# Horario: nunca domingos ni festivos de Colombia (api/horario.py). Camila usa uno más estricto que la Ley 2300.
 # ---------------------------------------------------------------------------
 
-def _pascua(año: int) -> date:
-    """Domingo de Pascua (algoritmo gregoriano anónimo)."""
-    a, b, c = año % 19, año // 100, año % 100
-    d, e = b // 4, b % 4
-    f = (b + 8) // 25
-    g = (b - f + 1) // 3
-    h = (19 * a + b - d - g + 15) % 30
-    i, k = c // 4, c % 4
-    l = (32 + 2 * e + 2 * i - h - k) % 7
-    m = (a + 11 * h + 22 * l) // 451
-    mes = (h + l - 7 * m + 114) // 31
-    dia = (h + l - 7 * m + 114) % 31 + 1
-    return date(año, mes, dia)
-
-
-def _lunes(d: date) -> date:
-    """Ley Emiliani: el festivo pasa al lunes siguiente (el mismo día si ya es lunes)."""
-    return d + timedelta(days=(7 - d.weekday()) % 7)
-
-
-def festivos_colombia(año: int) -> set:
-    p = _pascua(año)
-    fijos = {date(año, 1, 1), date(año, 5, 1), date(año, 7, 20), date(año, 8, 7), date(año, 12, 8), date(año, 12, 25),
-             p - timedelta(days=3), p - timedelta(days=2)}                                   # Jueves y Viernes Santo
-    moviles = [date(año, 1, 6), date(año, 3, 19), date(año, 6, 29), date(año, 8, 15), date(año, 10, 12),
-               date(año, 11, 1), date(año, 11, 11),
-               p + timedelta(days=39), p + timedelta(days=60), p + timedelta(days=68)]      # Ascensión, Corpus, Sagrado Corazón
-    return fijos | {_lunes(x) for x in moviles}
-
-
-def es_festivo(d: date) -> bool:
-    return d in festivos_colombia(d.year)
-
-
-# (hora_inicio, hora_fin) en horas decimales, por día de la semana (0 = lunes)
-VENTANAS = {0: (8.0, 18.0), 1: (8.0, 18.0), 2: (8.0, 18.0), 3: (8.0, 18.0), 4: (8.0, 18.0), 5: (9.0, 12.0)}
+VENTANAS = horario.VENTANAS_CAMILA
 
 
 def ventana_permitida(ahora: Optional[datetime] = None) -> Tuple[bool, str]:
-    ahora = (ahora or datetime.now(TZ)).astimezone(TZ)
-    if es_festivo(ahora.date()):
-        return False, "festivo"
-    v = VENTANAS.get(ahora.weekday())
-    if not v:
-        return False, "domingo"
-    h = ahora.hour + ahora.minute / 60
-    if h < v[0]:
-        return False, "antes_de_hora"
-    if h >= v[1]:
-        return False, "despues_de_hora"
-    return True, "ok"
+    return horario.ventana_permitida(ahora, VENTANAS)
 
 
 def proxima_ventana(ahora: Optional[datetime] = None) -> datetime:
-    """El primer instante dentro del horario a partir de `ahora` (con una pausa de 5 min al abrir)."""
-    ahora = (ahora or datetime.now(TZ)).astimezone(TZ)
-    ok, _ = ventana_permitida(ahora)
-    if ok:
-        return ahora
-    for dias in range(0, 10):
-        d = (ahora + timedelta(days=dias)).date()
-        v = VENTANAS.get(d.weekday())
-        if not v or es_festivo(d):
-            continue
-        apertura = datetime(d.year, d.month, d.day, int(v[0]), int((v[0] % 1) * 60) + 5, tzinfo=TZ)
-        if apertura > ahora:
-            return apertura
-    return ahora + timedelta(days=1)
+    """El primer instante dentro del horario de Camila a partir de `ahora` (con una pausa de 5 min al abrir)."""
+    return horario.proxima_ventana(ahora, VENTANAS, pausa_min=5)
 
 
 # ---------------------------------------------------------------------------
@@ -416,6 +361,9 @@ def llamar_prospecto(p: Dict[str, Any], *, ip: str = "", publico: bool = False) 
     tel = p["telefono"]
     if p["estado"] in ESTADOS_NO_LLAMAR:
         return {"status": "bloqueado", "detalle": f"El prospecto está en estado «{p['estado']}»."}
+    if exclusiones.excluido(tel):                            # lo pidió en otra llamada (Manuela o Camila): no se marca
+        a.actualizar(p["id"], estado="no_contactar")
+        return {"status": "bloqueado", "detalle": "El número está en la lista de exclusión."}
     if p.get("intentos", 0) >= MAX_INTENTOS and p.get("origen") != "demo_web":
         return {"status": "agotado", "detalle": f"Ya se intentó {MAX_INTENTOS} veces."}
     ok, motivo = ventana_permitida()
@@ -540,6 +488,7 @@ def procesar_resultado(body: Dict[str, Any]) -> Dict[str, Any]:
     cita = None
     if no_contactar:
         cambios.update(estado="no_contactar", score="X", puntos=0)
+        exclusiones.excluir("+57" + re.sub(r"\D", "", p["telefono"])[-10:], "camila", "no_contactar")
     elif demo:
         cambios.update(estado="demo_agendada", score=letra, puntos=puntos)
         cita = a.crear_cita({"prospecto_id": p["id"], "tipo": "demo", "inicio": _inicio_cita(datos.get("fecha_hora_demo")),
@@ -698,7 +647,16 @@ def procesar_cola(maximo: int = 3) -> Dict[str, Any]:
 
 @router.post("/api/captacion/cola")
 def cola(maximo: int = 3, _s=Depends(exigir_acceso)):
-    return procesar_cola(max(1, min(maximo, 10)))
+    r = procesar_cola(max(1, min(maximo, 10)))
+    # El mismo cron mueve las llamadas y mensajes que se pidieron fuera de horario (api/programados.py).
+    r["programados"] = programados.procesar()
+    return r
+
+
+@router.post("/api/programados/cola")
+def cola_programados(maximo: int = 5, _s=Depends(exigir_acceso)):
+    """Para un cron aparte, si se quiere. Normalmente lo mueve /api/captacion/cola."""
+    return programados.procesar(max(1, min(maximo, 20)))
 
 
 @router.get("/api/captacion/prospectos")

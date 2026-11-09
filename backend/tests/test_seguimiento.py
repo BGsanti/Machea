@@ -74,6 +74,8 @@ class TestWebhook(unittest.TestCase):
         self.c = TestClient(m.app, raise_server_exceptions=False)
         self.enviados = []
         p = mock.patch.object(seguimiento, "enviar", side_effect=self.enviados.append); p.start(); self.addCleanup(p.stop)
+        # Fuera del horario de la Ley 2300 el mensaje se programa en vez de enviarse (tests/test_exclusiones.py).
+        h = mock.patch.object(seguimiento.horario, "ventana_permitida", return_value=(True, "ok")); h.start(); self.addCleanup(h.stop)
 
     def post(self, **k):
         return self.c.post("/webhooks/dapta/resultado", json={"data": llamada(**k), "call": {}})

@@ -31,6 +31,7 @@ import os
 from collections import OrderedDict
 from typing import Any, Dict, Optional
 
+from api import exclusiones, horario, programados
 from api.limites import DIA, Rechazo, limites
 
 logger = logging.getLogger("uvicorn.error")
@@ -153,3 +154,32 @@ def enviar(pedido: Dict[str, Any]) -> None:
         logger.info("seguimiento WhatsApp enviado: caso=%s tel=...%s", pedido["caso"], pedido["telefono"][-4:])
     except Exception as exc:
         logger.warning("seguimiento WhatsApp falló: %s", exc)
+
+
+def despachar(pedido: Dict[str, Any], ahora: Optional[Any] = None) -> str:
+    """Lo que usa el webhook: no escribe a quien pidió no ser contactado y aplaza lo que cae fuera del horario de la
+    Ley 2300 (api/horario.py) para el siguiente horario permitido (api/programados.py)."""
+    if exclusiones.excluido(pedido.get("telefono")):
+        logger.info("seguimiento: ...%s está en la lista de exclusión, no se escribe", str(pedido.get("telefono"))[-4:])
+        return "excluido"
+    ok, _ = horario.ventana_permitida(ahora)
+    if not ok:
+        cuando = horario.proxima_ventana(ahora)
+        programados.programar("whatsapp", pedido["telefono"], pedido, cuando)
+        return "programado"
+    enviar(pedido)
+    return "enviado"
+
+
+def _enviar_programado(pedido: Dict[str, Any]) -> None:
+    """Desde la cola: aquí sí tiene que fallar en voz alta, para que la cola lo reintente."""
+    url = os.environ.get("DAPTA_WHATSAPP_FLOW_URL")
+    if not url:
+        raise RuntimeError("DAPTA_WHATSAPP_FLOW_URL no está configurado")
+    import httpx
+    with httpx.Client(timeout=15.0) as c:
+        c.post(url, json=pedido).raise_for_status()
+    logger.info("seguimiento WhatsApp programado enviado: caso=%s tel=...%s", pedido.get("caso"), str(pedido.get("telefono"))[-4:])
+
+
+programados.EJECUTORES["whatsapp"] = _enviar_programado

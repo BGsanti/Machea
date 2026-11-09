@@ -54,20 +54,22 @@ lo que recomendó Ariel (`design/login/REVISION_LEGAL.md`).
 
 ## Qué hay hoy y qué falta construir
 
-| Regla | Hoy (`main`, 2026-11-02) | Falta |
+| Regla | Hoy (`main`, 2026-11-09) | Falta |
 | --- | --- | --- |
-| Horario de Manuela | `/api/llamar` llama **en cuanto la persona lo pide, a cualquier hora** | Programar fuera de horario y avisarlo en pantalla |
+| Horario de Manuela | Fuera de horario, `/api/llamar` programa la llamada y la pantalla dice cuándo llama (`api/horario.py`, `api/programados.py`) | Que el cron de `/api/captacion/cola` esté activo |
 | Horario de Camila | `backend/api/captacion.py`: L–V 8–18 y sábados 9–12, sin festivos (más estricto que la ley) | Nada |
-| Horario del WhatsApp de seguimiento | `backend/api/seguimiento.py` no revisa la hora | Aplazar los envíos fuera de horario |
-| Intentos | Hasta 1 llamada por número por hora (`limites.py`); el WhatsApp, hasta 2 al día | Tope por día y por solicitud |
+| Horario del WhatsApp de seguimiento | Fuera de horario se programa para cuando abra (`seguimiento.despachar`) | Igual: el cron |
+| Intentos | Hasta 1 llamada por número por hora (`limites.py`); el WhatsApp, hasta 2 al día; Camila, 3 intentos | [DECIDIR] tope por día y por solicitud |
 | Aviso de asistente virtual | Manuela y Camila lo dicen | Nada |
 | Aviso de grabación | Corregido en PR #43 (Manuela v2.2), falta cargarlo en Dapta | Cargar en Dapta |
-| "No me llame más" en Manuela | Lo registra como `pidio_no_ser_contactado`, **pero ningún código lo usa**: el número se puede volver a llamar y le puede llegar el WhatsApp | **Lista de exclusión** que consulten `/api/llamar`, Camila y `seguimiento.py` |
-| "No me llame más" en Camila | Estado `no_contactar` en `captacion.py` | Que también lo vean Manuela y WhatsApp |
+| "No me llame más" en Manuela | El número entra a la **lista de exclusión** (`api/exclusiones.py`) y no se le manda el WhatsApp de esa llamada | Aplicar la migración `20261109120000_exclusiones_y_programados.sql` |
+| "No me llame más" en Camila | Estado `no_contactar` y además entra a la lista | Igual: la migración |
+| Quién consulta la lista | Camila antes de marcar, el WhatsApp de seguimiento y la cola de programados | Nada |
+| Si vuelve a pedir la llamada | `/api/llamar` la saca de la lista y la llama: es una solicitud nueva y expresa (decisión de Diego, 2026-11-09) | Confirmarlo con el abogado |
 | RNE | No se consulta | Consulta antes de cada campaña de Camila |
 
-> **Importante:** el aviso publicado en `/privacidad/` ya dice "si nos pides que no te contactemos, guardamos solo tu
-> número en una lista de exclusión". Hoy esa lista no existe para Manuela. Es lo primero que hay que construir.
+> **Sin la migración aplicada en Supabase, la lista no guarda nada** (el backend lo avisa en el registro de Render y no
+> bloquea a nadie), y una llamada pedida fuera de horario responde "intenta de nuevo en unos minutos".
 
 ## Preguntas para el abogado
 

@@ -16,6 +16,9 @@ from api import app as m  # noqa: E402
 from api import demo as demo_mod  # noqa: E402
 from api import llamadas  # noqa: E402
 from api.limites import limites  # noqa: E402
+
+# /api/llamar respeta el horario de la Ley 2300 (api/horario.py): estas pruebas corren como si fuera hora hábil.
+mock.patch.object(m, "_en_horario_de_llamadas", return_value=True).start()
 from Model.rutas import RUTA_ARRIENDO, RUTA_CATALOGO  # noqa: E402
 
 from tests.test_limites import FakeCliente, cuerpo  # noqa: E402
