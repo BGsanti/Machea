@@ -18,7 +18,11 @@
       // splash sería una segunda puerta. No se salta también la escarapela
       // porque es donde se piden nombre y teléfono; sin ella la confirmación
       // cierra con un lead sin contacto y nada lo delata.
-      screen: window.GDF_EMBED ? 'escarapela' : 'splash',
+      //
+      // MACHEA tampoco tiene splash: el suyo es el genérico de las
+      // constructoras ("Grúa del Futuro") y quien llega desde la landing ya
+      // pulsó "Probar el modelo". Entra al registro aunque falte `embed=1`.
+      screen: window.GDF_EMBED || window.GDF_TENANT === 'machea' ? 'escarapela' : 'splash',
       // Sin pantalla de elegir personaje: 'x' (avatar neutro) por defecto.
       gender: 'x', // 'f' | 'm' | 'x'
       nombre: '',
@@ -393,16 +397,16 @@
         // La cédula ya no se pide (decisión de Diego, 2026-10-04): la persona
         // se identifica con su teléfono y su correo.
         if (!validarRegistro(state).ok) return false;
-        state.answers = { afiliado: state.afiliado };
-        state.qi = 0;
-        state.screen = 'quiz';
-        // El apartamento se elige AQUÍ y ya no cambia. Sale del nombre y el
-        // apellido que se acaban de escribir, así que la misma persona ve
-        // siempre el mismo plano y dos personas seguidas en un stand ven
-        // planos distintos.
-        state.planta = window.GDF.planta.elegirApartamento(state);
+        arrancarPreguntas(state);
         break;
       }
+
+      // Demo pública (js/demo.js): a las preguntas sin registro. Sin nombre ni
+      // contacto no hay lead que guardar ni teléfono al que llamar.
+      case 'empezarDemoPublica':
+        if (!window.GDF_DEMO_PUBLICA) return false;
+        arrancarPreguntas(state);
+        break;
 
       case 'selectOption': {
         var qid = ds.qid;
@@ -577,8 +581,9 @@
         if (!ds.value) return false;
         // Si el proyecto es de otra empresa, antes de llamar se pide permiso para compartirle los datos
         // (hoja "Antes de llamarte", js/consentimiento.js). Sin dueño conocido se llama como siempre.
+        // En la demo pública no hay llamada ni datos que compartir: no se pide permiso.
         var C = window.GDF.consentimiento;
-        if (C && C.requierePermiso(C.duenoDeElegido(state, ds.value))) {
+        if (!window.GDF_DEMO_PUBLICA && C && C.requierePermiso(C.duenoDeElegido(state, ds.value))) {
           state.permiso = { id: ds.value, aceptado: false };
           break;
         }
@@ -695,6 +700,8 @@
         // que aqui NO se fija a mano: escribir 'splash' devolvia al modal la
         // pantalla de bienvenida que precisamente se salta al abrirlo.
         state.screen = fresh.screen;
+        // La demo pública no tiene registro: "Empezar de nuevo" vuelve a la primera pregunta.
+        if (window.GDF_DEMO_PUBLICA) arrancarPreguntas(state);
         break;
       }
 
@@ -714,6 +721,18 @@
    * constructoras siguen con la regla de siempre (campos no vacíos y correo
    * con @ y punto), para no cambiarles el comportamiento.
    */
+  // Paso del registro (o de la entrada de la demo pública) a la primera pregunta.
+  function arrancarPreguntas(state) {
+    state.answers = { afiliado: state.afiliado };
+    state.qi = 0;
+    state.screen = 'quiz';
+    // El apartamento se elige AQUÍ y ya no cambia. Sale del nombre y el
+    // apellido que se acaban de escribir, así que la misma persona ve
+    // siempre el mismo plano y dos personas seguidas en un stand ven
+    // planos distintos.
+    state.planta = window.GDF.planta.elegirApartamento(state);
+  }
+
   function validarRegistro(state) {
     var estricto = (window.GDF_MARCA || {}).slug === 'machea';
     var nombre = state.nombre.trim();

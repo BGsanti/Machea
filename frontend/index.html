@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Machea para inmobiliarias</title>
-<meta name="description" content="Machea perfila a los leads de tu inmobiliaria con una experiencia interactiva, los contacta con IA en menos de 30 segundos y entrega a tus asesores solo los que están listos para comprar.">
+<title>Machea · Contacta y perfila tus leads en segundos</title>
+<meta name="description" content="Machea perfila a cada lead de tu inmobiliaria o constructora, lo contacta con IA en segundos y entrega a tu asesor una ficha lista para cerrar. Pruébalo sin registrarte.">
 <meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://www.machea.co/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_CO">
 <meta property="og:site_name" content="Machea">
 <meta property="og:url" content="https://www.machea.co/">
-<meta property="og:title" content="Machea para inmobiliarias">
-<meta property="og:description" content="Machea perfila a los leads de tu inmobiliaria con una experiencia interactiva, los contacta con IA en menos de 30 segundos y entrega a tus asesores solo los que están listos para comprar.">
+<meta property="og:title" content="Machea · Contacta y perfila tus leads en segundos">
+<meta property="og:description" content="Machea perfila a cada lead, lo contacta con IA en segundos y entrega a tu asesor una ficha lista para cerrar. Pruébalo sin registrarte.">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Machea para inmobiliarias">
-<meta name="twitter:description" content="Machea perfila a los leads de tu inmobiliaria con una experiencia interactiva, los contacta con IA en menos de 30 segundos y entrega a tus asesores solo los que están listos para comprar.">
+<meta name="twitter:title" content="Machea · Contacta y perfila tus leads en segundos">
+<meta name="twitter:description" content="Machea perfila a cada lead, lo contacta con IA en segundos y entrega a tu asesor una ficha lista para cerrar. Pruébalo sin registrarte.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -45,13 +45,9 @@
 }
 </script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<script>
-/* Entradas suaves solo en escritorio con puntero fino. Si el módulo no carga en 3 s, se apagan y todo queda visible. */
-(function(d){if(matchMedia("(min-width:1024px) and (hover:hover) and (prefers-reduced-motion:no-preference)").matches){d.classList.add("anim");setTimeout(function(){if(!window.__ml)d.classList.remove("anim")},3000)}})(document.documentElement);
-</script>
-<link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" as="image" href="/ciudad/hero-1600.webp" imagesrcset="/ciudad/hero-800.webp 800w, /ciudad/hero-1600.webp 1600w" imagesizes="100vw" media="(min-width: 700px)" fetchpriority="high">
-<link rel="preload" as="image" href="/ciudad/hero-m-720.webp" media="(max-width: 699px)" fetchpriority="high">
+<link rel="preload" href="/fonts/jakarta-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="/ciudad/portada-1600.webp" imagesrcset="/ciudad/portada-800.webp 800w, /ciudad/portada-1600.webp 1600w" imagesizes="100vw" media="(min-width: 700px)" fetchpriority="high">
+<link rel="preload" as="image" href="/ciudad/portada-m-720.webp" media="(max-width: 699px)" fetchpriority="high">
 <link rel="stylesheet" href="/src/landing/landing.css">
 </head>
 <body>
@@ -84,489 +80,260 @@
 
 <a class="sr-only" href="#contenido">Ir al contenido</a>
 
-<!-- ================= NAV ================= -->
+<!-- ================= NAV: solo cuatro entradas ================= -->
 <header class="nav" id="nav">
   <div class="wrap nav-in">
     <a class="brand" href="#inicio" aria-label="Machea, inicio"><svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg></a>
-    <nav class="nav-links" aria-label="Navegación principal">
+    <nav class="nav-links" aria-label="Principal">
       <a href="#como-funciona">Cómo funciona</a>
-      <a href="#soluciones">Soluciones</a>
-      <a href="#demo">Demo</a>
-      <a href="#faq">Preguntas</a>
+      <a href="#probar">Probar Machea</a>
     </nav>
     <div class="nav-act">
       <a class="nav-login" href="/acceso/">Iniciar sesión</a>
-      <a class="btn btn-line" href="#agendar" data-agendar>Agenda una demo</a>
-      <a class="btn btn-coral" href="#empieza">Empieza gratis</a>
+      <a class="btn btn-line" href="#agendar" data-agendar>Agendar demo</a>
     </div>
     <button class="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
   </div>
 </header>
 <div class="menu" id="menu">
   <a href="#como-funciona">Cómo funciona</a>
-  <a href="#soluciones">Soluciones</a>
-  <a href="#demo">Demo</a>
-  <a href="#faq">Preguntas</a>
+  <a href="#probar">Probar Machea</a>
   <a href="/acceso/">Iniciar sesión</a>
-  <div class="ctas">
-    <a class="btn btn-coral" href="#empieza">Empieza gratis</a>
-    <a class="btn btn-line" href="#agendar" data-agendar>Agenda una demo</a>
-  </div>
+  <a class="btn btn-coral" href="#agendar" data-agendar>Agendar demo</a>
 </div>
 
 <main id="contenido">
-<!-- ================= HERO: la ciudad de fondo ================= -->
-<section class="hero" id="inicio" aria-label="Inicio">
-  <div class="hero-bg" id="heroBg" aria-hidden="true">
-    <div class="hero-pan">
-      <picture>
-        <source media="(max-width: 699px)" srcset="/ciudad/hero-m-720.webp">
-        <img class="city" src="/ciudad/hero-1600.webp" srcset="/ciudad/hero-800.webp 800w, /ciudad/hero-1600.webp 1600w" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high" decoding="async">
-      </picture>
-    </div>
-    <div class="hero-shade"></div>
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="inicio" aria-labelledby="h-hero">
+  <div class="hero-bg" aria-hidden="true">
+    <picture>
+      <source media="(max-width: 699px)" srcset="/ciudad/portada-m-720.webp">
+      <img src="/ciudad/portada-1600.webp" srcset="/ciudad/portada-800.webp 800w, /ciudad/portada-1600.webp 1600w" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high" decoding="async">
+    </picture>
   </div>
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <h1 class="h-hero">Machea te ayuda a contactar y perfilar tus leads en <span class="acc acc-u">segundos</span>.</h1>
-      <p class="lead">Perfilamos a cada lead con una experiencia interactiva y lo contactamos con IA, para que tus asesores reciban solo los que están listos para comprar.</p>
+      <p class="eyebrow">Para inmobiliarias y constructoras</p>
+      <h1 class="h-hero" id="h-hero">Machea te ayuda a contactar y perfilar tus leads <span class="hl">en segundos.</span></h1>
+      <p class="lead">Una agente de voz con IA llama a cada lead, valida su interés y su capacidad de pago, y le entrega a tu asesor una ficha lista para cerrar.</p>
       <div class="ctas">
-        <a class="btn btn-coral btn-lg" href="#empieza">Empieza gratis</a>
-        <a class="btn btn-line btn-lg" href="#agendar" data-agendar>Agenda una demo</a>
+        <a class="btn btn-coral btn-lg btn-arrow" href="#probar">Probar Machea</a>
+        <a class="btn btn-line btn-lg" href="#agendar" data-agendar>Agendar demo</a>
       </div>
-      <div class="hero-rate" id="heroRate" hidden></div>
-      <p class="hero-note">
-        <span><svg class="ico"><use href="#i-check"/></svg>Sin cambiar tu sitio web ni tu CRM</span>
-        <span><svg class="ico"><use href="#i-check"/></svg>Empiezas con una auditoría gratuita</span>
-      </p>
-    </div>
-
-    <!-- Producto: el recorrido de un lead (ejemplo ilustrativo) -->
-    <div class="lead-wrap">
-      <aside class="lead-card" aria-label="Ejemplo: recorrido de un lead con Machea">
-        <div class="lc-top">
-          <span class="tag-live"><i></i>Lead nuevo</span>
-          <span class="p-src">desde tu pauta</span>
-          <span class="lc-time" id="lcTime">00:28</span>
-        </div>
-        <div class="p-who">
-          <b>Busca VIS en Engativá</b>
-          <span>2 habitaciones · Ingresos 2 a 4 SMMLV</span>
-        </div>
-        <ol class="steps">
-          <li><i class="st"><svg><use href="#i-check"/></svg></i><div><b>Perfilado</b><span class="s">Formulario interactivo · 7 de 7</span></div><em>00:12</em></li>
-          <li><i class="st"><svg><use href="#i-check"/></svg></i><div><b>Manuela está llamando</b><span class="wave" aria-hidden="true"><i style="--h:.4"></i><i style="--h:.8"></i><i style="--h:.55"></i><i style="--h:1"></i><i style="--h:.45"></i><i style="--h:.9"></i><i style="--h:.6"></i><i style="--h:.35"></i><i style="--h:.85"></i><i style="--h:.5"></i><i style="--h:1"></i><i style="--h:.4"></i></span></div><em>00:19</em></li>
-          <li><i class="st"><svg><use href="#i-check"/></svg></i><div><b>Capacidad de pago validada</b><span class="s">Conversación calificada</span></div><em>00:26</em></li>
-          <li><i class="st"><svg><use href="#i-check"/></svg></i><div><b>Agendado con tu asesor</b><span class="s">Ficha enviada por WhatsApp o CRM</span></div><em>00:28</em></li>
-        </ol>
-        <div class="p-foot"><span>Ejemplo ilustrativo</span><b>Menos de 30 s</b></div>
-      </aside>
-      <div class="fl fl-new" aria-hidden="true"><span class="ico-bell"><svg><use href="#i-phone"/></svg></span><div><b>Nuevo lead · Andrea G.</b><span>hace 3 segundos</span></div></div>
-      <div class="fl fl-sent" aria-hidden="true"><svg class="ok"><use href="#i-check"/></svg><div><b>Ficha enviada</b><span>a tu asesor · WhatsApp o CRM</span></div></div>
-      <div class="chip-float" aria-label="97 % de compatibilidad con proyectos de tu catálogo">
-        <div class="ring" style="--p:97"><span>97%</span></div>
-        <p><b>Compatibilidad</b>con proyectos de tu catálogo</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= LA DEMO FUNCIONANDO (justo debajo del hero) ================= -->
-<section class="showcase" id="demo-video" aria-label="La demo funcionando">
-  <div class="wrap">
-    <div class="trust" id="trust" hidden></div>
-    <div class="show-head">
-      <p class="eyebrow">Míralo funcionando</p>
-      <h2 class="h-sec">Del formulario a tu asesor en menos de 30 segundos</h2>
-    </div>
-    <div class="player" id="player" data-scene="3" role="group" aria-label="Demostración ilustrada: de un lead nuevo a tu asesor en 28 segundos">
-      <div class="pl-top">
-        <span class="pl-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-        <ol class="pl-chapters">
-          <li><button type="button" data-go="1"><b>1</b>Perfila</button></li>
-          <li><button type="button" data-go="2"><b>2</b>Llama</button></li>
-          <li class="on"><button type="button" data-go="3"><b>3</b>Entrega</button></li>
-        </ol>
-        <span class="pl-time" id="plTime" aria-live="off">00:28</span>
-      </div>
-
-      <div class="pl-stage">
-        <!-- Escena 1 · el lead se perfila y se arma su vivienda -->
-        <div class="sc sc1" aria-hidden="true">
-          <div class="s1-form">
-            <div class="s1-hd"><b>Arma tu vivienda ideal</b><span>7 preguntas</span></div>
-            <div class="qrow r1"><span class="ql">Tipo de vivienda</span><div class="chips"><span class="chip pick">VIS</span><span class="chip">No VIS</span></div></div>
-            <div class="qrow r2"><span class="ql">Ingresos del hogar</span><div class="chips"><span class="chip">Hasta 2 SMMLV</span><span class="chip pick">2 a 4 SMMLV</span><span class="chip">4 a 8</span></div></div>
-            <div class="qrow r3"><span class="ql">Habitaciones</span><div class="chips"><span class="chip">1</span><span class="chip pick">2</span><span class="chip">3+</span></div></div>
-            <div class="qrow r4"><span class="ql">Localidad</span><div class="chips"><span class="chip pick">Engativá</span><span class="chip">Suba</span><span class="chip">Bosa</span></div></div>
-          </div>
-          <div class="s1-plan">
-            <div class="plan" data-r="2">
-              <div class="rm sala">Sala · comedor</div>
-              <div class="rm coc">Cocina</div>
-              <div class="rm ban">Baño</div>
-              <div class="rm h1">Habitación 1</div>
-              <div class="rm h2">Habitación 2</div>
-            </div>
-            <p class="s1-cap">Se arma con cada respuesta</p>
-          </div>
-        </div>
-
-        <!-- Escena 2 · Manuela llama -->
-        <div class="sc sc2" aria-hidden="true">
-          <div class="phone">
-            <div class="ph-head">
-              <span class="av">M</span>
-              <div><b>Manuela · Machea</b><span>En llamada con Andrea</span></div>
-              <span class="rec"><i></i>En vivo</span>
-            </div>
-            <div class="wave" aria-hidden="true"><i style="--h:.4"></i><i style="--h:.8"></i><i style="--h:.55"></i><i style="--h:1"></i><i style="--h:.45"></i><i style="--h:.9"></i><i style="--h:.6"></i><i style="--h:.35"></i><i style="--h:.85"></i><i style="--h:.5"></i><i style="--h:1"></i><i style="--h:.4"></i><i style="--h:.7"></i><i style="--h:.5"></i><i style="--h:.9"></i><i style="--h:.4"></i></div>
-            <div class="chat">
-              <p class="msg them m1"><b>Manuela</b>Hola Andrea, soy Manuela de Machea. Vi que buscas vivienda VIS en Engativá, ¿sigue siendo así?</p>
-              <p class="msg me m2"><b>Andrea</b>Sí, de dos habitaciones.</p>
-              <p class="msg them m3"><b>Manuela</b>Perfecto. ¿Los ingresos de tu hogar están entre 2 y 4 salarios mínimos?</p>
-            </div>
-          </div>
-          <div class="s2-side">
-            <p class="ss-hd">Lo que valida Manuela</p>
-            <ul>
-              <li class="v1"><svg><use href="#i-check"/></svg>Interés en el proyecto</li>
-              <li class="v2"><svg><use href="#i-check"/></svg>Ingresos del hogar</li>
-              <li class="v3"><svg><use href="#i-check"/></svg>Capacidad de pago</li>
-              <li class="v4"><svg><use href="#i-check"/></svg>Quiere visitar el proyecto</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Escena 3 · la ficha llega a tu asesor -->
-        <div class="sc sc3">
-          <p class="toast"><i></i>Nuevo lead calificado · hace 28 s</p>
-          <div class="ficha">
-            <div class="fi-top">
-              <span class="av">AG</span>
-              <div><b>Andrea Gómez</b><span>VIS · Engativá · 2 habitaciones</span></div>
-              <span class="pill">Calificado</span>
-            </div>
-            <div class="fi-body">
-              <div class="ring" style="--p:97"><span>97%</span></div>
-              <ul>
-                <li><small>Capacidad de pago</small><b>Validada</b></li>
-                <li><small>Ingresos del hogar</small><b>2 a 4 SMMLV</b></li>
-                <li><small>Visita</small><b>Sábado · 10:00 a. m.</b></li>
-              </ul>
-            </div>
-            <div class="fi-act"><span class="b1">Abrir en tu CRM</span><span class="b2">Enviar por WhatsApp</span></div>
-          </div>
-          <div class="wa">
-            <p class="wa-hd"><svg><use href="#i-chat"/></svg>Ficha para tu asesor</p>
-            <p>Lead calificado: <b>Andrea Gómez</b>. Busca VIS en Engativá, 2 habitaciones. Capacidad de pago validada. Visita: sábado 10:00 a. m.</p>
-          </div>
-        </div>
-      </div>
-
-      <button class="pl-play" type="button" aria-label="Pausar la demostración"><svg class="i-pause"><use href="#i-pause"/></svg><svg class="i-play"><use href="#i-play"/></svg></button>
-    </div>
-    <p class="pl-cap">Demostración ilustrada con datos de ejemplo · no es un proyecto real</p>
-  </div>
-</section>
-
-<!-- ================= LA VELOCIDAD DE CONTACTO ================= -->
-<section class="speed" id="velocidad" aria-label="La velocidad de contacto">
-  <div class="band-bg" aria-hidden="true">
-    <img src="/ciudad/velocidad-1600.webp" srcset="/ciudad/velocidad-800.webp 800w, /ciudad/velocidad-1600.webp 1600w" sizes="100vw" alt="" width="1600" height="900" loading="lazy" decoding="async">
-  </div>
-  <div class="wrap">
-    <p class="eyebrow">La velocidad de contacto</p>
-    <p class="sr-only">Contactar un lead en menos de 5 minutos multiplica por 21 el cierre.</p>
-    <div class="eq" id="eq" data-go aria-hidden="true">
-      <div class="eq-a">
-        <p class="eq-cap">Contactar un lead en menos de</p>
-        <p class="eq-big"><span class="n">5</span><span class="u">min</span></p>
-      </div>
-      <span class="eq-arrow"><svg><use href="#i-right"/></svg></span>
-      <div class="eq-b">
-        <p class="eq-cap">multiplica por</p>
-        <p class="eq-big em"><span class="n" data-count="21">21</span><span class="u">×</span></p>
-        <p class="eq-cap">el cierre.</p>
-      </div>
-    </div>
-    <ul class="mini-stats">
-      <li><b>&lt;30 s</b><span>para que Manuela contacte a tu lead después del formulario</span></li>
-      <li><b>7</b><span>preguntas interactivas que perfilan a cada lead</span></li>
-    </ul>
-  </div>
-</section>
-
-<!-- ================= EL PROBLEMA vs MACHEA ================= -->
-<section class="sec" id="problema" aria-label="El problema">
-  <div class="wrap">
-    <div class="sec-head center rv">
-      <p class="eyebrow">Proceso tradicional vs. Machea</p>
-      <h2 class="h-sec">¿Cuánto de tu pauta digital se está perdiendo en la demora?</h2>
-      <p class="lead">Un formulario genérico y un asesor que llama al día siguiente enfrían al lead. Con Machea el contacto pasa mientras el interés sigue vivo.</p>
-    </div>
-    <div class="vs">
-      <article class="vs-card trad rv">
-        <div class="vs-bg" aria-hidden="true"><img src="/ciudad/fria-1600.webp" srcset="/ciudad/fria-800.webp 800w, /ciudad/fria-1600.webp 1600w" sizes="(min-width: 860px) 50vw, 100vw" alt="" width="1600" height="900" loading="lazy" decoding="async"></div>
-        <p class="vs-k">Proceso tradicional</p>
-        <h3>El lead se enfría mientras espera</h3>
-        <div class="deadform" id="deadform" data-go aria-label="Formulario genérico de contacto (ejemplo)">
-          <div class="bar"><i></i><i></i><i></i><span>inmobiliaria-generica.com/contacto</span></div>
-          <h4>CONTÁCTENOS</h4>
-          <label>Nombre completo:</label><div class="f" data-type="Andrea Gómez" style="--n:13;--dl:.2s"></div>
-          <label>Teléfono:</label><div class="f" data-type="300 456 7890" style="--n:12;--dl:1s"></div>
-          <label>¿En qué podemos ayudarle?</label><div class="f tall" data-type="Info del proyecto, por favor" style="--n:27;--dl:1.8s"></div>
-          <div class="robot"><b></b> No soy un robot</div>
-          <span class="send">ENVIAR</span>
-          <p class="status"><svg><use href="#i-frown"/></svg> Un asesor le contactará en 24–48 horas</p>
-        </div>
-        <div class="delay-clock" id="delayClock" data-go aria-label="Espera del lead: 48 horas y pérdida de oportunidad">
-          <div class="hd"><span>Espera del lead</span><b id="delayV" data-count="48" data-suffix=" h">48 h</b></div>
-          <span class="bar"><i></i></span>
-          <ol class="flow">
-            <li><b>Lead</b><span>Levanta la mano</span></li>
-            <li><b>Demora</b><span>Espera un asesor</span></li>
-            <li class="loss"><b>Pérdida de oportunidad</b><span>El interés se enfría</span></li>
-          </ol>
-        </div>
-      </article>
-
-      <article class="vs-card good rv d1" data-go>
-        <div class="vs-bg" aria-hidden="true"><img src="/ciudad/calificada-1600.webp" srcset="/ciudad/calificada-800.webp 800w, /ciudad/calificada-1600.webp 1600w" sizes="(min-width: 860px) 50vw, 100vw" alt="" width="1600" height="900" loading="lazy" decoding="async"></div>
-        <p class="vs-k">Con Machea</p>
-        <h3>Machea perfila, contacta con IA en segundos y entrega leads listos para comprar</h3>
-        <div class="stepper" id="stepper" data-go aria-label="Con Machea, en segundos">
-          <div class="hd"><span>En segundos</span><b>Contacto rápido</b></div>
-          <div class="step"><span class="dot"><svg><use href="#i-clip"/></svg></span><div><b>Machea</b><span>Perfila al instante</span></div></div>
-          <div class="step"><span class="dot"><svg><use href="#i-bot"/></svg></span><div><b>Contacto rápido</b><span>Manuela llama en menos de 30 s</span></div></div>
-          <div class="step"><span class="dot"><svg><use href="#i-zap"/></svg></span><div><b>Lead calificado</b><span>Capacidad de pago validada</span></div></div>
-          <div class="step"><span class="dot"><svg><use href="#i-user-check"/></svg></span><div><b>Asesor</b><span>Ficha completa, listo para cerrar</span></div></div>
-        </div>
-        <div class="callout" aria-label="Lead activo">
-          <div class="row1">
-            <span class="ph"><svg><use href="#i-phone"/></svg></span>
-            <div><div class="t1">Manuela está calificando</div><div class="t2">Lead activo · Conversación lista para asesor</div></div>
-          </div>
-          <div class="kv"><div><small>Tipo</small><strong>VIS</strong></div><div><small>Zona</small><strong>Norte</strong></div><div><small>Paso</small><strong>Llamar</strong></div></div>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ================= DEL TRÁFICO A LA CONVERSACIÓN ================= -->
-<section class="statement" aria-label="Del tráfico a la conversación">
-  <div class="band-bg" aria-hidden="true">
-    <img src="/ciudad/ventanas-1600.webp" srcset="/ciudad/ventanas-800.webp 800w, /ciudad/ventanas-1600.webp 1600w" sizes="100vw" alt="" width="1600" height="900" loading="lazy" decoding="async">
-  </div>
-  <div class="wrap">
-    <p class="eyebrow">Del tráfico a la conversación</p>
-    <p class="big rv">Transformamos el tráfico de tu catálogo de proyectos en conversaciones reales, perfiladas al instante, sin pedirte que reconstruyas tu sitio ni migres tu CRM.</p>
-    <div class="ctas rv d1">
-      <a class="btn btn-coral btn-lg" href="#empieza">Empieza gratis</a>
-      <a class="btn btn-ghost-w btn-lg" href="#agendar" data-agendar>Agenda una demo</a>
-    </div>
-  </div>
-</section>
-
-<!-- ================= CÓMO FUNCIONA ================= -->
-<section class="sec story" id="como-funciona" aria-label="Cómo funciona">
-  <div class="story-bg" aria-hidden="true">
-    <img class="sala" src="/media/sala-1200.webp" alt="" width="1200" height="669" loading="lazy" decoding="async">
-    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
-  </div>
-  <div class="wrap">
-    <div class="sec-head center rv">
-      <p class="eyebrow">Cómo funciona</p>
-      <h2 class="h-sec">Un sistema <span class="acc">end-to-end,</span> nacido de un caso real en Colombia</h2>
-      <p class="lead">Así convertimos tu tráfico en ventas, sin que tú o tu equipo técnico muevan un dedo.</p>
-    </div>
-    <div class="how">
-      <article class="how-card rv">
-        <div class="how-vis vis-img">
-          <img src="/media/descubrimiento-1100.webp" alt="Ilustración: leads que llegan a un sitio web con catálogo de proyectos en lugar de un formulario genérico" width="1100" height="880" loading="lazy" decoding="async">
-        </div>
-        <div class="how-body">
-          <div class="how-n"><small>01</small><span>Descubrimiento</span></div>
-          <h3>Captura interactiva</h3>
-          <p>Leemos tu web y catálogo actual, y cambiamos el formulario genérico por una experiencia “arma tu vivienda ideal”.</p>
-          <span class="how-tag">Tu web, sin reconstruirla</span>
-        </div>
-      </article>
-
-      <article class="how-card rv d1">
-        <div class="how-vis vis-form" aria-hidden="true">
-          <div class="qform" data-go>
-            <div class="qf-hd"><span>Arma tu vivienda ideal</span><b>7 de 7</b></div>
-            <span class="qf-bar"><i></i></span>
-            <ul class="qf-list">
-              <li><svg><use href="#i-check"/></svg>Tipo de vivienda</li>
-              <li><svg><use href="#i-check"/></svg>Ingresos del hogar</li>
-              <li><svg><use href="#i-check"/></svg>Personas a cargo</li>
-              <li><svg><use href="#i-check"/></svg>Habitaciones</li>
-              <li><svg><use href="#i-check"/></svg>Localidad</li>
-              <li><svg><use href="#i-check"/></svg>Entorno</li>
-              <li><svg><use href="#i-check"/></svg>Edad</li>
-            </ul>
-          </div>
-        </div>
-        <div class="how-body">
-          <div class="how-n"><small>02</small><span>Perfilamiento</span></div>
-          <h3>Formulario inteligente</h3>
-          <p>Siete preguntas: tipo de vivienda, ingresos del hogar, personas a cargo, habitaciones, localidad, entorno y edad.</p>
-          <span class="how-tag">Toma de datos</span>
-        </div>
-      </article>
-
-      <article class="how-card rv">
-        <div class="how-vis vis-img vis-profile" data-go>
-          <img src="/media/vis-engativa-1400.webp" alt="Ilustración: apartamento VIS de 2 habitaciones en una torre de ladrillo en Engativá, Bogotá" width="1400" height="781" loading="lazy" decoding="async">
-          <span class="note n1"><small>Espacio</small><b>2 habitaciones</b></span>
-          <span class="note n2"><small>Ubicación</small><b>Engativá + vecinas</b></span>
-          <span class="note n3"><small>Presupuesto</small><b>2 a 4 SMMLV</b></span>
-          <span class="note n4"><small>Tipo</small><b>VIS</b></span>
-        </div>
-        <div class="how-body">
-          <div class="how-n"><small>03</small><span>Inteligencia</span></div>
-          <h3>Del dato al perfil</h3>
-          <p>El motor compara cada lead contra proyectos reales de tu catálogo y devuelve un % de compatibilidad.</p>
-          <span class="how-tag">Motor de calificación</span>
-        </div>
-      </article>
-
-      <article class="how-card rv d1">
-        <div class="how-vis vis-line" aria-hidden="true">
-          <ol class="line" data-go>
-            <li><i></i><b>Lead</b><span>Llega · desde tu pauta</span></li>
-            <li><i></i><b>Perfilamiento</b><span>Formulario · toma de datos</span></li>
-            <li><i></i><b>IA</b><span>Clasifica · motor de calificación</span></li>
-            <li class="hot"><i></i><b>Contacto</b><span>Llamada · Manuela, al instante</span></li>
-            <li><i></i><b>Asesor</b><span>Calificado · listo para cerrar</span></li>
-          </ol>
-          <p class="line-br"><span class="ok">Contesta · sigue en línea</span><span class="no">No contesta · sigue por WhatsApp</span></p>
-        </div>
-        <div class="how-body">
-          <div class="how-n"><small>04</small><span>Automatización</span></div>
-          <h3>Calificación con IA</h3>
-          <p>Manuela, nuestra agente de voz, contacta al lead en segundos, mantiene una charla natural y evalúa capacidad de pago real.</p>
-          <span class="how-tag">Menos de 30 segundos</span>
-        </div>
-      </article>
-    </div>
-    <div class="result rv">
-      <div>
-        <p class="eyebrow">05 · Conversión</p>
-        <h3 style="margin-top:10px">Una oportunidad <span class="acc">mejor calificada.</span></h3>
-      </div>
-      <p>Solo si hay match real, el asesor recibe la ficha completa por WhatsApp o CRM para cerrar la conversación. Resultados verificables desde el primer piloto, con tu catálogo y tu pauta de hoy.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ================= DEMO ================= -->
-<section class="sec tint" id="demo" aria-label="Demo interactiva">
-  <div class="wrap">
-    <div class="sec-head center rv">
-      <p class="eyebrow">Demo en vivo</p>
-      <h2 class="h-sec">Descubre cómo Machea perfila un lead</h2>
-      <p class="lead">Contesta una pregunta del formulario real y mira cómo se arma la vivienda. Así lo vive tu lead mientras responde.</p>
-    </div>
-    <div class="product rv">
-      <div class="pr-bar">
-        <svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg>
-        <span class="t">Arma tu vivienda ideal</span>
-        <span class="s" id="prStatus" aria-live="polite">Esperando tu respuesta</span>
-      </div>
-      <div class="pr-body">
-        <div class="pr-q">
-          <p class="k">Pregunta del formulario real</p>
-          <h3 id="qTitle">¿Cuántas habitaciones necesitas?</h3>
-          <p class="sub">Así ajustamos el tamaño de tu hogar.</p>
-          <div class="q-opts" role="radiogroup" aria-labelledby="qTitle" id="qRooms">
-            <button class="q-opt" type="button" role="radio" aria-checked="false" data-v="1">1</button>
-            <button class="q-opt" type="button" role="radio" aria-checked="true" data-v="2">2</button>
-            <button class="q-opt" type="button" role="radio" aria-checked="false" data-v="3">3+</button>
-          </div>
-          <ul class="pr-list" id="prList" aria-label="Espacios que se arman"></ul>
-          <div class="ctas">
-            <a class="btn btn-navy" id="prFull" href="/experiencia/index.html?marca=machea&amp;embed=1">Ir al formulario completo<svg class="ico"><use href="#i-ne"/></svg></a>
-            <a class="btn btn-line" href="#agendar" data-agendar>Agenda una demo</a>
-          </div>
-        </div>
-        <div class="pr-plan">
-          <div class="plan" id="plan" data-r="2" role="img" aria-label="Plano ilustrativo de la vivienda que se arma con tu respuesta">
-            <div class="rm sala">Sala · comedor</div>
-            <div class="rm coc">Cocina</div>
-            <div class="rm ban">Baño</div>
-            <div class="rm h1">Habitación 1</div>
-            <div class="rm h2">Habitación 2</div>
-            <div class="rm h3">Habitación 3</div>
-          </div>
-          <p class="pr-cap">Vivienda ilustrativa, generada con el motor de Machea · no es un proyecto real</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= PARA QUIÉN ================= -->
-<section class="sec" id="soluciones" aria-label="Soluciones">
-  <div class="wrap">
-    <div class="sec-head center rv">
-      <p class="eyebrow">Soluciones</p>
-      <h2 class="h-sec">Hecho para quienes venden vivienda en Colombia</h2>
-    </div>
-    <div class="who">
-      <article class="who-card rv">
-        <div class="who-img"><img src="/media/sala-1200.webp" alt="Render conceptual de una sala con luz de tarde" width="1200" height="669" loading="lazy" decoding="async"></div>
-        <div class="who-body">
-          <h3>Inmobiliarias</h3>
-          <p>Para quienes venden proyectos de varias constructoras y reciben leads de pauta todos los días.</p>
-          <ul class="checks">
-            <li><svg><use href="#i-check"/></svg><span>Perfila a cada lead que llega de tu pauta digital</span></li>
-            <li><svg><use href="#i-check"/></svg><span>Lo compara con proyectos reales de tu catálogo, con % de compatibilidad</span></li>
-            <li><svg><use href="#i-check"/></svg><span>Tus asesores reciben la ficha solo si hay match</span></li>
-          </ul>
-          <a class="btn btn-line" href="#agendar" data-agendar>Agenda una demo</a>
-        </div>
-      </article>
-      <article class="who-card rv d1">
-        <div class="who-img fachada"><img src="/media/fachada-800.webp" alt="Render conceptual de la fachada de una torre de vivienda" width="800" height="1000" loading="lazy" decoding="async"></div>
-        <div class="who-body">
-          <h3>Constructoras</h3>
-          <p>Para quienes venden sus propios proyectos, VIS y No VIS, y quieren que cada lead llegue calificado.</p>
-          <ul class="checks">
-            <li><svg><use href="#i-check"/></svg><span>Un formulario con tu marca, tus colores y tu logo</span></li>
-            <li><svg><use href="#i-check"/></svg><span>Manuela contacta al lead en menos de 30 segundos y valida su capacidad de pago</span></li>
-            <li><svg><use href="#i-check"/></svg><span>Sin reconstruir tu sitio ni migrar tu CRM</span></li>
-          </ul>
-          <a class="btn btn-line" href="#agendar" data-agendar>Agenda una demo</a>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ================= EMPIEZA GRATIS · DEMO CON TU MARCA ================= -->
-<section class="sec tint" id="empieza" aria-label="Empieza gratis">
-  <div class="wrap try">
-    <div class="try-copy rv">
-      <p class="eyebrow">Empieza gratis</p>
-      <h2 class="h-sec">Mira el formulario con tu marca.</h2>
-      <p class="lead">Pega el link de tu sitio y recibe tu demo al instante. Sin instalar nada.</p>
-      <ul class="checks">
-        <li><svg><use href="#i-check"/></svg><span>Leemos el nombre, el logo y los colores públicos de tu sitio</span></li>
-        <li><svg><use href="#i-check"/></svg><span>Tu demo queda lista en menos de un minuto</span></li>
-        <li><svg><use href="#i-check"/></svg><span>El enlace funciona durante 30 días</span></li>
+      <ul class="hero-note" aria-label="Lo esencial">
+        <li><span><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Demo pública, sin registro</span></li>
+        <li><span><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Sin cambiar tu sitio web ni tu CRM</span></li>
       </ul>
     </div>
-    <div class="form-card rv d1" id="demoCard">
-      <form id="demoForm" novalidate>
-        <h3>Armar mi demo</h3>
+
+    <div class="lead-wrap">
+    <aside class="lead-card" aria-label="Ejemplo ilustrativo: un lead calificado">
+      <div class="lc-top">
+        <span class="tag tag-ok"><i class="live-dot" aria-hidden="true"></i>Lead calificado</span>
+        <span class="t" aria-label="28 segundos hasta que llegó a tu asesor">00:28</span>
+      </div>
+      <div class="lc-who">
+        <b>Andrea G.</b>
+        <span>Busca VIS en Engativá · 2 habitaciones · 2 a 4 SMMLV</span>
+      </div>
+      <ol class="lc-steps">
+        <li><i class="st"><svg aria-hidden="true"><use href="#i-check"/></svg></i><b>Perfilada</b><em>00:12</em></li>
+        <li><i class="st"><svg aria-hidden="true"><use href="#i-check"/></svg></i><b>Llamada de IA</b><em>00:19</em></li>
+        <li><i class="st"><svg aria-hidden="true"><use href="#i-check"/></svg></i><b>Capacidad de pago validada</b><em>00:26</em></li>
+        <li><i class="st"><svg aria-hidden="true"><use href="#i-check"/></svg></i><b>Entregada al asesor</b><em>00:28</em></li>
+      </ol>
+      <p class="lc-foot"><span>Ejemplo ilustrativo, datos ficticios</span><b>Menos de 30 s</b></p>
+    </aside>
+    </div>
+  </div>
+</section>
+<div class="ticker" aria-hidden="true"><div class="ticker-run"><span>Captura desde tu pauta</span><i></i><span>Perfilamiento automático</span><i></i><span>Llamada de IA en segundos</span><i></i><span>Capacidad de pago validada</span><i></i><span>Proyectos compatibles</span><i></i><span>Ficha lista para tu asesor</span><i></i><span>Captura desde tu pauta</span><i></i><span>Perfilamiento automático</span><i></i><span>Llamada de IA en segundos</span><i></i><span>Capacidad de pago validada</span><i></i><span>Proyectos compatibles</span><i></i><span>Ficha lista para tu asesor</span><i></i></div></div>
+
+
+<!-- ================= PRUEBA INTERACTIVA (inmediatamente después del hero) ================= -->
+<section class="sec tint" id="probar" aria-labelledby="h-probar">
+  <div class="wrap try-grid">
+    <div class="try-side">
+      <p class="eyebrow">Probar Machea</p>
+      <h2 class="h-sec" id="h-probar">Pruébalo tú mismo, sin registrarte.</h2>
+      <p class="lead">Responde las preguntas como lo haría tu lead y mira los proyectos que Machea le recomienda.</p>
+      <ul class="checks">
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Sin cuenta ni registro</span></li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>No se hacen llamadas ni se guardan tus datos</span></li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Toma menos de dos minutos</span></li>
+      </ul>
+      <p><a class="try-link" id="probarPantalla" href="/experiencia/index.html?marca=machea&amp;modo=demo" target="_blank" rel="noopener">Abrir en pantalla completa<span class="sr-only"> (se abre en una pestaña nueva)</span></a></p>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="stage-bar"><svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg><span>Demo pública</span></div>
+      <div class="stage-body" id="stageBody" data-estado="reposo">
+        <div class="stage-idle" id="stageIdle">
+          <span class="stage-ico" aria-hidden="true"><svg><use href="#i-home"/></svg></span>
+          <h3>Encuentra tu próximo hogar</h3>
+          <p>La misma experiencia que vive un lead de una inmobiliaria, con datos de ejemplo.</p>
+          <button class="btn btn-coral btn-lg btn-arrow" type="button" id="stageIniciar" aria-controls="stageBody">Empezar la prueba</button>
+          <ul class="idle-tiles" aria-label="Lo que vas a ver">
+            <li><svg aria-hidden="true"><use href="#i-user-check"/></svg><b>Tu perfil</b><span>Preguntas sobre lo que buscas</span></li>
+            <li><svg aria-hidden="true"><use href="#i-building"/></svg><b>Proyectos</b><span>Los que mejor te encajan</span></li>
+            <li><svg aria-hidden="true"><use href="#i-target"/></svg><b>Ubicación</b><span>Zonas y barrios de interés</span></li>
+          </ul>
+        </div>
+        <div class="stage-state" id="stageCarga" hidden role="status" aria-live="polite">
+          <span class="spin" aria-hidden="true"></span>
+          <h3>Preparando la demo…</h3>
+          <p>Puede tardar unos segundos.</p>
+        </div>
+        <div class="stage-state" id="stageError" hidden role="alert">
+          <span class="stage-ico bad" aria-hidden="true"><svg><use href="#i-frown"/></svg></span>
+          <h3>No pudimos cargar la demo aquí</h3>
+          <p>Revisa tu conexión e inténtalo de nuevo, o ábrela en una pestaña nueva.</p>
+          <div class="ctas" style="justify-content:center">
+            <button class="btn btn-coral" type="button" id="stageReintentar">Reintentar</button>
+            <a class="btn btn-line" href="/experiencia/index.html?marca=machea&amp;modo=demo" target="_blank" rel="noopener">Abrir en pestaña nueva</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CÓMO FUNCIONA: tres pasos ================= -->
+<section class="sec" id="como-funciona" aria-labelledby="h-como">
+  <div class="wrap">
+    <div class="sec-head center">
+      <p class="eyebrow">Cómo funciona</p>
+      <h2 class="h-sec" id="h-como">Tres pasos, sin trabajo manual.</h2>
+    </div>
+    <ol class="steps3">
+      <li class="step">
+        <div class="mini" role="img" aria-label="Ejemplo: formulario Nuevo lead con nombre, teléfono e interés.">
+          <div class="mini-card" aria-hidden="true">
+            <p class="mini-h"><svg viewBox="3 3 50.5 33.7"><use href="#logo-mark"/></svg><b>Nuevo lead</b></p>
+            <p class="mf"><small>Nombre completo</small><span><b class="ty">Andrea González</b></span></p>
+            <p class="mf"><small>Teléfono</small><span><b class="ty">+57 300 123 4567</b></span></p>
+            <p class="mf"><small>Interés</small><span><b class="ty">Comprar una propiedad</b></span></p>
+            <p class="mini-btn">Registrar lead</p>
+          </div>
+        </div>
+        <span class="n">PASO 1</span>
+        <span class="ic" aria-hidden="true"><svg><use href="#i-clip"/></svg></span>
+        <h3>Captura</h3>
+        <p>El lead llena un formulario interactivo que llega desde tu pauta o tu sitio. Machea lo perfila y le recomienda proyectos de tu catálogo.</p>
+      </li>
+      <li class="step">
+        <div class="mini" role="img" aria-label="Ejemplo: una llamada de IA con el lead y su calificación.">
+          <div class="mini-card" aria-hidden="true">
+            <p class="mini-h"><svg class="ph"><use href="#i-phone"/></svg><b>Llamada con lead</b><em class="mt mt-warm">En llamada · 00:24</em></p>
+            <p class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></p>
+            <p class="bub">¿Qué tipo de vivienda buscas?</p>
+            <p class="bub me">VIS en Engativá, 2 habitaciones.</p>
+            <p class="mini-h sm"><svg class="ph"><use href="#i-bot"/></svg><b>Calificación con IA</b><em class="mt mt-ok">Calificado</em></p>
+            <p class="chips"><span class="mt mt-ok">Interés alto</span><span class="mt mt-n">Compra</span><span class="mt mt-n">Bogotá</span></p>
+          </div>
+        </div>
+        <span class="n">PASO 2</span>
+        <span class="ic" aria-hidden="true"><svg><use href="#i-bot"/></svg></span>
+        <h3>Calificación con IA</h3>
+        <p>Manuela, la agente de voz, lo llama en menos de 30 segundos y valida su interés y su capacidad de pago.</p>
+      </li>
+      <li class="step">
+        <div class="mini" role="img" aria-label="Ejemplo: la ficha del lead en el CRM, asignada a un asesor, con una llamada agendada.">
+          <div class="mini-card" aria-hidden="true">
+            <p class="mini-h"><svg viewBox="3 3 50.5 33.7"><use href="#logo-mark"/></svg><b>Lead en CRM</b><em class="mt mt-ok">Asignado</em></p>
+            <dl class="kv"><dt>Nombre</dt><dd>Andrea González</dd><dt>Interés</dt><dd>Compra · VIS</dd><dt>Ingresos</dt><dd>2 a 4 SMMLV</dd><dt>Asignado a</dt><dd class="sel">Asesor: Carlos R.</dd></dl>
+            <p class="mini-foot"><svg class="ph"><use href="#i-phone"/></svg><b>Llamada agendada con el asesor</b><svg class="okc"><use href="#i-check"/></svg></p>
+          </div>
+        </div>
+        <span class="n">PASO 3</span>
+        <span class="ic" aria-hidden="true"><svg><use href="#i-user-check"/></svg></span>
+        <h3>Entrega al asesor</h3>
+        <p>Tu asesor recibe la ficha completa en el CRM y le devuelve la llamada al lead: perfil, proyectos compatibles y resumen de la llamada.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= VISTA DEL CRM (datos ficticios) ================= -->
+<section class="sec tint" id="crm" aria-labelledby="h-crm">
+  <div class="wrap">
+    <div class="sec-head center">
+      <p class="eyebrow">Lo que ve tu asesor</p>
+      <h2 class="h-sec" id="h-crm">Cada lead, ordenado y listo para llamar.</h2>
+      <p class="lead">Una vista de ejemplo del CRM de Machea. Elige un lead para ver su ficha.</p>
+    </div>
+    <div class="crm" id="crm-demo">
+      <div class="crm-bar">
+        <svg class="crm-logo" viewBox="3 3 50.5 33.7" aria-hidden="true"><use href="#logo-mark"/></svg>
+        <b>CRM</b>
+        <span class="crm-tab" aria-current="page">Leads</span>
+        <span class="demo-tag">Datos ficticios</span>
+      </div>
+      <div class="crm-body">
+        <div class="crm-main">
+          <div class="crm-tools">
+            <h3 class="crm-h">Leads <span class="crm-count" id="crmCuenta" aria-live="polite">5 en total</span></h3>
+            <div class="crm-filters">
+              <label class="sr-only" for="fEstado">Estado</label>
+              <select id="fEstado"><option value="">Estado: todos</option><option value="ok">Listo para llamar</option><option value="warm">Llamada en curso</option><option value="cold">En seguimiento</option></select>
+              <label class="sr-only" for="fFuente">Fuente</label>
+              <select id="fFuente"><option value="">Fuente: todas</option><option>Meta Ads</option><option>Google Ads</option><option>Portal inmobiliario</option><option>Referido</option></select>
+              <label class="sr-only" for="fBuscar">Buscar lead</label>
+              <input id="fBuscar" type="search" placeholder="Buscar lead…" autocomplete="off">
+            </div>
+          </div>
+          <div class="crm-table-wrap">
+          <table>
+            <caption>Leads de ejemplo con su compatibilidad y estado</caption>
+            <thead>
+              <tr><th scope="col">Lead</th><th scope="col">Ingresos</th><th scope="col">Fuente</th><th scope="col">Compatibilidad</th><th scope="col">Estado</th></tr>
+            </thead>
+            <tbody id="crmFilas">
+              <tr data-k="0" data-st="ok"><td class="c-lead"><button class="lead-btn" type="button" aria-pressed="true"><i class="av" aria-hidden="true">AG</i><span class="nm">Andrea G.<small>VIS · Engativá</small></span></button></td><td class="c-inc" data-l="Ingresos">2 a 4 SMMLV</td><td class="c-src" data-l="Fuente">Meta Ads</td><td class="c-score" data-l="Compatibilidad"><span class="score" style="--v:97">97 %<i aria-hidden="true"></i></span></td><td class="c-st"><span class="tag tag-ok">Listo para llamar</span></td></tr>
+              <tr data-k="1" data-st="ok"><td class="c-lead"><button class="lead-btn" type="button" aria-pressed="false"><i class="av" aria-hidden="true">CM</i><span class="nm">Carlos M.<small>No VIS · Suba</small></span></button></td><td class="c-inc" data-l="Ingresos">6 a 8 SMMLV</td><td class="c-src" data-l="Fuente">Google Ads</td><td class="c-score" data-l="Compatibilidad"><span class="score" style="--v:91">91 %<i aria-hidden="true"></i></span></td><td class="c-st"><span class="tag tag-ok">Listo para llamar</span></td></tr>
+              <tr data-k="2" data-st="warm"><td class="c-lead"><button class="lead-btn" type="button" aria-pressed="false"><i class="av" aria-hidden="true">LP</i><span class="nm">Laura P.<small>VIS · Bosa</small></span></button></td><td class="c-inc" data-l="Ingresos">2 a 4 SMMLV</td><td class="c-src" data-l="Fuente">Portal inmobiliario</td><td class="c-score" data-l="Compatibilidad"><span class="score" style="--v:84">84 %<i aria-hidden="true"></i></span></td><td class="c-st"><span class="tag tag-warm">Llamada de IA en curso</span></td></tr>
+              <tr data-k="3" data-st="ok"><td class="c-lead"><button class="lead-btn" type="button" aria-pressed="false"><i class="av" aria-hidden="true">JR</i><span class="nm">Jhon R.<small>No VIS · Usaquén</small></span></button></td><td class="c-inc" data-l="Ingresos">8 a 12 SMMLV</td><td class="c-src" data-l="Fuente">Referido</td><td class="c-score" data-l="Compatibilidad"><span class="score" style="--v:78">78 %<i aria-hidden="true"></i></span></td><td class="c-st"><span class="tag tag-ok">Listo para llamar</span></td></tr>
+              <tr data-k="4" data-st="cold"><td class="c-lead"><button class="lead-btn" type="button" aria-pressed="false"><i class="av" aria-hidden="true">MT</i><span class="nm">Marcela T.<small>VIS · Kennedy</small></span></button></td><td class="c-inc" data-l="Ingresos">1 a 2 SMMLV</td><td class="c-src" data-l="Fuente">Meta Ads</td><td class="c-score" data-l="Compatibilidad"><span class="score" style="--v:62">62 %<i aria-hidden="true"></i></span></td><td class="c-st"><span class="tag tag-cold">En seguimiento</span></td></tr>
+            </tbody>
+          </table>
+          <p class="crm-empty" id="crmVacio" hidden>Ningún lead coincide con esos filtros. <button type="button" id="crmLimpiar">Quitar filtros</button></p>
+          </div>
+        </div>
+        <aside class="crm-detail" id="crmFicha" aria-live="polite" aria-label="Ficha del lead seleccionado"></aside>
+      </div>
+      <p class="crm-note">Vista representativa con datos ficticios. Ningún dato corresponde a personas ni clientes reales.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEMO CON TU MARCA (flujo aparte de la demo pública) ================= -->
+<section class="sec" id="marca" aria-labelledby="h-marca">
+  <div class="wrap brand-try">
+    <div class="brand-copy">
+      <p class="eyebrow">Demo con tu marca</p>
+      <h2 class="h-sec" id="h-marca">¿La quieres con tu logo y tus colores?</h2>
+      <p class="lead">Pega el link de tu sitio y recibe un enlace con el formulario vestido con tu marca. Es aparte de la demo pública: aquí sí pedimos tus datos para enviarte el enlace.</p>
+      <ul class="checks">
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Leemos el nombre, el logo y los colores públicos de tu sitio</span></li>
+        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>El enlace funciona durante 30 días</span></li>
+      </ul>
+      <div class="brand-prev" role="img" aria-label="Ejemplo: tu demo con tu logo y tus colores, con una lista de leads.">
+        <span class="bp-tag" aria-hidden="true">Tu experiencia</span>
+        <div class="bp-card" aria-hidden="true">
+          <p class="bp-top"><svg viewBox="3 3 50.5 33.7"><use href="#logo-mark"/></svg><b>Tu marca</b><em class="on">Leads</em><em>Proyectos</em><em>Reportes</em></p>
+          <p class="bp-h"><b>Leads</b><span>+ Nuevo lead</span></p>
+          <div class="bp-rows"><p><i></i><u></u><u></u><u></u><s class="g"></s></p><p><i></i><u></u><u></u><u></u><s class="r"></s></p><p><i></i><u></u><u></u><u></u><s class="g"></s></p><p><i></i><u></u><u></u><u></u><s class="g"></s></p></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-card" id="demoCard">
+      <form id="demoForm" novalidate aria-labelledby="demoTitulo">
+        <h3 id="demoTitulo">Armar mi demo</h3>
         <p class="sub">Tarda menos de un minuto.</p>
-        <div class="field"><input id="dName" name="nombre" type="text" placeholder=" " autocomplete="name" required><label for="dName">Tu nombre</label></div>
-        <div class="field"><input id="dMail" name="correo" type="email" placeholder=" " autocomplete="email" required><label for="dMail">Tu correo</label></div>
-        <div class="field"><input id="dSite" name="sitio" type="text" inputmode="url" placeholder=" " autocomplete="url" required><label for="dSite">Link de tu sitio web</label></div>
+        <div class="field"><input id="dName" name="nombre" type="text" placeholder=" " autocomplete="name" required aria-required="true" aria-describedby="dNameErr"><label for="dName">Tu nombre</label><p class="field-err" id="dNameErr"></p></div>
+        <div class="field"><input id="dMail" name="correo" type="email" placeholder=" " autocomplete="email" required aria-required="true" aria-describedby="dMailErr"><label for="dMail">Tu correo</label><p class="field-err" id="dMailErr"></p></div>
+        <div class="field"><input id="dSite" name="sitio" type="text" inputmode="url" placeholder=" " autocomplete="url" required aria-required="true" aria-describedby="dSiteErr"><label for="dSite">Link de tu sitio web</label><p class="field-err" id="dSiteErr"></p></div>
         <div class="field"><input id="dEmpresa" name="empresa" type="text" placeholder=" " autocomplete="organization"><label for="dEmpresa">Nombre de tu empresa (opcional)</label></div>
         <div class="colorrow">
           <input id="dColor" name="color" type="color" value="#ff6259" aria-describedby="dColorAyuda">
@@ -580,50 +347,43 @@
         <div class="hp" aria-hidden="true"><label>No llenes este campo<input id="dWeb" name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
         <p class="f-err" id="dErr" role="alert"></p>
         <button class="btn btn-coral btn-lg" type="submit"><span class="lbl">Armar mi demo</span></button>
-        <p class="f-note"><svg><use href="#i-lock"/></svg>Solo leemos lo público de tu sitio.</p>
+        <p class="f-note"><svg aria-hidden="true"><use href="#i-lock"/></svg>Solo leemos lo público de tu sitio.</p>
       </form>
       <div class="form-ok" id="demoOk" aria-live="polite">
-        <span class="ok-i"><svg><use href="#i-check"/></svg></span>
+        <span class="ok-i" aria-hidden="true"><svg><use href="#i-check"/></svg></span>
         <h3 id="demoOkTitle">Tu demo está lista.</h3>
         <p id="demoOkText"></p>
-        <a class="btn btn-coral" id="demoLink" href="#" target="_blank" rel="noopener">Abrir mi demo<svg class="ico"><use href="#i-ne"/></svg></a>
-        <a class="btn btn-line" id="demoAcceso" href="#" target="_blank" rel="noopener" hidden>Ver cómo se vería tu acceso</a>
+        <a class="btn btn-coral" id="demoLink" href="#" target="_blank" rel="noopener">Abrir mi demo<svg class="ico" aria-hidden="true"><use href="#i-ne"/></svg><span class="sr-only"> (se abre en una pestaña nueva)</span></a>
         <p class="demo-aviso" id="demoAviso"></p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= FAQ ================= -->
-<section class="sec" id="faq" aria-label="Preguntas frecuentes">
-  <div class="wrap faq-grid">
-    <div class="faq-left rv">
-      <p class="eyebrow">Antes de que preguntes</p>
-      <h2 class="h-sec">Preguntas frecuentes</h2>
-      <p class="lead">¿Algo más? Escríbenos a <a href="mailto:equipo@machea.co">equipo@machea.co</a></p>
-    </div>
-    <div class="faq-list rv d1">
-      <details class="qa" name="faq" open><summary>¿Necesito cambiar mi sitio web o mi CRM?<i aria-hidden="true"></i></summary><p>No. Nos acoplamos a lo que ya tienes.</p></details>
-      <details class="qa" name="faq"><summary>¿Cuánto cuesta el piloto?<i aria-hidden="true"></i></summary><p>Empiezas con una auditoría gratuita. El costo depende de tu volumen de leads.</p></details>
-      <details class="qa" name="faq"><summary>¿Y si no funciona?<i aria-hidden="true"></i></summary><p>Si Manuela no agenda más rápido que tu proceso actual, no pagas el piloto.</p></details>
-      <details class="qa" name="faq"><summary>¿Para quién es Machea?<i aria-hidden="true"></i></summary><p>Para inmobiliarias y constructoras que venden vivienda en Colombia, con proyectos VIS y No VIS.</p></details>
-      <details class="qa" name="faq"><summary>¿Cómo empiezo?<i aria-hidden="true"></i></summary><p>Pulsa “Empieza gratis” y pega el link de tu sitio: armamos una demo con tu marca. Si prefieres que te guiemos, agenda una demo y nuestro equipo te contacta.</p></details>
+<!-- ================= PREGUNTAS (cuatro) ================= -->
+<section class="sec tint" id="faq" aria-labelledby="h-faq">
+  <div class="wrap">
+    <div class="sec-head center"><h2 class="h-sec" id="h-faq">Preguntas frecuentes</h2></div>
+    <div class="faq">
+      <details class="qa"><summary>¿Necesito registrarme para probar Machea?<i aria-hidden="true"></i></summary><p>No. La demo pública se abre sin cuenta. Para verla con tu marca, o para agendar una demo con el equipo, te pedimos tus datos de contacto.</p></details>
+      <details class="qa"><summary>¿Tengo que cambiar mi sitio web o mi CRM?<i aria-hidden="true"></i></summary><p>No. Machea recibe a tus leads desde tu pauta o tu sitio y le entrega la ficha a tu asesor en tu CRM.</p></details>
+      <details class="qa"><summary>¿Quién llama a mis leads?<i aria-hidden="true"></i></summary><p>Manuela, una agente de voz con IA. Los contacta en menos de 30 segundos, valida su interés y su capacidad de pago, y pasa al asesor solo a los que están listos.</p></details>
+      <details class="qa"><summary>¿Qué pasa con los datos de la demo?<i aria-hidden="true"></i></summary><p>En la demo pública no se hacen llamadas ni se guardan datos personales. Con tu empresa, el tratamiento de datos se acuerda por contrato y Machea actúa como encargado.</p></details>
     </div>
   </div>
 </section>
 
-<!-- ================= CIERRE: amanecer sobre la ciudad ================= -->
-<section class="final" aria-label="Empieza con Machea">
-  <div class="stars" aria-hidden="true"></div>
+<!-- ================= CIERRE ================= -->
+<section class="final on-dark" aria-labelledby="h-final">
   <div class="wrap">
-    <h2>Convierte tu pauta en conversaciones listas para cerrar</h2>
+    <h2 id="h-final">Convierte tu pauta en conversaciones listas para cerrar</h2>
     <p>Perfilamos, contactamos con IA y entregamos a tus asesores solo a quienes están listos para comprar.</p>
     <div class="ctas">
-      <a class="btn btn-white btn-lg" href="#empieza">Empieza gratis</a>
-      <a class="btn btn-ghost-w btn-lg" href="#agendar" data-agendar>Agenda una demo</a>
+      <a class="btn btn-white btn-lg" href="#probar">Probar Machea</a>
+      <a class="btn btn-line btn-lg" href="#agendar" data-agendar>Agendar demo</a>
     </div>
   </div>
-  <div class="skyline" aria-hidden="true"></div>
+  <img class="final-sky" src="/ilustraciones/ciudad-cierre.svg" alt="" width="1440" height="260" loading="lazy" decoding="async">
 </section>
 </main>
 
@@ -634,53 +394,44 @@
         <a class="brand" href="#inicio" aria-label="Machea, volver al inicio"><svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg></a>
         <p class="f-contact">Escríbenos<a href="mailto:machea.co@gmail.com">machea.co@gmail.com</a></p>
         <div class="social">
-          <a href="https://www.instagram.com/machea.col" target="_blank" rel="noopener" aria-label="Instagram de Machea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r=".9" fill="currentColor" stroke="none"/></svg></a>
-          <a href="https://www.tiktok.com/@machea.ia" target="_blank" rel="noopener" aria-label="TikTok de Machea"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.3 2.3 1.7 3.9 4 4.1v3.2c-1.5 0-2.9-.5-4-1.3v6.1a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v3.3a2.4 2.4 0 1 0 1.5 2.2V3h3.2z"/></svg></a>
-          <a href="https://www.linkedin.com/company/machea" target="_blank" rel="noopener" aria-label="LinkedIn de Machea"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.8h4V21H3V9.8zm6.5 0h3.8v1.6h.06c.53-1 1.83-2 3.77-2 4.03 0 4.77 2.65 4.77 6.1V21h-4v-5.2c0-1.24-.02-2.84-1.73-2.84-1.73 0-2 1.35-2 2.75V21h-4V9.8z"/></svg></a>
+          <a href="https://www.instagram.com/machea.col" target="_blank" rel="noopener" aria-label="Instagram de Machea (se abre en una pestaña nueva)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r=".9" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.tiktok.com/@machea.ia" target="_blank" rel="noopener" aria-label="TikTok de Machea (se abre en una pestaña nueva)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.3 2.3 1.7 3.9 4 4.1v3.2c-1.5 0-2.9-.5-4-1.3v6.1a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v3.3a2.4 2.4 0 1 0 1.5 2.2V3h3.2z"/></svg></a>
+          <a href="https://www.linkedin.com/company/machea" target="_blank" rel="noopener" aria-label="LinkedIn de Machea (se abre en una pestaña nueva)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.8h4V21H3V9.8zm6.5 0h3.8v1.6h.06c.53-1 1.83-2 3.77-2 4.03 0 4.77 2.65 4.77 6.1V21h-4v-5.2c0-1.24-.02-2.84-1.73-2.84-1.73 0-2 1.35-2 2.75V21h-4V9.8z"/></svg></a>
         </div>
       </div>
       <nav class="col" aria-label="Producto">
-        <h4>Producto</h4>
+        <h2>Producto</h2>
         <a href="#como-funciona">Cómo funciona</a>
-        <a href="#demo">Demo</a>
-        <a href="#empieza">Empieza gratis</a>
+        <a href="#probar">Probar Machea</a>
+        <a href="#marca">Demo con tu marca</a>
         <a href="#faq">Preguntas frecuentes</a>
       </nav>
-      <nav class="col" aria-label="Para quién">
-        <h4>Para quién</h4>
-        <a href="#soluciones">Inmobiliarias</a>
-        <a href="#soluciones">Constructoras</a>
-        <a href="#demo">Proyectos VIS y No VIS</a>
-      </nav>
-      <nav class="col" aria-label="Conversemos">
-        <h4>Conversemos</h4>
-        <a href="#agendar" data-agendar>Agenda una demo</a>
-        <a href="mailto:machea.co@gmail.com">Escribir al equipo</a>
+      <nav class="col" aria-label="Cuenta y legal">
+        <h2>Conversemos</h2>
+        <a href="#agendar" data-agendar>Agendar demo</a>
         <a href="/acceso/">Iniciar sesión</a>
-        <a href="https://www.instagram.com/machea.col" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://www.linkedin.com/company/machea" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="https://www.tiktok.com/@machea.ia" target="_blank" rel="noopener">TikTok</a>
+        <a href="/privacidad/">Política de privacidad</a>
       </nav>
     </div>
     <div class="bot">
-      <span>Imágenes, planos y ciudad ilustrativos, no son proyectos reales.</span>
+      <span>Ejemplos, planos y datos de esta página son ilustrativos; no son proyectos ni clientes reales.</span>
       <span>© 2026 Machea Proptech. Todos los derechos reservados.</span>
     </div>
   </div>
 </footer>
 
-<!-- ================= AGENDA UNA DEMO (formulario por pasos) ================= -->
+<!-- ================= AGENDAR DEMO (formulario por pasos) ================= -->
 <dialog class="ag" id="agendar" aria-labelledby="agTitulo">
   <div class="ag-top">Empieza con una auditoría gratuita de tu proceso de leads</div>
   <div class="ag-main">
     <div class="ag-card">
       <div class="ag-head">
-        <a class="brand" href="#inicio" aria-label="Machea"><svg viewBox="0 0 155.6 33.7" aria-hidden="true"><use href="#logo-lockup"/></svg></a>
-        <button class="ag-x" type="button" aria-label="Cerrar"><svg><use href="#i-x"/></svg></button>
+        <span class="brand" aria-hidden="true"><svg viewBox="0 0 155.6 33.7"><use href="#logo-lockup"/></svg></span>
+        <button class="ag-x" type="button" aria-label="Cerrar"><svg aria-hidden="true"><use href="#i-x"/></svg></button>
       </div>
       <div class="ag-prog" id="agProg">
-        <button class="ag-back" type="button" aria-label="Volver al paso anterior" hidden><svg><use href="#i-left"/></svg></button>
-        <div class="bar"><i></i></div>
+        <button class="ag-back" type="button" aria-label="Volver al paso anterior" hidden><svg aria-hidden="true"><use href="#i-left"/></svg></button>
+        <div class="bar" aria-hidden="true"><i></i></div>
         <small></small>
       </div>
       <div id="agPaso"></div>

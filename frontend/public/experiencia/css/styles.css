@@ -6309,6 +6309,28 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
   width: 100%;
   max-width: 460px;
 }
+/* "Volver a Machea": la salida hacia la landing, encima del logo. */
+.gdf-registro-volver {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  min-height: 44px;
+  margin: -12px 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.gdf-registro-volver:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.gdf-registro-volver:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 .gdf-registro-logo {
   display: inline-flex;
   align-items: center;
@@ -6508,6 +6530,36 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
   color: var(--tinta-media);
   font-size: 13px;
   line-height: 1.45;
+}
+
+/* Demo pública (js/demo.js): el cierre cuenta qué pasa con un lead real. */
+.gdf-demo-pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.gdf-demo-pasos li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--tinta);
+}
+.gdf-demo-pasos li svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--marca);
+}
+.gdf-demo-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  min-height: 48px;
+  text-decoration: none;
 }
 
 /* En una demo, TODO texto que usaba el color de marca pasa al tono oscurecido hasta

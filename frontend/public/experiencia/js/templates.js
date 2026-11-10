@@ -295,9 +295,17 @@
       ? '<div class="gdf-registro-logo gdf-registro-logo--demo' + (demoActiva.fondoLogo === 'oscuro' ? ' sobre-marca' : '') +
         '" role="img" aria-label="' + esc(nombreMarca()) + '">' + logoHtml('gdf-registro-logo-img') + '</div>'
       : '<div class="gdf-registro-logo" role="img" aria-label="Machea">' + ISOTIPO_MACHEA + '<span aria-hidden="true">machea</span></div>';
+    // Salida de vuelta a la landing. Sin ella, quien entró con "Probar el
+    // modelo" solo tenía el botón atrás del navegador. `_top` por si la app
+    // corre dentro de un iframe (anterior.html). En una demo con marca no va:
+    // ese enlace llega por correo y no viene de la landing.
+    var volver = demoActiva
+      ? ''
+      : '<a class="gdf-registro-volver" href="/" target="_top">' + ic('flecha-izquierda', { tam: 16 }) + 'Volver a Machea</a>';
     return (
       '<div class="gdf-screen gdf-escarapela gdf-registro">' +
       '<div class="gdf-registro-caja">' +
+      volver +
       logoRegistro +
       '<p class="eyebrow">Tus datos</p>' +
       '<h2>Cuéntanos quién eres</h2>' +
@@ -1175,6 +1183,7 @@
   // WhatsApp adaptado: en arriendo no se pregunta por un proyecto, se pregunta
   // si el inmueble sigue disponible.
   function accionesContactoArriendo(item, state) {
+    if (window.GDF_DEMO_PUBLICA) return accionesDemoPublica(item.id_inmueble);
     var numero = String((window.GDF_CONFIG && window.GDF_CONFIG.WHATSAPP_NUMERO) || '').replace(/\D/g, '');
     var quien = (state.nombre || '').trim();
     var mensaje =
@@ -1834,6 +1843,7 @@
   // js/config.js, en formato internacional sin "+"). Sin número, wa.me abre
   // WhatsApp con el mensaje listo para que la persona elija a quién mandarlo.
   function accionesContacto(vm, state) {
+    if (window.GDF_DEMO_PUBLICA) return accionesDemoPublica(vm.id);
     var numero = String((window.GDF_CONFIG && window.GDF_CONFIG.WHATSAPP_NUMERO) || '').replace(/\D/g, '');
     var quien = (state.nombre || '').trim();
     var mensaje =
@@ -2375,7 +2385,66 @@
     );
   }
 
+  // -------------------------------------------------------------------------
+  // DEMO PÚBLICA (js/demo.js): sin llamada, sin WhatsApp y sin datos guardados.
+  // La tarjeta solo deja elegir, y el cierre cuenta qué pasaría con un lead real.
+  // -------------------------------------------------------------------------
+  function accionesDemoPublica(id) {
+    return (
+      '<div class="gdf-project-acciones">' +
+      '<button class="gdf-btn-primary enabled gdf-project-llamar" data-action="llamarProyecto" data-value="' + esc(id) + '">' +
+      ic('check') + 'Elegir este proyecto</button>' +
+      '</div>'
+    );
+  }
+
+  function confirmacionDemoPublica(state, derived) {
+    var nombre = '';
+    (state.reco.items || []).forEach(function (vm) {
+      if (vm.id === state.chosen) nombre = vm.nombre;
+    });
+    (state.arriendo.items || []).forEach(function (it) {
+      if (String(it.id_inmueble) === String(state.chosen)) nombre = it.nombre || 'este inmueble';
+    });
+    var chips = (derived.perfilChips || [])
+      .map(function (c) {
+        return '<span class="gdf-chip' + (c.hi ? ' hi' : '') + '">' + esc(c.text) + '</span>';
+      })
+      .join('');
+    var pasos = [
+      ['telefono', 'Manuela, la agente de voz con IA, llama al lead en menos de 30 segundos.'],
+      ['check', 'Valida su interés y su capacidad de pago durante la llamada.'],
+      ['senal', 'Tu asesor recibe en el CRM la ficha completa: perfil, proyecto elegido y resumen de la llamada.'],
+    ];
+    return (
+      '<div class="gdf-screen gdf-confirmacion gdf-confirmacion--demo">' +
+      '<div class="gdf-confirm-hero gdf-confirm-hero--ok">' +
+      '<div class="gdf-confirm-icon"><span class="gdf-confirm-check">' + ic('check') + '</span></div>' +
+      '<h2>Así termina la experiencia de tu lead</h2>' +
+      '<p>' + (nombre ? 'Elegiste <strong>' + esc(nombre) + '</strong>. ' : '') +
+      'Con un lead real, en este momento pasa esto:</p>' +
+      '</div>' +
+      '<div class="gdf-confirm-bloque">' +
+      '<h3>Lo que sigue</h3>' +
+      '<ol class="gdf-demo-pasos">' +
+      pasos.map(function (p) {
+        return '<li>' + ic(p[0]) + '<span>' + esc(p[1]) + '</span></li>';
+      }).join('') +
+      '</ol>' +
+      '<p class="gdf-demo-nota">Esta es la demo pública: no hicimos ninguna llamada ni guardamos tus respuestas.</p>' +
+      '<a class="gdf-btn-primary enabled gdf-demo-cta" href="/#agendar" target="_top">Agendar una demo con Machea</a>' +
+      '</div>' +
+      (chips
+        ? '<div class="gdf-confirm-bloque"><h3>Tu perfil</h3><div class="gdf-chips">' + chips + '</div></div>'
+        : '') +
+      '<button class="gdf-back-btn" data-action="goSeleccion">' + ic('flecha-izquierda') + ' Cambiar mi selección</button>' +
+      '<button class="gdf-restart-btn" data-action="restart">' + ic('reiniciar') + ' Empezar de nuevo</button>' +
+      '</div>'
+    );
+  }
+
   function confirmacion(state, derived) {
+    if (window.GDF_DEMO_PUBLICA) return confirmacionDemoPublica(state, derived);
     if (state.answers.operacion === 'arriendo') return confirmacionArriendo(state, derived);
     var lead = state.lead;
     var firstName = state.nombre.trim().split(' ')[0];
