@@ -20,8 +20,8 @@
       // cierra con un lead sin contacto y nada lo delata.
       //
       // MACHEA tampoco tiene splash: el suyo es el genérico de las
-      // constructoras ("Grúa del Futuro") y quien llega desde la landing ya
-      // pulsó "Probar el modelo". Entra al registro aunque falte `embed=1`.
+      // constructoras y quien llega desde la landing ya pulsó "Probar
+      // Machea". Entra al registro aunque falte `embed=1`.
       screen: window.GDF_EMBED || window.GDF_TENANT === 'machea' ? 'escarapela' : 'splash',
       // Sin pantalla de elegir personaje: 'x' (avatar neutro) por defecto.
       gender: 'x', // 'f' | 'm' | 'x'

@@ -437,7 +437,7 @@
     });
 
     if (M.identidad && M.identidad.nombre) {
-      document.title = 'Grúa del Futuro | ' + M.identidad.nombre;
+      document.title = 'Encuentra tu próximo hogar | ' + M.identidad.nombre;
     }
 
     return tokens;
