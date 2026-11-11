@@ -1306,188 +1306,6 @@ body:after {
   background: linear-gradient(180deg, var(--paper), var(--beige) 140%);
   border-block: 0;
 }
-
-/* ---- Precios: tres tarjetas de plan y la franja del piloto ---------------- */
-.planes {
-  gap: 18px;
-  display: grid;
-}
-@media (width>=820px) {
-  .planes {
-    grid-template-columns: repeat(3, 1fr);
-    align-items: stretch;
-  }
-}
-.plan {
-  background: var(--white);
-  border: 1px solid var(--hair-2);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-1);
-  align-content: start;
-  gap: 14px;
-  padding: 30px 26px 26px;
-  display: grid;
-  position: relative;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.plan:hover {
-  box-shadow: var(--shadow-2);
-  transform: translateY(-2px);
-}
-.plan.destacado {
-  border: 2px solid var(--coral);
-  box-shadow: var(--shadow-2);
-}
-.plan .insignia {
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: var(--cta);
-  color: #fff;
-  border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 800;
-  position: absolute;
-  top: -13px;
-  left: 24px;
-}
-.plan h3 {
-  letter-spacing: -0.02em;
-  font-size: 22px;
-  font-weight: 800;
-}
-.plan .precio {
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
-  display: flex;
-}
-.plan .precio b,
-.piloto .precio b {
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(2rem, 3.2vw, 2.45rem);
-  font-weight: 800;
-  line-height: 1;
-}
-.plan .precio span,
-.piloto .precio span {
-  color: var(--ink-2);
-  font-size: 14.5px;
-  font-weight: 600;
-}
-.plan .cupo {
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  font-size: 14.5px;
-  display: flex;
-}
-.plan .cupo b {
-  background: var(--coral-soft);
-  color: var(--coral-text);
-  border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 13.5px;
-  font-weight: 800;
-}
-.plan .cupo span {
-  color: var(--ink-2);
-}
-.plan ul {
-  border-top: 1px solid var(--hair);
-  gap: 10px;
-  margin: 4px 0 0;
-  padding: 16px 0 0;
-  list-style: none;
-  display: grid;
-}
-.plan li {
-  color: var(--ink-2);
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 15.5px;
-  line-height: 1.4;
-  display: flex;
-}
-.plan li svg {
-  color: var(--emerald-ink);
-  flex: none;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
-}
-.plan .extra {
-  color: var(--ink-3);
-  border-top: 1px solid var(--hair);
-  padding-top: 12px;
-  font-size: 14px;
-}
-.plan .btn {
-  width: 100%;
-  margin-top: 2px;
-}
-.piloto {
-  background: var(--navy);
-  color: #fff;
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-2);
-  align-items: center;
-  gap: 16px 28px;
-  margin-top: 18px;
-  padding: 26px 28px;
-  display: grid;
-}
-@media (width>=820px) {
-  .piloto {
-    grid-template-columns: 1fr auto auto;
-  }
-}
-.piloto .eyebrow {
-  background: #ffffff1f;
-  color: #fff;
-}
-.piloto .eyebrow:before {
-  background: var(--coral);
-}
-.piloto h3 {
-  letter-spacing: -0.02em;
-  margin-top: 10px;
-  font-size: 22px;
-  font-weight: 800;
-}
-.piloto p {
-  color: #ffffffd6;
-  margin-top: 6px;
-  font-size: 15.5px;
-}
-.piloto .precio {
-  text-align: right;
-  display: grid;
-}
-.piloto .precio span {
-  color: #ffffffd6;
-}
-.piloto .btn-white {
-  white-space: nowrap;
-}
-.precios-notas {
-  color: var(--ink-3);
-  max-width: 78ch;
-  gap: 6px;
-  margin: 20px auto 0;
-  font-size: 14px;
-  text-align: center;
-  display: grid;
-}
-@media (width<820px) {
-  .piloto .precio {
-    text-align: left;
-  }
-  .piloto .btn-white {
-    width: 100%;
-  }
-}
 .hero {
   padding-top: calc(var(--nav-h) + clamp(40px, 7vw, 96px));
   background:
@@ -3500,4 +3318,344 @@ dialog.ag::backdrop {
 }
 .ag-consent {
   grid-template-columns: 24px 1fr;
+}
+
+/* ---- Precios (del artefacto de la landing rediseñada) ---------------------- */
+@property --ang {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes gira-borde {
+  to {
+    --ang: 360deg;
+  }
+}
+.sec-tight {
+  padding-block: clamp(56px, 7vw, 92px);
+}
+.sec-tight .sec-head {
+  gap: 10px;
+  margin-bottom: clamp(24px, 3.4vw, 40px);
+}
+.plans {
+  gap: 18px;
+  display: grid;
+}
+@media (width>=820px) {
+  .plans {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.plan {
+  box-shadow:
+    var(--shell),
+    0 24px 48px -32px #2d3b4e4d;
+  transition:
+    transform 0.6s var(--ease),
+    box-shadow 0.6s var(--ease);
+  background: #fff;
+  border-radius: 24px;
+  align-content: start;
+  gap: 12px;
+  padding: 24px;
+  display: grid;
+  position: relative;
+}
+.plan:hover {
+  transform: translateY(-5px);
+}
+.plan h3 {
+  letter-spacing: -0.02em;
+  font-size: 18px;
+  font-weight: 700;
+}
+.plan-price {
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  display: flex;
+}
+.plan-price b {
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.9rem, 2.9vw, 2.45rem);
+  font-weight: 760;
+  line-height: 1;
+}
+.plan-price span {
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 600;
+}
+.plan-leads {
+  color: var(--ink-2);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0;
+  font-size: 13.5px;
+  display: flex;
+}
+.tag-warm-plain {
+  background: var(--coral-soft);
+  color: var(--coral-text);
+}
+.plan-extra {
+  border-top: 1px solid var(--hair);
+  color: var(--ink-3);
+  margin: 0;
+  padding-top: 12px;
+  font-size: 13.5px;
+}
+.plan .btn {
+  width: 100%;
+}
+.plan-top {
+  background: linear-gradient(180deg, #fff, var(--coral-soft) 160%);
+  box-shadow:
+    0 0 0 2px #c9322a80,
+    0 0 0 8px #ff62591a,
+    0 30px 54px -30px #c9322a73;
+}
+.plan-notes {
+  color: var(--ink-3);
+  gap: 4px 28px;
+  margin-top: 16px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  display: grid;
+}
+@media (width>=820px) {
+  .plan-notes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .plan-notes li:last-child {
+    grid-column: 1/-1;
+  }
+}
+.plan-notes li {
+  padding-left: 12px;
+  position: relative;
+}
+.plan-notes li:before {
+  content: "";
+  background: var(--hair-2);
+  border-radius: 50%;
+  width: 4px;
+  height: 4px;
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+}
+#precios {
+  isolation: isolate;
+  position: relative;
+  overflow: clip;
+}
+.precios-bg {
+  z-index: -1;
+  background: radial-gradient(circle, #2d3b4e21 1px, #0000 1.5px) 0 0/26px 26px;
+  animation: 20s linear infinite puntos;
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 40%, #000, #0000);
+  mask-image: radial-gradient(70% 60% at 50% 40%, #000, #0000);
+}
+#precios:before,
+#precios:after {
+  content: "";
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  position: absolute;
+}
+#precios:before {
+  background: radial-gradient(circle, #ff625929, #0000 68%);
+  width: 440px;
+  height: 440px;
+  animation: 17s ease-in-out infinite alternate flota-b;
+  top: 10%;
+  left: -140px;
+}
+#precios:after {
+  background: radial-gradient(circle, #2dd4a729, #0000 68%);
+  width: 420px;
+  height: 420px;
+  animation: 20s ease-in-out infinite alternate flota-a;
+  bottom: 6%;
+  right: -130px;
+}
+.plan {
+  overflow: hidden;
+}
+.plan:after {
+  content: "";
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+  background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 0%), #ff625921, transparent 70%);
+  position: absolute;
+  inset: 0;
+}
+.plan:hover:after {
+  opacity: 1;
+}
+.plan:hover {
+  box-shadow:
+    var(--shell),
+    0 34px 60px -30px #2d3b4e6b;
+  transform: translateY(-8px);
+}
+.plan-price b {
+  display: inline-block;
+}
+.plan:hover .plan-price b {
+  color: var(--coral-text);
+  transition: color 0.4s var(--ease);
+}
+.vol {
+  background: var(--sand);
+  border-radius: 99px;
+  flex: 100%;
+  order: 3;
+  height: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.vol:after {
+  content: "";
+  width: calc(var(--v) * 1%);
+  background: linear-gradient(90deg, var(--coral), var(--emerald));
+  transform-origin: 0;
+  border-radius: 99px;
+  position: absolute;
+  inset: 0;
+}
+.js-rv .plan .vol:after {
+  transform: scaleX(0);
+}
+.js-rv .plan.in .vol:after {
+  animation: llena 1.4s var(--ease) 0.35s both;
+}
+.plan-top {
+  box-shadow:
+    0 0 0 8px #ff62591a,
+    0 30px 54px -30px #c9322a73;
+}
+.plan-top:before {
+  content: "";
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from var(--ang), var(--cta), var(--coral), var(--emerald), var(--coral), var(--cta));
+  -webkit-mask-composite: xor;
+  padding: 2px;
+  animation: 6s linear infinite gira-borde;
+  position: absolute;
+  inset: 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor, source-over;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+@media (width>=820px) {
+  .plan-top {
+    margin-block: -10px;
+    padding-block: 34px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .precios-bg,
+  #precios:before,
+  #precios:after,
+  .plan-top:before {
+    animation: none !important;
+  }
+  .js-rv .plan .vol:after,
+  .js-rv .incl li svg {
+    transform: none;
+  }
+}
+.plan {
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px 26px 26px;
+  display: flex;
+}
+.plan .btn {
+  margin-top: auto;
+}
+.plan-leads {
+  padding-bottom: 4px;
+}
+.plan-feats {
+  border-top: 1px solid var(--hair);
+  gap: 11px;
+  padding-top: 16px;
+  display: grid;
+}
+.plan-feats li {
+  color: var(--ink-2);
+  transition: transform 0.4s var(--ease);
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  display: flex;
+}
+.plan-feats li:hover {
+  transform: translate(3px);
+}
+.plan-feats svg {
+  background: var(--emerald-soft);
+  width: 18px;
+  height: 18px;
+  color: var(--emerald-ink);
+  border-radius: 50%;
+  flex: none;
+  margin-top: 2px;
+  padding: 3px;
+}
+.plan-extra {
+  margin-bottom: 4px;
+}
+.js-rv .plan .plan-feats svg {
+  transform: scale(0);
+}
+.js-rv .plan.in .plan-feats svg {
+  animation: pop 0.6s var(--ease) both;
+}
+.js-rv .plan.in .plan-feats li:first-child svg {
+  animation-delay: 0.45s;
+}
+.js-rv .plan.in .plan-feats li:nth-child(2) svg {
+  animation-delay: 0.57s;
+}
+.js-rv .plan.in .plan-feats li:nth-child(3) svg {
+  animation-delay: 0.69s;
+}
+.js-rv .plan.in .plan-feats li:nth-child(4) svg {
+  animation-delay: 0.81s;
+}
+.js-rv .plan.in .plan-feats li:nth-child(5) svg {
+  animation-delay: 0.93s;
+}
+@media (width>=820px) {
+  .plan-top {
+    margin-block: -12px;
+    padding-block: 40px 38px;
+  }
+  .plan-notes {
+    margin-top: 30px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js-rv .plan .plan-feats svg {
+    transform: none;
+  }
 }
