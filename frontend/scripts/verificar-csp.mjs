@@ -26,7 +26,7 @@ for (const [ruta, archivo] of [["/", "../dist/index.html"], ["/experiencia/", ".
     continue;
   }
   for (const m of html.matchAll(/<script(?![^>]*\ssrc=)([^>]*)>([\s\S]*?)<\/script>/g)) {
-    if (/ld\+json/.test(m[1])) continue; // los datos estructurados no se ejecutan
+    if (/ld\+json|application\/json/.test(m[1])) continue; // los datos (estructurados o de precios) no se ejecutan
     const huella = "sha256-" + createHash("sha256").update(m[2]).digest("base64");
     if (csp.includes(`'${huella}'`)) console.log(`✓ ${ruta}: script en línea permitido (${huella.slice(0, 20)}…)`);
     else {

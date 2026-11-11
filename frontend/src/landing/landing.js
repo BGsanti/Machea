@@ -59,6 +59,52 @@ function despertarBackend() {
    (/experiencia/index.html?marca=machea): registro, recomendación, llamada de
    Manuela y WhatsApp, igual que un lead real. No necesitan JS. */
 
+/* ---- Precios: tarjetas de plan y franja del piloto ------------------------ */
+// La fuente única es el bloque JSON #machea-pricing de index.html. Solo se
+// publica lo "vigente": la insignia "Recomendado" y la duración del piloto
+// están "por decidir" en el JSON, así que no se pintan hasta que cambien.
+function iniciarPrecios() {
+  const nodo = $('#machea-pricing'), planes = $('#planes');
+  if (!nodo || !planes) return;
+  let d;
+  try { d = JSON.parse(nodo.textContent); } catch (ex) { console.warn('[machea] precios: JSON inválido', ex); return; }
+  const nf = new Intl.NumberFormat('es-CO');
+  const pesos = (n) => '$' + nf.format(Math.round(n));
+  const vigente = (p) => !p.status || p.status === 'vigente';
+  const incluido = (d.included || []).map((t) => `<li>${ico('i-check')}<span>${esc(t)}</span></li>`).join('');
+
+  planes.innerHTML = (d.plans || []).filter(vigente).map((p) => {
+    const destacado = p.recommended && p.recommended_status === 'vigente';
+    return `<article class="plan${destacado ? ' destacado' : ''}" aria-labelledby="plan-${esc(p.id)}">
+      ${destacado ? '<span class="insignia">Recomendado</span>' : ''}
+      <h3 id="plan-${esc(p.id)}">${esc(p.name)}</h3>
+      <p class="precio"><b>${pesos(p.price)}</b><span>/ ${esc(p.period)} + IVA</span></p>
+      <p class="cupo"><b>${nf.format(p.leads)} leads al ${esc(p.period)}</b><span>${pesos(p.price / p.leads)} por lead incluido</span></p>
+      <ul>${incluido}</ul>
+      <p class="extra">Lead adicional: ${pesos(p.extra_lead_price)}</p>
+      <a class="btn btn-coral" href="#agendar" data-agendar data-plan="${esc(p.id)}">${esc(p.cta)}</a>
+    </article>`;
+  }).join('');
+
+  const pl = d.pilot;
+  if (pl) {
+    const detalles = [`${nf.format(pl.leads)} leads`, pl.setup_note, pl.duration_status === 'vigente' ? pl.duration_text : null].filter(Boolean);
+    $('#piloto').innerHTML = `<aside class="piloto" aria-labelledby="plan-${esc(pl.id)}">
+      <div><p class="eyebrow">¿Prefieres probar primero?</p><h3 id="plan-${esc(pl.id)}">${esc(pl.name)}</h3><p>${esc(detalles.join(' · '))}. La misma experiencia completa, con tus proyectos y tus leads.</p></div>
+      <p class="precio"><b>${pesos(pl.price)}</b><span>${esc(pl.period)} + IVA</span></p>
+      <a class="btn btn-white btn-lg" href="#agendar" data-agendar data-plan="${esc(pl.id)}">${esc(pl.cta)}</a>
+    </aside>`;
+  }
+
+  const montaje = (d.plans || []).find((p) => p.setup_fee);
+  const r = d.rules || {};
+  $('#preciosNotas').innerHTML = [
+    montaje ? `Montaje inicial único de ${pesos(montaje.setup_fee)} por cliente nuevo: carga de tus proyectos, formulario y configuración de los agentes.` : null,
+    'Un lead es un interesado que completa el formulario con un teléfono válido.',
+    r.iva_note, r.credit_disclaimer, r.call_hours ? `Horario de llamadas: ${r.call_hours}` : null,
+  ].filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('');
+}
+
 /* ---- Vista de ejemplo del CRM (datos ficticios) -------------------------- */
 const LEADS_EJEMPLO = [
   { n: 'Andrea G.', p: 'VIS · Engativá', pago: 'Cuota estimada $780.000 al mes; subsidio disponible',
@@ -248,6 +294,7 @@ function iniciarAgendar() {
   ];
 
   let i = 0, resp = {}, enviado = false, ocupado = false;
+  let planElegido = null; // el plan de la sección de precios desde el que se abrió el formulario
 
   const normTel = (v) => {
     let d = String(v || '').replace(/\D/g, '');
@@ -372,6 +419,7 @@ function iniciarAgendar() {
     const o = { pagina: location.pathname };
     new URLSearchParams(location.search).forEach((v, k) => { if (/^utm_/.test(k) && Object.keys(o).length < 8) o[k] = String(v).slice(0, 80); });
     try { if (document.referrer) o.ref = new URL(document.referrer).hostname; } catch { /* sin referrer */ }
+    if (planElegido) o.plan = planElegido;
     return o;
   }
   async function guardar(datos) {
@@ -495,6 +543,7 @@ function iniciarAgendar() {
     const a = e.target.closest('[data-agendar]');
     if (!a) return;
     e.preventDefault();
+    planElegido = a.dataset.plan || null;
     abrir();
   });
   // Entrar con /#agendar abre el formulario.
@@ -506,7 +555,7 @@ function iniciarAgendar() {
 /* ---- Entradas suaves al hacer scroll ------------------------------------- */
 // Sin IntersectionObserver o con "reducir movimiento" no se anima nada. Si algo
 // no llega a entrar (pestaña en segundo plano), a los 6 s se muestra igual.
-const REVELAR = '.sec-head, .try-side, .stage, .step, .crm, .brand-copy, .form-card, details.qa, .final .wrap > *';
+const REVELAR = '.sec-head, .try-side, .stage, .step, .crm, .plan, .piloto, .brand-copy, .form-card, details.qa, .final .wrap > *';
 function iniciarEntradas() {
   if (!('IntersectionObserver' in window) || sinMovimiento()) return;
   const els = $$(REVELAR);
@@ -620,6 +669,7 @@ function iniciarTarjetaLead() {
 
 iniciarMenu();
 despertarBackend();
+iniciarPrecios();
 iniciarCrm();
 iniciarDemoMarca();
 iniciarAgendar();
