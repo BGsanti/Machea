@@ -59,6 +59,65 @@ function despertarBackend() {
    (/experiencia/index.html?marca=machea): registro, recomendación, llamada de
    Manuela y WhatsApp, igual que un lead real. No necesitan JS. */
 
+/* ---- Precios: los tres planes (diseño del artefacto de la landing rediseñada) ---- */
+// La fuente única es el bloque JSON #machea-pricing de index.html. Solo se publica lo
+// "vigente" (nada de permanencia, cancelación, garantías ni descuentos). El plan marcado
+// "recommended" lleva el borde destacado, sin texto "Recomendado", igual que el artefacto.
+// El piloto sigue en el JSON, pero la sección muestra solo los tres planes.
+function iniciarPrecios() {
+  const nodo = $('#machea-pricing'), lista = $('#planes');
+  if (!nodo || !lista) return;
+  let d;
+  try { d = JSON.parse(nodo.textContent); } catch (ex) { console.warn('[machea] precios: JSON inválido', ex); return; }
+  const nf = new Intl.NumberFormat('es-CO');
+  const pesos = (n) => '$' + nf.format(Math.round(n));
+  const vigente = (p) => !p.status || p.status === 'vigente';
+  const planes = (d.plans || []).filter(vigente);
+  const maxLeads = Math.max(1, ...planes.map((p) => p.leads));
+  const incluido = (d.included || []).map((t) => `<li>${ico('i-check')}<span>${esc(t)}</span></li>`).join('');
+
+  lista.innerHTML = planes.map((p) => `<li class="plan${p.recommended ? ' plan-top' : ''}">
+          <h3>${esc(p.name)}</h3>
+          <p class="plan-price"><b>${pesos(p.price)}</b><span>/ ${esc(p.period)} + IVA</span></p>
+          <p class="plan-leads"><span class="tag tag-warm-plain">${nf.format(p.leads)} leads al ${esc(p.period)}</span><i class="vol" style="--v:${Math.round(p.leads / maxLeads * 100)}" aria-hidden="true"></i><span>${pesos(p.price / p.leads)} por lead incluido</span></p>
+          <ul class="plan-feats">${incluido}</ul>
+          <p class="plan-extra">Lead adicional: ${pesos(p.extra_lead_price)}</p>
+          <a class="btn btn-coral btn-arrow" href="#agendar" data-agendar data-plan="${esc(p.id)}">${esc(p.cta)}<span class="sr-only"> del plan ${esc(p.name)}</span></a>
+        </li>`).join('');
+
+  const montaje = planes.find((p) => p.setup_fee);
+  const r = d.rules || {};
+  const minuscula = (t) => t.charAt(0).toLowerCase() + t.slice(1);
+  $('#preciosNotas').innerHTML = [
+    montaje ? `Montaje inicial único de ${pesos(montaje.setup_fee)} por cliente nuevo: carga de tus proyectos, formulario y configuración de los agentes.` : null,
+    'Un lead es un interesado que completa el formulario con un teléfono válido.',
+    r.iva_note, r.credit_disclaimer, r.call_hours ? `Horario de llamadas: ${minuscula(r.call_hours)}` : null,
+  ].filter(Boolean).map((t) => `<li>${esc(t)}</li>`).join('');
+}
+
+// Los precios cuentan desde cero hasta su valor cuando la tarjeta entra en pantalla.
+// Sin IntersectionObserver o con "reducir movimiento" se quedan quietos en su valor final.
+function contarPrecios() {
+  if (!('IntersectionObserver' in window) || sinMovimiento()) return;
+  const els = $$('.plan-price b');
+  if (!els.length) return;
+  const fmt = (n) => '$' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      const el = en.target, fin = el.dataset.fin, meta = Number(fin.replace(/\D/g, '')), t0 = performance.now();
+      const paso = (t) => {
+        const k = Math.min(1, (t - t0) / 1300), suave = 1 - (1 - k) ** 4;
+        el.textContent = k < 1 ? fmt(meta * suave) : fin;
+        if (k < 1) requestAnimationFrame(paso);
+      };
+      requestAnimationFrame(paso);
+    });
+  }, { threshold: 0.6 });
+  els.forEach((el) => { el.dataset.fin = el.textContent; el.style.minWidth = `${el.offsetWidth}px`; io.observe(el); });
+}
+
 /* ---- Vista de ejemplo del CRM (datos ficticios) -------------------------- */
 const LEADS_EJEMPLO = [
   { n: 'Andrea G.', p: 'VIS · Engativá', pago: 'Cuota estimada $780.000 al mes; subsidio disponible',
@@ -248,6 +307,7 @@ function iniciarAgendar() {
   ];
 
   let i = 0, resp = {}, enviado = false, ocupado = false;
+  let planElegido = null; // el plan de la sección de precios desde el que se abrió el formulario
 
   const normTel = (v) => {
     let d = String(v || '').replace(/\D/g, '');
@@ -372,6 +432,7 @@ function iniciarAgendar() {
     const o = { pagina: location.pathname };
     new URLSearchParams(location.search).forEach((v, k) => { if (/^utm_/.test(k) && Object.keys(o).length < 8) o[k] = String(v).slice(0, 80); });
     try { if (document.referrer) o.ref = new URL(document.referrer).hostname; } catch { /* sin referrer */ }
+    if (planElegido) o.plan = planElegido;
     return o;
   }
   async function guardar(datos) {
@@ -495,6 +556,7 @@ function iniciarAgendar() {
     const a = e.target.closest('[data-agendar]');
     if (!a) return;
     e.preventDefault();
+    planElegido = a.dataset.plan || null;
     abrir();
   });
   // Entrar con /#agendar abre el formulario.
@@ -506,7 +568,7 @@ function iniciarAgendar() {
 /* ---- Entradas suaves al hacer scroll ------------------------------------- */
 // Sin IntersectionObserver o con "reducir movimiento" no se anima nada. Si algo
 // no llega a entrar (pestaña en segundo plano), a los 6 s se muestra igual.
-const REVELAR = '.sec-head, .try-side, .stage, .step, .crm, .brand-copy, .form-card, details.qa, .final .wrap > *';
+const REVELAR = '.sec-head, .try-side, .stage, .step, .crm, .brand-copy, .form-card, .plan, .plan-notes, details.qa, .final .wrap > *';
 function iniciarEntradas() {
   if (!('IntersectionObserver' in window) || sinMovimiento()) return;
   const els = $$(REVELAR);
@@ -521,7 +583,7 @@ function iniciarEntradas() {
   }, { rootMargin: '0px 0px -8% 0px', threshold: 0.01 });
   els.forEach((el, k) => {
     el.classList.add('rv');
-    if (el.matches('.step')) el.style.setProperty('--d', `${(k % 3) * 110}ms`);
+    if (el.matches('.step, .plan')) el.style.setProperty('--d', `${(k % 3) * 110}ms`);
     io.observe(el);
   });
   setTimeout(() => els.forEach((el) => el.classList.add('in')), 6000);
@@ -570,7 +632,7 @@ function seguirCursor() {
       tarjeta.style.setProperty('--rx', '0deg');
     });
   }
-  $$('.step, .idle-tiles li, .form-card').forEach((el) => {
+  $$('.step, .idle-tiles li, .form-card, .plan').forEach((el) => {
     el.addEventListener('pointermove', (e) => {
       const r = el.getBoundingClientRect();
       el.style.setProperty('--mx', `${e.clientX - r.left}px`);
@@ -620,6 +682,8 @@ function iniciarTarjetaLead() {
 
 iniciarMenu();
 despertarBackend();
+iniciarPrecios();
+contarPrecios();
 iniciarCrm();
 iniciarDemoMarca();
 iniciarAgendar();

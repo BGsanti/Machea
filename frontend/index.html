@@ -87,6 +87,7 @@
     <nav class="nav-links" aria-label="Principal">
       <a href="#como-funciona">Cómo funciona</a>
       <a href="/experiencia/index.html?marca=machea">Probar Machea</a>
+      <a href="#precios">Precios</a>
     </nav>
     <div class="nav-act">
       <a class="nav-login" href="/acceso/">Iniciar sesión</a>
@@ -98,6 +99,7 @@
 <div class="menu" id="menu">
   <a href="#como-funciona">Cómo funciona</a>
   <a href="/experiencia/index.html?marca=machea">Probar Machea</a>
+  <a href="#precios">Precios</a>
   <a href="/acceso/">Iniciar sesión</a>
   <a class="btn btn-coral" href="#agendar" data-agendar>Agendar demo</a>
 </div>
@@ -345,12 +347,60 @@
   </div>
 </section>
 
+<!-- ================= PRECIOS =================
+     Fuente única de los precios: el bloque JSON #machea-pricing de abajo. landing.js (iniciarPrecios)
+     pinta las tarjetas con el diseño del artefacto de la landing rediseñada. Solo se publica lo
+     "vigente": nada de permanencia, cancelación, garantías ni descuentos hasta que el equipo lo
+     decida. El piloto sigue en el JSON, pero esta sección (igual que el artefacto) muestra solo
+     los tres planes. -->
+<section class="sec sec-tight" id="precios" aria-labelledby="h-precios">
+  <div class="precios-bg" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="sec-head center">
+      <p class="eyebrow">Precios</p>
+      <h2 class="h-sec" id="h-precios">Un plan para cada volumen de leads.</h2>
+      <p class="lead">Todos los planes incluyen lo mismo; cambia la cantidad de leads al mes. Precios en pesos colombianos, sin IVA.</p>
+    </div>
+    <ul class="plans" id="planes"></ul>
+    <ul class="plan-notes" id="preciosNotas"></ul>
+  </div>
+  <script type="application/json" id="machea-pricing">
+{
+  "updated": "2026-11-10",
+  "currency": "COP",
+  "iva_pct": 19,
+  "prices_include_iva": false,
+  "billing": {"method": "pago en línea (tarjeta o PSE)", "frequency": "mensual", "status": "vigente"},
+  "plans": [
+    {"id": "arranque", "name": "Arranque", "price": 690000, "period": "mes", "leads": 150, "extra_lead_price": 3800, "setup_fee": 490000, "recommended": false, "cta": "Agendar una demo", "status": "vigente"},
+    {"id": "crecimiento", "name": "Crecimiento", "price": 1490000, "period": "mes", "leads": 400, "extra_lead_price": 3500, "setup_fee": 490000, "recommended": true, "recommended_status": "por decidir", "cta": "Agendar una demo", "status": "vigente"},
+    {"id": "escala", "name": "Escala", "price": 3490000, "period": "mes", "leads": 1000, "extra_lead_price": 3300, "setup_fee": 490000, "recommended": false, "cta": "Agendar una demo", "status": "vigente"}
+  ],
+  "pilot": {"id": "piloto", "name": "Piloto", "price": 590000, "period": "pago único", "leads": 150, "duration_text": "hasta 60 días o 150 leads, lo que ocurra primero", "duration_status": "por decidir", "setup_fee": 0, "setup_note": "montaje incluido", "guarantee": null, "guarantee_status": "por decidir", "cta": "Empezar piloto"},
+  "included": [
+    "Formulario interactivo con tus proyectos",
+    "Recomendador de proyectos con cuota estimada",
+    "Agentes de IA de texto y de voz para vivienda",
+    "Cita agendada y ficha del lead para el asesor",
+    "Panel del asesor con reloj de respuesta y panel del gerente"
+  ],
+  "rules": {
+    "call_hours": "Lunes a viernes de 7:00 a. m. a 7:00 p. m. y sábados de 8:00 a. m. a 3:00 p. m.; sin domingos ni festivos (Ley 2300 de 2023).",
+    "credit_disclaimer": "La cuota es una estimación, no una aprobación de crédito.",
+    "iva_note": "Precios sin IVA; se suma el IVA de 19 %."
+  },
+  "pending_do_not_publish": ["renovación automática", "aviso de cancelación de 30 días", "permanencia mínima", "garantía o devolución del piloto", "descuentos por pago anticipado", "leads no acumulables", "cobro de leads adicionales a mes vencido"]
+}
+  </script>
+</section>
+
 <!-- ================= PREGUNTAS (cuatro) ================= -->
 <section class="sec tint" id="faq" aria-labelledby="h-faq">
   <div class="wrap">
     <div class="sec-head center"><h2 class="h-sec" id="h-faq">Preguntas frecuentes</h2></div>
     <div class="faq">
       <details class="qa"><summary>¿Qué necesito para probar Machea?<i aria-hidden="true"></i></summary><p>Lo mismo que un lead real: tu nombre, tu correo y tu celular, con tu autorización. No hace falta crear una cuenta. Así Manuela te puede llamar y puedes seguir por WhatsApp.</p></details>
+      <details class="qa"><summary>¿Cuánto cuesta Machea?<i aria-hidden="true"></i></summary><p>Hay tres planes mensuales según los leads que recibes. Todos incluyen lo mismo: formulario, recomendador, agentes de IA, cita agendada y panel. Los precios están en la <a href="#precios">sección de precios</a>, sin IVA.</p></details>
       <details class="qa"><summary>¿Tengo que cambiar mi sitio web o mi CRM?<i aria-hidden="true"></i></summary><p>No. Machea recibe a tus leads desde tu pauta o tu sitio y le entrega la ficha a tu asesor en tu CRM.</p></details>
       <details class="qa"><summary>¿Quién llama a mis leads?<i aria-hidden="true"></i></summary><p>Manuela, una agente de voz con IA. Los contacta en menos de 30 segundos, valida su interés y su capacidad de pago, y pasa al asesor solo a los que están listos.</p></details>
       <details class="qa"><summary>¿Qué pasa con los datos de la prueba?<i aria-hidden="true"></i></summary><p>Se tratan como los de un lead real: se guardan con tu autorización y Manuela te llama al número que dejaste. Con tu empresa, el tratamiento de datos se acuerda por contrato y Machea actúa como encargado.</p></details>
@@ -389,6 +439,7 @@
         <a href="#como-funciona">Cómo funciona</a>
         <a href="/experiencia/index.html?marca=machea">Probar Machea</a>
         <a href="#marca">Demo con tu marca</a>
+        <a href="#precios">Precios</a>
         <a href="#faq">Preguntas frecuentes</a>
       </nav>
       <nav class="col" aria-label="Cuenta y legal">
