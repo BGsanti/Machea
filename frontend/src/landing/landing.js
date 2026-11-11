@@ -1,6 +1,6 @@
 /* ==========================================================================
    MACHEA — landing. Sin librerías: todo el JS pesa unos pocos KB.
-   Piezas: menú, demo pública embebida ("Probar Machea"), vista de ejemplo del
+   Piezas: menú, vista de ejemplo del
    CRM, "Demo con tu marca", "Agendar demo" (formulario por pasos), entradas
    suaves y la tarjeta del lead que corre en el hero.
    ========================================================================== */
@@ -55,9 +55,9 @@ function despertarBackend() {
   else setTimeout(ping, 1500);
 }
 
-/* "Probar Machea" y "Empezar la prueba" son enlaces a la página del formulario
-   (/experiencia/index.html?marca=machea&modo=demo, ver experiencia/js/demo.js):
-   sin registro, sin guardar datos y sin la llamada de Manuela. No necesitan JS. */
+/* "Probar Machea" y "Empezar la prueba" son enlaces al formulario completo
+   (/experiencia/index.html?marca=machea): registro, recomendación, llamada de
+   Manuela y WhatsApp, igual que un lead real. No necesitan JS. */
 
 /* ---- Vista de ejemplo del CRM (datos ficticios) -------------------------- */
 const LEADS_EJEMPLO = [
@@ -497,7 +497,7 @@ function iniciarAgendar() {
     e.preventDefault();
     abrir();
   });
-  // Entrar con /#agendar (por ejemplo, desde el cierre de la demo pública) abre el formulario.
+  // Entrar con /#agendar abre el formulario.
   const porHash = () => { if (location.hash === '#agendar') abrir(); else if (dlg.open) cerrar(); };
   window.addEventListener('hashchange', porHash);
   porHash();
