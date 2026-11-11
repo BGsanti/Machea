@@ -60,9 +60,19 @@
   }
 
   var token = null;
+  var modo = null;
   try {
-    token = new URLSearchParams(window.location.search).get('demo');
+    var params = new URLSearchParams(window.location.search);
+    token = params.get('demo');
+    modo = params.get('modo');
   } catch (e) {}
+
+  // DEMO PÚBLICA (`?marca=machea&modo=demo`, la que abre la landing en "Probar Machea"). La landing
+  // promete "sin registro, no se hacen llamadas ni se guardan tus datos", y este interruptor lo
+  // cumple: state.js entra directo a las preguntas, datos.js no escribe nada en la base y main.js
+  // no dispara a Manuela (la confirmación lo explica en su lugar). Solo con la marca de Machea y
+  // sin enlace de marca (?demo=…), que sí es una demo con llamada de prueba.
+  window.GDF_DEMO_PUBLICA = !!(M && M.slug === 'machea' && modo === 'demo' && !token);
 
   var demo = M && M.slug === 'machea' && token ? decodificar(token) : null;
   window.GDF_DEMO = demo;

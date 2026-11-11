@@ -208,7 +208,9 @@
   }
 
   window.GDF = window.GDF || {};
-  window.GDF.datos = {
+  // En la demo pública (js/demo.js) no se guarda nada: sin `GDF.datos`, main.js salta cada
+  // escritura (todas van detrás de un `if (window.GDF.datos)`).
+  window.GDF.datos = window.GDF_DEMO_PUBLICA ? null : {
     buscarResultados: buscarResultados,
     guardarConsulta: guardarConsulta,
     marcarInteres: marcarInteres,

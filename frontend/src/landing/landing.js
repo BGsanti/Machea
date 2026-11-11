@@ -1,14 +1,14 @@
 /* ==========================================================================
-   MACHEA — landing plana. Sin librerías: todo el JS pesa unos pocos KB.
-   Piezas: menú, entradas suaves (solo escritorio), mini demo del formulario,
-   "Empieza gratis" (demo con tu marca) y "Agenda una demo" (formulario por pasos).
+   MACHEA — landing. Sin librerías: todo el JS pesa unos pocos KB.
+   Piezas: menú, demo pública embebida ("Probar Machea"), vista de ejemplo del
+   CRM, "Demo con tu marca", "Agendar demo" (formulario por pasos), entradas
+   suaves y la tarjeta del lead que corre en el hero.
    ========================================================================== */
-
-import { pintarCalificacionHero, pintarPruebaSocial } from './prueba-social.js';
 
 /* ---- Configuración ------------------------------------------------------- */
 const CONFIG = {
-  // Backend de Machea (Render). "Empieza gratis" le pide la demo con la marca.
+  // Backend de Machea (Render). "Demo con tu marca" le pide la demo vestida y
+  // "Agendar demo" le pide la llamada de captación.
   apiBase: 'https://machea-api.onrender.com/api',
   // Base de datos de leads (Supabase). Es la clave PUBLICABLE/anon, la misma de
   // experiencia/js/config.js: las tablas están cerradas y solo puede ejecutar
@@ -23,210 +23,253 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const root = document.documentElement;
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ico = (id) => `<svg aria-hidden="true"><use href="#${id}"/></svg>`;
+const CORREO_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const sinMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-window.__ml = 1; // avisa al script de la cabecera que este módulo cargó
-
-/* ---- Entradas suaves y escenas de una sola vez: solo escritorio con puntero fino ---- */
-function contar(el) {
-  const to = Number(el.dataset.count), suf = el.dataset.suffix || '', t0 = performance.now(), ms = 1400;
-  (function paso(t) {
-    const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
-    el.textContent = Math.round(to * e) + suf;
-    if (k < 1) requestAnimationFrame(paso);
-  })(t0);
-}
-if (root.classList.contains('anim') && 'IntersectionObserver' in window) {
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((en) => {
-      if (!en.isIntersecting) return;
-      en.target.classList.add('in');
-      io.unobserve(en.target);
-    });
-  }, { rootMargin: '0px 0px -8% 0px' });
-  $$('.rv').forEach((el) => io.observe(el));
-
-  // Escenas que se juegan una vez (formulario que se escribe, reloj de la demora, pasos que se encienden…).
-  // Por defecto el HTML ya trae el estado final: en celular y con "reducir movimiento" no se anima nada.
-  $$('[data-go] [data-count], [data-go][data-count]').forEach((n) => { n.textContent = '0' + (n.dataset.suffix || ''); });
-  const go = new IntersectionObserver((entries) => {
-    entries.forEach((en) => {
-      if (!en.isIntersecting) return;
-      en.target.classList.add('go');
-      $$('[data-count]', en.target).forEach(contar);
-      if (en.target.dataset.count) contar(en.target);
-      go.unobserve(en.target);
-    });
-  }, { threshold: 0.35 });
-  $$('[data-go]').forEach((el) => go.observe(el));
-
-  // Hero: la ciudad "enciende" leads (foto con más ventanas coral que se funde despacio) y sigue al cursor unos píxeles.
-  const pan = $('.hero-pan');
-  if (pan) {
-    const lit = new Image();
-    lit.className = 'city lit'; lit.alt = ''; lit.decoding = 'async';
-    lit.onload = () => pan.appendChild(lit);
-    lit.src = '/ciudad/hero-lit-1600.webp';
-    let raf = 0, mx = 0, my = 0;
-    $('#inicio').addEventListener('pointermove', (e) => {
-      mx = e.clientX / window.innerWidth - 0.5; my = e.clientY / window.innerHeight - 0.5;
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        pan.style.setProperty('--px', (mx * -16).toFixed(1) + 'px');
-        pan.style.setProperty('--py', (my * -9).toFixed(1) + 'px');
-      });
-    }, { passive: true });
-  }
-  // Tarjeta del lead: el cronómetro corre hasta 00:28 una vez.
-  const tiempo = $('#lcTime');
-  if (tiempo) {
-    const t0 = performance.now(), ms = 2800;
-    tiempo.textContent = '00:00';
-    (function paso(t) {
-      const k = Math.min(1, (t - t0) / ms), s = Math.round(28 * k);
-      tiempo.textContent = '00:' + String(s).padStart(2, '0');
-      if (k < 1) requestAnimationFrame(paso);
-    })(t0);
-  }
-} else {
-  root.classList.remove('anim');
-}
-
-/* ---- La demo funcionando: 3 escenas que se juegan solas (perfila · llama · entrega) ---- */
-pintarCalificacionHero($('#heroRate'));
-pintarPruebaSocial($('#trust'));
-(function demoEnMovimiento() {
-  const pl = $('#player');
-  if (!pl) return;
-  const caps = $$('.pl-chapters button', pl), tiempo = $('#plTime'), play = $('.pl-play', pl);
-  const T = ['00:12', '00:19', '00:28'];
-  let escena = Number(pl.dataset.scene) || 3;
-  function poner(n) {
-    escena = n;
-    pl.dataset.scene = String(n);
-    caps.forEach((b, i) => {
-      b.parentElement.classList.toggle('on', i + 1 === n);
-      b.parentElement.classList.toggle('done', i + 1 < n);
-    });
-    tiempo.textContent = T[n - 1];
-  }
-  caps.forEach((b) => b.addEventListener('click', () => poner(Number(b.dataset.go))));
-  play.addEventListener('click', () => {
-    const en = pl.classList.toggle('paused');
-    play.setAttribute('aria-label', en ? 'Reproducir la demostración' : 'Pausar la demostración');
-  });
-  // Al terminar el relleno del capítulo activo (5 s), pasa a la siguiente escena y vuelve a empezar.
-  pl.addEventListener('animationend', (e) => { if (e.animationName === 'plfill') poner(escena % 3 + 1); });
-  // Con "reducir movimiento" o sin IntersectionObserver queda quieta en la última escena (se navega con los capítulos).
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) { pl.classList.add('paused'); play.hidden = true; return; }
-  let iniciado = false;
-  new IntersectionObserver(([en]) => {
-    if (en.isIntersecting && !iniciado) { iniciado = true; pl.classList.add('live'); poner(1); }
-    pl.classList.toggle('offscreen', !en.isIntersecting);
-  }, { threshold: 0.4 }).observe(pl);
-})();
-
-/* ---- Navegación: sombra al bajar y menú móvil ---------------------------- */
-const nav = $('#nav');
-if (nav && 'IntersectionObserver' in window) {
-  const sentinela = document.createElement('div');
-  sentinela.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:12px;pointer-events:none';
-  document.body.prepend(sentinela);
-  new IntersectionObserver(([e]) => nav.classList.toggle('scrolled', !e.isIntersecting)).observe(sentinela);
-}
+/* ---- Menú móvil ---------------------------------------------------------- */
 const burger = $('.burger');
+const menuMovil = $('#menu');
 function menu(abierto) {
+  if (!burger) return;
   root.classList.toggle('menu-open', abierto);
   burger.setAttribute('aria-expanded', String(abierto));
   burger.setAttribute('aria-label', abierto ? 'Cerrar menú' : 'Abrir menú');
 }
-burger.addEventListener('click', () => menu(!root.classList.contains('menu-open')));
-$('#menu').addEventListener('click', (e) => { if (e.target.closest('a')) menu(false); });
-window.matchMedia('(min-width: 1040px)').addEventListener('change', (m) => { if (m.matches) menu(false); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('menu-open')) menu(false); });
-
-/* ---- Mini demo: contesta una pregunta y se arma el plano ----------------- */
-(function miniDemo() {
-  const plan = $('#plan'), lista = $('#prList'), estado = $('#prStatus'), grupo = $('#qRooms');
-  if (!plan) return;
-  const fijos = ['Sala · comedor', 'Cocina', 'Baño'];
-  let respondida = false;
-  function pintar(n) {
-    plan.dataset.r = n;
-    const hab = Array.from({ length: n }, (_, k) => `Habitación ${k + 1}`);
-    lista.innerHTML = fijos.concat(hab).map((t, k, a) => `<li${respondida && k === a.length - 1 ? ' class="new"' : ''}>${esc(t)}</li>`).join('');
-    $$('.rm', plan).forEach((r) => r.classList.remove('pop'));
-    const nueva = $('.rm.h' + n, plan);
-    if (respondida && nueva) { void nueva.offsetWidth; nueva.classList.add('pop'); }
-    estado.textContent = respondida ? `${n === 3 ? '3 o más' : n} habitación${n === 1 ? '' : 'es'} · plano armado` : 'Esperando tu respuesta';
-  }
-  grupo.addEventListener('click', (e) => {
-    const b = e.target.closest('.q-opt');
-    if (!b) return;
-    respondida = true;
-    $$('.q-opt', grupo).forEach((o) => o.setAttribute('aria-checked', String(o === b)));
-    pintar(Number(b.dataset.v));
+function iniciarMenu() {
+  if (!burger || !menuMovil) return;
+  burger.addEventListener('click', () => menu(!root.classList.contains('menu-open')));
+  menuMovil.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false); });
+  window.matchMedia('(min-width: 960px)').addEventListener('change', (m) => { if (m.matches) menu(false); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && root.classList.contains('menu-open')) { menu(false); burger.focus(); }
   });
-  pintar(2);
-})();
+}
 
-/* ---- Empieza gratis: demo con tu marca ----------------------------------- */
-(function demoMarca() {
+/* ---- Despertar el backend ------------------------------------------------ */
+// Render (plan gratis) duerme el servicio sin tráfico y tarda en arrancar. Un
+// ping temprano hace que la demo y los formularios no paguen ese arranque.
+// `no-cors`: no hace falta leer la respuesta, solo que llegue.
+function despertarBackend() {
+  const ping = () => fetch(CONFIG.apiBase + '/health', { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+  if ('requestIdleCallback' in window) requestIdleCallback(ping, { timeout: 3000 });
+  else setTimeout(ping, 1500);
+}
+
+/* ---- Probar Machea: la demo pública dentro de la página ------------------ */
+// `modo=demo` arranca el formulario sin registro, sin guardar datos y sin la
+// llamada de Manuela (ver experiencia/js/demo.js).
+const DEMO_URL = '/experiencia/index.html?marca=machea&modo=demo';
+const DEMO_ESPERA_MS = 20000;
+function iniciarPrueba() {
+  const cuerpo = $('#stageBody');
+  if (!cuerpo) return;
+  const reposo = $('#stageIdle'), carga = $('#stageCarga'), fallo = $('#stageError');
+  let marco = null, temporizador = 0;
+
+  function estado(e) {
+    cuerpo.dataset.estado = e;
+    reposo.hidden = e !== 'reposo';
+    carga.hidden = e !== 'carga';
+    fallo.hidden = e !== 'error';
+  }
+  function limpiar() {
+    clearTimeout(temporizador);
+    if (marco) { marco.remove(); marco = null; }
+  }
+  function mostrarError() {
+    limpiar();
+    estado('error');
+    $('#stageReintentar').focus({ preventScroll: true });
+  }
+  function cargar() {
+    limpiar();
+    if (navigator.onLine === false) { mostrarError(); return; }
+    estado('carga');
+    const f = marco = document.createElement('iframe');
+    f.title = 'Demo pública de Machea: formulario con recomendación de proyectos';
+    f.setAttribute('loading', 'eager');
+    f.hidden = true;
+    f.addEventListener('load', () => {
+      if (marco !== f) return;
+      // Mismo origen: se puede mirar adentro. Una página vacía o un 404 cuentan como fallo.
+      let ok = false;
+      try {
+        const d = f.contentDocument;
+        ok = !!(d && d.body && d.body.children.length > 0 && !/^(404|Not Found)/i.test(d.title || ''));
+      } catch { ok = false; }
+      if (!ok) { mostrarError(); return; }
+      clearTimeout(temporizador);
+      estado('activa');
+      f.hidden = false;
+      f.focus({ preventScroll: true });
+    });
+    f.src = DEMO_URL;
+    cuerpo.appendChild(f);
+    temporizador = setTimeout(mostrarError, DEMO_ESPERA_MS);
+  }
+  $('#stageIniciar').addEventListener('click', cargar);
+  $('#stageReintentar').addEventListener('click', cargar);
+}
+
+/* ---- Vista de ejemplo del CRM (datos ficticios) -------------------------- */
+const LEADS_EJEMPLO = [
+  { n: 'Andrea G.', p: 'VIS · Engativá', pago: 'Cuota estimada $780.000 al mes; subsidio disponible',
+    proy: ['Reserva de Engativá (ejemplo)', 'Torres del Parque (ejemplo)', 'Alameda 80 (ejemplo)'],
+    res: 'Quiere mudarse en 6 meses. Confirmó ingresos del hogar y que visitaría el proyecto.', sig: 'Llamar hoy y agendar visita' },
+  { n: 'Carlos M.', p: 'No VIS · Suba', pago: 'Cuota inicial lista; crédito preaprobado',
+    proy: ['Mirador de Suba (ejemplo)', 'Colina Alta (ejemplo)'],
+    res: 'Compara dos proyectos. Pregunta por zonas comunes y parqueadero.', sig: 'Enviar comparativo y llamar' },
+  { n: 'Laura P.', p: 'VIS · Bosa', pago: 'En validación durante la llamada',
+    proy: ['Parques de Bosa (ejemplo)', 'Casas del Sur (ejemplo)'],
+    res: 'La llamada de IA está en curso; la ficha se completa al terminar.', sig: 'Esperar la ficha completa' },
+  { n: 'Jhon R.', p: 'No VIS · Usaquén', pago: 'Presupuesto validado hasta $420 millones',
+    proy: ['Santa Ana 120 (ejemplo)', 'Cedritos Plaza (ejemplo)'],
+    res: 'Llegó por referido. Busca vivienda para inversión.', sig: 'Llamar y compartir rentabilidad esperada' },
+  { n: 'Marcela T.', p: 'VIS · Kennedy', pago: 'Falta confirmar ingresos',
+    proy: ['Kennedy Central (ejemplo)'],
+    res: 'No contestó la primera llamada. Se programó un nuevo intento.', sig: 'Reintento automático mañana' },
+];
+function iniciarCrm() {
+  const filas = $$('#crmFilas tr'), ficha = $('#crmFicha');
+  if (!filas.length || !ficha) return;
+
+  function elegir(k) {
+    const l = LEADS_EJEMPLO[k];
+    if (!l) return;
+    filas.forEach((tr) => {
+      const sel = Number(tr.dataset.k) === k;
+      tr.classList.toggle('sel', sel);
+      $('.lead-btn', tr).setAttribute('aria-pressed', String(sel));
+    });
+    ficha.innerHTML = `<h3>${esc(l.n)}</h3><dl>
+      <div><dt>Perfil</dt><dd>${esc(l.p)}</dd></div>
+      <div><dt>Capacidad de pago</dt><dd>${esc(l.pago)}</dd></div>
+      <div><dt>Proyectos compatibles</dt><dd>${l.proy.map(esc).join(' · ')}</dd></div>
+      <div><dt>Resumen de la llamada</dt><dd>${esc(l.res)}</dd></div>
+      <div><dt>Siguiente paso</dt><dd>${esc(l.sig)}</dd></div></dl>`;
+  }
+  $('#crmFilas').addEventListener('click', (e) => {
+    const b = e.target.closest('.lead-btn');
+    if (b) elegir(Number(b.closest('tr').dataset.k));
+  });
+  elegir(0);
+
+  const fEstado = $('#fEstado'), fFuente = $('#fFuente'), fBuscar = $('#fBuscar');
+  const vacio = $('#crmVacio'), cuenta = $('#crmCuenta');
+  if (!fEstado || !fFuente || !fBuscar) return;
+  const norm = (t) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function filtrar() {
+    const q = norm(fBuscar.value.trim());
+    let n = 0;
+    filas.forEach((tr) => {
+      const ve = (!fEstado.value || tr.dataset.st === fEstado.value)
+        && (!fFuente.value || $('.c-src', tr).textContent.trim() === fFuente.value)
+        && (!q || norm($('.lead-btn', tr).textContent).includes(q));
+      tr.hidden = !ve;
+      if (ve) n++;
+    });
+    vacio.hidden = n > 0;
+    cuenta.textContent = n === filas.length ? `${n} en total` : `${n} de ${filas.length}`;
+  }
+  [fEstado, fFuente].forEach((s) => s.addEventListener('change', filtrar));
+  fBuscar.addEventListener('input', filtrar);
+  $('#crmLimpiar').addEventListener('click', () => {
+    fEstado.value = ''; fFuente.value = ''; fBuscar.value = '';
+    filtrar();
+    fBuscar.focus();
+  });
+}
+
+/* ---- Demo con tu marca --------------------------------------------------- */
+function iniciarDemoMarca() {
   const form = $('#demoForm'), card = $('#demoCard');
   if (!form) return;
   const err = $('#dErr'), btn = $('button[type=submit]', form), lbl = $('.lbl', btn);
   // El selector de color siempre trae un valor: solo se manda si la persona lo tocó.
   let colorElegido = false;
   $('#dColor').addEventListener('input', () => { colorElegido = true; });
+
+  const CAMPOS = [
+    ['#dName', '#dNameErr', (v) => (v.length < 2 ? 'Escribe tu nombre.' : '')],
+    ['#dMail', '#dMailErr', (v) => (!v ? 'Escribe tu correo.' : CORREO_OK.test(v) ? '' : 'Revisa el correo: parece incompleto.')],
+    ['#dSite', '#dSiteErr', (v) => (!v ? 'Pega el link de tu sitio web.'
+      : /\s/.test(v) || !/\./.test(v) ? 'Escribe un link válido, por ejemplo tuempresa.com.' : '')],
+  ];
+  function marcar(input, salida, msg) {
+    salida.textContent = msg;
+    if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid');
+  }
+  CAMPOS.forEach(([i, e]) => $(i).addEventListener('input', () => { marcar($(i), $(e), ''); err.textContent = ''; }));
+  function validar() {
+    let primero = null;
+    CAMPOS.forEach(([i, e, regla]) => {
+      const input = $(i), msg = regla(input.value.trim());
+      marcar(input, $(e), msg);
+      if (msg && !primero) primero = input;
+    });
+    if (!primero) return true;
+    err.textContent = 'Revisa los campos marcados.';
+    primero.focus();
+    return false;
+  }
+  function ocupado(si) {
+    btn.disabled = si;
+    btn.setAttribute('aria-busy', String(si));
+    lbl.textContent = si ? 'Armando tu demo…' : 'Armar mi demo';
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const nombre = $('#dName').value.trim(), correo = $('#dMail').value.trim(), sitio = $('#dSite').value.trim();
-    const empresa = $('#dEmpresa').value.trim();
-    const tipo = (form.querySelector('input[name=tipo]:checked') || {}).value || 'inmobiliaria';
-    if (!nombre || !correo || !sitio) {
-      err.textContent = 'Escribe tu nombre, tu correo y el link de tu sitio web.';
-      (!nombre ? $('#dName') : !correo ? $('#dMail') : $('#dSite')).focus();
+    if (btn.disabled) return;
+    err.textContent = '';
+    if (!validar()) return;
+    if (navigator.onLine === false) {
+      err.textContent = 'Parece que no tienes conexión. Conéctate e intenta de nuevo; lo que escribiste sigue aquí.';
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) { err.textContent = 'Revisa el correo: parece incompleto.'; $('#dMail').focus(); return; }
-    err.textContent = ''; btn.disabled = true; lbl.textContent = 'Armando tu demo…';
+    const tipo = (form.querySelector('input[name=tipo]:checked') || {}).value || 'inmobiliaria';
+    const empresa = $('#dEmpresa').value.trim();
+    ocupado(true);
     const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 45000);
     try {
       const r = await fetch(CONFIG.apiBase + '/demo/solicitar', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctrl.signal,
-        body: JSON.stringify({ nombre, correo, sitio, empresa: empresa || null, tipo, color: colorElegido ? $('#dColor').value : null, website: $('#dWeb').value }),
+        body: JSON.stringify({
+          nombre: $('#dName').value.trim(), correo: $('#dMail').value.trim(), sitio: $('#dSite').value.trim(),
+          empresa: empresa || null, tipo, color: colorElegido ? $('#dColor').value : null, website: $('#dWeb').value,
+        }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.demo_url) {
-        err.textContent = (typeof j.detail === 'string' && j.detail) || 'No pudimos armar tu demo. Intenta de nuevo en un momento.';
+        err.textContent = (typeof j.detail === 'string' && j.detail)
+          || (r.status === 429
+            ? 'Hay muchas solicitudes ahora mismo. Espera unos minutos e intenta de nuevo.'
+            : `No pudimos armar tu demo. Intenta de nuevo en un momento o escríbenos a ${CONFIG.email}.`);
         return;
       }
       $('#demoLink').href = j.demo_url;
-      // La pantalla de acceso (prototipo) se viste con el mismo enlace firmado de la demo.
-      const acceso = $('#demoAcceso');
-      try {
-        const tk = new URL(j.demo_url).searchParams.get('demo');
-        acceso.hidden = !tk;
-        if (tk) acceso.href = '/acceso/?demo=' + encodeURIComponent(tk);
-      } catch { acceso.hidden = true; }
-      $('#demoOkTitle').textContent = `Tu demo con la marca de ${j.marca.nombre} está lista.`;
+      $('#demoOkTitle').textContent = `Tu demo con la marca de ${(j.marca && j.marca.nombre) || 'tu empresa'} está lista.`;
       $('#demoOkText').textContent = j.correo_enviado
-        ? `Ábrela ahora. También te enviamos el enlace a ${correo}; funciona durante 30 días.`
+        ? `Ábrela ahora. También te enviamos el enlace a ${$('#dMail').value.trim()}; funciona durante 30 días.`
         : 'Ábrela ahora y guarda este enlace: funciona durante 30 días.';
       $('#demoAviso').textContent = j.aviso || '';
       card.classList.add('done');
+      const titulo = $('#demoOkTitle');
+      titulo.setAttribute('tabindex', '-1');
+      titulo.focus({ preventScroll: true });
     } catch (ex) {
       err.textContent = ex && ex.name === 'AbortError'
         ? `Tu sitio tardó demasiado en responder. Prueba de nuevo o escríbenos a ${CONFIG.email}.`
-        : 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.';
+        : 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo; lo que escribiste sigue aquí.';
     } finally {
-      clearTimeout(timer); btn.disabled = false; lbl.textContent = 'Armar mi demo';
+      clearTimeout(timer);
+      ocupado(false);
     }
   });
-})();
+}
 
-/* ---- Agenda una demo: formulario por pasos ------------------------------- */
-(function agendar() {
+/* ---- Agendar demo: formulario por pasos ---------------------------------- */
+function iniciarAgendar() {
   const dlg = $('#agendar');
   if (!dlg) return;
   const host = $('#agPaso'), barra = $('#agProg .bar i'), cuenta = $('#agProg small'), atras = $('#agProg .ag-back');
@@ -313,8 +356,23 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
   }
 
   function siguiente() { if (i < PASOS.length - 1) { i += 1; pintar(); } }
-  function error(m, el) { const e = $('#agErr'); if (e) e.textContent = m; if (el) el.focus(); }
+  // El error se anuncia (role=alert), se asocia al campo y le devuelve el foco.
+  function error(m, el) {
+    const e = $('#agErr');
+    if (e) e.textContent = m;
+    if (!el) return;
+    if (el.type !== 'checkbox') {
+      el.setAttribute('aria-invalid', 'true');
+      if (e) el.setAttribute('aria-describedby', 'agErr');
+    }
+    el.focus();
+  }
 
+  host.addEventListener('input', () => {
+    const e = $('#agErr');
+    if (e) e.textContent = '';
+    $$('[aria-invalid="true"]', host).forEach((el) => el.removeAttribute('aria-invalid'));
+  });
   host.addEventListener('click', (e) => {
     const p = PASOS[i];
     const op = e.target.closest('.ag-opt');
@@ -399,7 +457,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
     if (nombre.length < 2) return error('Escribe tu nombre.', $('#agNombre'));
     const tel = normTel(telVis);
     if (!tel) return error('Escribe tu celular de 10 dígitos, empieza por 3 (por ejemplo 3001234567).', $('#agTel'));
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return error('Revisa el correo: parece incompleto.', $('#agMail'));
+    if (!CORREO_OK.test(correo)) return error('Revisa el correo: parece incompleto.', $('#agMail'));
     if (!$('#agAcepto').checked) return error('Marca la autorización para poder contactarte.', $('#agAcepto'));
     Object.assign(resp, { nombre, telefono: tel, telefono_visible: telVis, correo });
     if ($('#agWeb').value) { cerrarOk(); return; } // trampa para bots: se ve como éxito y no se guarda
@@ -442,7 +500,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
       <h2 id="agTitulo" tabindex="-1">¡Listo${nombre ? ', ' + nombre : ''}!</h2>
       <p>${texto}</p>
       <p>Mientras tanto, puedes armar tu demo con la marca de tu empresa.</p>
-      <div class="ctas"><a class="btn btn-coral" href="#empieza" data-cerrar>Empieza gratis</a><button type="button" class="btn btn-line" data-cerrar>Cerrar</button></div></div>`;
+      <div class="ctas"><a class="btn btn-coral" href="#marca" data-cerrar>Armar demo con mi marca</a><button type="button" class="btn btn-line" data-cerrar>Cerrar</button></div></div>`;
     $('#agTitulo').focus({ preventScroll: true });
   }
 
@@ -457,7 +515,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
     host.innerHTML = `<div class="ag-done ag-warn"><span class="ok-i">${ico('i-frown')}</span>
       <h2 id="agTitulo" tabindex="-1">No pudimos enviar tu solicitud</h2>
       <p>Pasó algo de nuestro lado. No pierdas tu turno: envíanos tus respuestas por correo con un clic y te contactamos.</p>
-      <div class="ctas"><a class="btn btn-coral" href="${mail}">Enviar por correo</a><button type="button" class="btn btn-line" data-reintentar>Intentar de nuevo</button></div></div>`;
+      <div class="ctas"><a class="btn btn-coral" href="${esc(mail)}">Enviar por correo</a><button type="button" class="btn btn-line" data-reintentar>Intentar de nuevo</button></div></div>`;
     $('#agTitulo').focus({ preventScroll: true });
   }
 
@@ -491,7 +549,132 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.cla
     e.preventDefault();
     abrir();
   });
+  // Entrar con /#agendar (por ejemplo, desde el cierre de la demo pública) abre el formulario.
   const porHash = () => { if (location.hash === '#agendar') abrir(); else if (dlg.open) cerrar(); };
   window.addEventListener('hashchange', porHash);
   porHash();
-})();
+}
+
+/* ---- Entradas suaves al hacer scroll ------------------------------------- */
+// Sin IntersectionObserver o con "reducir movimiento" no se anima nada. Si algo
+// no llega a entrar (pestaña en segundo plano), a los 6 s se muestra igual.
+const REVELAR = '.sec-head, .try-side, .stage, .step, .crm, .brand-copy, .form-card, details.qa, .final .wrap > *';
+function iniciarEntradas() {
+  if (!('IntersectionObserver' in window) || sinMovimiento()) return;
+  const els = $$(REVELAR);
+  if (!els.length) return;
+  root.classList.add('js-rv');
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      en.target.classList.add('in');
+      io.unobserve(en.target);
+    }
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.01 });
+  els.forEach((el, k) => {
+    el.classList.add('rv');
+    if (el.matches('.step')) el.style.setProperty('--d', `${(k % 3) * 110}ms`);
+    io.observe(el);
+  });
+  setTimeout(() => els.forEach((el) => el.classList.add('in')), 6000);
+}
+
+/* ---- Hero: titular por palabras, inclinación con el cursor y la tarjeta que corre ---- */
+function partirTitular() {
+  const h = $('#h-hero');
+  if (!h) return;
+  let n = 0;
+  const partir = (nodo) => {
+    [...nodo.childNodes].forEach((c) => {
+      if (c.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        c.textContent.split(/(\s+)/).forEach((pal) => {
+          if (!pal) return;
+          if (/^\s+$/.test(pal)) { frag.append(' '); return; }
+          const w = document.createElement('span');
+          w.className = 'w';
+          const s = document.createElement('span');
+          s.textContent = pal;
+          s.style.setProperty('--i', n++);
+          w.append(s);
+          frag.append(w);
+        });
+        c.replaceWith(frag);
+      } else if (c.nodeType === 1) partir(c);
+    });
+  };
+  partir(h);
+  h.classList.add('split');
+}
+
+function seguirCursor() {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const hero = $('.hero'), tarjeta = $('.lead-wrap');
+  if (hero && tarjeta) {
+    hero.addEventListener('pointermove', (e) => {
+      const r = hero.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      tarjeta.style.setProperty('--ry', `${(x * 7).toFixed(2)}deg`);
+      tarjeta.style.setProperty('--rx', `${(-y * 6).toFixed(2)}deg`);
+    });
+    hero.addEventListener('pointerleave', () => {
+      tarjeta.style.setProperty('--ry', '0deg');
+      tarjeta.style.setProperty('--rx', '0deg');
+    });
+  }
+  $$('.step, .idle-tiles li, .form-card').forEach((el) => {
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      el.style.setProperty('--my', `${e.clientY - r.top}px`);
+    });
+  });
+}
+
+// La tarjeta del lead cuenta de 00:00 a 00:28 y enciende cada paso a su hora;
+// se queda quieta un momento en el final y vuelve a empezar. Solo corre visible.
+const CORRE_MS = 4200, PAUSA_MS = 4500;
+const reloj = (s) => `00:${String(s).padStart(2, '0')}`;
+function iniciarTarjetaLead() {
+  const card = $('.lead-card');
+  if (!card) return;
+  const t = $('.lc-top .t', card), pasos = $$('.lc-steps li', card);
+  const horas = pasos.map((li) => Number($('em', li).textContent.split(':')[1]));
+  const final = () => { t.textContent = '00:28'; pasos.forEach((li) => li.classList.add('done')); };
+  if (sinMovimiento() || !('IntersectionObserver' in window)) { final(); return; }
+
+  root.classList.add('js-live');
+  partirTitular();
+  seguirCursor();
+
+  let visible = true, t0 = performance.now(), fase = 'corre';
+  function reiniciar() {
+    pasos.forEach((li) => li.classList.remove('done'));
+    t.textContent = reloj(0);
+    t0 = performance.now();
+    fase = 'corre';
+  }
+  function tic() {
+    if (!visible) return;
+    const dt = performance.now() - t0;
+    if (fase === 'corre') {
+      const s = Math.min(28, Math.round(dt / CORRE_MS * 28));
+      t.textContent = reloj(s);
+      pasos.forEach((li, k) => li.classList.toggle('done', s >= horas[k]));
+      if (dt >= CORRE_MS) { final(); fase = 'pausa'; t0 = performance.now(); }
+    } else if (dt >= PAUSA_MS) reiniciar();
+  }
+  reiniciar();
+  setInterval(tic, 100);
+  new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe(card);
+  document.addEventListener('visibilitychange', () => { visible = !document.hidden; });
+}
+
+iniciarMenu();
+despertarBackend();
+iniciarPrueba();
+iniciarCrm();
+iniciarDemoMarca();
+iniciarAgendar();
+iniciarEntradas();
+iniciarTarjetaLead();

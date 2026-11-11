@@ -1039,7 +1039,7 @@
     permisoAbierto = state.permiso ? state.permiso.id : null;
     // Se acaba de elegir el apartamento: se pide su plano ya, para que la
     // primera pieza que caiga no lo haga contra un hueco en blanco.
-    if (action === 'startQuiz') precargarPlano();
+    if (action === 'startQuiz' || (action === 'restart' && window.GDF_DEMO_PUBLICA)) precargarPlano();
     // Avanzar o retroceder DENTRO del quiz: la escena no se puede reconstruir
     // por innerHTML. Si se destruyen y recrean los .gdf-room no hay nodos que
     // persistan, y entonces cada respuesta rehace el plano entero en vez de
@@ -1082,7 +1082,9 @@
     // que la llamada de Manuela se dispara sola al entrar a esta pantalla —
     // misma idea que el paso 1 con 'result'. La pantalla relata en qué estado
     // va (ver confirmacion() en templates.js, y js/llamada.js para el POST).
-    if (prevScreen !== 'confirmacion' && state.screen === 'confirmacion') {
+    // En la demo pública no se llama a nadie: la confirmación explica qué
+    // pasaría con un lead real (ver confirmacion() en templates.js).
+    if (prevScreen !== 'confirmacion' && state.screen === 'confirmacion' && !window.GDF_DEMO_PUBLICA) {
       dispararLlamada();
       // Best-effort, en paralelo: un fallo aquí no debe retrasar ni
       // impedir la llamada real de Manuela, que es lo que sí importa.
@@ -2341,6 +2343,8 @@
     // corriendo igual al pasar de la escarapela al quiz. Se monta solo con la
     // marca Machea (ver senal.js).
     if (window.GDF.senal) window.GDF.senal.montar();
+    // Demo pública (js/demo.js): sin registro, directo a la primera pregunta.
+    if (window.GDF.state.applyAction(state, 'empezarDemoPublica', {})) precargarPlano();
     render();
   }
 
