@@ -222,14 +222,10 @@
       // a la derecha, y el nombre ya sale dos lineas mas abajo, dentro de la
       // frase de entrada ("...encaja contigo, con Cusezar").
       '<main class="gdf-hero-main">' +
-      '<div class="gdf-hero-pill"><span class="dot"></span>Grúa del Futuro</div>' +
       houseIllustration() +
       '<h1>' + txt('splashTitulo', 'Construye tu sueño') + '</h1>' +
       '<p class="gdf-hero-lead">' +
       txt('splashLead', 'Responde jugando y encuentra tu vivienda ideal.') +
-      '</p>' +
-      '<p class="gdf-hero-quote">' +
-      txt('splashQuote', '&ldquo;Tú pones el sueño. Nosotros la grúa.&rdquo;') +
       '</p>' +
       '<button class="gdf-hero-cta" data-action="goEscarapela">' +
       txt('splashCta', '¡Construir mi casa!') +

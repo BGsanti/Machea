@@ -307,8 +307,11 @@ async function arrancar(): Promise<void> {
   } else if (params.get('clave') === 'cambiada') {
     aviso = avisoHtml('Listo: tu contraseña cambió. Entra con la nueva.');
   } else {
-    const sesion = await p.sesionActual().catch(() => null);
-    if (sesion) return irA(volver);
+    // La sesión se consulta SIN frenar la pantalla: el backend está en Render gratis y, si estaba dormido,
+    // responder le toma hasta 30 s; esperar aquí dejaba la tarjeta en blanco todo ese tiempo. El formulario
+    // sale ya, y quien sí tenía sesión sigue de largo apenas llega la respuesta. De paso, esta consulta
+    // despierta a Render mientras la persona escribe su correo y su clave.
+    void p.sesionActual().then((s) => { if (s) irA(volver); }, () => undefined);
   }
   const inicial = location.hash.slice(1);
   ir(inicial === 'crear' || inicial === 'olvido' ? inicial : 'entrar', { enfocar: false, hash: false });

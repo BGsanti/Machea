@@ -234,29 +234,6 @@ textarea::placeholder { color: var(--tinta-tenue); }
   overflow-y: auto;
 }
 
-.gdf-hero-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--papel);
-  border: 1px solid rgba(0, 103, 177, 0.25);
-  color: var(--marca);
-  font: 700 12px/1 'Inter', sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 9px 16px;
-  border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(0, 103, 177, 0.08);
-  animation: heroFadeIn 0.6s ease-out both;
-}
-.gdf-hero-pill .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--acento);
-  flex: none;
-}
-
 .gdf-hero-illustration {
   position: relative;
   width: 320px;
@@ -379,13 +356,6 @@ textarea::placeholder { color: var(--tinta-tenue); }
   color: var(--marca);
   font-weight: 700;
 }
-.gdf-hero-quote {
-  margin: 0;
-  font: italic 500 16px/1.5 'Inter', sans-serif;
-  color: var(--tinta-media);
-  animation: heroFadeIn 0.7s 0.5s ease-out both;
-}
-
 .gdf-hero-cta {
   margin-top: 10px;
   border: none;
@@ -6569,7 +6539,6 @@ html[data-marca='machea'] .gdf-project-acciones .gdf-project-llamar:hover {
 /* En una demo, TODO texto que usaba el color de marca pasa al tono oscurecido hasta
    cumplir el contraste (tema.js: --marca-texto). Con el rojo de Machea no hacía falta; con
    un amarillo o un verde claro, sí. */
-html[data-demo='1'] .gdf-hero-pill,
 html[data-demo='1'] .gdf-hero-main h1,
 html[data-demo='1'] .gdf-hero-lead strong,
 html[data-demo='1'] .gdf-hero-badge,
