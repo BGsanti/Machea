@@ -536,6 +536,8 @@
         // En la primera pregunta no hay a dónde retroceder dentro del quiz:
         // regresa a escarapela (el paso anterior en el flujo completo).
         if (state.qi === 0) {
+          // La demo pública no tiene registro: no se retrocede a él.
+          if (window.GDF_DEMO_PUBLICA) return false;
           state.screen = 'escarapela';
           break;
         }
