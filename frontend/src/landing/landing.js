@@ -55,61 +55,9 @@ function despertarBackend() {
   else setTimeout(ping, 1500);
 }
 
-/* ---- Probar Machea: la demo pública dentro de la página ------------------ */
-// `modo=demo` arranca el formulario sin registro, sin guardar datos y sin la
-// llamada de Manuela (ver experiencia/js/demo.js).
-const DEMO_URL = '/experiencia/index.html?marca=machea&modo=demo';
-const DEMO_ESPERA_MS = 20000;
-function iniciarPrueba() {
-  const cuerpo = $('#stageBody');
-  if (!cuerpo) return;
-  const reposo = $('#stageIdle'), carga = $('#stageCarga'), fallo = $('#stageError');
-  let marco = null, temporizador = 0;
-
-  function estado(e) {
-    cuerpo.dataset.estado = e;
-    reposo.hidden = e !== 'reposo';
-    carga.hidden = e !== 'carga';
-    fallo.hidden = e !== 'error';
-  }
-  function limpiar() {
-    clearTimeout(temporizador);
-    if (marco) { marco.remove(); marco = null; }
-  }
-  function mostrarError() {
-    limpiar();
-    estado('error');
-    $('#stageReintentar').focus({ preventScroll: true });
-  }
-  function cargar() {
-    limpiar();
-    if (navigator.onLine === false) { mostrarError(); return; }
-    estado('carga');
-    const f = marco = document.createElement('iframe');
-    f.title = 'Demo pública de Machea: formulario con recomendación de proyectos';
-    f.setAttribute('loading', 'eager');
-    f.hidden = true;
-    f.addEventListener('load', () => {
-      if (marco !== f) return;
-      // Mismo origen: se puede mirar adentro. Una página vacía o un 404 cuentan como fallo.
-      let ok = false;
-      try {
-        const d = f.contentDocument;
-        ok = !!(d && d.body && d.body.children.length > 0 && !/^(404|Not Found)/i.test(d.title || ''));
-      } catch { ok = false; }
-      if (!ok) { mostrarError(); return; }
-      clearTimeout(temporizador);
-      estado('activa');
-      f.hidden = false;
-      f.focus({ preventScroll: true });
-    });
-    f.src = DEMO_URL;
-    cuerpo.appendChild(f);
-    temporizador = setTimeout(mostrarError, DEMO_ESPERA_MS);
-  }
-  $('#stageIniciar').addEventListener('click', cargar);
-  $('#stageReintentar').addEventListener('click', cargar);
-}
+/* "Probar Machea" y "Empezar la prueba" son enlaces a la página del formulario
+   (/experiencia/index.html?marca=machea&modo=demo, ver experiencia/js/demo.js):
+   sin registro, sin guardar datos y sin la llamada de Manuela. No necesitan JS. */
 
 /* ---- Vista de ejemplo del CRM (datos ficticios) -------------------------- */
 const LEADS_EJEMPLO = [
@@ -672,7 +620,6 @@ function iniciarTarjetaLead() {
 
 iniciarMenu();
 despertarBackend();
-iniciarPrueba();
 iniciarCrm();
 iniciarDemoMarca();
 iniciarAgendar();

@@ -860,7 +860,11 @@
     // escarapela en vez de no hacer nada (ver applyAction en state.js).
     // Va DEBAJO DE LAS RESPUESTAS, alineado con ellas (variante B): antes
     // quedaba suelto al fondo del panel, lejos de lo que se estaba mirando.
-    var backBtn = '<button class="gdf-back-btn" data-action="goBack">' + ic('flecha-izquierda') + ' Atrás</button>';
+    // En la demo pública no hay registro detrás de la primera pregunta: ahí
+    // "Atrás" vuelve a la landing, de donde se llegó.
+    var backBtn = window.GDF_DEMO_PUBLICA && state.qi === 0
+      ? '<a class="gdf-back-btn" href="/" target="_top">' + ic('flecha-izquierda') + ' Volver a Machea</a>'
+      : '<button class="gdf-back-btn" data-action="goBack">' + ic('flecha-izquierda') + ' Atrás</button>';
 
     // EL PROGRESO ES EL DE LAS PREGUNTAS: un segmento por pregunta, rellenos
     // los contestados y el actual. Antes la única barra era la de afinidad,

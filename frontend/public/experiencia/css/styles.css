@@ -2296,6 +2296,10 @@ a.pt-flink:hover {
   font-weight: 700;
   cursor: pointer;
 }
+/* En la demo pública, el de la primera pregunta es un enlace a la landing. */
+a.gdf-back-btn {
+  text-decoration: none;
+}
 
 /* Preguntas 'number'/'text'/'multiselect' del quiz (edad exacta, entorno
    deseado): mismo input/botón que escarapela, sin grilla de opciones. */
