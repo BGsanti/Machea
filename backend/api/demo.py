@@ -49,6 +49,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 from api import correo as correo_mod
+from api import proyectos_web
 from api import ssrf
 from api.limites import HORA, DIA, Rechazo, entero_env, ip_del_cliente, limites
 from api.metricas import metricas
@@ -383,6 +384,9 @@ def solicitar_demo(payload: SolicitudDemo, request: Request, tareas: BackgroundT
 
     token = firmar(_datos_token(marca, tipo))
     enlace = url_demo(token)
+    # Los proyectos que publica en su sitio se leen aparte, sin hacerle esperar
+    # (api/proyectos_web.py). El front los pide con el mismo token.
+    estado_proyectos = proyectos_web.programar(payload.sitio, "demo_marca")
     hay_correo = correo_mod.configurado()
     if hay_correo:
         tareas.add_task(correo_mod.enviar, _correo_al_prospecto(nombre, correo, marca["nombre"], enlace))
@@ -402,6 +406,7 @@ def solicitar_demo(payload: SolicitudDemo, request: Request, tareas: BackgroundT
             "acento": marca["acento"], "tiene_logo": bool(marca["logo_id"] or marca["logo_origen"]),
             "detectado": marca["detectado"],
         },
+        "proyectos_web": estado_proyectos,
         "aviso": None if marca["detectado"] else (
             "No pudimos leer el logo de tu sitio; armamos la demo con tu nombre y el color que elegiste."
             if marca["color_elegido"] else

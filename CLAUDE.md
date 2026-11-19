@@ -70,9 +70,12 @@ Machea/
 │   ├── api/app.py                  capa HTTP (FastAPI). No decide nada (invariante 8).
 │   ├── scraping/scraper_projects.py construye el catálogo desde 4 constructoras
 │   ├── features/                   capacidades que NO deciden recomendaciones (§10)
-│   │   └── scrap_identity/         paleta y logo de una empresa por su URL
-│   │       ├── scrap.py            extraer_colores(url)
-│   │       └── identidades/<Empresa>/  paleta_<Empresa>.json + <Empresa>.svg
+│   │   ├── scrap_identity/         paleta y logo de una empresa por su URL
+│   │   │   ├── scrap.py            extraer_colores(url)
+│   │   │   └── identidades/<Empresa>/  paleta_<Empresa>.json + <Empresa>.svg
+│   │   └── scrap_proyectos/        los proyectos que una empresa publica en su sitio (§10.2)
+│   │       ├── scrap.py            extraer_proyectos(url)
+│   │       └── empresas/<Empresa>/ proyectos_<Empresa>.json + <Proyecto>/<id>/01.jpg… En .gitignore.
 │   ├── dapta/                      catálogo compacto para el prompt de Manuela
 │   └── salidas/                    resultado de UNA consulta. En .gitignore.
 └── frontend/
@@ -2154,3 +2157,44 @@ sin escribir en disco, que es lo que necesitará ese endpoint cuando se haga.
 
 Detalle completo en
 [features/scrap_identity/README.md](backend/features/scrap_identity/README.md).
+
+### 10.2 `scrap_proyectos` — los proyectos que publica una empresa
+
+Cuando una empresa escribe el link de su sitio en "Armar mi demo" (`/api/demo/solicitar`) o en "Agenda una
+demo" (`/api/captacion/demo`), `api/proyectos_web.py` pone en cola, en segundo plano, el recorrido de su sitio:
+
+```
+features/scrap_proyectos/empresas/<Empresa>/
+    proyectos_<Empresa>.json
+    <Nombre_Proyecto>/<id_proyecto>/01.jpg, 02.webp, …     # la primera es la portada
+```
+
+Por proyecto: nombre, qué vende (`tipo`/`tipos`: vivienda, oficinas, consultorios, locales, bodegas, lotes,
+hotelero), `segmento` (VIS/VIP/No VIS **solo si la página lo escribe**), venta o arriendo, precio "desde",
+área, habitaciones, ciudad, dirección (y `localidad` si es Bogotá, con `localidad_desde_direccion` del §6),
+coordenadas, amenidades con el vocabulario de 25 (invariante 2: `mapear_zonas_comunes` del scraper, lo
+desconocido va a `zonas_comunes_no_mapeadas`), colores en hex (`colores_pagina` del CSS propio de la ficha,
+`paleta` de sus fotos, `primario`/`secundario`/`acento`) y sus fotos, cada una con su `id`.
+
+- **Cómo encuentra las fichas:** sitemaps (un `proyecto-sitemap.xml` es la lista exacta), listados con su
+  paginación (sus enlaces que no están en la portada) y la forma de la URL. Y la página tiene que *parecer*
+  un proyecto por dentro (JSON-LD `ApartmentComplex`, o m² + precio + habitaciones + tipología…).
+- **El carrusel de "otros proyectos" se quita antes de leer la ficha.** Medido contra Cusezar: sin eso, seis de
+  ocho fichas salían con el mismo precio y la misma área, los de la tarjeta vecina. Cada tarjeta allá es un
+  `<article>`, así que lo que protege a la ficha no es detenerse en `<article>` sino no quitar nunca el bloque que
+  contiene su `<h1>`.
+- **El nombre es lo que coincide con la URL.** El `<title>` y hasta el JSON-LD traen el SEO ("Proyecto Murales:
+  Apartamentos VIS en Bogotá"); `/proyectos/murales` trae "Murales".
+- **Un segmento que contradice el precio se avisa, no se corrige** (`_segmento_aviso`, topes 90/150 SMMLV con el
+  SMMLV de `Model/prep.py`). "Sala VIP" es una amenidad, no el segmento.
+- **No ejecuta JavaScript.** En Amarilo encuentra las fichas por el sitemap pero sin precio: la cifra la pinta el
+  front. Queda en `descartados`/`fuentes`, no se inventa.
+- **Seguridad:** descarga solo por `scrap_identity._get`, que `ssrf.instalar()` reemplaza; presupuesto de 240 s.
+- **`EXTRAER_PROYECTOS_WEB`**: `1`/`0`; sin la variable solo corre en producción, así que en local y en las
+  pruebas no sale a internet. Una vez por sitio cada 12 h, cola de 4.
+- `GET /api/demo/proyectos?d=<token de la demo>` devuelve el estado y el catálogo sin rutas del servidor. **El front
+  todavía no lo pide.**
+- El disco de Render y Cloud Run es efímero: lo extraído dura hasta el próximo despliegue.
+
+Pruebas: `python -m unittest tests.test_scrap_proyectos -v`. Detalle en
+[features/scrap_proyectos/README.md](backend/features/scrap_proyectos/README.md).

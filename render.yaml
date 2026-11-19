@@ -36,6 +36,8 @@ services:
         sync: false
       - key: DEMO_SOLICITUDES_POR_IP_HORA   # demos con marca por conexión y hora (por defecto 12)
         sync: false
+      - key: EXTRAER_PROYECTOS_WEB      # proyectos del sitio de la empresa al llenar el formulario. Vacía = encendido en producción; 0 = apagado
+        sync: false
       # --- Panel de administración (/admin/ en el front). Apagado hasta definir ADMIN_PASSWORD. ---
       - key: ADMIN_PASSWORD             # 16+ caracteres; es la llave de entrada al panel
         sync: false

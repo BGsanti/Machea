@@ -48,6 +48,10 @@ DIR_FEATURES = os.path.join(DIR_BACKEND, "features")
 # empresa, nombrada con ella, con su paleta y su logo. Mismo contrato que
 # `imagenes_proyectos/<id_proyecto>/`: el nombre de la carpeta **es** la llave.
 DIR_IDENTIDADES = os.path.join(DIR_FEATURES, "scrap_identity", "identidades")
+# Proyectos que una empresa publica en su sitio (features/scrap_proyectos): una
+# carpeta por empresa con su JSON y, dentro, una por proyecto —su nombre y luego
+# su id— con las fotos. Mismo contrato: el nombre de la carpeta es la llave.
+DIR_PROYECTOS_WEB = os.path.join(DIR_FEATURES, "scrap_proyectos", "empresas")
 
 # El front es quien sirve las imágenes, así que viven en sus recursos.
 DIR_FRONTEND = os.path.join(DIR_RAIZ, "frontend")

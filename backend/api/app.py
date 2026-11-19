@@ -49,6 +49,7 @@ from api import demo as demo_mod
 from api import exclusiones
 from api import horario
 from api import programados
+from api import proyectos_web
 from api import grabaciones as grabaciones_mod
 from api import llamadas
 from api import seguimiento
@@ -93,6 +94,9 @@ TZ_BOGOTA = timezone(timedelta(hours=-5))
 from Model.prep import SMMLV as SMMLV_COP
 
 app.include_router(demo_mod.router)
+# Los proyectos que una empresa publica en su sitio, leídos en segundo plano cuando escribe su link en un
+# formulario (api/proyectos_web.py + features/scrap_proyectos). GET /api/demo/proyectos con el token de la demo.
+app.include_router(proyectos_web.router)
 app.include_router(admin_mod.router)
 app.include_router(captacion_mod.router)
 # Aprobación de cuentas de empresas desde /admin (login; ver design/login/CONTRATO_AUTH.md).

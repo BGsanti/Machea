@@ -18,6 +18,10 @@
 # Salidas de una consulta concreta: cambian en cada llamada.
 /backend/salidas/
 
+# Proyectos y fotos leídos del sitio de cada empresa (features/scrap_proyectos): se
+# regeneran cuando la empresa vuelve a escribir su link, y las fotos pesan.
+/backend/features/scrap_proyectos/empresas/
+
 __pycache__/
 *.py[cod]
 .venv/

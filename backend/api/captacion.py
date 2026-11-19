@@ -50,6 +50,7 @@ from api import exclusiones
 from api import grabaciones
 from api import horario
 from api import programados
+from api import proyectos_web
 from api.horario import TZ, es_festivo, festivos_colombia  # noqa: F401  (las pruebas y otros módulos los usan desde aquí)
 from api import seguimiento
 from api.limites import DIA, Rechazo, entero_env, ip_del_cliente, limites
@@ -716,6 +717,9 @@ def demo(entrada: DemoEntrada, request: Request):
     if not creado:
         p = a.actualizar(p["id"], origen="demo_web", calificacion={**(p.get("calificacion") or {}), "declarado": declarado}) or p
     metricas.registrar("captacion_demo", f"Demostración pedida · {enmascarar_telefono(tel)}", "info")
+    # Con el sitio de la empresa, sus proyectos se leen en segundo plano (api/proyectos_web.py): Camila y la
+    # demo llegan sabiendo qué vende.
+    proyectos_web.programar(entrada.sitio, "agenda_demo")
     if os.environ.get("CAPTACION_LLAMAR_DEMOS", "").lower() != "true":
         return {"status": "registrado", "llamada": False}
     r = llamar_prospecto({**p, "telefono": tel, "origen": "demo_web"}, ip=ip_del_cliente(request), publico=True)
