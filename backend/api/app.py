@@ -50,6 +50,7 @@ from api import exclusiones
 from api import horario
 from api import programados
 from api import proyectos_web
+from api import formulario_personalizado
 from api import grabaciones as grabaciones_mod
 from api import llamadas
 from api import seguimiento
@@ -97,6 +98,9 @@ app.include_router(demo_mod.router)
 # Los proyectos que una empresa publica en su sitio, leídos en segundo plano cuando escribe su link en un
 # formulario (api/proyectos_web.py + features/scrap_proyectos). GET /api/demo/proyectos con el token de la demo.
 app.include_router(proyectos_web.router)
+# La versión API del formulario personalizado: datos del formulario -> diseño completo (marca + proyectos + opciones
+# + espacio de diseño). Ver api/formulario_personalizado.py y features/formulario_personalizado/CONTRATO.md.
+app.include_router(formulario_personalizado.router)
 app.include_router(admin_mod.router)
 app.include_router(captacion_mod.router)
 # Aprobación de cuentas de empresas desde /admin (login; ver design/login/CONTRATO_AUTH.md).

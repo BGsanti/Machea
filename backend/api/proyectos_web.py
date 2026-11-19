@@ -39,7 +39,7 @@ import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -174,6 +174,22 @@ def _buscar_en_disco(clave: str) -> Optional[str]:
     return None
 
 
+def catalogo_de(host: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """(catálogo, ruta del JSON) de la empresa de ese dominio, o (None, None) si no hay.
+
+    Lo usan `/api/demo/proyectos` y el formulario personalizado (api/formulario_personalizado.py).
+    """
+    clave = _clave(host)
+    ruta = estado(clave).get("ruta_json") or _buscar_en_disco(clave)
+    if not ruta or not os.path.isfile(ruta):
+        return None, None
+    try:
+        with open(ruta, "r", encoding="utf-8") as fh:
+            return json.load(fh), ruta
+    except (OSError, ValueError):
+        return None, None
+
+
 CAMPOS_PUBLICOS = (
     "id_proyecto", "nombre", "url", "tipo", "tipos", "subtipos", "segmento", "operacion",
     "estado_obra", "descripcion", "ciudad", "precio_desde_cop", "precio_es_canon", "area_m2",
@@ -198,16 +214,8 @@ def proyectos_de_la_demo(request: Request, d: str = Query(..., max_length=2000))
     datos = demo.verificar(d)
     if not datos:
         raise HTTPException(404, "Demo no válida o vencida.")
-    clave = _clave(datos.get("s"))
-    trabajo = estado(clave)
-    ruta = trabajo.get("ruta_json") or _buscar_en_disco(clave)
-    catalogo = None
-    if ruta and os.path.isfile(ruta):
-        try:
-            with open(ruta, "r", encoding="utf-8") as fh:
-                catalogo = json.load(fh)
-        except (OSError, ValueError):
-            catalogo = None
+    trabajo = estado(datos.get("s"))
+    catalogo, _ruta = catalogo_de(datos.get("s"))
     return {
         "estado": trabajo.get("estado") or ("listo" if catalogo else "sin_datos"),
         "empresa": (catalogo or {}).get("empresa") or trabajo.get("empresa"),

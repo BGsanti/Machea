@@ -67,7 +67,13 @@ En producción corre sola: cuando alguien envía "Armar mi demo" o "Agenda una d
 - **Qué páginas son proyectos.** Sitemaps (un `proyecto-sitemap.xml` de WordPress es la lista exacta), listados
   (`/proyectos`, con su paginación) y la forma de la URL. Sobre eso, la página tiene que *parecerlo por dentro*:
   JSON-LD `ApartmentComplex`/`Residence`, o varias señales a la vez (m², habitaciones, precio, sala de ventas,
-  tipología, obra). Una URL de proyecto sin nada adentro se descarta con su motivo.
+  tipología, obra) **y** cifras de inmueble: m², o habitaciones con precio. Una URL de proyecto sin nada adentro se
+  descarta con su motivo. Medido contra Cusezar, sin la regla de las cifras entraban seis artículos del blog
+  ("Pasos para adquirir vivienda"…), que nombran precios y ventas sin publicar un solo m².
+- **Lo que no es ficha, aunque lo parezca.** Los slugs de artículos (`tips-`, `pasos-`, `guia-`, `como-`…) ni se
+  bajan; "proyectos" en plural en el slug (`/home-proyectos/`) es un listado; "vivienda" o "apartamento" dentro de un
+  slug no basta para ser ficha. Y lo que manda es a dónde llegó la página: si redirige o declara como canónica una del
+  blog, se descarta.
 - **Solo lo de esa ficha.** Antes de leerla se quita el bloque que presenta *otros* proyectos (el contenedor más
   pequeño que enlaza a dos fichas distintas), sin tocar nunca el que contiene su `<h1>`. Contra Cusezar, sin esto
   seis de ocho fichas salían con el precio, el área y hasta las fotos de la tarjeta vecina.
@@ -85,7 +91,8 @@ En producción corre sola: cuando alguien envía "Armar mi demo" o "Agenda una d
 - **No ejecuta JavaScript.** Un sitio que pinta sus proyectos desde React sin sitemap ni HTML del servidor sale con
   pocos o ninguno; queda dicho en `descartados` y `fuentes`.
 - Presupuesto de tiempo (240 s por defecto, 40 % reservado para fotos) y topes: 80 páginas, 30 proyectos, 12 fotos por
-  proyecto, 200 en total.
+  proyecto, 200 en total, repartidas entre todos (con 25 proyectos, 8 cada uno). Cusezar completo: 25 proyectos y
+  200 fotos en ~190 s.
 - En la API toda descarga pasa por `scrap_identity._get`, que `api/ssrf.py` reemplaza por su versión segura: solo
   IPs públicas, cada redirección revalidada, tope de tamaño.
 - El disco de Render y de Cloud Run es efímero: lo extraído dura hasta el próximo despliegue.

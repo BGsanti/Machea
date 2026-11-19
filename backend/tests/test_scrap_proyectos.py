@@ -49,6 +49,7 @@ LISTADO = f"""<html><head><title>Proyectos | Constructora Andes</title></head><b
 <main><h1>Nuestros proyectos</h1>
 <a href="/proyectos/bosque-verde/">Bosque Verde</a>
 <a href="/proyectos/torre-empresarial-90">Torre Empresarial 90</a>
+<a href="/proyectos/sala-de-ventas">Sala de ventas</a>
 <a href="/proyectos/como-comprar">Cómo comprar</a>
 <a href="/proyectos/page/2">Siguiente</a></main>{PIE}</body></html>"""
 
@@ -105,13 +106,25 @@ Un bello proyecto rodeado de pasto y montañas.</p>
 COMO_COMPRAR = f"""<html><head><title>Cómo comprar | Constructora Andes</title></head><body>{CABECERA}
 <main><h1>Guía para comprar</h1><p>Te contamos paso a paso.</p></main>{PIE}</body></html>"""
 
+# Nombra precios, ventas y tipologías como un artículo, pero no publica las cifras de un inmueble.
+SALA_DE_VENTAS = f"""<html><head><title>Sala de ventas | Constructora Andes</title></head><body>{CABECERA}
+<main><h1>Visítanos</h1><p>Separa tu apartamento con la cuota inicial más baja. Precio de separación
+desde $ 1.000.000. Torres en construcción y entrega en 2027. Agenda tu visita.</p></main>{PIE}</body></html>"""
+
+# Por su URL parece una ficha, pero su canónica es un artículo del blog.
+FERIA = f"""<html><head><title>Feria de vivienda 2026</title>
+<link rel="canonical" href="{BASE}/blog/feria-de-vivienda-2026"></head><body>{CABECERA}
+<main><h1>Feria de vivienda 2026</h1><p>Apartamentos desde 40 m2 y 2 habitaciones, desde $ 200.000.000.</p>
+</main>{PIE}</body></html>"""
+
 ROBOTS = f"User-agent: *\nDisallow:\nSitemap: {BASE}/sitemap_index.xml\n"
 INDICE = f"""<?xml version="1.0"?><sitemapindex>
 <sitemap><loc>{BASE}/post-sitemap.xml</loc></sitemap>
 <sitemap><loc>{BASE}/proyecto-sitemap.xml</loc></sitemap></sitemapindex>"""
 SITEMAP_PROYECTOS = f"""<?xml version="1.0"?><urlset>
 <url><loc>{BASE}/proyectos/bosque-verde/</loc></url>
-<url><loc>{BASE}/proyectos/torre-empresarial-90</loc></url></urlset>"""
+<url><loc>{BASE}/proyectos/torre-empresarial-90</loc></url>
+<url><loc>{BASE}/proyectos/feria-vivienda-2026</loc></url></urlset>"""
 SITEMAP_POSTS = f"""<?xml version="1.0"?><urlset><url><loc>{BASE}/blog/feria</loc></url></urlset>"""
 
 ROJO = foto((208, 64, 42))
@@ -127,6 +140,8 @@ SITIO = {
     "/proyectos/torre-empresarial-90": (TORRE, "text/html"),
     "/proyectos/reserva-del-lago": (LAGO, "text/html"),
     "/proyectos/como-comprar": (COMO_COMPRAR, "text/html"),
+    "/proyectos/sala-de-ventas": (SALA_DE_VENTAS, "text/html"),
+    "/proyectos/feria-vivienda-2026": (FERIA, "text/html"),
     "/media/bosque/portada.jpg": (foto((200, 60, 40)), "image/jpeg"),
     "/media/bosque/1.jpg": (ROJO, "image/jpeg"),
     "/media/bosque/3.jpg": (ROJO, "image/jpeg"),                 # la misma foto: se guarda una vez
@@ -190,8 +205,12 @@ class TestExtraccionCompleta(unittest.TestCase):
 
     def test_lo_que_no_es_proyecto_queda_descartado_con_motivo(self):
         motivos = {d["url"]: d["motivo"] for d in self.r["descartados"]}
-        self.assertIn(f"{BASE}/proyectos/como-comprar", motivos)
-        self.assertIn("no parece un proyecto", motivos[f"{BASE}/proyectos/como-comprar"])
+        # Nombra precio, venta y obra, pero no publica las cifras de un inmueble.
+        self.assertIn("sin cifras de proyecto", motivos[f"{BASE}/proyectos/sala-de-ventas"])
+        # Su URL parece de ficha, pero su canónica es un artículo del blog.
+        self.assertIn("no es de proyecto", motivos[f"{BASE}/proyectos/feria-vivienda-2026"])
+        # Un slug de guía ni se baja.
+        self.assertNotIn(f"{BASE}/proyectos/como-comprar", self.pedidas)
         self.assertFalse(any("/blog/" in u or "/contacto" in u or "/nosotros" in u for u in self.pedidas))
 
     def test_sigue_el_sitemap_de_proyectos_y_no_el_de_posts(self):
@@ -315,6 +334,12 @@ class TestReglas(unittest.TestCase):
             "https://www.andes.com.co/blog/feria-de-vivienda": (-1, False),
             "https://www.andes.com.co/proyectos/page/3": (-1, False),
             "https://www.andes.com.co/brochure.pdf": (-1, False),
+            # Medidos contra Cusezar: artículos con "vivienda" en el slug.
+            "https://www.andes.com.co/pasos-para-adquirir-vivienda/": (-1, False),
+            "https://www.andes.com.co/tips-para-comprar-vivienda/": (-1, False),
+            "https://www.andes.com.co/vivienda-para-jovenes/": (0, False),
+            "https://www.andes.com.co/home-proyectos/": (1, True),          # plural: un listado
+            "https://www.andes.com.co/proyectos-bogota/": (1, True),
             "https://otro-sitio.com/proyectos/x": (-1, False),
             "https://ventas.andes.com.co/proyectos/x": (4, False),
         }

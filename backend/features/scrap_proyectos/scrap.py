@@ -283,6 +283,15 @@ RE_RUTA_EXCLUIDA = re.compile(
     r"simulador|financiacion|subsidios?|credito|calculadora)(/|$)|/(page|pagina)/\d+/?$"
 )
 RE_PAGINACION = re.compile(r"/(page|pagina)/\d+/?$|[?&](page|pagina|pg|paged)=\d+", re.I)
+# Dentro de un slug solo cuentan las palabras que nombran una ficha. "vivienda" o
+# "apartamento" dentro de un slug son SEO de contenido: medido contra Cusezar,
+# /pasos-para-adquirir-vivienda/ y /tips-para-comprar-vivienda/ entraban como proyectos.
+RE_PALABRA_FICHA_EN_SLUG = re.compile(r"proyecto|project|conjunto|torre|residencial|condominio|edificio|macroproyecto")
+# Slugs de artículos y guías: nunca son la ficha de un proyecto.
+RE_SLUG_CONTENIDO = re.compile(
+    r"(^|-)(tips|pasos|guia|guias|consejos|como|que-es|cuanto|cuando|beneficios|ventajas|requisitos|"
+    r"aprende|mitos|razones|errores|claves|diferencias|ideas)(-|$)"
+)
 RE_ARCHIVO = re.compile(r"\.(pdf|jpe?g|png|gif|webp|avif|svg|ico|zip|rar|docx?|xlsx?|pptx?|mp4|mp3|css|js|xml|json|txt)$", re.I)
 
 CIUDADES = {
@@ -327,7 +336,13 @@ def puntaje_url(url, raiz):
     if RE_RUTA_EXCLUIDA.search("/" + "/".join(segmentos)):
         return -1, False
     planos = [_sin_tildes(s) for s in segmentos]
+    if RE_SLUG_CONTENIDO.search(planos[-1]):
+        return -1, False
     if len(planos) == 1 and planos[0] in SEGMENTOS_LISTADO:
+        return 1, True
+    # "proyectos" en plural dentro del slug es un listado (/home-proyectos/, /proyectos-bogota/,
+    # medido contra Cusezar); en singular (/proyecto-bosque-verde) es una ficha.
+    if len(planos) == 1 and re.search(r"(^|-)(proyectos|projects)(-|$)", planos[0]):
         return 1, True
     if len(planos) == 2 and planos[0] in SEGMENTOS_LISTADO and (
             planos[1].replace("-", " ") in CIUDADES or planos[1] in SEGMENTOS_LISTADO):
@@ -336,7 +351,7 @@ def puntaje_url(url, raiz):
         if RE_SEGMENTO_PROYECTO.search(seg):
             if i < len(planos) - 1:
                 return (4 if len(planos) <= 4 else 3), False
-            if "-" in seg and seg not in SEGMENTOS_LISTADO:
+            if "-" in seg and seg not in SEGMENTOS_LISTADO and RE_PALABRA_FICHA_EN_SLUG.search(seg):
                 return 3, False
     if len(planos) >= 2 and planos[0].replace("-", " ") in CIUDADES:
         return 1, False
@@ -890,6 +905,13 @@ def es_pagina_de_proyecto(pagina, bono_url=0):
         de_texto.append("amenidades")
     puntaje += min(len(de_texto), 4)
     senales += de_texto
+    # Una ficha publica cifras: m², o habitaciones con precio, o un JSON-LD de
+    # vivienda. Un artículo del blog nombra precios, ventas y tipologías, pero no
+    # las cifras de un inmueble: medido contra Cusezar, seis artículos pasaban
+    # el umbral por acumular señales sueltas.
+    cifras = bool(tipos & TIPOS_LD_FUERTES) or "area" in de_texto or {"habitaciones", "precio"} <= set(de_texto)
+    if not cifras:
+        return min(puntaje, UMBRAL_PROYECTO - 1), senales + ["sin cifras de proyecto"]
     return puntaje, senales
 
 
@@ -1652,6 +1674,13 @@ def extraer_proyectos(
             descartados.append({"url": destino, "motivo": f"no responde: {_corto(error, 100)}"})
             continue
         fuentes["paginas_leidas"] += 1
+        # La URL pedida puede redirigir, o declarar como canónica, una del blog:
+        # lo que manda es a dónde llegó, no lo que se pidió.
+        llegada = next((u for u in (pagina["url"], pagina["canonica"])
+                        if u and puntaje_url(u, raiz)[0] < 0 and urlparse(u).path.strip("/")), None)
+        if llegada:
+            descartados.append({"url": destino, "motivo": f"lleva a una página que no es de proyecto: {llegada}"})
+            continue
         if pagina["canonica"]:
             if _llave_url(pagina["canonica"]) in leidas and _llave_url(pagina["canonica"]) != _llave_url(destino):
                 continue
@@ -1707,11 +1736,14 @@ def extraer_proyectos(
     def bajar_fotos(dir_empresa):
         nonlocal incompleto
         total, vistas = 0, set()
+        # El tope total se reparte: sin esto, con 23 proyectos los primeros se llevaban
+        # 12 fotos cada uno y los últimos ninguna (medido contra Cusezar).
+        por_proyecto = min(max_imagenes, max(3, MAX_IMAGENES_TOTAL // max(1, len(proyectos))))
         for p in proyectos:
             p["imagenes"], colores = [], []
             destino = os.path.join(dir_empresa, *p["carpeta"].split("/")) if dir_empresa else None
             for url_imagen, fuente in p["_candidatas"]:
-                if len(p["imagenes"]) >= max_imagenes or total >= MAX_IMAGENES_TOTAL:
+                if len(p["imagenes"]) >= por_proyecto or total >= MAX_IMAGENES_TOTAL:
                     break
                 if reloj.agotado(reserva=0.02):
                     incompleto = incompleto or "se acabó el tiempo bajando fotos"

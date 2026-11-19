@@ -69,7 +69,8 @@ Machea/
 │   │       └── calibrar_barrios.py calibra RADIO_CERCANIA_KM y el peso (§3.5)
 │   ├── api/app.py                  capa HTTP (FastAPI). No decide nada (invariante 8).
 │   ├── scraping/scraper_projects.py construye el catálogo desde 4 constructoras
-│   ├── features/                   capacidades que NO deciden recomendaciones (§10)
+│   ├── features/                   capacidades que NO deciden recomendaciones (§10). Guía: features/CLAUDE.md
+│   │   ├── formulario_personalizado/  marca + proyectos -> diseño completo del formulario (§10.3)
 │   │   ├── scrap_identity/         paleta y logo de una empresa por su URL
 │   │   │   ├── scrap.py            extraer_colores(url)
 │   │   │   └── identidades/<Empresa>/  paleta_<Empresa>.json + <Empresa>.svg
@@ -1307,6 +1308,9 @@ que el paquete `Model` sea importable.
 | `GET /api/barrios?localidad=N` | Los sectores catastrales de esa localidad (`{id, nombre}`), de `Model/grafo_barrios.py`, para un desplegable dependiente. `disponible: false` si el backend corre sin grafo. |
 | `POST /api/recomendar` | Recibe el formulario, devuelve `respuesta_json()`. |
 | `POST /api/llamar` | Dispara la llamada de Manuela (§5.3). |
+| `POST /api/formulario/personalizado` | Datos del formulario de una empresa → diseño completo de su formulario (§10.3). |
+| `GET /api/formulario/personalizado[.js]?d=<token>` | Ese diseño, ya con sus proyectos; en `.js`, con la forma de `tenants/<slug>/`. |
+| `GET /api/demo/proyectos?d=<token>` | Los proyectos leídos del sitio de la empresa de esa demo (§10.2). |
 
 `FormularioUsuario` (Pydantic) marca obligatorios **solo los seis campos del
 contrato mínimo** —`tipo_vivienda`, `salario`, `personas_a_cargo`, `edad`,
@@ -2185,6 +2189,10 @@ desconocido va a `zonas_comunes_no_mapeadas`), colores en hex (`colores_pagina` 
   contiene su `<h1>`.
 - **El nombre es lo que coincide con la URL.** El `<title>` y hasta el JSON-LD traen el SEO ("Proyecto Murales:
   Apartamentos VIS en Bogotá"); `/proyectos/murales` trae "Murales".
+- **Un artículo del blog no es una ficha.** Una página solo cuenta si publica cifras de inmueble (m², o habitaciones con
+  precio); los slugs de guías (`tips-`, `pasos-`…) no se bajan, "proyectos" en plural en el slug es un listado y una
+  página que redirige o declara canónica una del blog se descarta. Sin eso, contra Cusezar entraban seis artículos.
+  Cusezar completo: 25 proyectos y 200 fotos (8 por proyecto, el tope se reparte) en ~190 s.
 - **Un segmento que contradice el precio se avisa, no se corrige** (`_segmento_aviso`, topes 90/150 SMMLV con el
   SMMLV de `Model/prep.py`). "Sala VIP" es una amenidad, no el segmento.
 - **No ejecuta JavaScript.** En Amarilo encuentra las fichas por el sitemap pero sin precio: la cifra la pinta el
@@ -2198,3 +2206,22 @@ desconocido va a `zonas_comunes_no_mapeadas`), colores en hex (`colores_pagina` 
 
 Pruebas: `python -m unittest tests.test_scrap_proyectos -v`. Detalle en
 [features/scrap_proyectos/README.md](backend/features/scrap_proyectos/README.md).
+
+### 10.3 `formulario_personalizado` — la versión API del formulario de una empresa
+
+Nos dan los datos del formulario de una empresa (nombre, correo, link, tipo) y devolvemos el **diseño completo** de su
+formulario: `POST /api/formulario/personalizado` crea (marca en segundos, proyectos en cola) y
+`GET /api/formulario/personalizado?d=<token>` lo devuelve ya con los proyectos. El armado es una función pura,
+`features/formulario_personalizado/armar.py`; la capa HTTP, `api/formulario_personalizado.py`, con la dependencia de
+FastAPI `formulario_de_la_demo` (token → diseño) para cualquier router nuevo.
+
+- **Habla el idioma del front**: `marca` con la forma de `window.GDF_MARCA` y `proyectos` con la de
+  `window.GDF_PROYECTOS` (`tenants/<slug>/`). `tests/test_formulario_personalizado.py` lo compara contra los archivos
+  reales del tenant `machea`. `.../personalizado.js` lo entrega como script para el cargador de `index.html`.
+- **El diseño visual es de Santiago Dias**: la respuesta trae `diseno` con los tokens sugeridos (contraste WCAG medido)
+  y las decisiones abiertas. Handoff en [design/formulario-personalizado/README.md](design/formulario-personalizado/README.md).
+- **Hoy ya se ve**: `demo_url` abre el formulario actual vestido con la marca (js/demo.js + js/tema.js).
+- **No manda correo ni llama.** Fotos por `/api/formulario/imagen`, solo de la carpeta de esa empresa.
+
+Contrato: [features/formulario_personalizado/CONTRATO.md](backend/features/formulario_personalizado/CONTRATO.md).
+Cómo usar y dónde implementar las tres piezas de `features/`: [backend/features/CLAUDE.md](backend/features/CLAUDE.md).
