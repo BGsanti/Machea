@@ -371,10 +371,11 @@
   "iva_pct": 19,
   "prices_include_iva": false,
   "billing": {"method": "pago en línea (tarjeta o PSE)", "frequency": "mensual", "status": "vigente"},
+  "payment": {"provider": "Bold", "cta": "Pagar", "includes_iva": true, "setup_pay_url": "https://checkout.bold.co/payment/LNK_TUXUS0B4B6"},
   "plans": [
-    {"id": "arranque", "name": "Arranque", "price": 690000, "period": "mes", "leads": 150, "extra_lead_price": 3800, "setup_fee": 490000, "recommended": false, "cta": "Agendar una demo", "status": "vigente"},
-    {"id": "crecimiento", "name": "Crecimiento", "price": 1490000, "period": "mes", "leads": 400, "extra_lead_price": 3500, "setup_fee": 490000, "recommended": true, "recommended_status": "por decidir", "cta": "Agendar una demo", "status": "vigente"},
-    {"id": "escala", "name": "Escala", "price": 3490000, "period": "mes", "leads": 1000, "extra_lead_price": 3300, "setup_fee": 490000, "recommended": false, "cta": "Agendar una demo", "status": "vigente"}
+    {"id": "arranque", "name": "Arranque", "price": 690000, "period": "mes", "leads": 150, "extra_lead_price": 3800, "setup_fee": 490000, "recommended": false, "cta": "Agendar una demo", "pay_url": "https://checkout.bold.co/payment/LNK_KN7TIN7XKE", "status": "vigente"},
+    {"id": "crecimiento", "name": "Crecimiento", "price": 1490000, "period": "mes", "leads": 400, "extra_lead_price": 3500, "setup_fee": 490000, "recommended": true, "recommended_status": "por decidir", "cta": "Agendar una demo", "pay_url": "https://checkout.bold.co/payment/LNK_AD0PIZBTTT", "status": "vigente"},
+    {"id": "escala", "name": "Escala", "price": 3490000, "period": "mes", "leads": 1000, "extra_lead_price": 3300, "setup_fee": 490000, "recommended": false, "cta": "Agendar una demo", "pay_url": "https://checkout.bold.co/payment/LNK_QUX2BVBF8Q", "status": "vigente"}
   ],
   "pilot": {"id": "piloto", "name": "Piloto", "price": 590000, "period": "pago único", "leads": 150, "duration_text": "hasta 60 días o 150 leads, lo que ocurra primero", "duration_status": "por decidir", "setup_fee": 0, "setup_note": "montaje incluido", "guarantee": null, "guarantee_status": "por decidir", "cta": "Empezar piloto"},
   "included": [

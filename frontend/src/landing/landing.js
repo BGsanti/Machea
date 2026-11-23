@@ -75,6 +75,14 @@ function iniciarPrecios() {
   const planes = (d.plans || []).filter(vigente);
   const maxLeads = Math.max(1, ...planes.map((p) => p.leads));
   const incluido = (d.included || []).map((t) => `<li>${ico('i-check')}<span>${esc(t)}</span></li>`).join('');
+  // Pago en línea con Bold: cada plan tiene su link de monto fijo (IVA incluido). Solo se aceptan
+  // links de checkout.bold.co; si un plan no tiene link, se muestra solo "Agendar una demo".
+  const pago = d.payment || {};
+  const linkBold = (u) => (typeof u === 'string' && u.startsWith('https://checkout.bold.co/') ? u : null);
+  const botonPago = (p) => {
+    const url = linkBold(p.pay_url);
+    return url ? `<a class="btn btn-line" href="${esc(url)}" target="_blank" rel="noopener">${esc(pago.cta || 'Pagar')}<span class="sr-only"> en línea el plan ${esc(p.name)} (se abre en una pestaña nueva)</span></a>` : '';
+  };
 
   lista.innerHTML = planes.map((p) => `<li class="plan${p.recommended ? ' plan-top' : ''}">
           <h3>${esc(p.name)}</h3>
@@ -82,17 +90,25 @@ function iniciarPrecios() {
           <p class="plan-leads"><span class="tag tag-warm-plain">${nf.format(p.leads)} leads al ${esc(p.period)}</span><i class="vol" style="--v:${Math.round(p.leads / maxLeads * 100)}" aria-hidden="true"></i><span>${pesos(p.price / p.leads)} por lead incluido</span></p>
           <ul class="plan-feats">${incluido}</ul>
           <p class="plan-extra">Lead adicional: ${pesos(p.extra_lead_price)}</p>
-          <a class="btn btn-coral btn-arrow" href="#agendar" data-agendar data-plan="${esc(p.id)}">${esc(p.cta)}<span class="sr-only"> del plan ${esc(p.name)}</span></a>
+          <div class="plan-ctas">
+            <a class="btn btn-coral btn-arrow" href="#agendar" data-agendar data-plan="${esc(p.id)}">${esc(p.cta)}<span class="sr-only"> del plan ${esc(p.name)}</span></a>
+            ${botonPago(p)}
+          </div>
         </li>`).join('');
 
   const montaje = planes.find((p) => p.setup_fee);
   const r = d.rules || {};
   const minuscula = (t) => t.charAt(0).toLowerCase() + t.slice(1);
-  $('#preciosNotas').innerHTML = [
+  const urlMontaje = linkBold(pago.setup_pay_url);
+  const notas = [
     montaje ? `Montaje inicial único de ${pesos(montaje.setup_fee)} por cliente nuevo: carga de tus proyectos, formulario y configuración de los agentes.` : null,
     'Un lead es un interesado que completa el formulario con un teléfono válido.',
-    r.iva_note, r.credit_disclaimer, r.call_hours ? `Horario de llamadas: ${minuscula(r.call_hours)}` : null,
-  ].filter(Boolean).map((t) => `<li>${esc(t)}</li>`).join('');
+    r.iva_note,
+    planes.some((p) => linkBold(p.pay_url)) && pago.includes_iva ? 'El pago en línea cobra la mensualidad con el IVA incluido; el montaje inicial se paga aparte.' : null,
+    r.credit_disclaimer, r.call_hours ? `Horario de llamadas: ${minuscula(r.call_hours)}` : null,
+  ].filter(Boolean).map((t) => `<li>${esc(t)}</li>`);
+  if (montaje && urlMontaje) notas[0] = notas[0].replace('</li>', ` <a href="${esc(urlMontaje)}" target="_blank" rel="noopener">Pagar el montaje en línea</a></li>`);
+  $('#preciosNotas').innerHTML = notas.join('');
 }
 
 // Los precios cuentan desde cero hasta su valor cuando la tarjeta entra en pantalla.
