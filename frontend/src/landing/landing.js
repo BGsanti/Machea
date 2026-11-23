@@ -75,7 +75,7 @@ function iniciarPrecios() {
   const planes = (d.plans || []).filter(vigente);
   const maxLeads = Math.max(1, ...planes.map((p) => p.leads));
   const incluido = (d.included || []).map((t) => `<li>${ico('i-check')}<span>${esc(t)}</span></li>`).join('');
-  // Pago en línea con Bold: cada plan tiene su link de monto fijo (IVA incluido). Solo se aceptan
+  // Pago en línea con Bold: cada plan tiene su link con el mismo monto de la tarjeta. Solo se aceptan
   // links de checkout.bold.co; si un plan no tiene link, se muestra solo "Agendar una demo".
   const pago = d.payment || {};
   const linkBold = (u) => (typeof u === 'string' && u.startsWith('https://checkout.bold.co/') ? u : null);
@@ -86,7 +86,7 @@ function iniciarPrecios() {
 
   lista.innerHTML = planes.map((p) => `<li class="plan${p.recommended ? ' plan-top' : ''}">
           <h3>${esc(p.name)}</h3>
-          <p class="plan-price"><b>${pesos(p.price)}</b><span>/ ${esc(p.period)} + IVA</span></p>
+          <p class="plan-price"><b>${pesos(p.price)}</b><span>/ ${esc(p.period)}${d.prices_include_iva ? '' : ' + IVA'}</span></p>
           <p class="plan-leads"><span class="tag tag-warm-plain">${nf.format(p.leads)} leads al ${esc(p.period)}</span><i class="vol" style="--v:${Math.round(p.leads / maxLeads * 100)}" aria-hidden="true"></i><span>${pesos(p.price / p.leads)} por lead incluido</span></p>
           <ul class="plan-feats">${incluido}</ul>
           <p class="plan-extra">Lead adicional: ${pesos(p.extra_lead_price)}</p>
@@ -104,7 +104,6 @@ function iniciarPrecios() {
     montaje ? `Montaje inicial único de ${pesos(montaje.setup_fee)} por cliente nuevo: carga de tus proyectos, formulario y configuración de los agentes.` : null,
     'Un lead es un interesado que completa el formulario con un teléfono válido.',
     r.iva_note,
-    planes.some((p) => linkBold(p.pay_url)) && pago.includes_iva ? 'El pago en línea cobra la mensualidad con el IVA incluido; el montaje inicial se paga aparte.' : null,
     r.credit_disclaimer, r.call_hours ? `Horario de llamadas: ${minuscula(r.call_hours)}` : null,
   ].filter(Boolean).map((t) => `<li>${esc(t)}</li>`);
   if (montaje && urlMontaje) notas[0] = notas[0].replace('</li>', ` <a href="${esc(urlMontaje)}" target="_blank" rel="noopener">Pagar el montaje en línea</a></li>`);
